@@ -1,3 +1,5 @@
+node_modules
+
 # Env files — contain secrets
 .env
 .env.local
@@ -9,3 +11,4 @@ nginx/certs/
 # OS/editor noise
 .DS_Store
 .vscode/
+

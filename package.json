@@ -1,0 +1,15 @@
+{
+	"devDependencies": {
+		"@types/react": "^19.2.15",
+		"@types/react-dom": "^19.2.3"
+	},
+	"dependencies": {
+		"jsx": "^0.9.89",
+		"next": "^16.2.6",
+		"tailwindcss": "^4.3.0"
+	},
+	"overrides": {
+		"postcss": "^8.5.10",
+		"minimist": "^1.2.8"
+	}
+}

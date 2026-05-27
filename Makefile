@@ -9,19 +9,19 @@ init:
 
 up: init
 	docker compose -f ./docker-compose.yml up -d
-	
+
 up_logs: down
 	docker compose -f ./docker-compose.yml up
-	
+
 rebuild:
 	docker compose -f ./docker-compose.yml build --no-cache
 
 down:
 	docker compose -f ./docker-compose.yml down
-	
+
 clean: down
 	docker system prune -f
-	rm -rf nextjs-app/.next nextjs-app/node_modules
+	rm -rf nextjs-app/.next .node_modules
 
 fclean: down
 	rm -rf nginx/certs
