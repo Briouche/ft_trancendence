@@ -8,7 +8,6 @@
 <style>
 :root{--bg:#0e0c0a;--bg2:#161410;--bg3:#1e1b17;--bg4:#252019;--border:rgba(212,180,120,0.15);--border2:rgba(212,180,120,0.3);--gold:#d4b478;--gold2:#f0d080;--gold-dim:rgba(212,180,120,0.5);--text:#e8dfc8;--text2:#a09070;--text3:#6a5f48;--danger:#c04040;--radius:10px;--radius-lg:16px}
 *{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px}
 body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
@@ -19,6 +18,12 @@ body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--te
 .sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
 .sidebar-logo h1{font-family:'Cinzel',serif;font-size:14px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
 .sidebar-logo p{font-size:11px;color:var(--text3);letter-spacing:.04em;margin-top:2px}
+.sync-status{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--text3)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:#6a9840}
+.sync-dot.syncing{background:#d4b478;animation:pulse .8s infinite}
+.sync-dot.err{background:#c04040}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .sidebar-nav{flex:1;overflow-y:auto;padding:.75rem 0}
 .nav-section{padding:.5rem .75rem .2rem;font-size:9px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;font-family:'Cinzel',serif}
 .nav-item{display:flex;align-items:center;gap:10px;padding:.5rem 1.25rem;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s;border-left:2px solid transparent;user-select:none}
@@ -86,26 +91,25 @@ select option{background:var(--bg3);color:var(--text)}
 .arch-count{font-size:11px;color:var(--text3);margin-bottom:4px;font-family:'Cinzel',serif}
 .arch-bar{width:90px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-left:auto}
 .arch-fill{height:100%;border-radius:2px}
-.arch-done{font-size:9px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:'Cinzel',serif;letter-spacing:.04em;margin-top:5px;display:inline-block}
-.deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .deck-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .deck-card:hover{background:var(--bg3);transform:translateY(-2px)}
 .deck-card.complete{border-color:rgba(212,180,120,0.4)}
-.deck-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.deck-top-bar{position:absolute;top:0;left:0;right:0;height:2px}
 .deck-emoji{font-size:28px;margin-bottom:.75rem}
 .deck-name{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--gold);margin-bottom:3px}
-.deck-color{font-size:12px;color:var(--text3);margin-bottom:.75rem}
+.deck-leg{font-size:12px;color:var(--text3);margin-bottom:.75rem}
 .deck-progress{display:flex;align-items:center;gap:8px}
 .deck-bar{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
-.deck-fill{height:100%;border-radius:3px}
+.deck-fill{height:100%;border-radius:3px;background:var(--gold)}
 .deck-num{font-size:11px;color:var(--text3);white-space:nowrap;font-family:'Cinzel',serif}
 .empty-state{text-align:center;padding:4rem 2rem;color:var(--text3)}
 .empty-state svg{width:40px;height:40px;margin:0 auto 1rem;opacity:.3;display:block}
 .empty-state p{font-size:14px}
-/* ── MODAL ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
 .overlay.open{display:flex}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:1.75rem;width:100%;max-width:440px;margin:auto}
+.modal-wide{max-width:640px}
 .modal-title{font-family:'Cinzel',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:1.25rem;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
 .field{margin-bottom:.85rem}
 .field label{display:block;font-size:11px;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;font-family:'Cinzel',serif;margin-bottom:5px}
@@ -119,7 +123,6 @@ select option{background:var(--bg3);color:var(--text)}
 .color-opt.sel{border-color:var(--gold2);transform:scale(1.1)}
 .modal-footer{display:flex;gap:8px;margin-top:1.25rem;justify-content:flex-end;align-items:center}
 .modal-footer .btn-danger{margin-right:auto}
-/* ── DETAIL MODAL ── */
 .detail-art{width:100%;aspect-ratio:3/4;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:1.25rem;position:relative;overflow:hidden}
 .detail-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,0.3));pointer-events:none}
 .detail-crown{position:absolute;top:10px;right:10px;font-size:20px;z-index:1}
@@ -128,10 +131,27 @@ select option{background:var(--bg3);color:var(--text)}
 .dk{color:var(--text3);letter-spacing:.04em;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase}
 .dv{font-weight:400;color:var(--text);text-align:right;max-width:65%}
 .desc-txt{font-size:13px;color:var(--text2);margin-top:.85rem;line-height:1.7;font-style:italic;border-top:1px solid var(--border);padding-top:.85rem}
-/* ── TOAST ── */
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:.65rem 1.25rem;font-size:13px;color:var(--gold);z-index:400;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;font-family:'Cinzel',serif;letter-spacing:.04em}
 .toast.show{opacity:1;transform:translateY(0)}
 .divider{height:1px;background:var(--border);margin:.5rem 0}
+/* deck builder */
+.card-pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;max-height:340px;overflow-y:auto;padding:4px}
+.card-pick{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.5rem;cursor:pointer;transition:all .15s;position:relative}
+.card-pick:hover{border-color:var(--gold-dim)}
+.card-pick.picked{border-color:var(--gold);background:rgba(212,180,120,0.08)}
+.card-pick .cp-art{width:100%;aspect-ratio:3/4;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.4rem}
+.card-pick .cp-name{font-size:10px;font-family:'Cinzel',serif;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-pick .cp-check{position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--gold);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:9px;color:var(--bg)}
+.card-pick.picked .cp-check{display:flex}
+.deck-slot-list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto}
+.deck-slot{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer;background:var(--bg3);border:1px solid var(--border);transition:all .15s}
+.deck-slot:hover{border-color:rgba(192,64,64,0.4);background:rgba(192,64,64,0.05)}
+.deck-slot .ds-art{width:28px;height:38px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.deck-slot .ds-name{flex:1;font-size:12px;font-family:'Cinzel',serif;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deck-slot .ds-remove{font-size:11px;color:var(--danger);flex-shrink:0}
+.db-cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.db-col-title{font-family:'Cinzel',serif;font-size:12px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
+.db-counter{font-size:13px;color:var(--gold)}
 </style>
 </head>
 <body>
@@ -140,6 +160,10 @@ select option{background:var(--bg3);color:var(--text)}
     <div class="sidebar-logo">
       <h1>TCG Collection</h1>
       <p>Gestionnaire de cartes</p>
+      <div class="sync-status">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span id="sync-label">Connexion…</span>
+      </div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section">Collection</div>
@@ -164,9 +188,13 @@ select option{background:var(--bg3);color:var(--text)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         Nouvelle carte
       </div>
-      <div class="nav-item" onclick="openAdd(true)" style="color:var(--gold);opacity:.8">
+      <div class="nav-item" onclick="openAdd(true)" style="color:var(--gold);opacity:.85">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
         Nouvelle légendaire
+      </div>
+      <div class="nav-item" onclick="openCreateDeck()" style="color:#9FE1CB;opacity:.85">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/><rect x="2" y="2" width="20" height="20" rx="3"/></svg>
+        Créer un deck
       </div>
     </nav>
     <div class="sidebar-bottom">
@@ -188,27 +216,22 @@ select option{background:var(--bg3);color:var(--text)}
         <div class="page-title" id="page-title">Toutes les cartes</div>
         <div class="page-sub" id="page-sub">Parcourez votre collection complète</div>
       </div>
-      <div class="header-actions" id="header-actions">
+      <div class="header-actions">
         <button class="btn btn-gold" onclick="openAdd(false)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-          Carte
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Carte
         </button>
         <button class="btn btn-gold" onclick="openAdd(true)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
-          Légendaire
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>Légendaire
         </button>
       </div>
     </div>
-
     <div class="stats-bar">
       <div class="stat-box"><div class="slabel">Total</div><div class="svalue" id="s-total">0</div></div>
       <div class="stat-box"><div class="slabel">Légendaires</div><div class="svalue" id="s-leg">0</div></div>
       <div class="stat-box"><div class="slabel">Archétypes</div><div class="svalue" id="s-arch">0</div></div>
-      <div class="stat-box"><div class="slabel">Decks complets</div><div class="svalue" id="s-done">0</div></div>
+      <div class="stat-box"><div class="slabel">Decks</div><div class="svalue" id="s-done">0</div></div>
     </div>
-
     <div class="content">
-      <!-- VIEW: ALL -->
       <div id="view-all">
         <div class="toolbar">
           <div class="search-wrap">
@@ -235,31 +258,20 @@ select option{background:var(--bg3);color:var(--text)}
         </div>
         <div class="card-grid" id="card-grid"></div>
       </div>
-
-      <!-- VIEW: ARCHETYPES -->
-      <div id="view-archetypes" style="display:none">
-        <div id="arch-content"></div>
-      </div>
-
-      <!-- VIEW: DECKS -->
-      <div id="view-decks" style="display:none">
-        <div id="deck-content"></div>
-      </div>
+      <div id="view-archetypes" style="display:none"><div id="arch-content"></div></div>
+      <div id="view-decks" style="display:none"><div id="deck-content"></div></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL ADD/EDIT -->
+<!-- MODAL ADD/EDIT CARD -->
 <div class="overlay" id="modal-add">
   <div class="modal">
-    <div class="modal-title" id="modal-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-      Nouvelle carte
-    </div>
+    <div class="modal-title" id="modal-title">Nouvelle carte</div>
     <input type="hidden" id="edit-id">
     <div class="field"><label>Nom *</label><input type="text" id="f-name" placeholder="Ex: Dragon Primordial"></div>
     <div class="field-row">
-      <div class="field"><label>Type</label><input type="text" id="f-type" placeholder="Créature, Sort…"></div>
+      <div class="field"><label>Type</label><input type="text" id="f-type-f" placeholder="Créature, Sort…"></div>
       <div class="field"><label>Rareté</label>
         <select id="f-rarity-f"><option>Commune</option><option>Peu commune</option><option>Rare</option><option>Épique</option><option>Légendaire</option></select>
       </div>
@@ -272,11 +284,11 @@ select option{background:var(--bg3);color:var(--text)}
       <div class="field"><label>ATK</label><input type="text" id="f-atk" placeholder="—"></div>
       <div class="field"><label>DEF</label><input type="text" id="f-def" placeholder="—"></div>
     </div>
-    <div class="field"><label>Légendaire / Archétype</label>
-      <select id="f-legend"><option value="">— Aucune (ou c'est une légendaire) —</option></select>
+    <div class="field"><label>Archétype (légendaire associée)</label>
+      <select id="f-legend"><option value="">— Aucune —</option></select>
     </div>
     <div class="field">
-      <label>Couleur de l'archétype</label>
+      <label>Couleur</label>
       <div class="color-picker" id="color-picker-form"></div>
     </div>
     <div class="field"><label>Effet / Description</label><textarea id="f-desc" placeholder="Décrivez l'effet…"></textarea></div>
@@ -286,8 +298,7 @@ select option{background:var(--bg3);color:var(--text)}
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="btn-del" style="display:none" onclick="deleteCard()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
-        Supprimer
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Supprimer
       </button>
       <button class="btn btn-sm" onclick="closeModal('modal-add')">Annuler</button>
       <button class="btn btn-gold btn-sm" onclick="saveCard()">Sauvegarder</button>
@@ -303,21 +314,60 @@ select option{background:var(--bg3);color:var(--text)}
     <div class="desc-txt" id="d-desc" style="display:none"></div>
     <div class="modal-footer">
       <button class="btn btn-gold btn-sm" onclick="editFromDetail()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Modifier
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier
       </button>
       <button class="btn btn-sm" onclick="closeModal('modal-detail')">Fermer</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL DECK -->
-<div class="overlay" id="modal-deck">
-  <div class="modal" style="max-width:500px">
-    <div class="modal-title" id="deck-modal-title">Deck</div>
-    <div id="deck-modal-body"></div>
+<!-- MODAL DECK BUILDER -->
+<div class="overlay" id="modal-deck-builder">
+  <div class="modal modal-wide">
+    <div class="modal-title" id="db-title">Créer un deck</div>
+    <input type="hidden" id="db-edit-id">
+    <div class="field-row" style="margin-bottom:1rem">
+      <div class="field"><label>Nom du deck *</label><input type="text" id="db-name" placeholder="Ex: Deck Feu Infernal"></div>
+      <div class="field"><label>Légendaire *</label>
+        <select id="db-legend"><option value="">— Choisir —</option></select>
+      </div>
+    </div>
+    <div class="db-cols">
+      <div>
+        <div class="db-col-title">
+          <span>Collection</span>
+          <input type="text" id="db-search" placeholder="Filtrer…" style="width:100px;height:24px;font-size:11px;padding:0 8px" oninput="renderCardPicker()">
+        </div>
+        <div class="card-pick-grid" id="card-pick-grid"></div>
+      </div>
+      <div>
+        <div class="db-col-title">
+          <span>Deck</span>
+          <span class="db-counter"><span id="db-count">0</span>/20</span>
+        </div>
+        <div class="deck-slot-list" id="deck-slot-list"></div>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn btn-sm" onclick="closeModal('modal-deck')">Fermer</button>
+      <button class="btn btn-danger btn-sm" id="db-del-btn" style="display:none" onclick="deleteDeck()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Supprimer
+      </button>
+      <button class="btn btn-sm" onclick="closeModal('modal-deck-builder')">Annuler</button>
+      <button class="btn btn-gold btn-sm" onclick="saveDeck()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECK VIEW -->
+<div class="overlay" id="modal-deck-view">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title" id="dv-title">Deck</div>
+    <div id="dv-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-gold btn-sm" onclick="editDeckFromView()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier
+      </button>
+      <button class="btn btn-sm" onclick="closeModal('modal-deck-view')">Fermer</button>
     </div>
   </div>
 </div>
@@ -325,13 +375,21 @@ select option{background:var(--bg3);color:var(--text)}
 <div class="toast" id="toast"></div>
 
 <script>
-const SK='tcg_v3';
+const BIN_ID='6a21c9e9da38895dfe884053';
+const API_KEY='$2a$10$Xi0ufFLkconlCDFybM0eNeNwcystKmflb9fMzhkVUZoE3j6D8fjIa';
+const API_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
+const LS_KEY='tcg_v3';
+
 let cards=[];
+let decks=[];
 let view='all';
 let sortKey='name';
 let sortAsc=true;
 let editId=null;
 let selColor='#D3D1C7';
+let dbCards=[];// current deck being built (array of card ids)
+let viewingDeckId=null;
+let syncTimer=null;
 
 const COLORS=[
   {h:'#D3D1C7',n:'Incolore'},{h:'#C0DD97',n:'Nature'},{h:'#B5D4F4',n:'Eau'},
@@ -340,47 +398,79 @@ const COLORS=[
   {h:'#E8C4F0',n:'Mystique'},{h:'#F0D878',n:'Soleil'},{h:'#A8C8F0',n:'Glace'}
 ];
 const RO={Commune:0,'Peu commune':1,Rare:2,Épique:3,Légendaire:4};
-const RDot={Commune:'#666','\Peu commune':'#6a9840',Rare:'#4880c0',Épique:'#8070d8',Légendaire:'#d4b478'};
-function rdot(r){return {Commune:'#555','Peu commune':'#6a9840',Rare:'#4880c0',Épique:'#8070d8',Légendaire:'#d4b478'}[r]||'#555';}
-function rclass(r){return {Commune:'r-common','Peu commune':'r-uncommon',Rare:'r-rare',Épique:'r-epic',Légendaire:'r-legendary'}[r]||'r-common';}
-function colName(h){return (COLORS.find(c=>c.h===h)||{n:h}).n;}
+function rdot(r){return{Commune:'#555','Peu commune':'#6a9840',Rare:'#4880c0',Épique:'#8070d8',Légendaire:'#d4b478'}[r]||'#555';}
+function rclass(r){return{Commune:'r-common','Peu commune':'r-uncommon',Rare:'r-rare',Épique:'r-epic',Légendaire:'r-legendary'}[r]||'r-common';}
+function colName(h){return(COLORS.find(c=>c.h===h)||{n:h}).n;}
 function legs(){return cards.filter(c=>c.rarity==='Légendaire');}
-function legByColor(h){return cards.find(c=>c.color===h&&c.rarity==='Légendaire');}
 
-function load(){
-  try{const d=localStorage.getItem(SK);if(d)cards=JSON.parse(d);}catch(e){cards=[];}
-  // migrate old key
-  try{
-    const old=localStorage.getItem('tcg_collection_v1');
-    if(old){
-      const oc=JSON.parse(old);const ids=new Set(cards.map(c=>c.id));let added=0;
-      oc.forEach(o=>{if(!ids.has(o.id)){cards.push({id:o.id,name:o.name||'?',type:o.type||'',rarity:o.rarity||'Commune',cost:o.cost||'',costNum:0,atk:o.atk||'',def:o.def||'',desc:o.desc||'',qty:o.qty||1,emoji:o.emoji||'🃏',color:o.color||'#D3D1C7',legendId:''});added++;}});
-      if(added){save();toast(added+' carte'+(added>1?'s':'')+' migrée'+(added>1?'s':'')+' ✦');}
-    }
-  }catch(e){}
-  buildColorPicker();render();
+// ── SYNC ──
+function setSyncStatus(s,msg){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  dot.className='sync-dot '+s;
+  lbl.textContent=msg;
 }
-function save(){try{localStorage.setItem(SK,JSON.stringify(cards));}catch(e){}}
+
+async function loadFromCloud(){
+  setSyncStatus('syncing','Chargement…');
+  try{
+    const r=await fetch(API_URL,{headers:{'X-Master-Key':API_KEY,'X-Bin-Meta':false}});
+    if(!r.ok)throw new Error(r.status);
+    const d=await r.json();
+    cards=d.cards||[];
+    decks=d.decks||[];
+    // migrate localStorage if cloud is empty
+    if(!cards.length){
+      try{const ls=localStorage.getItem(LS_KEY);if(ls){const p=JSON.parse(ls);cards=p.cards||p||[];decks=p.decks||[];if(cards.length){await pushToCloud();toast('Collection locale migrée vers le cloud ✦');}}}catch(e){}
+    }
+    setSyncStatus('ok','Synchronisé');
+    buildColorPicker();render();
+  }catch(e){
+    setSyncStatus('err','Hors ligne');
+    // fallback to localStorage
+    try{const ls=localStorage.getItem(LS_KEY);if(ls){const p=JSON.parse(ls);cards=p.cards||p||[];decks=p.decks||[];}}catch(e2){}
+    buildColorPicker();render();
+  }
+}
+
+async function pushToCloud(){
+  setSyncStatus('syncing','Sauvegarde…');
+  try{
+    await fetch(API_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({cards,decks})});
+    localStorage.setItem(LS_KEY,JSON.stringify({cards,decks}));
+    setSyncStatus('ok','Synchronisé');
+  }catch(e){
+    setSyncStatus('err','Erreur sync');
+    localStorage.setItem(LS_KEY,JSON.stringify({cards,decks}));
+  }
+}
+
+function scheduleSave(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(pushToCloud,800);
+}
+
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
 
+// ── COLOR PICKER ──
 function buildColorPicker(sel){
   selColor=sel||selColor||'#D3D1C7';
   document.getElementById('color-picker-form').innerHTML=COLORS.map(c=>`<div class="color-opt${c.h===selColor?' sel':''}" style="background:${c.h}" title="${c.n}" onclick="pickColor('${c.h}')"></div>`).join('');
 }
 function pickColor(h){selColor=h;buildColorPicker(h);}
 
+// ── STATS ──
 function updateStats(){
   const total=cards.reduce((a,c)=>a+(+c.qty||1),0);
   const ll=legs();
-  let done=0;ll.forEach(l=>{if(cards.filter(c=>c.color===l.color&&c.rarity!=='Légendaire').reduce((a,c)=>a+(+c.qty||1),0)>=20)done++;});
   const archs=new Set(cards.map(c=>c.color).filter(h=>h&&h!=='#D3D1C7')).size;
   document.getElementById('s-total').textContent=total;
   document.getElementById('s-leg').textContent=ll.length;
   document.getElementById('s-arch').textContent=archs;
-  document.getElementById('s-done').textContent=done;
+  document.getElementById('s-done').textContent=decks.length;
   document.getElementById('nc-all').textContent=cards.length;
   document.getElementById('nc-arch').textContent=archs;
-  document.getElementById('nc-deck').textContent=ll.length;
+  document.getElementById('nc-deck').textContent=decks.length;
 }
 
 function updateFilters(){
@@ -392,31 +482,30 @@ function updateFilters(){
   ft.innerHTML='<option value="">Tous types</option>'+types.map(t=>`<option${t===curT?' selected':''}>${t}</option>`).join('');
 }
 
+// ── SORT ──
 function sortList(list){
-  return [...list].sort((a,b)=>{
-    let va,vb;
-    if(sortKey==='cost'){va=+a.costNum||0;vb=+b.costNum||0;return sortAsc?va-vb:vb-va;}
-    if(sortKey==='rarity'){va=RO[a.rarity]||0;vb=RO[b.rarity]||0;return sortAsc?va-vb:vb-va;}
-    if(sortKey==='color'){va=a.color||'';vb=b.color||'';return sortAsc?va.localeCompare(vb):vb.localeCompare(va);}
-    if(sortKey==='type'){va=a.type||'';vb=b.type||'';return sortAsc?va.localeCompare(vb):vb.localeCompare(va);}
-    va=a.name||'';vb=b.name||'';return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
+  return[...list].sort((a,b)=>{
+    if(sortKey==='cost'){return sortAsc?(+a.costNum||0)-(+b.costNum||0):(+b.costNum||0)-(+a.costNum||0);}
+    if(sortKey==='rarity'){return sortAsc?(RO[a.rarity]||0)-(RO[b.rarity]||0):(RO[b.rarity]||0)-(RO[a.rarity]||0);}
+    if(sortKey==='color'){return sortAsc?(a.color||'').localeCompare(b.color||''):(b.color||'').localeCompare(a.color||'');}
+    if(sortKey==='type'){return sortAsc?(a.type||'').localeCompare(b.type||''):(b.type||'').localeCompare(a.type||'');}
+    return sortAsc?(a.name||'').localeCompare(b.name||''):(b.name||'').localeCompare(a.name||'');
   });
 }
+function setSort(k,btn){sortKey=k;document.querySelectorAll('.sort-row .pill').forEach(p=>{if(p.id!=='sort-dir')p.classList.remove('active');});btn.classList.add('active');renderAll();}
+function toggleDir(){sortAsc=!sortAsc;document.getElementById('sort-dir').innerHTML=sortAsc?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h16M4 12h10M4 18h5"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h5M4 12h10M4 18h16"/></svg>';renderAll();}
+
+// ── RENDER ──
+function render(){updateStats();updateFilters();if(view==='all')renderAll();if(view==='archetypes')renderArch();if(view==='decks')renderDecks();}
 
 function tileHTML(c){
   const il=c.rarity==='Légendaire';
-  return `<div class="card-tile${il?' is-leg':''}" onclick="openDetail('${c.id}')">
+  return`<div class="card-tile${il?' is-leg':''}" onclick="openDetail('${c.id}')">
     <div class="card-art" style="background:${c.color||'#D3D1C7'}">${c.emoji||'🃏'}${il?'<span class="crown-badge">👑</span>':''}</div>
     <div class="card-name">${c.name}</div>
-    <div class="card-footer">
-      <span class="rarity-dot" style="background:${rdot(c.rarity)}"></span>
-      ${c.cost?`<span class="cost-pip">${c.cost}</span>`:'<span style="flex:1"></span>'}
-      <span class="qty-tag">×${c.qty||1}</span>
-    </div>
+    <div class="card-footer"><span class="rarity-dot" style="background:${rdot(c.rarity)}"></span>${c.cost?`<span class="cost-pip">${c.cost}</span>`:'<span style="flex:1"></span>'}<span class="qty-tag">×${c.qty||1}</span></div>
   </div>`;
 }
-
-function render(){updateStats();updateFilters();if(view==='all')renderAll();if(view==='archetypes')renderArch();if(view==='decks')renderDecks();}
 
 function renderAll(){
   const q=(document.getElementById('search-input').value||'').toLowerCase();
@@ -437,37 +526,23 @@ function renderArch(){
   let html='';
   ll.forEach(leg=>{
     const members=sortList(cards.filter(c=>c.color===leg.color&&c.rarity!=='Légendaire'));
-    const owned=members.reduce((a,c)=>a+(+c.qty||1),0);
-    const pct=Math.min(100,Math.round(owned/20*100));
     html+=`<div class="arch-section">
       <div class="arch-header">
         <div class="arch-accent" style="background:${leg.color}"></div>
         <span class="arch-emoji">${leg.emoji||'👑'}</span>
-        <div class="arch-info">
-          <div class="aname">${leg.name}</div>
-          <div class="asub">${colName(leg.color)} · archétype</div>
-        </div>
-        <div class="arch-right">
-          <div class="arch-count">${owned}/20 cartes</div>
-          <div class="arch-bar"><div class="arch-fill" style="width:${pct}%;background:${leg.color}"></div></div>
-          ${owned>=20?'<div class="arch-done">Deck complet ✦</div>':''}
-        </div>
+        <div class="arch-info"><div class="aname">${leg.name}</div><div class="asub">${colName(leg.color)} · ${members.length} carte${members.length>1?'s':''}</div></div>
+        <div class="arch-right"></div>
         <button class="btn btn-sm" onclick="event.stopPropagation();openDetail('${leg.id}')" style="margin-left:8px;flex-shrink:0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
-      <div class="card-grid">${members.length?members.map(c=>tileHTML(c)).join(''):`<div class="empty-state" style="grid-column:1/-1;padding:1.5rem"><p>Aucune carte assignée à cet archétype</p></div>`}</div>
+      <div class="card-grid">${members.length?members.map(c=>tileHTML(c)).join(''):`<div class="empty-state" style="grid-column:1/-1;padding:1.5rem"><p>Aucune carte dans cet archétype</p></div>`}</div>
     </div>`;
   });
-  const noArch=sortList(cards.filter(c=>c.rarity!=='Légendaire'&&(!c.color||c.color==='#D3D1C7'||!legByColor(c.color))));
+  const noArch=sortList(cards.filter(c=>c.rarity!=='Légendaire'&&(!c.color||c.color==='#D3D1C7')));
   if(noArch.length){
     html+=`<div class="arch-section">
-      <div class="arch-header">
-        <div class="arch-accent" style="background:#555"></div>
-        <span class="arch-emoji">🃏</span>
-        <div class="arch-info"><div class="aname">Sans archétype</div><div class="asub">Cartes non assignées</div></div>
-        <div class="arch-right"><div class="arch-count">${noArch.length} carte${noArch.length>1?'s':''}</div></div>
-      </div>
+      <div class="arch-header"><div class="arch-accent" style="background:#555"></div><span class="arch-emoji">🃏</span><div class="arch-info"><div class="aname">Sans archétype</div><div class="asub">${noArch.length} carte${noArch.length>1?'s':''} non assignées</div></div></div>
       <div class="card-grid">${noArch.map(c=>tileHTML(c)).join('')}</div>
     </div>`;
   }
@@ -475,23 +550,26 @@ function renderArch(){
 }
 
 function renderDecks(){
-  const ll=legs();
   const el=document.getElementById('deck-content');
-  if(!ll.length){el.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 7h18M3 12h18M3 17h18"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg><p>Aucune légendaire = aucun deck</p></div>';return;}
-  let html='<div class="deck-grid">';
-  ll.forEach(leg=>{
-    const members=cards.filter(c=>c.color===leg.color&&c.rarity!=='Légendaire');
-    const owned=members.reduce((a,c)=>a+(+c.qty||1),0);
-    const pct=Math.min(100,Math.round(owned/20*100));
-    const done=owned>=20;
-    html+=`<div class="deck-card${done?' complete':''}" onclick="openDeckModal('${leg.id}')" style="border-top-color:${leg.color}">
-      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${leg.color};border-radius:${leg.color} 2px 0 0"></div>
-      <div class="deck-emoji">${leg.emoji||'👑'}</div>
-      <div class="deck-name">${leg.name}</div>
-      <div class="deck-color">${colName(leg.color)}</div>
+  if(!decks.length){
+    el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 7h18M3 12h18M3 17h18"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg><p>Aucun deck créé — cliquez sur "Créer un deck"</p></div>
+    <div style="text-align:center;margin-top:1rem"><button class="btn btn-gold" onclick="openCreateDeck()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/><rect x="2" y="2" width="20" height="20" rx="3"/></svg>Créer un deck</button></div>`;
+    return;
+  }
+  let html='<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn btn-gold" onclick="openCreateDeck()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>Nouveau deck</button></div><div class="deck-grid">';
+  decks.forEach(deck=>{
+    const leg=cards.find(c=>c.id===deck.legendId);
+    const count=deck.cardIds?deck.cardIds.length:0;
+    const pct=Math.min(100,Math.round(count/20*100));
+    const done=count>=20;
+    html+=`<div class="deck-card${done?' complete':''}" onclick="openDeckView('${deck.id}')">
+      <div class="deck-top-bar" style="background:${leg?leg.color:'var(--gold)'}"></div>
+      <div class="deck-emoji">${leg?leg.emoji||'👑':'👑'}</div>
+      <div class="deck-name">${deck.name}</div>
+      <div class="deck-leg">${leg?'⚔ '+leg.name:'Sans légendaire'}</div>
       <div class="deck-progress">
-        <div class="deck-bar"><div class="deck-fill" style="width:${pct}%;background:${leg.color}"></div></div>
-        <div class="deck-num">${owned}/20</div>
+        <div class="deck-bar"><div class="deck-fill" style="width:${pct}%;background:${leg?leg.color:'var(--gold)'}"></div></div>
+        <div class="deck-num">${count}/20</div>
       </div>
       ${done?'<div style="margin-top:.75rem;font-size:10px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:Cinzel,serif;letter-spacing:.04em;display:inline-block">Deck complet ✦</div>':''}
     </div>`;
@@ -500,6 +578,7 @@ function renderDecks(){
   el.innerHTML=html;
 }
 
+// ── VIEW ──
 function setView(v,el){
   view=v;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -508,39 +587,24 @@ function setView(v,el){
   document.getElementById('view-archetypes').style.display=v==='archetypes'?'':'none';
   document.getElementById('view-decks').style.display=v==='decks'?'':'none';
   const titles={all:'Toutes les cartes',archetypes:'Archétypes',decks:'Deck Builder'};
-  const subs={all:'Parcourez votre collection complète',archetypes:'Cartes groupées par légendaire',decks:'Visualisez vos decks (1 légendaire + 20 cartes)'};
+  const subs={all:'Parcourez votre collection complète',archetypes:'Cartes groupées par couleur/légendaire',decks:'Construisez librement vos decks'};
   document.getElementById('page-title').textContent=titles[v];
   document.getElementById('page-sub').textContent=subs[v];
   render();
 }
 
-function setSort(k,btn){
-  sortKey=k;
-  document.querySelectorAll('.sort-row .pill').forEach(p=>{if(p.id!=='sort-dir')p.classList.remove('active');});
-  btn.classList.add('active');renderAll();
-}
-function toggleDir(){
-  sortAsc=!sortAsc;
-  const btn=document.getElementById('sort-dir');
-  btn.innerHTML=sortAsc
-    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h16M4 12h10M4 18h5"/></svg>'
-    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h5M4 12h10M4 18h16"/></svg>';
-  renderAll();
-}
-
+// ── ADD/EDIT CARD ──
 function buildLegendSelect(val){
   const sel=document.getElementById('f-legend');
-  sel.innerHTML='<option value="">— Aucune (ou c\'est une légendaire) —</option>'+legs().map(l=>`<option value="${l.id}"${l.id===val?' selected':''}>${l.emoji||'👑'} ${l.name}</option>`).join('');
+  sel.innerHTML='<option value="">— Aucune —</option>'+legs().map(l=>`<option value="${l.id}"${l.id===val?' selected':''}>${l.emoji||'👑'} ${l.name}</option>`).join('');
   sel.onchange=function(){const l=cards.find(c=>c.id===this.value);if(l&&l.color)pickColor(l.color);};
 }
 
 function openAdd(legendary){
-  document.getElementById('modal-title').innerHTML=legendary
-    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Nouvelle légendaire'
-    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg> Nouvelle carte';
+  document.getElementById('modal-title').textContent=legendary?'Nouvelle légendaire':'Nouvelle carte';
   document.getElementById('edit-id').value='';
   document.getElementById('btn-del').style.display='none';
-  ['f-name','f-type','f-cost','f-atk','f-def','f-desc','f-emoji'].forEach(id=>document.getElementById(id).value='');
+  ['f-name','f-type-f','f-cost','f-atk','f-def','f-desc','f-emoji'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-cost-n').value='';
   document.getElementById('f-rarity-f').value=legendary?'Légendaire':'Commune';
   document.getElementById('f-qty').value=1;
@@ -550,11 +614,11 @@ function openAdd(legendary){
 
 function openEdit(id){
   const c=cards.find(x=>x.id===id);if(!c)return;
-  document.getElementById('modal-title').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Modifier la carte';
+  document.getElementById('modal-title').textContent='Modifier la carte';
   document.getElementById('edit-id').value=id;
   document.getElementById('btn-del').style.display='inline-flex';
   document.getElementById('f-name').value=c.name||'';
-  document.getElementById('f-type').value=c.type||'';
+  document.getElementById('f-type-f').value=c.type||'';
   document.getElementById('f-rarity-f').value=c.rarity||'Commune';
   document.getElementById('f-cost').value=c.cost||'';
   document.getElementById('f-cost-n').value=c.costNum||'';
@@ -569,21 +633,22 @@ function openEdit(id){
 }
 
 function saveCard(){
-  const name=document.getElementById('f-name').value.trim();
-  if(!name)return document.getElementById('f-name').focus();
+  const name=document.getElementById('f-name').value.trim();if(!name)return document.getElementById('f-name').focus();
   const id=document.getElementById('edit-id').value||Date.now().toString(36);
-  const card={id,name,type:document.getElementById('f-type').value.trim(),rarity:document.getElementById('f-rarity-f').value,cost:document.getElementById('f-cost').value.trim(),costNum:+document.getElementById('f-cost-n').value||0,atk:document.getElementById('f-atk').value.trim(),def:document.getElementById('f-def').value.trim(),desc:document.getElementById('f-desc').value.trim(),qty:+document.getElementById('f-qty').value||1,emoji:document.getElementById('f-emoji').value.trim()||'🃏',color:selColor,legendId:document.getElementById('f-legend').value||''};
-  const idx=cards.findIndex(c=>c.id===id);
-  if(idx>=0)cards[idx]=card;else cards.push(card);
-  save();closeModal('modal-add');render();
-  toast('Carte sauvegardée ✦');
+  const card={id,name,type:document.getElementById('f-type-f').value.trim(),rarity:document.getElementById('f-rarity-f').value,cost:document.getElementById('f-cost').value.trim(),costNum:+document.getElementById('f-cost-n').value||0,atk:document.getElementById('f-atk').value.trim(),def:document.getElementById('f-def').value.trim(),desc:document.getElementById('f-desc').value.trim(),qty:+document.getElementById('f-qty').value||1,emoji:document.getElementById('f-emoji').value.trim()||'🃏',color:selColor,legendId:document.getElementById('f-legend').value||''};
+  const idx=cards.findIndex(c=>c.id===id);if(idx>=0)cards[idx]=card;else cards.push(card);
+  scheduleSave();closeModal('modal-add');render();toast('Carte sauvegardée ✦');
 }
+
 function deleteCard(){
   const id=document.getElementById('edit-id').value;
   if(!confirm('Supprimer cette carte ?'))return;
-  cards=cards.filter(c=>c.id!==id);save();closeModal('modal-add');render();toast('Carte supprimée');
+  cards=cards.filter(c=>c.id!==id);
+  decks.forEach(d=>{d.cardIds=d.cardIds?d.cardIds.filter(cid=>cid!==id):[];});
+  scheduleSave();closeModal('modal-add');render();toast('Carte supprimée');
 }
 
+// ── DETAIL ──
 function openDetail(id){
   const c=cards.find(x=>x.id===id);if(!c)return;
   editId=id;
@@ -592,61 +657,154 @@ function openDetail(id){
   art.style.background=c.color||'#D3D1C7';
   art.innerHTML=`${c.emoji||'🃏'}${il?'<span class="detail-crown">👑</span>':''}`;
   const leg=c.legendId?cards.find(x=>x.id===c.legendId):null;
-  const rows=[
-    ['Nom',c.name],
-    c.type&&['Type',c.type],
-    ['Rareté',`<span class="rbadge ${rclass(c.rarity)}">${c.rarity}</span>`],
-    c.cost&&['Coût',c.cost],
-    (c.atk||c.def)&&['ATK / DEF',`${c.atk||'—'} / ${c.def||'—'}`],
-    c.color&&['Couleur',`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block;border:1px solid rgba(255,255,255,0.2)"></span>${colName(c.color)}</span>`],
-    leg&&['Archétype',`${leg.emoji||'👑'} ${leg.name}`],
-    ['Quantité',`× ${c.qty||1}`],
-  ].filter(Boolean);
+  const rows=[['Nom',c.name],c.type&&['Type',c.type],['Rareté',`<span class="rbadge ${rclass(c.rarity)}">${c.rarity}</span>`],c.cost&&['Coût',c.cost],(c.atk||c.def)&&['ATK / DEF',`${c.atk||'—'} / ${c.def||'—'}`],c.color&&['Couleur',`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block;border:1px solid rgba(255,255,255,0.2)"></span>${colName(c.color)}</span>`],leg&&['Archétype',`${leg.emoji||'👑'} ${leg.name}`],['Quantité',`× ${c.qty||1}`]].filter(Boolean);
   document.getElementById('d-rows').innerHTML=rows.map(([k,v])=>`<div class="drow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('');
   const desc=document.getElementById('d-desc');
-  if(c.desc){desc.textContent=c.desc;desc.style.display='block';}else{desc.style.display='none';}
+  if(c.desc){desc.textContent=c.desc;desc.style.display='block';}else desc.style.display='none';
   document.getElementById('modal-detail').classList.add('open');
 }
 function editFromDetail(){openEdit(editId);}
 
-function openDeckModal(legId){
-  const leg=cards.find(c=>c.id===legId);if(!leg)return;
-  const members=sortList(cards.filter(c=>c.color===leg.color&&c.rarity!=='Légendaire'));
-  const owned=members.reduce((a,c)=>a+(+c.qty||1),0);
-  const pct=Math.min(100,Math.round(owned/20*100));
-  document.getElementById('deck-modal-title').innerHTML=`${leg.emoji||'👑'} ${leg.name}`;
-  let html=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">
-    <div style="flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${leg.color};border-radius:2px"></div></div>
-    <span style="font-size:12px;color:var(--text3);font-family:Cinzel,serif">${owned}/20</span>
-    ${owned>=20?'<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:Cinzel,serif">Deck complet ✦</span>':''}
+// ── DECK BUILDER ──
+function openCreateDeck(){
+  document.getElementById('db-title').textContent='Créer un deck';
+  document.getElementById('db-edit-id').value='';
+  document.getElementById('db-del-btn').style.display='none';
+  document.getElementById('db-name').value='';
+  dbCards=[];
+  buildDbLegendSelect('');
+  renderCardPicker();renderDeckSlots();
+  document.getElementById('modal-deck-builder').classList.add('open');
+}
+
+function openEditDeck(id){
+  const deck=decks.find(d=>d.id===id);if(!deck)return;
+  document.getElementById('db-title').textContent='Modifier le deck';
+  document.getElementById('db-edit-id').value=id;
+  document.getElementById('db-del-btn').style.display='inline-flex';
+  document.getElementById('db-name').value=deck.name||'';
+  dbCards=[...(deck.cardIds||[])];
+  buildDbLegendSelect(deck.legendId||'');
+  renderCardPicker();renderDeckSlots();
+  closeModal('modal-deck-view');
+  document.getElementById('modal-deck-builder').classList.add('open');
+}
+
+function buildDbLegendSelect(val){
+  const sel=document.getElementById('db-legend');
+  sel.innerHTML='<option value="">— Choisir —</option>'+legs().map(l=>`<option value="${l.id}"${l.id===val?' selected':''}>${l.emoji||'👑'} ${l.name}</option>`).join('');
+}
+
+function renderCardPicker(){
+  const q=(document.getElementById('db-search').value||'').toLowerCase();
+  const nonLeg=cards.filter(c=>c.rarity!=='Légendaire'&&(!q||(c.name||'').toLowerCase().includes(q)));
+  const el=document.getElementById('card-pick-grid');
+  if(!nonLeg.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem;grid-column:1/-1">Aucune carte disponible</div>';return;}
+  el.innerHTML=nonLeg.map(c=>{
+    const count=dbCards.filter(x=>x===c.id).length;
+    const picked=count>0;
+    const full=count>=2;
+    return`<div class="card-pick${picked?' picked':''}" onclick="toggleCardInDeck('${c.id}')" style="${full?'opacity:.6':''}">
+      <div class="cp-art" style="background:${c.color||'#D3D1C7'}">${c.emoji||'🃏'}</div>
+      <div class="cp-name">${c.name}</div>
+      <div class="cp-check">${count>0?count:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCardInDeck(id){
+  const count=dbCards.filter(x=>x===id).length;
+  if(count>=2){
+    // remove one copy
+    const idx=dbCards.lastIndexOf(id);
+    dbCards.splice(idx,1);
+  } else {
+    if(dbCards.length>=20){toast('Maximum 20 cartes par deck');return;}
+    dbCards.push(id);
+  }
+  renderCardPicker();renderDeckSlots();
+}
+
+function removeCardFromDeck(idx){
+  dbCards.splice(idx,1);
+  renderCardPicker();renderDeckSlots();
+}
+
+function renderDeckSlots(){
+  document.getElementById('db-count').textContent=dbCards.length;
+  const el=document.getElementById('deck-slot-list');
+  if(!dbCards.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem;text-align:center">Aucune carte sélectionnée</div>';return;}
+  el.innerHTML=dbCards.map((cid,idx)=>{
+    const c=cards.find(x=>x.id===cid);if(!c)return'';
+    return`<div class="deck-slot">
+      <div class="ds-art" style="background:${c.color||'#D3D1C7'}">${c.emoji||'🃏'}</div>
+      <div class="ds-name">${c.name}</div>
+      <span class="rbadge ${rclass(c.rarity)}" style="font-size:9px">${c.rarity}</span>
+      <span class="ds-remove" onclick="removeCardFromDeck(${idx})" style="cursor:pointer;padding:4px 6px">✕</span>
+    </div>`;
+  }).join('');
+}
+
+function saveDeck(){
+  const name=document.getElementById('db-name').value.trim();if(!name)return document.getElementById('db-name').focus();
+  const legendId=document.getElementById('db-legend').value;
+  const id=document.getElementById('db-edit-id').value||Date.now().toString(36)+'d';
+  const deck={id,name,legendId,cardIds:[...dbCards]};
+  const idx=decks.findIndex(d=>d.id===id);if(idx>=0)decks[idx]=deck;else decks.push(deck);
+  scheduleSave();closeModal('modal-deck-builder');render();toast('Deck sauvegardé ✦');
+}
+
+function deleteDeck(){
+  const id=document.getElementById('db-edit-id').value;
+  if(!confirm('Supprimer ce deck ?'))return;
+  decks=decks.filter(d=>d.id!==id);
+  scheduleSave();closeModal('modal-deck-builder');render();toast('Deck supprimé');
+}
+
+function openDeckView(id){
+  const deck=decks.find(d=>d.id===id);if(!deck)return;
+  viewingDeckId=id;
+  const leg=cards.find(c=>c.id===deck.legendId);
+  const count=deck.cardIds?deck.cardIds.length:0;
+  const pct=Math.min(100,Math.round(count/20*100));
+  document.getElementById('dv-title').innerHTML=`${leg?leg.emoji||'👑':'👑'} ${deck.name}`;
+  let html=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+    <div style="flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${leg?leg.color:'var(--gold)'};border-radius:2px"></div></div>
+    <span style="font-size:12px;color:var(--text3);font-family:Cinzel,serif">${count}/20</span>
+    ${count>=20?'<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:Cinzel,serif">Complet ✦</span>':''}
   </div>`;
+  if(leg){html+=`<div style="display:flex;align-items:center;gap:8px;padding:.6rem .75rem;background:var(--bg3);border:1px solid ${leg.color};border-radius:8px;margin-bottom:.75rem">
+    <span style="font-size:20px">${leg.emoji||'👑'}</span>
+    <div><div style="font-family:Cinzel,serif;font-size:13px;color:var(--gold)">${leg.name}</div><div style="font-size:11px;color:var(--text3)">Légendaire · ${colName(leg.color)}</div></div>
+    <span class="rbadge r-legendary" style="margin-left:auto">Légendaire</span>
+  </div>`;}
+  const members=(deck.cardIds||[]).map(cid=>cards.find(c=>c.id===cid)).filter(Boolean);
   if(!members.length){html+='<div class="empty-state" style="padding:1.5rem"><p>Aucune carte dans ce deck</p></div>';}
   else{
-    html+='<div style="display:flex;flex-direction:column;gap:2px">';
+    html+='<div style="display:flex;flex-direction:column;gap:3px">';
     members.forEach(c=>{
-      html+=`<div onclick="closeModal('modal-deck');openDetail('${c.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:6px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-        <div style="width:30px;height:42px;border-radius:4px;background:${c.color||'#D3D1C7'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${c.emoji||'🃏'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-family:Cinzel,serif;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
-          <div style="font-size:11px;color:var(--text3)">${c.type||''}${c.cost?' · '+c.cost:''}</div>
-        </div>
-        <span class="rbadge ${rclass(c.rarity)}" style="flex-shrink:0">${c.rarity}</span>
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0">×${c.qty||1}</span>
+      html+=`<div onclick="closeModal('modal-deck-view');openDetail('${c.id}')" style="display:flex;align-items:center;gap:10px;padding:6px;border-radius:6px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
+        <div style="width:28px;height:40px;border-radius:4px;background:${c.color||'#D3D1C7'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${c.emoji||'🃏'}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:12px;font-family:Cinzel,serif;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div><div style="font-size:11px;color:var(--text3)">${c.type||''}${c.cost?' · '+c.cost:''}</div></div>
+        <span class="rbadge ${rclass(c.rarity)}">${c.rarity}</span>
       </div>`;
     });
     html+='</div>';
   }
-  document.getElementById('deck-modal-body').innerHTML=html;
-  document.getElementById('modal-deck').classList.add('open');
+  document.getElementById('dv-body').innerHTML=html;
+  document.getElementById('modal-deck-view').classList.add('open');
 }
+function editDeckFromView(){openEditDeck(viewingDeckId);}
 
+// ── MODALS ──
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(el=>el.classList.remove('open'));});
 
+// ── EXPORT/IMPORT ──
 function exportJSON(){
   if(!cards.length){toast('Aucune carte à exporter');return;}
-  const blob=new Blob([JSON.stringify({version:3,exported:new Date().toISOString(),cards},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({version:3,exported:new Date().toISOString(),cards,decks},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download='tcg-collection-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
@@ -655,21 +813,23 @@ function exportJSON(){
 function importJSON(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
-  r.onload=ev=>{
+  r.onload=async ev=>{
     try{
       const d=JSON.parse(ev.target.result);
       const imp=Array.isArray(d)?d:(d.cards||[]);
+      const impDecks=d.decks||[];
       if(!imp.length){toast('Fichier vide ou invalide');return;}
       let added=0,updated=0;
       imp.forEach(c=>{if(!c.id)c.id=Date.now().toString(36)+Math.random().toString(36).slice(2);const idx=cards.findIndex(x=>x.id===c.id);if(idx>=0){cards[idx]=c;updated++;}else{cards.push(c);added++;}});
-      save();render();toast('+'+added+' ajoutée'+(added>1?'s':'')+', '+updated+' mise'+(updated>1?'s':'')+' à jour ✦');
+      impDecks.forEach(deck=>{if(!deck.id)deck.id=Date.now().toString(36)+'d';const idx=decks.findIndex(x=>x.id===deck.id);if(idx>=0)decks[idx]=deck;else decks.push(deck);});
+      await pushToCloud();render();toast('+'+added+' carte'+(added>1?'s':'')+', '+updated+' mise'+(updated>1?'s':'')+' à jour ✦');
     }catch(err){toast('Erreur : JSON invalide');}
     e.target.value='';
   };
   r.readAsText(file);
 }
 
-load();
+loadFromCloud();
 </script>
 </body>
 </html>
