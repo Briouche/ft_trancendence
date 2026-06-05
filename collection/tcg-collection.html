@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCG Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0c0a;--bg2:#161410;--bg3:#1e1b17;--bg4:#252019;--border:rgba(212,180,120,0.15);--border2:rgba(212,180,120,0.3);--gold:#d4b478;--gold2:#f0d080;--gold-dim:rgba(212,180,120,0.5);--text:#e8dfc8;--text2:#a09070;--text3:#6a5f48;--danger:#c04040;--radius:10px;--radius-lg:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+.sidebar-logo h1{font-family:'Cinzel',serif;font-size:14px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.sidebar-logo p{font-size:11px;color:var(--text3);letter-spacing:.04em;margin-top:2px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:.75rem 0}
+.nav-section{padding:.5rem .75rem .2rem;font-size:9px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;font-family:'Cinzel',serif}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.5rem 1.25rem;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--gold);background:var(--bg3);border-left-color:var(--gold)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.6}
+.nav-item.active svg{opacity:1}
+.nav-count{margin-left:auto;font-size:10px;background:var(--bg4);border:1px solid var(--border);border-radius:20px;padding:0 6px;color:var(--text3);font-family:'Cinzel',serif}
+.sidebar-bottom{padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:8px}
+.page-header{padding:1.25rem 2rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:var(--bg2);flex-shrink:0}
+.page-title{font-family:'Cinzel',serif;font-size:18px;font-weight:600;color:var(--gold);letter-spacing:.06em}
+.page-sub{font-size:13px;color:var(--text3);margin-top:2px}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
+.stat-box{background:var(--bg2);padding:.85rem 1.25rem}
+.stat-box .slabel{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:'Cinzel',serif}
+.stat-box .svalue{font-size:22px;font-weight:600;color:var(--gold);font-family:'Cinzel',serif;line-height:1.2;margin-top:1px}
+.content{padding:1.5rem 2rem;flex:1}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:160px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text3);pointer-events:none}
+input[type=text],input[type=number],select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Crimson Pro',serif;font-size:14px;outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--gold-dim)}
+.search-input{width:100%;padding:.45rem .75rem .45rem 2rem;height:34px}
+select{padding:.4rem .75rem;height:34px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a5f48' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+select option{background:var(--bg3);color:var(--text)}
+.sort-row{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center}
+.sort-label{font-size:10px;color:var(--text3);letter-spacing:.08em;font-family:'Cinzel',serif;text-transform:uppercase;line-height:28px}
+.pill{background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 12px;cursor:pointer;font-size:12px;color:var(--text3);font-family:'Crimson Pro',serif;transition:all .15s;line-height:1.5}
+.pill:hover{border-color:var(--border2);color:var(--text)}
+.pill.active{background:var(--bg3);border-color:var(--gold-dim);color:var(--gold)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:34px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-size:13px;font-family:'Crimson Pro',serif;letter-spacing:.03em;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--bg3);border-color:var(--gold-dim);color:var(--gold)}
+.btn-gold{border-color:var(--gold-dim);color:var(--gold)}
+.btn-gold:hover{background:rgba(212,180,120,0.08)}
+.btn-sm{height:28px;font-size:12px;padding:0 10px}
+.btn-danger{color:var(--danger);border-color:rgba(192,64,64,0.3)}
+.btn-danger:hover{background:rgba(192,64,64,0.08);border-color:rgba(192,64,64,0.5)}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:14px}
+.card-tile{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.75rem;cursor:pointer;transition:all .2s;position:relative}
+.card-tile:hover{border-color:var(--gold-dim);background:var(--bg3);transform:translateY(-2px)}
+.card-tile.is-leg{border-color:rgba(212,180,120,0.35)}
+.card-art{width:100%;aspect-ratio:3/4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:.65rem;position:relative;overflow:hidden}
+.card-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,0.25));pointer-events:none}
+.crown-badge{position:absolute;top:6px;right:6px;font-size:13px;z-index:1}
+.card-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Cinzel',serif;letter-spacing:.02em}
+.card-footer{display:flex;align-items:center;gap:5px}
+.rarity-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cost-pip{font-size:10px;padding:1px 7px;border-radius:20px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-family:'Cinzel',serif;margin-left:auto}
+.qty-tag{font-size:10px;color:var(--text3)}
+.rbadge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:400;letter-spacing:.04em;font-family:'Cinzel',serif}
+.r-common{background:#1e1e1a;color:#777068;border:1px solid #2e2e28}
+.r-uncommon{background:#111a0e;color:#6a9840;border:1px solid #223018}
+.r-rare{background:#0a1626;color:#4880c0;border:1px solid #142850}
+.r-epic{background:#160e30;color:#8070d8;border:1px solid #28184a}
+.r-legendary{background:#1e1408;color:#d4b478;border:1px solid #503a10}
+.arch-section{margin-bottom:2.5rem}
+.arch-header{display:flex;align-items:center;gap:12px;margin-bottom:1rem;padding:.85rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden}
+.arch-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.arch-emoji{font-size:20px}
+.arch-info .aname{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--gold)}
+.arch-info .asub{font-size:11px;color:var(--text3);letter-spacing:.03em}
+.arch-right{margin-left:auto;text-align:right}
+.arch-count{font-size:11px;color:var(--text3);margin-bottom:4px;font-family:'Cinzel',serif}
+.arch-bar{width:90px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-left:auto}
+.arch-fill{height:100%;border-radius:2px}
+.arch-done{font-size:9px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:'Cinzel',serif;letter-spacing:.04em;margin-top:5px;display:inline-block}
+.deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.deck-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.deck-card:hover{background:var(--bg3);transform:translateY(-2px)}
+.deck-card.complete{border-color:rgba(212,180,120,0.4)}
+.deck-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.deck-emoji{font-size:28px;margin-bottom:.75rem}
+.deck-name{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--gold);margin-bottom:3px}
+.deck-color{font-size:12px;color:var(--text3);margin-bottom:.75rem}
+.deck-progress{display:flex;align-items:center;gap:8px}
+.deck-bar{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.deck-fill{height:100%;border-radius:3px}
+.deck-num{font-size:11px;color:var(--text3);white-space:nowrap;font-family:'Cinzel',serif}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text3)}
+.empty-state svg{width:40px;height:40px;margin:0 auto 1rem;opacity:.3;display:block}
+.empty-state p{font-size:14px}
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:1.75rem;width:100%;max-width:440px;margin:auto}
+.modal-title{font-family:'Cinzel',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:1.25rem;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:11px;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;font-family:'Cinzel',serif;margin-bottom:5px}
+.field input[type=text],.field input[type=number],.field select,.field textarea{width:100%;padding:.45rem .75rem;height:34px}
+.field textarea{height:72px;resize:vertical;padding:.5rem .75rem}
+.field-row{display:flex;gap:8px}
+.field-row .field{flex:1}
+.color-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.color-opt:hover{transform:scale(1.1)}
+.color-opt.sel{border-color:var(--gold2);transform:scale(1.1)}
+.modal-footer{display:flex;gap:8px;margin-top:1.25rem;justify-content:flex-end;align-items:center}
+.modal-footer .btn-danger{margin-right:auto}
+/* ── DETAIL MODAL ── */
+.detail-art{width:100%;aspect-ratio:3/4;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.detail-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,0.3));pointer-events:none}
+.detail-crown{position:absolute;top:10px;right:10px;font-size:20px;z-index:1}
+.drow{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border)}
+.drow:last-of-type{border:none}
+.dk{color:var(--text3);letter-spacing:.04em;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase}
+.dv{font-weight:400;color:var(--text);text-align:right;max-width:65%}
+.desc-txt{font-size:13px;color:var(--text2);margin-top:.85rem;line-height:1.7;font-style:italic;border-top:1px solid var(--border);padding-top:.85rem}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:.65rem 1.25rem;font-size:13px;color:var(--gold);z-index:400;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;font-family:'Cinzel',serif;letter-spacing:.04em}
+.toast.show{opacity:1;transform:translateY(0)}
+.divider{height:1px;background:var(--border);margin:.5rem 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>TCG Collection</h1>
+      <p>Gestionnaire de cartes</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Collection</div>
+      <div class="nav-item active" onclick="setView('all',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 4v16M2 9h6M2 14h6"/></svg>
+        Toutes les cartes
+        <span class="nav-count" id="nc-all">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('archetypes',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3"/><path d="M6 20v-2a6 6 0 0112 0v2"/><circle cx="4" cy="14" r="2"/><circle cx="20" cy="14" r="2"/><path d="M2 20v-1a4 4 0 014-4M18 15a4 4 0 014 4v1"/></svg>
+        Archétypes
+        <span class="nav-count" id="nc-arch">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('decks',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h18M3 12h18M3 17h18"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+        Deck Builder
+        <span class="nav-count" id="nc-deck">0</span>
+      </div>
+      <div class="divider"></div>
+      <div class="nav-section">Ajouter</div>
+      <div class="nav-item" onclick="openAdd(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Nouvelle carte
+      </div>
+      <div class="nav-item" onclick="openAdd(true)" style="color:var(--gold);opacity:.8">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+        Nouvelle légendaire
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="btn btn-sm" onclick="exportJSON()" style="flex:1;justify-content:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M2 17v2a2 2 0 002 2h16a2 2 0 002-2v-2"/></svg>
+        Export
+      </button>
+      <label class="btn btn-sm" style="cursor:pointer;flex:1;justify-content:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v12m0-12l-4 4m4-4l4 4"/><path d="M2 7V5a2 2 0 012-2h16a2 2 0 012 2v2"/></svg>
+        Import
+        <input type="file" accept=".json" onchange="importJSON(event)" style="display:none">
+      </label>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title" id="page-title">Toutes les cartes</div>
+        <div class="page-sub" id="page-sub">Parcourez votre collection complète</div>
+      </div>
+      <div class="header-actions" id="header-actions">
+        <button class="btn btn-gold" onclick="openAdd(false)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Carte
+        </button>
+        <button class="btn btn-gold" onclick="openAdd(true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          Légendaire
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-box"><div class="slabel">Total</div><div class="svalue" id="s-total">0</div></div>
+      <div class="stat-box"><div class="slabel">Légendaires</div><div class="svalue" id="s-leg">0</div></div>
+      <div class="stat-box"><div class="slabel">Archétypes</div><div class="svalue" id="s-arch">0</div></div>
+      <div class="stat-box"><div class="slabel">Decks complets</div><div class="svalue" id="s-done">0</div></div>
+    </div>
+
+    <div class="content">
+      <!-- VIEW: ALL -->
+      <div id="view-all">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input type="text" class="search-input" id="search-input" placeholder="Rechercher une carte…" oninput="renderAll()">
+          </div>
+          <select id="f-color" onchange="renderAll()"><option value="">Toutes couleurs</option></select>
+          <select id="f-type" onchange="renderAll()"><option value="">Tous types</option></select>
+          <select id="f-rarity" onchange="renderAll()">
+            <option value="">Toutes raretés</option>
+            <option>Commune</option><option>Peu commune</option><option>Rare</option><option>Épique</option><option>Légendaire</option>
+          </select>
+        </div>
+        <div class="sort-row">
+          <span class="sort-label">Trier :</span>
+          <button class="pill active" onclick="setSort('name',this)">Nom</button>
+          <button class="pill" onclick="setSort('cost',this)">Coût</button>
+          <button class="pill" onclick="setSort('rarity',this)">Rareté</button>
+          <button class="pill" onclick="setSort('color',this)">Couleur</button>
+          <button class="pill" onclick="setSort('type',this)">Type</button>
+          <button class="pill" id="sort-dir" onclick="toggleDir()" style="margin-left:auto;width:32px;padding:3px 0;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h16M4 12h10M4 18h5"/></svg>
+          </button>
+        </div>
+        <div class="card-grid" id="card-grid"></div>
+      </div>
+
+      <!-- VIEW: ARCHETYPES -->
+      <div id="view-archetypes" style="display:none">
+        <div id="arch-content"></div>
+      </div>
+
+      <!-- VIEW: DECKS -->
+      <div id="view-decks" style="display:none">
+        <div id="deck-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD/EDIT -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      Nouvelle carte
+    </div>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Nom *</label><input type="text" id="f-name" placeholder="Ex: Dragon Primordial"></div>
+    <div class="field-row">
+      <div class="field"><label>Type</label><input type="text" id="f-type" placeholder="Créature, Sort…"></div>
+      <div class="field"><label>Rareté</label>
+        <select id="f-rarity-f"><option>Commune</option><option>Peu commune</option><option>Rare</option><option>Épique</option><option>Légendaire</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Coût (affiché)</label><input type="text" id="f-cost" placeholder="3RR, ★★…"></div>
+      <div class="field"><label>Coût (numérique)</label><input type="number" id="f-cost-n" min="0" placeholder="0" style="height:34px;padding:.4rem .75rem"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>ATK</label><input type="text" id="f-atk" placeholder="—"></div>
+      <div class="field"><label>DEF</label><input type="text" id="f-def" placeholder="—"></div>
+    </div>
+    <div class="field"><label>Légendaire / Archétype</label>
+      <select id="f-legend"><option value="">— Aucune (ou c'est une légendaire) —</option></select>
+    </div>
+    <div class="field">
+      <label>Couleur de l'archétype</label>
+      <div class="color-picker" id="color-picker-form"></div>
+    </div>
+    <div class="field"><label>Effet / Description</label><textarea id="f-desc" placeholder="Décrivez l'effet…"></textarea></div>
+    <div class="field-row">
+      <div class="field"><label>Quantité</label><input type="number" id="f-qty" min="1" value="1" style="height:34px;padding:.4rem .75rem"></div>
+      <div class="field"><label>Emoji</label><input type="text" id="f-emoji" placeholder="🐉" maxlength="4"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del" style="display:none" onclick="deleteCard()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        Supprimer
+      </button>
+      <button class="btn btn-sm" onclick="closeModal('modal-add')">Annuler</button>
+      <button class="btn btn-gold btn-sm" onclick="saveCard()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="overlay" id="modal-detail">
+  <div class="modal">
+    <div class="detail-art" id="d-art"></div>
+    <div id="d-rows"></div>
+    <div class="desc-txt" id="d-desc" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-gold btn-sm" onclick="editFromDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Modifier
+      </button>
+      <button class="btn btn-sm" onclick="closeModal('modal-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECK -->
+<div class="overlay" id="modal-deck">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title" id="deck-modal-title">Deck</div>
+    <div id="deck-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal('modal-deck')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SK='tcg_v3';
+let cards=[];
+let view='all';
+let sortKey='name';
+let sortAsc=true;
+let editId=null;
+let selColor='#D3D1C7';
+
+const COLORS=[
+  {h:'#D3D1C7',n:'Incolore'},{h:'#C0DD97',n:'Nature'},{h:'#B5D4F4',n:'Eau'},
+  {h:'#CECBF6',n:'Ombre'},{h:'#FAC775',n:'Lumière'},{h:'#F5C4B3',n:'Feu'},
+  {h:'#9FE1CB',n:'Vent'},{h:'#F4C0D1',n:'Chaos'},{h:'#97C459',n:'Poison'},
+  {h:'#E8C4F0',n:'Mystique'},{h:'#F0D878',n:'Soleil'},{h:'#A8C8F0',n:'Glace'}
+];
+const RO={Commune:0,'Peu commune':1,Rare:2,Épique:3,Légendaire:4};
+const RDot={Commune:'#666','\Peu commune':'#6a9840',Rare:'#4880c0',Épique:'#8070d8',Légendaire:'#d4b478'};
+function rdot(r){return {Commune:'#555','Peu commune':'#6a9840',Rare:'#4880c0',Épique:'#8070d8',Légendaire:'#d4b478'}[r]||'#555';}
+function rclass(r){return {Commune:'r-common','Peu commune':'r-uncommon',Rare:'r-rare',Épique:'r-epic',Légendaire:'r-legendary'}[r]||'r-common';}
+function colName(h){return (COLORS.find(c=>c.h===h)||{n:h}).n;}
+function legs(){return cards.filter(c=>c.rarity==='Légendaire');}
+function legByColor(h){return cards.find(c=>c.color===h&&c.rarity==='Légendaire');}
+
+function load(){
+  try{const d=localStorage.getItem(SK);if(d)cards=JSON.parse(d);}catch(e){cards=[];}
+  // migrate old key
+  try{
+    const old=localStorage.getItem('tcg_collection_v1');
+    if(old){
+      const oc=JSON.parse(old);const ids=new Set(cards.map(c=>c.id));let added=0;
+      oc.forEach(o=>{if(!ids.has(o.id)){cards.push({id:o.id,name:o.name||'?',type:o.type||'',rarity:o.rarity||'Commune',cost:o.cost||'',costNum:0,atk:o.atk||'',def:o.def||'',desc:o.desc||'',qty:o.qty||1,emoji:o.emoji||'🃏',color:o.color||'#D3D1C7',legendId:''});added++;}});
+      if(added){save();toast(added+' carte'+(added>1?'s':'')+' migrée'+(added>1?'s':'')+' ✦');}
+    }
+  }catch(e){}
+  buildColorPicker();render();
+}
+function save(){try{localStorage.setItem(SK,JSON.stringify(cards));}catch(e){}}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+
+function buildColorPicker(sel){
+  selColor=sel||selColor||'#D3D1C7';
+  document.getElementById('color-picker-form').innerHTML=COLORS.map(c=>`<div class="color-opt${c.h===selColor?' sel':''}" style="background:${c.h}" title="${c.n}" onclick="pickColor('${c.h}')"></div>`).join('');
+}
+function pickColor(h){selColor=h;buildColorPicker(h);}
+
+function updateStats(){
+  const total=cards.reduce((a,c)=>a+(+c.qty||1),0);
+  const ll=legs();
+  let done=0;ll.forEach(l=>{if(cards.filter(c=>c.color===l.color&&c.rarity!=='Légendaire').reduce((a,c)=>a+(+c.qty||1),0)>=20)done++;});
+  const archs=new Set(cards.map(c=>c.color).filter(h=>h&&h!=='#D3D1C7')).size;
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-leg').textContent=ll.length;
+  document.getElementById('s-arch').textContent=archs;
+  document.getElementById('s-done').textContent=done;
+  document.getElementById('nc-all').textContent=cards.length;
+  document.getElementById('nc-arch').textContent=archs;
+  document.getElementById('nc-deck').textContent=ll.length;
+}
+
+function updateFilters(){
+  const fc=document.getElementById('f-color'),curC=fc.value;
+  const used=[...new Set(cards.map(c=>c.color).filter(Boolean))];
+  fc.innerHTML='<option value="">Toutes couleurs</option>'+used.map(h=>`<option value="${h}"${h===curC?' selected':''}>${colName(h)}</option>`).join('');
+  const ft=document.getElementById('f-type'),curT=ft.value;
+  const types=[...new Set(cards.map(c=>c.type).filter(Boolean))].sort();
+  ft.innerHTML='<option value="">Tous types</option>'+types.map(t=>`<option${t===curT?' selected':''}>${t}</option>`).join('');
+}
+
+function sortList(list){
+  return [...list].sort((a,b)=>{
+    let va,vb;
+    if(sortKey==='cost'){va=+a.costNum||0;vb=+b.costNum||0;return sortAsc?va-vb:vb-va;}
+    if(sortKey==='rarity'){va=RO[a.rarity]||0;vb=RO[b.rarity]||0;return sortAsc?va-vb:vb-va;}
+    if(sortKey==='color'){va=a.color||'';vb=b.color||'';return sortAsc?va.localeCompare(vb):vb.localeCompare(va);}
+    if(sortKey==='type'){va=a.type||'';vb=b.type||'';return sortAsc?va.localeCompare(vb):vb.localeCompare(va);}
+    va=a.name||'';vb=b.name||'';return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
+  });
+}
+
+function tileHTML(c){
+  const il=c.rarity==='Légendaire';
+  return `<div class="card-tile${il?' is-leg':''}" onclick="openDetail('${c.id}')">
+    <div class="card-art" style="background:${c.color||'#D3D1C7'}">${c.emoji||'🃏'}${il?'<span class="crown-badge">👑</span>':''}</div>
+    <div class="card-name">${c.name}</div>
+    <div class="card-footer">
+      <span class="rarity-dot" style="background:${rdot(c.rarity)}"></span>
+      ${c.cost?`<span class="cost-pip">${c.cost}</span>`:'<span style="flex:1"></span>'}
+      <span class="qty-tag">×${c.qty||1}</span>
+    </div>
+  </div>`;
+}
+
+function render(){updateStats();updateFilters();if(view==='all')renderAll();if(view==='archetypes')renderArch();if(view==='decks')renderDecks();}
+
+function renderAll(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const fc=document.getElementById('f-color').value;
+  const ft=document.getElementById('f-type').value;
+  const fr=document.getElementById('f-rarity').value;
+  let list=cards.filter(c=>(!q||(c.name||'').toLowerCase().includes(q))&&(!fc||c.color===fc)&&(!ft||c.type===ft)&&(!fr||c.rarity===fr));
+  list=sortList(list);
+  const g=document.getElementById('card-grid');
+  if(!list.length){g.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 4v16"/></svg><p>${cards.length?'Aucune carte trouvée':'Commencez par ajouter vos cartes'}</p></div>`;return;}
+  g.innerHTML=list.map(c=>tileHTML(c)).join('');
+}
+
+function renderArch(){
+  const ll=legs();
+  const el=document.getElementById('arch-content');
+  if(!ll.length){el.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg><p>Ajoutez une légendaire pour créer un archétype</p></div>';return;}
+  let html='';
+  ll.forEach(leg=>{
+    const members=sortList(cards.filter(c=>c.color===leg.color&&c.rarity!=='Légendaire'));
+    const owned=members.reduce((a,c)=>a+(+c.qty||1),0);
+    const pct=Math.min(100,Math.round(owned/20*100));
+    html+=`<div class="arch-section">
+      <div class="arch-header">
+        <div class="arch-accent" style="background:${leg.color}"></div>
+        <span class="arch-emoji">${leg.emoji||'👑'}</span>
+        <div class="arch-info">
+          <div class="aname">${leg.name}</div>
+          <div class="asub">${colName(leg.color)} · archétype</div>
+        </div>
+        <div class="arch-right">
+          <div class="arch-count">${owned}/20 cartes</div>
+          <div class="arch-bar"><div class="arch-fill" style="width:${pct}%;background:${leg.color}"></div></div>
+          ${owned>=20?'<div class="arch-done">Deck complet ✦</div>':''}
+        </div>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openDetail('${leg.id}')" style="margin-left:8px;flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="card-grid">${members.length?members.map(c=>tileHTML(c)).join(''):`<div class="empty-state" style="grid-column:1/-1;padding:1.5rem"><p>Aucune carte assignée à cet archétype</p></div>`}</div>
+    </div>`;
+  });
+  const noArch=sortList(cards.filter(c=>c.rarity!=='Légendaire'&&(!c.color||c.color==='#D3D1C7'||!legByColor(c.color))));
+  if(noArch.length){
+    html+=`<div class="arch-section">
+      <div class="arch-header">
+        <div class="arch-accent" style="background:#555"></div>
+        <span class="arch-emoji">🃏</span>
+        <div class="arch-info"><div class="aname">Sans archétype</div><div class="asub">Cartes non assignées</div></div>
+        <div class="arch-right"><div class="arch-count">${noArch.length} carte${noArch.length>1?'s':''}</div></div>
+      </div>
+      <div class="card-grid">${noArch.map(c=>tileHTML(c)).join('')}</div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+function renderDecks(){
+  const ll=legs();
+  const el=document.getElementById('deck-content');
+  if(!ll.length){el.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 7h18M3 12h18M3 17h18"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg><p>Aucune légendaire = aucun deck</p></div>';return;}
+  let html='<div class="deck-grid">';
+  ll.forEach(leg=>{
+    const members=cards.filter(c=>c.color===leg.color&&c.rarity!=='Légendaire');
+    const owned=members.reduce((a,c)=>a+(+c.qty||1),0);
+    const pct=Math.min(100,Math.round(owned/20*100));
+    const done=owned>=20;
+    html+=`<div class="deck-card${done?' complete':''}" onclick="openDeckModal('${leg.id}')" style="border-top-color:${leg.color}">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${leg.color};border-radius:${leg.color} 2px 0 0"></div>
+      <div class="deck-emoji">${leg.emoji||'👑'}</div>
+      <div class="deck-name">${leg.name}</div>
+      <div class="deck-color">${colName(leg.color)}</div>
+      <div class="deck-progress">
+        <div class="deck-bar"><div class="deck-fill" style="width:${pct}%;background:${leg.color}"></div></div>
+        <div class="deck-num">${owned}/20</div>
+      </div>
+      ${done?'<div style="margin-top:.75rem;font-size:10px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:Cinzel,serif;letter-spacing:.04em;display:inline-block">Deck complet ✦</div>':''}
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function setView(v,el){
+  view=v;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-all').style.display=v==='all'?'':'none';
+  document.getElementById('view-archetypes').style.display=v==='archetypes'?'':'none';
+  document.getElementById('view-decks').style.display=v==='decks'?'':'none';
+  const titles={all:'Toutes les cartes',archetypes:'Archétypes',decks:'Deck Builder'};
+  const subs={all:'Parcourez votre collection complète',archetypes:'Cartes groupées par légendaire',decks:'Visualisez vos decks (1 légendaire + 20 cartes)'};
+  document.getElementById('page-title').textContent=titles[v];
+  document.getElementById('page-sub').textContent=subs[v];
+  render();
+}
+
+function setSort(k,btn){
+  sortKey=k;
+  document.querySelectorAll('.sort-row .pill').forEach(p=>{if(p.id!=='sort-dir')p.classList.remove('active');});
+  btn.classList.add('active');renderAll();
+}
+function toggleDir(){
+  sortAsc=!sortAsc;
+  const btn=document.getElementById('sort-dir');
+  btn.innerHTML=sortAsc
+    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h16M4 12h10M4 18h5"/></svg>'
+    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M4 6h5M4 12h10M4 18h16"/></svg>';
+  renderAll();
+}
+
+function buildLegendSelect(val){
+  const sel=document.getElementById('f-legend');
+  sel.innerHTML='<option value="">— Aucune (ou c\'est une légendaire) —</option>'+legs().map(l=>`<option value="${l.id}"${l.id===val?' selected':''}>${l.emoji||'👑'} ${l.name}</option>`).join('');
+  sel.onchange=function(){const l=cards.find(c=>c.id===this.value);if(l&&l.color)pickColor(l.color);};
+}
+
+function openAdd(legendary){
+  document.getElementById('modal-title').innerHTML=legendary
+    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Nouvelle légendaire'
+    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg> Nouvelle carte';
+  document.getElementById('edit-id').value='';
+  document.getElementById('btn-del').style.display='none';
+  ['f-name','f-type','f-cost','f-atk','f-def','f-desc','f-emoji'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-cost-n').value='';
+  document.getElementById('f-rarity-f').value=legendary?'Légendaire':'Commune';
+  document.getElementById('f-qty').value=1;
+  pickColor('#D3D1C7');buildLegendSelect('');
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function openEdit(id){
+  const c=cards.find(x=>x.id===id);if(!c)return;
+  document.getElementById('modal-title').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Modifier la carte';
+  document.getElementById('edit-id').value=id;
+  document.getElementById('btn-del').style.display='inline-flex';
+  document.getElementById('f-name').value=c.name||'';
+  document.getElementById('f-type').value=c.type||'';
+  document.getElementById('f-rarity-f').value=c.rarity||'Commune';
+  document.getElementById('f-cost').value=c.cost||'';
+  document.getElementById('f-cost-n').value=c.costNum||'';
+  document.getElementById('f-atk').value=c.atk||'';
+  document.getElementById('f-def').value=c.def||'';
+  document.getElementById('f-desc').value=c.desc||'';
+  document.getElementById('f-qty').value=c.qty||1;
+  document.getElementById('f-emoji').value=c.emoji||'';
+  pickColor(c.color||'#D3D1C7');buildLegendSelect(c.legendId||'');
+  closeModal('modal-detail');
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function saveCard(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name)return document.getElementById('f-name').focus();
+  const id=document.getElementById('edit-id').value||Date.now().toString(36);
+  const card={id,name,type:document.getElementById('f-type').value.trim(),rarity:document.getElementById('f-rarity-f').value,cost:document.getElementById('f-cost').value.trim(),costNum:+document.getElementById('f-cost-n').value||0,atk:document.getElementById('f-atk').value.trim(),def:document.getElementById('f-def').value.trim(),desc:document.getElementById('f-desc').value.trim(),qty:+document.getElementById('f-qty').value||1,emoji:document.getElementById('f-emoji').value.trim()||'🃏',color:selColor,legendId:document.getElementById('f-legend').value||''};
+  const idx=cards.findIndex(c=>c.id===id);
+  if(idx>=0)cards[idx]=card;else cards.push(card);
+  save();closeModal('modal-add');render();
+  toast('Carte sauvegardée ✦');
+}
+function deleteCard(){
+  const id=document.getElementById('edit-id').value;
+  if(!confirm('Supprimer cette carte ?'))return;
+  cards=cards.filter(c=>c.id!==id);save();closeModal('modal-add');render();toast('Carte supprimée');
+}
+
+function openDetail(id){
+  const c=cards.find(x=>x.id===id);if(!c)return;
+  editId=id;
+  const il=c.rarity==='Légendaire';
+  const art=document.getElementById('d-art');
+  art.style.background=c.color||'#D3D1C7';
+  art.innerHTML=`${c.emoji||'🃏'}${il?'<span class="detail-crown">👑</span>':''}`;
+  const leg=c.legendId?cards.find(x=>x.id===c.legendId):null;
+  const rows=[
+    ['Nom',c.name],
+    c.type&&['Type',c.type],
+    ['Rareté',`<span class="rbadge ${rclass(c.rarity)}">${c.rarity}</span>`],
+    c.cost&&['Coût',c.cost],
+    (c.atk||c.def)&&['ATK / DEF',`${c.atk||'—'} / ${c.def||'—'}`],
+    c.color&&['Couleur',`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block;border:1px solid rgba(255,255,255,0.2)"></span>${colName(c.color)}</span>`],
+    leg&&['Archétype',`${leg.emoji||'👑'} ${leg.name}`],
+    ['Quantité',`× ${c.qty||1}`],
+  ].filter(Boolean);
+  document.getElementById('d-rows').innerHTML=rows.map(([k,v])=>`<div class="drow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('');
+  const desc=document.getElementById('d-desc');
+  if(c.desc){desc.textContent=c.desc;desc.style.display='block';}else{desc.style.display='none';}
+  document.getElementById('modal-detail').classList.add('open');
+}
+function editFromDetail(){openEdit(editId);}
+
+function openDeckModal(legId){
+  const leg=cards.find(c=>c.id===legId);if(!leg)return;
+  const members=sortList(cards.filter(c=>c.color===leg.color&&c.rarity!=='Légendaire'));
+  const owned=members.reduce((a,c)=>a+(+c.qty||1),0);
+  const pct=Math.min(100,Math.round(owned/20*100));
+  document.getElementById('deck-modal-title').innerHTML=`${leg.emoji||'👑'} ${leg.name}`;
+  let html=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">
+    <div style="flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${leg.color};border-radius:2px"></div></div>
+    <span style="font-size:12px;color:var(--text3);font-family:Cinzel,serif">${owned}/20</span>
+    ${owned>=20?'<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#111a0e;color:#6a9840;border:1px solid #223018;font-family:Cinzel,serif">Deck complet ✦</span>':''}
+  </div>`;
+  if(!members.length){html+='<div class="empty-state" style="padding:1.5rem"><p>Aucune carte dans ce deck</p></div>';}
+  else{
+    html+='<div style="display:flex;flex-direction:column;gap:2px">';
+    members.forEach(c=>{
+      html+=`<div onclick="closeModal('modal-deck');openDetail('${c.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:6px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
+        <div style="width:30px;height:42px;border-radius:4px;background:${c.color||'#D3D1C7'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${c.emoji||'🃏'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-family:Cinzel,serif;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+          <div style="font-size:11px;color:var(--text3)">${c.type||''}${c.cost?' · '+c.cost:''}</div>
+        </div>
+        <span class="rbadge ${rclass(c.rarity)}" style="flex-shrink:0">${c.rarity}</span>
+        <span style="font-size:11px;color:var(--text3);flex-shrink:0">×${c.qty||1}</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  document.getElementById('deck-modal-body').innerHTML=html;
+  document.getElementById('modal-deck').classList.add('open');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(el=>el.classList.remove('open'));});
+
+function exportJSON(){
+  if(!cards.length){toast('Aucune carte à exporter');return;}
+  const blob=new Blob([JSON.stringify({version:3,exported:new Date().toISOString(),cards},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='tcg-collection-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast(cards.length+' carte'+(cards.length>1?'s':'')+' exportée'+(cards.length>1?'s':'')+' ✦');
+}
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      const imp=Array.isArray(d)?d:(d.cards||[]);
+      if(!imp.length){toast('Fichier vide ou invalide');return;}
+      let added=0,updated=0;
+      imp.forEach(c=>{if(!c.id)c.id=Date.now().toString(36)+Math.random().toString(36).slice(2);const idx=cards.findIndex(x=>x.id===c.id);if(idx>=0){cards[idx]=c;updated++;}else{cards.push(c);added++;}});
+      save();render();toast('+'+added+' ajoutée'+(added>1?'s':'')+', '+updated+' mise'+(updated>1?'s':'')+' à jour ✦');
+    }catch(err){toast('Erreur : JSON invalide');}
+    e.target.value='';
+  };
+  r.readAsText(file);
+}
+
+load();
+</script>
+</body>
+</html>
