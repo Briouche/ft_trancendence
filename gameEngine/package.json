@@ -1,0 +1,14 @@
+{
+  "name": "local_transcendence",
+  "scripts":
+  {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "devDependencies":
+  {
+    "@types/node": "^25.9.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
