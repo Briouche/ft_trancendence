@@ -19,7 +19,7 @@ RUN npm ci
 FROM deps AS development
 ENV NODE_ENV=development
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma generate && npm run dev"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate dev && npm run dev"]
 
 
 # =============================================================================
@@ -42,7 +42,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Prune devDependencies so the copied node_modules is production-only
-RUN npm ci --omit=dev
+RUN npm prune --omit=dev
 
 
 # =============================================================================
@@ -56,9 +56,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Create a non-root user to run the process
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
+
+# Install tsx and prisma globally at image construction time
+RUN npm install -g tsx prisma
 
 # Copy only what is needed to run the app
 COPY --from=builder --chown=nextjs:nodejs /app/package*.json   ./
@@ -71,7 +73,4 @@ USER nextjs
 
 EXPOSE 3000
 
-# Run pending migrations then start the server.
-# Using migrate deploy (not migrate dev) — safe for production: never prompts,
-# never resets data, only applies already-committed migration files.
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+CMD ["sh", "-c", "prisma migrate deploy && npm run start"]
