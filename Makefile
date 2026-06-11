@@ -1,31 +1,22 @@
-all: up
+all: dev
 
-init:
-	mkdir -p ./nginx/certs
-	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-		-keyout ./nginx/certs/key.pem \
-		-out ./nginx/certs/cert.pem \
-		-subj "/C=BE/ST=Brussels/L=Brussels/O=Dev/CN=localhost"
+dev:
+	docker compose up
 
-up: init
-	docker compose -f ./docker-compose.yml up -d
-
-up_logs: down
-	docker compose -f ./docker-compose.yml up
-
-rebuild:
-	docker compose -f ./docker-compose.yml build --no-cache
+prod:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
 down:
-	docker compose -f ./docker-compose.yml down
+	docker compose down -v
 
-clean: down
-	docker system prune -f
-	rm -rf nextjs-app/.next .node_modules
+npm-clean:
+	rm -rf app/app/generated
+	rm -rf app/node_modules
+	rm -rf app/.next
 
-fclean: down
-	rm -rf nginx/certs
-	rm -rf db
+docker-clean: down
 	docker system prune -af
+	
+fclean: npm-clean docker-clean
 
-re: fclean up
+re: fclean all
