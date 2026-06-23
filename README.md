@@ -1,4 +1,6 @@
+
 *This project has been created as part of the 42 curriculum by brcoppie, fkrakow, lecartuy, stdevis*
+
 
 # Description
 
@@ -24,6 +26,14 @@ also needs to contain a clear name for the project and its key features
 
 # Instructions
 
+To build the project from scratch, we can use `make`.
+The only thing to do before `make` is complete the `.env` file that is not pushed to git.
+To free up the maximum space it is possible to use `make fclean`.
+
+You'll see in the `.env.example` file empty fields that need to be filled in.
+For the `NEXTAUTH_SECRET` variable, simply use the command `openssl rand -base64 32` in a shell and paste the value to the file.
+
+---
 any relevant information about compilation, installation, and/or execution
 
 mention all the needed prerequisites (software, tools, versions, configuration like .env setup, etc.), and step-by-step instructions to run the project

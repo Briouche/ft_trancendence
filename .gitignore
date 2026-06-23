@@ -1,0 +1,14 @@
+node_modules
+
+# Env files — contain secrets
+.env
+.env.local
+.env.production
+
+#should generate them at build time instead of ourselves and putting them in gitignore
+nginx/certs/
+
+# OS/editor noise
+.DS_Store
+.vscode/
+
