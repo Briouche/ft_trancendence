@@ -57,7 +57,7 @@ export class Player
     {
         return this.hero.toString()
             + " | Mana: " + this.currentMana + "/" + this.maxMana
-            + " | Deck: " + this.deck.size
-            + " | Hand: " + this.hand.size;
+            + " | Deck: " + this.deck.size()
+            + " | Hand: " + this.hand.size();
     }
 }
