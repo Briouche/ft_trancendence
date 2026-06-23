@@ -38,14 +38,14 @@ export class Hand
         return [...this.cards];
     }
 
-    printHand(): string
+    toString(): string
     {
         if (this.cards.length === 0)
             return "Hand is empty.";
 
         let result: string = "";
         for (let i = 0; i < this.cards.length; i++)
-            result += "  [" + i + "] " + this.cards[i].PrintCard() + "\n";
+            result += "  [" + i + "] " + this.cards[i].toString() + "\n";
         return result;
     }
 }

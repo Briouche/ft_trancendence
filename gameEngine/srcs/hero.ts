@@ -29,7 +29,7 @@ export class Hero
         return this.currentHealth > 0;
     }
 
-    printHero(): string
+    toString(): string
     {
         return this.name + " (" + this.currentHealth + "/" + STARTING_HEALTH + " HP)";
     }
