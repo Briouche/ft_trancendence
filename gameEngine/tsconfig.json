@@ -5,7 +5,8 @@
         "rootDir": "./srcs",
         "outDir": "./dist",
         "strict": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "types": ["node"]
     },
     "ts-node": {
         "transpileOnly": false
