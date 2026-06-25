@@ -40,13 +40,17 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# Copy Prisma for migrations triggered in docker-compose.prod.yml
+
+# Copy Prisma Config & Frameworks
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
+# Copy Prisma Dependencies
 COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
 
-# Expose port (metadata)
-EXPOSE 3000
+# Copy tsx binaries and libraries over so production can execute seeds safely!
+COPY --from=deps /app/node_modules/tsx ./node_modules/tsx
+COPY --from=deps /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
 
-# The command is provided by docker-compose.prod.yml:
-# sh -c "npx prisma migrate deploy && node server.js"
+EXPOSE 3000
