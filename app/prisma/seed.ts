@@ -1,28 +1,37 @@
-//
-//  seed.ts
-//  
-//
-//  Created by François on 11/06/2026.
-//
+import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-import { PrismaClient } from '../app/generated/prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
+//import { seedCards } from './seeds/cards.seed'
+import { seedUsers } from './seeds/users.seed'
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+// 1. Set up the native pg Pool pointing to your database URL
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// 2. Initialize the Prisma PostgreSQL adapter
+const adapter = new PrismaPg(pool);
+
+// 3. Pass the adapter options into the Prisma Client constructor
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  await prisma.user.create({
-	data: {
-	  email: 'test@test.com',
-	  name: 'test',
-	  password: 'test',
-	},
-  })
+	console.log('🌱 Starting global database seed...')
+	
+	// Run sub-seeds in order
+	//	await seedCards(prisma)
+	await seedUsers(prisma)
+
+	console.log('🏁 Database seeding completed successfully!')
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect())
+.then(async () => {
+	await prisma.$disconnect();
+	await pool.end();
+})
+.catch(async (e) => {
+	console.error(e);
+	await prisma.$disconnect();
+	await pool.end();
+	process.exit(1);
+});

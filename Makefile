@@ -19,8 +19,8 @@ npm-clean: down
 	rm -rf app/.next
 
 docker-clean: down
-	docker system prune -af
-	
+	docker compose down --rmi all
+
 fclean: npm-clean docker-clean
 
 re: fclean all

@@ -1,10 +1,10 @@
 services:
-  nginx:
-    image: nginx:alpine
+  proxy:
+    image: nginx:stable-alpine
     ports:
       - "80:80"
     volumes:
-      - ./nginx/dev.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/dev.conf:/etc/nginx/nginx.conf:ro
 
   app:
     build:
@@ -13,13 +13,10 @@ services:
       - "3000:3000"
     volumes:
       - ./app:/app
-      - app_node_modules:/app/node_modules
-      - app_next:/app/.next
+      - /app/node_modules
+      - /app/.next
+    command: npm run start:dev
 
-  postgres:
+  db:
     ports:
-      - "5432:5432"
-
-volumes:
-  app_node_modules:
-  app_next:
+     - "5432:5432"
