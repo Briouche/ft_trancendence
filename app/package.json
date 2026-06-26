@@ -7,7 +7,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+	"db:migrate:deploy": "prisma migrate deploy",
+	"db:seed":"prisma db seed",
+	"start:dev":"npm run db:migrate:deploy && npm run db:seed; npm run dev"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

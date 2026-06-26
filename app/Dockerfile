@@ -49,7 +49,7 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
 
-# Copy tsx binaries and libraries over so production can execute seeds safely!
+# Copy tsx binaries and libraries over so production can execute seeds safely
 COPY --from=deps /app/node_modules/tsx ./node_modules/tsx
 COPY --from=deps /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
 

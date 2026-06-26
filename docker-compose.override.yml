@@ -15,7 +15,7 @@ services:
       - ./app:/app
       - /app/node_modules
       - /app/.next
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed; npm run dev"
+    command: npm run start:dev
 
   db:
     ports:
