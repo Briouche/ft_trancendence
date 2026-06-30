@@ -11,20 +11,42 @@ export default async function UsersPage() {
   });
 
   return (
-    <main style={{ maxWidth: "600px", margin: "40px auto", padding: "0 20px", fontFamily: "sans-serif" }}>
+    <main
+      style={{
+        maxWidth: "600px",
+        margin: "40px auto",
+        padding: "0 20px",
+        fontFamily: "sans-serif",
+      }}
+    >
       <h2>Manage Users</h2>
 
       {/* --- Create User Form --- */}
-      <section style={{ marginBottom: "40px", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
+      <section
+        style={{
+          marginBottom: "40px",
+          padding: "20px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
+      >
         <h3 style={{ marginTop: 0 }}>Add New User</h3>
-        <form action={createUser} style={{ display: "flex", flexDirection: "col", gap: "12px" }}>
+        <form action={createUser} style={{ display: "flex", gap: "12px" }}>
           <div>
-            <label style={{ display: "block", marginBottom: "4px" }}>Name</label>
-            <input type="text" name="name" style={{ width: "100%", padding: "8px", boxSizing: "border-box" }} />
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+            />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "4px" }}>Email *</label>
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              Email *
+            </label>
             <input
               type="email"
               name="email"
@@ -34,7 +56,9 @@ export default async function UsersPage() {
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "4px" }}>Password *</label>
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              Password *
+            </label>
             <input
               type="password"
               name="password"
@@ -80,10 +104,13 @@ export default async function UsersPage() {
               >
                 <div>
                   <strong>{user.name || "Anonymous"}</strong>
-                  <span style={{ color: "#666", marginLeft: "8px" }}>({user.email})</span>
+                  <span style={{ color: "#666", marginLeft: "8px" }}>
+                    ({user.email})
+                  </span>
                 </div>
                 <small style={{ color: "#999" }}>
-                  ID: {user.id} — {new Date(user.createdAt).toLocaleDateString()}
+                  ID: {user.id} —{" "}
+                  {new Date(user.createdAt).toLocaleDateString()}
                 </small>
               </li>
             ))}
