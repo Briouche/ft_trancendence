@@ -1,4 +1,5 @@
-import { Card, MinionCard } from "./card";
+import { Card, MinionCard, SpellCard } from "./card";
+import { DrawCardEffect } from "./effect";
 
 export class Deck
 {
@@ -42,8 +43,10 @@ export class Deck
 export function makeBasicDeck() : Deck
 {
     return new Deck ([
-        new MinionCard("Wisp",         0, "A 1/1 for free.",        1, 1),
-        new MinionCard("Murloc",       1, "Slippery.",              2, 1),
+        new MinionCard("DrawingWisp",  0, "battlecry: draw 1.",     1, 1,
+                        { battlecry: new DrawCardEffect(1) }),
+        new MinionCard("Murloc",       1, "Deathrattle: draw 2.",   2, 1,
+                        { deathrattle: new DrawCardEffect(2) }),
         new MinionCard("River Croc",   2, "Snappy.",                2, 3),
         new MinionCard("Orc Warrior",  3, "For the Horde!",         3, 4),
         new MinionCard("Tauren",       4, "Big and sturdy.",        2, 7),
@@ -54,5 +57,7 @@ export function makeBasicDeck() : Deck
         new MinionCard("River Croc",   2, "Snappy.",                2, 3),
         new MinionCard("Orc Warrior",  3, "For the Horde!",         3, 4),
         new MinionCard("Tauren",       4, "Big and sturdy.",        2, 7),
+        new SpellCard("Lecture de texte anciens", 3, "pioche 2 cartes", new DrawCardEffect(2)),
+        new SpellCard("Lecture de texte anciens", 3, "pioche 2 cartes", new DrawCardEffect(2))
     ]);
 }
