@@ -1,7 +1,13 @@
-.PHONY: all dev prod rebuild down npm-clean docker-clean fclean re
+.PHONY: all add_domain dev prod rebuild down npm-clean docker-clean fclean re
+
+include .env
 
 # Default target
 all: dev
+
+# Add domain name to local machine's DNS
+add_domain:
+	grep -qxF "127.0.0.1	$(DOMAIN_NAME)" /etc/hosts || echo "127.0.0.1	$(DOMAIN_NAME)" | sudo tee -a /etc/hosts
 
 # Development Setup
 dev:
