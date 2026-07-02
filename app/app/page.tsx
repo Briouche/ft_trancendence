@@ -1,18 +1,65 @@
-export default function Home() {
+import Link from "next/link";
+
+const MENU = [
+  {
+    href: "/collection",
+    label: "Collection",
+    description: "Parcourir toutes les cartes disponibles",
+    emoji: "📚",
+    available: true,
+  },
+  {
+    href: "/deck",
+    label: "Construire un deck",
+    description: "Choisir tes cartes pour la prochaine partie",
+    emoji: "🃏",
+    available: true,
+  },
+  {
+    href: "/game",
+    label: "Jouer une partie",
+    description: "Bientôt disponible",
+    emoji: "⚔️",
+    available: false,
+  },
+];
+
+export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="max-w-md rounded-2xl bg-white p-8 shadow-xl border border-slate-100">
-        <h1 className="text-2xl font-bold text-indigo-600 mb-2">
-          Tailwind v4 is Live!
-        </h1>
-        <p className="text-slate-600 mb-4">
-          Your Next.js environment is configured and ready to be paired with
-          Prisma.
-        </p>
-        <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition">
-          Connect Database
-        </button>
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-8 p-8">
+      <div className="text-center">
+        <h1 className="text-5xl font-bold text-white mb-2">ft_transcendence</h1>
+        <p className="text-gray-400 text-lg">Card Game</p>
       </div>
-    </main>
+
+      <div className="flex flex-col gap-4 w-full max-w-md">
+        {MENU.map((item) =>
+          item.available ? (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-4 bg-gray-800 hover:bg-gray-700 transition-colors rounded-xl p-5 border border-gray-700"
+            >
+              <span className="text-4xl">{item.emoji}</span>
+              <div>
+                <div className="text-white font-bold text-lg">{item.label}</div>
+                <div className="text-gray-400 text-sm">{item.description}</div>
+              </div>
+            </Link>
+          ) : (
+            <div
+              key={item.href}
+              className="flex items-center gap-4 bg-gray-800/50 rounded-xl p-5 border border-gray-700/50 opacity-50 cursor-not-allowed"
+            >
+              <span className="text-4xl">{item.emoji}</span>
+              <div>
+                <div className="text-white font-bold text-lg">{item.label}</div>
+                <div className="text-gray-400 text-sm">{item.description}</div>
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
   );
 }
