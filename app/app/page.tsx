@@ -26,6 +26,7 @@ const MENU = [
 
 export default function HomePage() {
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-8 p-8">
       <div className="text-center">
         <h1 className="text-5xl font-bold text-white mb-2">ft_transcendence</h1>
@@ -60,6 +61,14 @@ export default function HomePage() {
           ),
         )}
       </div>
+=======
+    <div>
+      <p>Main text</p>
+      <p>
+        This is a simple test to see if it works as expected with hot module
+        replacement. And it does.
+      </p>
+>>>>>>> 09f5780 (progressing)
     </div>
   );
 }

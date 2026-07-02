@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-	--color-brand-primary: #1a73e8;
+  /* --------------------------
+  Text styles
+  -------------------------- */
+  --font-sans: "Inter", sans-serif;
+  --font-weight-heading: 700;
+
+  /* --------------------------
+  // Color palette
+  -------------------------- */
+  --color-background: #685630;
+  --color-two: #0f2c07;
+  --color-three: #817a38;
+  --color-four: #849545;
+  --color-five: #d1e5cc;
 }

@@ -1,20 +1,29 @@
-// app/layout.tsx
 import type { Metadata } from "next";
-import "./globals.css"; // <--- Make sure this path points to your globals.css
+import "./globals.css";
+
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "My Full-Stack App",
-  description: "Built with Next.js, Prisma, and Tailwind v4",
+  title: "jeudecartes.super.be",
+  description:
+    "meilleur jeu de cartes collectibles super chouette gratuit amusant incroyable",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body className="bg-slate-50 text-slate-900 antialiased">{children}</body>
+      <body className="bg-background min-h-screen">
+        <Header />
+
+        <main>{children}</main>
+
+        <Footer />
+      </body>
     </html>
   );
 }
