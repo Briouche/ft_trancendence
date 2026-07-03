@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@theme {
+	--color-brand-primary: #1a73e8;
+}

@@ -1,0 +1,22 @@
+services:
+  proxy:
+    build:
+      context: ./nginx
+      args:
+        DOMAIN_NAME: ${DOMAIN_NAME}
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+    restart: always
+
+  app:
+    build:
+      target: production
+    restart: always
+    command: npm run start:prod
+
+  db:
+    restart: always

@@ -1,4 +1,5 @@
 import { Card } from "./card";
+import { makeCollectionDeck } from "./cardLoader";
 
 export class Deck
 {
@@ -37,4 +38,9 @@ export class Deck
     {
         return this.cards.length === 0;
     }
+}
+
+export function makeBasicDeck(): Deck
+{
+    return makeCollectionDeck();
 }

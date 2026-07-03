@@ -1,0 +1,22 @@
+services:
+  proxy:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy/dev.conf:/etc/nginx/nginx.conf:ro
+
+  app:
+    build:
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run start:dev
+
+  db:
+    ports:
+     - "5432:5432"

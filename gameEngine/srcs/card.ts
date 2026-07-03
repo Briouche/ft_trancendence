@@ -1,3 +1,4 @@
+
 export abstract class Card
 {
     public readonly name:        string;
@@ -13,7 +14,7 @@ export abstract class Card
 
     abstract getType(): string;
 
-    PrintCard(): string
+    toString(): string
     {
         return "[" + this.getType() + "] " + this.name + " (" + this.manaCost + " mana) - " + this.description;
     }
@@ -56,7 +57,7 @@ export class MinionCard extends Card
 			this.currentHealth = this.maxHealth;
 	}
 
-    PrintCard(): string
+    toString(): string
     {
         return "[Minion] " + this.name + " (" + this.manaCost + " mana) "
             + this.attack + "/" + this.currentHealth + " - " + this.description;

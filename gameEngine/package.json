@@ -2,7 +2,7 @@
   "name": "local_transcendence",
   "scripts":
   {
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node srcs/index.ts",
     "build": "tsc"
   },
   "devDependencies":
