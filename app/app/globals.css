@@ -4,15 +4,29 @@
   /* --------------------------
   Text styles
   -------------------------- */
-  --font-sans: "Inter", sans-serif;
-  --font-weight-heading: 700;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* --------------------------
-  // Color palette
+  Color palette
   -------------------------- */
-  --color-background: #685630;
-  --color-two: #0f2c07;
-  --color-three: #817a38;
-  --color-four: #849545;
-  --color-five: #d1e5cc;
+  --color-primary: #000000;
+  --color-secondary: #666666;
+  --color-accent: #f59e0b;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+
+  /* --------------------------
+  Spacing
+  -------------------------- */
+  --spacing-padding-x: 1.5rem;
+  --spacing-padding-y: 1rem;
+
+  /* --------------------------
+  Dimensions
+  -------------------------- */
+  --height-header: 4rem;
+  --height-footer: 4rem;
 }
