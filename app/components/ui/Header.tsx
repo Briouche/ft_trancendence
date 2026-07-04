@@ -4,7 +4,7 @@ export default function Header() {
       <div />
 
       <a
-        href="/"
+        href="../.."
         className="flex items-center justify-center text-2xl font-bold text-primary"
       >
         jeudecartes.super.be
