@@ -17,7 +17,7 @@ export default async function UsersPage() {
       {/* --- Create User Form --- */}
       <section style={{ marginBottom: "40px", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
         <h3 style={{ marginTop: 0 }}>Add New User</h3>
-        <form action={createUser} style={{ display: "flex", flexDirection: "col", gap: "12px" }}>
+        <form action={createUser} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <div>
             <label style={{ display: "block", marginBottom: "4px" }}>Name</label>
             <input type="text" name="name" style={{ width: "100%", padding: "8px", boxSizing: "border-box" }} />

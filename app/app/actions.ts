@@ -18,6 +18,7 @@ export async function createUser(formData: FormData) {
         email,
         name: name || null,
         password, // In a real production app, ensure you hash this using a library like bcrypt or argon2!
+        unopenedPacks: 5,
       },
     });
 

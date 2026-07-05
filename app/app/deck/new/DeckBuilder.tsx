@@ -1,18 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import CardFace, { type CardFaceData } from '@/components/CardFace'
 
-type Card = {
-    id:       string
-    name:     string
-    rarity:   string
-    cost:     string
-    atk:      string
-    def:      string
-    emoji:    string
-    color:    string
-    qty:      number
-}
+type Card = CardFaceData & { qty: number }
 
 type DeckEntry = { card: Card; qty: number }
 
@@ -98,56 +90,70 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 flex">
+        <div className="min-h-screen bg-ink-950 flex">
 
-            {/* Panneau gauche — toutes les cartes */}
+            {/* Panneau gauche — toutes les cartes possédées */}
             <div className="flex-1 p-6 overflow-y-auto">
-                <h1 className="text-2xl font-bold text-white mb-6">Construire un deck</h1>
-                <div className="grid grid-cols-3 xl:grid-cols-5 gap-3">
-                    {cards.map(card => {
-                        const inDeck   = deck[card.id]?.qty ?? 0
-                        const disabled = !canAdd(card)
-                        return (
-                            <button
-                                key={card.id}
-                                onClick={() => addCard(card)}
-                                disabled={disabled}
-                                className={`rounded-xl p-3 flex flex-col gap-1 text-left border-2 transition-all
-                                    ${disabled
-                                        ? 'opacity-40 cursor-not-allowed border-transparent'
-                                        : 'hover:scale-105 hover:border-white border-transparent cursor-pointer'
-                                    }`}
-                                style={{ backgroundColor: card.color || '#374151' }}
-                            >
-                                <div className="flex justify-between items-start">
-                                    <span className="text-2xl">{card.emoji}</span>
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">
+                            Atelier du Scribe
+                        </p>
+                        <h1 className="font-display text-2xl font-bold text-parchment-100">Construire un deck</h1>
+                    </div>
+                    <Link
+                        href="/deck"
+                        className="rounded-lg border border-leather-700 bg-ink-900 px-4 py-2 font-display text-sm
+                            font-bold text-parchment-100 transition-colors hover:bg-ink-800"
+                    >
+                        ⟵ Mes decks
+                    </Link>
+                </div>
+
+                {cards.length === 0 ? (
+                    <div className="text-center py-20 text-parchment-300/50">
+                        <p className="text-5xl mb-4">🗝️</p>
+                        <p className="font-display text-lg text-parchment-200">Ta collection est vide</p>
+                        <p className="font-serif text-sm mt-2">
+                            <Link href="/packs" className="text-gold-400 hover:underline">Ouvre des paquets</Link> pour obtenir des cartes
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-4">
+                        {cards.map(card => {
+                            const inDeck   = deck[card.id]?.qty ?? 0
+                            const disabled = !canAdd(card)
+                            return (
+                                <button
+                                    key={card.id}
+                                    onClick={() => addCard(card)}
+                                    disabled={disabled}
+                                    className={`relative rounded-lg text-left transition-transform
+                                        ${disabled ? 'cursor-not-allowed opacity-40 grayscale' : 'cursor-pointer hover:-translate-y-1'}`}
+                                >
                                     {inDeck > 0 && (
-                                        <span className="bg-black/50 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                        <span className="absolute -left-1.5 -top-1.5 z-30 flex h-6 w-6 items-center justify-center
+                                            rounded-full border-2 border-parchment-50 bg-gold-500 font-display text-[11px]
+                                            font-bold text-ink-950 shadow">
                                             {inDeck}
                                         </span>
                                     )}
-                                </div>
-                                <span className="font-bold text-xs text-gray-900 leading-tight">{card.name}</span>
-                                <span className="text-xs text-gray-700 italic">{card.rarity}</span>
-                                <div className="flex justify-between text-xs font-mono mt-auto pt-1 border-t border-black/20">
-                                    <span>⚔️{card.atk}</span>
-                                    <span>🛡️{card.def}</span>
-                                    <span>💎{card.cost}</span>
-                                </div>
-                            </button>
-                        )
-                    })}
-                </div>
+                                    <CardFace card={card} />
+                                </button>
+                            )
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* Panneau droit — deck en cours */}
-            <div className="w-72 bg-gray-800 p-4 flex flex-col gap-4 sticky top-0 h-screen overflow-y-auto border-l border-gray-700">
+            <div className="w-80 bg-ink-900 border-l border-leather-800 p-4 flex flex-col gap-4 sticky top-0 h-screen overflow-y-auto">
                 <div>
-                    <h2 className="text-white font-bold text-lg mb-1">Mon deck</h2>
-                    <p className="text-gray-400 text-xs">
+                    <h2 className="font-display font-bold text-lg text-parchment-100 mb-1">Mon deck</h2>
+                    <p className="font-serif text-xs text-parchment-300/60">
                         {legendaryCount}/{MAX_LEGENDARY} légendaire · {commonCount}/{MAX_COMMONS} communes
                     </p>
-                    <p className="text-gray-400 text-xs">{totalCards} / {MAX_LEGENDARY + MAX_COMMONS} cartes</p>
+                    <p className="font-serif text-xs text-parchment-300/60">{totalCards} / {MAX_LEGENDARY + MAX_COMMONS} cartes</p>
                 </div>
 
                 <input
@@ -155,31 +161,31 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
                     placeholder="Nom du deck..."
                     value={deckName}
                     onChange={e => setDeckName(e.target.value)}
-                    className="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="rounded-lg border border-leather-700 bg-ink-950 px-3 py-2 font-serif text-sm
+                        text-parchment-100 outline-none focus:ring-2 focus:ring-gold-500"
                 />
 
                 <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
                     {Object.values(deck).length === 0 && (
-                        <p className="text-gray-500 text-sm text-center mt-8">
+                        <p className="font-serif text-sm text-center text-parchment-300/40 mt-8">
                             Clique sur une carte pour l'ajouter
                         </p>
                     )}
                     {Object.values(deck).map(({ card, qty }) => (
                         <div
                             key={card.id}
-                            className="flex items-center gap-2 rounded-lg p-2"
-                            style={{ backgroundColor: card.color || '#374151' }}
+                            className="flex items-center gap-2 rounded-lg border border-leather-700 bg-parchment-100 p-2"
                         >
                             <span className="text-xl">{card.emoji}</span>
                             <div className="flex-1 min-w-0">
-                                <div className="text-xs font-bold text-gray-900 truncate">{card.name}</div>
-                                <div className="text-xs text-gray-700">💎{card.cost} ⚔️{card.atk} 🛡️{card.def}</div>
+                                <div className="font-display text-xs font-bold text-ink-900 truncate">{card.name}</div>
+                                <div className="font-serif text-xs text-leather-800">◆{card.cost} ⚔{card.atk} 🛡{card.def}</div>
                             </div>
                             <div className="flex items-center gap-1">
-                                <span className="text-xs font-bold text-gray-900">x{qty}</span>
+                                <span className="font-display text-xs font-bold text-ink-900">x{qty}</span>
                                 <button
                                     onClick={() => removeCard(card.id)}
-                                    className="text-red-800 hover:text-red-600 text-sm font-bold leading-none px-1"
+                                    className="px-1 font-bold leading-none text-red-800 hover:text-red-600"
                                 >
                                     ✕
                                 </button>
@@ -189,13 +195,15 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
                 </div>
 
                 {message && (
-                    <p className="text-sm text-center text-yellow-300">{message}</p>
+                    <p className="font-serif text-sm text-center text-gold-300">{message}</p>
                 )}
 
                 <button
                     onClick={saveDeck}
                     disabled={saving || totalCards === 0}
-                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors"
+                    className="rounded-xl border border-gold-500/50 bg-leather-800 py-3 font-display font-bold
+                        text-parchment-100 shadow transition-colors hover:bg-leather-700
+                        disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {saving ? 'Sauvegarde...' : 'Sauvegarder le deck'}
                 </button>

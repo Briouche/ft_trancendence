@@ -15,7 +15,8 @@
       "qty": 2,
       "emoji": "🎸",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzqq8bs",
@@ -30,7 +31,8 @@
       "qty": 2,
       "emoji": "🎇",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzqt44t",
@@ -45,7 +47,8 @@
       "qty": 2,
       "emoji": "🥩",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzqyecf",
@@ -60,7 +63,8 @@
       "qty": 2,
       "emoji": "🃏",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzr0j1i",
@@ -75,7 +79,8 @@
       "qty": 2,
       "emoji": "🍽️",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzr3mcy",
@@ -90,7 +95,11 @@
       "qty": 2,
       "emoji": "⚡️",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Ruée",
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mpzrno25",
@@ -105,7 +114,8 @@
       "qty": 2,
       "emoji": "🐀",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzrpslo",
@@ -120,7 +130,8 @@
       "qty": 2,
       "emoji": "🐆",
       "color": "#FAC775",
-      "legendId": "mpzt1pib"
+      "legendId": "mpzt1pib",
+      "keywords": []
     },
     {
       "id": "mpzs4tyi",
@@ -135,7 +146,8 @@
       "qty": 2,
       "emoji": "🛠️",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzs81x0",
@@ -150,7 +162,10 @@
       "qty": 2,
       "emoji": "🐟",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Taunt"
+      ]
     },
     {
       "id": "mpzs8u1h",
@@ -162,10 +177,14 @@
       "atk": "3",
       "def": "2",
       "desc": "vol de vie\nruée",
-      "qty": 1,
+      "qty": 2,
       "emoji": "🪱",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Ruée",
+        "Vol de vie"
+      ]
     },
     {
       "id": "mpzsdbs2",
@@ -180,7 +199,8 @@
       "qty": 2,
       "emoji": "🐈",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzsjywa",
@@ -195,7 +215,8 @@
       "qty": 2,
       "emoji": "🌾",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzsr4vo",
@@ -210,7 +231,8 @@
       "qty": 2,
       "emoji": "🍤",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzsugp1",
@@ -225,7 +247,8 @@
       "qty": 2,
       "emoji": "🦑",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzsx3l7",
@@ -240,7 +263,8 @@
       "qty": 1,
       "emoji": "🐙",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mpzsyfvk",
@@ -255,7 +279,10 @@
       "qty": 2,
       "emoji": "🗿",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Taunt"
+      ]
     },
     {
       "id": "mpzt1pib",
@@ -270,7 +297,8 @@
       "qty": 1,
       "emoji": "🐀",
       "color": "#FAC775",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2jqa4",
@@ -285,7 +313,8 @@
       "qty": 1,
       "emoji": "🦉",
       "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "mqi2mtc3",
+      "keywords": []
     },
     {
       "id": "mqi2k9ir",
@@ -300,7 +329,10 @@
       "qty": 1,
       "emoji": "🦉",
       "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "mqi2mtc3",
+      "keywords": [
+        "Ruée"
+      ]
     },
     {
       "id": "mqi2kthv",
@@ -315,7 +347,10 @@
       "qty": 1,
       "emoji": "🦉",
       "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "mqi2mtc3",
+      "keywords": [
+        "Soigné"
+      ]
     },
     {
       "id": "mqi2mtc3",
@@ -330,7 +365,8 @@
       "qty": 1,
       "emoji": "🦉",
       "color": "#C0DD97",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2nq42",
@@ -345,7 +381,8 @@
       "qty": 2,
       "emoji": "🌳",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2odxf",
@@ -360,7 +397,10 @@
       "qty": 2,
       "emoji": "🔇",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Silence"
+      ]
     },
     {
       "id": "mqi2pdbm",
@@ -375,7 +415,8 @@
       "qty": 2,
       "emoji": "🕳️",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2qm6a",
@@ -390,7 +431,11 @@
       "qty": 2,
       "emoji": "👶",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Cri de guerre",
+        "Taunt"
+      ]
     },
     {
       "id": "mqi2rye2",
@@ -405,7 +450,10 @@
       "qty": 2,
       "emoji": "🕷️",
       "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
+      "legendId": "mqi2u1aa",
+      "keywords": [
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mqi2u1aa",
@@ -420,7 +468,8 @@
       "qty": 1,
       "emoji": "🪦",
       "color": "#CECBF6",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2v3qx",
@@ -435,7 +484,8 @@
       "qty": 2,
       "emoji": "♒︎",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2w8de",
@@ -447,10 +497,14 @@
       "atk": "4",
       "def": "2",
       "desc": "ruee\nrale d'agonie : inflige 2 dmg a 2 adversaire aleatoire",
-      "qty": 1,
+      "qty": 2,
       "emoji": "🃏",
       "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
+      "legendId": "mqi2u1aa",
+      "keywords": [
+        "Ruée",
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mqi2xdmh",
@@ -465,7 +519,8 @@
       "qty": 2,
       "emoji": "🏆",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi2ylzl",
@@ -480,7 +535,10 @@
       "qty": 2,
       "emoji": "🥪",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Taunt"
+      ]
     },
     {
       "id": "mqi2zdq0",
@@ -495,7 +553,8 @@
       "qty": 2,
       "emoji": "🗣️",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi313ey",
@@ -510,7 +569,10 @@
       "qty": 2,
       "emoji": "🧟",
       "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
+      "legendId": "mqi2u1aa",
+      "keywords": [
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mqi31p8w",
@@ -525,7 +587,10 @@
       "qty": 2,
       "emoji": "🦉",
       "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "mqi2mtc3",
+      "keywords": [
+        "Taunt"
+      ]
     },
     {
       "id": "mqi33jfs",
@@ -540,7 +605,11 @@
       "qty": 2,
       "emoji": "𖤍",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Ruée",
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mqi3516p",
@@ -555,7 +624,8 @@
       "qty": 2,
       "emoji": "🕵",
       "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
+      "legendId": "mqi2u1aa",
+      "keywords": []
     },
     {
       "id": "mqi35y1s",
@@ -570,7 +640,10 @@
       "qty": 2,
       "emoji": "🦠",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mqi36l6i",
@@ -585,7 +658,8 @@
       "qty": 2,
       "emoji": "🦶🏻",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi387qn",
@@ -600,7 +674,8 @@
       "qty": 2,
       "emoji": "🤱",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi38sx6",
@@ -615,7 +690,8 @@
       "qty": 2,
       "emoji": "🔥",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi39fwn",
@@ -630,7 +706,10 @@
       "qty": 2,
       "emoji": "🤵‍♂",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Râle d'agonie"
+      ]
     },
     {
       "id": "mqi6l6i0",
@@ -645,22 +724,26 @@
       "qty": 1,
       "emoji": "🐸",
       "color": "#9FE1CB",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi6orw9",
       "name": "Bertrand",
       "type": "Créature",
-      "rarity": "Épique",
+      "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
       "atk": "2",
       "def": "4",
-      "desc": "Si Bertrand n'est pas mort a la fin du tour, récupére tous ses PV",
-      "qty": 1,
+      "desc": "Regeneration",
+      "qty": 2,
       "emoji": "🪴",
       "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Régénération"
+      ]
     },
     {
       "id": "mqi6qse2",
@@ -675,13 +758,14 @@
       "qty": 2,
       "emoji": "👽",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi6rw7n",
       "name": "Lecture de textes Anciencs",
       "type": "Sort",
-      "rarity": "Peu commune",
+      "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
       "atk": "",
@@ -690,13 +774,14 @@
       "qty": 2,
       "emoji": "🃏",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi6xr8i",
       "name": "Banquier Renart le goblin",
       "type": "Créature",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "5",
       "costNum": 5,
       "atk": "5",
@@ -705,7 +790,8 @@
       "qty": 2,
       "emoji": "🏦",
       "color": "#FAC775",
-      "legendId": "mpzt1pib"
+      "legendId": "mpzt1pib",
+      "keywords": []
     },
     {
       "id": "mqi70rba",
@@ -720,7 +806,8 @@
       "qty": 2,
       "emoji": "🍗",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi730al",
@@ -735,7 +822,8 @@
       "qty": 2,
       "emoji": "🎣",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7477s",
@@ -750,7 +838,8 @@
       "qty": 2,
       "emoji": "🐭",
       "color": "#FAC775",
-      "legendId": "mpzt1pib"
+      "legendId": "mpzt1pib",
+      "keywords": []
     },
     {
       "id": "mqi76hth",
@@ -765,7 +854,8 @@
       "qty": 2,
       "emoji": "🐴",
       "color": "#9FE1CB",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi77t7b",
@@ -780,7 +870,10 @@
       "qty": 2,
       "emoji": "🫟",
       "color": "#9FE1CB",
-      "legendId": "mqi6l6i0"
+      "legendId": "mqi6l6i0",
+      "keywords": [
+        "Aventurier"
+      ]
     },
     {
       "id": "mqi7a046",
@@ -795,7 +888,8 @@
       "qty": 2,
       "emoji": "📌",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7d3bu",
@@ -810,7 +904,8 @@
       "qty": 2,
       "emoji": "🥃",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7hah3",
@@ -825,7 +920,8 @@
       "qty": 2,
       "emoji": "🥧",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7ivjj",
@@ -840,7 +936,8 @@
       "qty": 2,
       "emoji": "🐹",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7ktmr",
@@ -855,7 +952,8 @@
       "qty": 2,
       "emoji": "☢️",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7lqzb",
@@ -870,7 +968,10 @@
       "qty": 2,
       "emoji": "👮🏻",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Taunt"
+      ]
     },
     {
       "id": "mqi7molw",
@@ -885,7 +986,8 @@
       "qty": 2,
       "emoji": "🐓",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7p9nf",
@@ -900,7 +1002,8 @@
       "qty": 1,
       "emoji": "🍳",
       "color": "#F4C0D1",
-      "legendId": "mqi6l6i0"
+      "legendId": "mqi6l6i0",
+      "keywords": []
     },
     {
       "id": "mqi7qihp",
@@ -915,7 +1018,8 @@
       "qty": 2,
       "emoji": "🌶️",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": []
     },
     {
       "id": "mqi7rd3e",
@@ -930,7 +1034,8 @@
       "qty": 2,
       "emoji": "🥣",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi7t2uf",
@@ -945,7 +1050,8 @@
       "qty": 2,
       "emoji": "🧐",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": []
     },
     {
       "id": "mqi7uqkt",
@@ -960,7 +1066,10 @@
       "qty": 2,
       "emoji": "🌵",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": [
+        "Taunt"
+      ]
     },
     {
       "id": "mqi7wg1q",
@@ -975,7 +1084,8 @@
       "qty": 2,
       "emoji": "🙋🏻",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": []
     },
     {
       "id": "mqi7xr37",
@@ -990,7 +1100,8 @@
       "qty": 2,
       "emoji": "✌",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": []
     },
     {
       "id": "mqi7zc17",
@@ -1005,7 +1116,8 @@
       "qty": 2,
       "emoji": "🛎️",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": []
     },
     {
       "id": "mqi810rs",
@@ -1020,7 +1132,8 @@
       "qty": 2,
       "emoji": "🔪",
       "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
+      "legendId": "mqi7p9nf",
+      "keywords": []
     },
     {
       "id": "mqi829kv",
@@ -1035,7 +1148,10 @@
       "qty": 2,
       "emoji": "🤸‍♂",
       "color": "#9FE1CB",
-      "legendId": "mqi6l6i0"
+      "legendId": "mqi6l6i0",
+      "keywords": [
+        "Aventurier"
+      ]
     },
     {
       "id": "mqi83gcw",
@@ -1050,7 +1166,10 @@
       "qty": 2,
       "emoji": "💃",
       "color": "#9FE1CB",
-      "legendId": "mqi6l6i0"
+      "legendId": "mqi6l6i0",
+      "keywords": [
+        "Aventurier"
+      ]
     },
     {
       "id": "mqi85ep9",
@@ -1065,7 +1184,8 @@
       "qty": 2,
       "emoji": "🍅",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqi87m6k",
@@ -1080,7 +1200,10 @@
       "qty": 2,
       "emoji": "📚",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": [
+        "Silence"
+      ]
     },
     {
       "id": "mqi8b2r3",
@@ -1095,7 +1218,8 @@
       "qty": 2,
       "emoji": "🌪️",
       "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqiayjrm",
@@ -1110,7 +1234,8 @@
       "qty": 1,
       "emoji": "🌭",
       "color": "#F0D878",
-      "legendId": ""
+      "legendId": "",
+      "keywords": []
     },
     {
       "id": "mqib6m3f",
@@ -1125,7 +1250,8 @@
       "qty": 1,
       "emoji": "🃏",
       "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "mqi2mtc3",
+      "keywords": []
     },
     {
       "id": "mqibfh9p",
@@ -1140,7 +1266,10 @@
       "qty": 1,
       "emoji": "👽",
       "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "mqi2mtc3",
+      "keywords": [
+        "Râle d'agonie"
+      ]
     }
   ],
   "decks": []

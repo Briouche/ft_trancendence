@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #150f0a;
+  --foreground: #f2e6c9;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-display: var(--font-cinzel);
+  --font-serif:  var(--font-crimson);
+  --font-sans:   var(--font-crimson);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink-950: #120d09;
+  --color-ink-900: #1c140e;
+  --color-ink-800: #281d14;
+  --color-ink-700: #392a1c;
+
+  --color-parchment-50:  #faf3e2;
+  --color-parchment-100: #f2e6c9;
+  --color-parchment-200: #e6d3a3;
+  --color-parchment-300: #d6bd7e;
+
+  --color-leather-700: #6b4226;
+  --color-leather-800: #4a2d1a;
+  --color-leather-900: #331f13;
+
+  --color-gold-300: #e8cf7a;
+  --color-gold-400: #d4af37;
+  --color-gold-500: #b8912a;
+  --color-gold-600: #96731f;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Texture de parchemin : légères variations pour éviter un aplat trop lisse */
+.paper-texture {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(107, 66, 38, 0.10), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(107, 66, 38, 0.08), transparent 45%),
+    radial-gradient(circle at 60% 85%, rgba(74, 45, 26, 0.08), transparent 50%),
+    radial-gradient(circle at 20% 90%, rgba(74, 45, 26, 0.06), transparent 45%);
+}
+
+@theme {
+  --animate-pack-shake: pack-shake 0.6s ease-in-out;
+  --animate-legendary-glow: legendary-glow 1.8s ease-in-out infinite;
+  --animate-card-pop: card-pop 0.4s ease-out backwards;
+  --animate-flicker: flicker 3s ease-in-out infinite;
+  --animate-page-settle: page-settle 0.45s ease-out;
+}
+
+@keyframes pack-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  15%      { transform: translateX(-8px) rotate(-5deg); }
+  30%      { transform: translateX(7px) rotate(4deg); }
+  45%      { transform: translateX(-6px) rotate(-3deg); }
+  60%      { transform: translateX(5px) rotate(3deg); }
+  75%      { transform: translateX(-3px) rotate(-1deg); }
+}
+
+@keyframes legendary-glow {
+  0%, 100% { box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55); }
+  50%      { box-shadow: 0 0 35px 10px rgba(212, 175, 55, 0.9); }
+}
+
+@keyframes card-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.85; }
+}
+
+@keyframes page-settle {
+  from { opacity: 0.35; }
+  to   { opacity: 1; }
 }

@@ -28,7 +28,7 @@ export async function seedUsers(prisma: PrismaClient) {
 				name: user.name,
 				password: user.password,
 			},
-			create: user,
+			create: { ...user, unopenedPacks: 5 },
 		})
 	}
 

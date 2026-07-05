@@ -7,12 +7,27 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  decks     Deck[]
+  id            Int        @id @default(autoincrement())
+  email         String     @unique
+  password      String
+  name          String?
+  createdAt     DateTime   @default(now())
+  decks         Deck[]
+  cards         UserCard[]
+  unopenedPacks Int        @default(0)
+  pityCounter   Int        @default(0)
+}
+
+enum Keyword {
+  RUEE
+  RALE_DAGONIE
+  CRI_DE_GUERRE
+  REGENERATION
+  AVENTURIER
+  TAUNT
+  SOIGNE
+  VOL_DE_VIE
+  SILENCE
 }
 
 model Card {
@@ -29,7 +44,21 @@ model Card {
   emoji    String @default("")
   color    String @default("")
   legendId String @default("")
+  keywords Keyword[] @default([])
   decks    DeckCard[]
+  owners   UserCard[]
+}
+
+// Carte(s) possédée(s) par un joueur. qty est plafonné par Card.qty
+// (le nombre maximum d'exemplaires qu'un joueur peut posséder de cette carte).
+model UserCard {
+  userId Int
+  cardId String
+  qty    Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id])
+  card   Card   @relation(fields: [cardId], references: [id])
+
+  @@id([userId, cardId])
 }
 
 model Deck {
