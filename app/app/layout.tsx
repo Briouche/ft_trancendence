@@ -16,7 +16,7 @@ const crimson = Crimson_Text({
 });
 
 export const metadata: Metadata = {
-  title: "Grimoire — ft_transcendence",
+  title: "ft_transcendence",
   description: "La bibliothèque de cartes de ft_transcendence",
 };
 

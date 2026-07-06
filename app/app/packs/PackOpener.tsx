@@ -24,24 +24,26 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
         setError('')
         setPhase('shaking')
 
-        setTimeout(async () => {
-            const res = await fetch('/api/packs/open', { method: 'POST' })
+        const minShakeDelay = new Promise(resolve => setTimeout(resolve, 600))
+        const [res] = await Promise.all([
+            fetch('/api/packs/open', { method: 'POST' }),
+            minShakeDelay,
+        ])
 
-            if (!res.ok) {
-                const body = await res.json().catch(() => ({}))
-                setError(body.error ?? "Impossible d'ouvrir ce paquet")
-                setPhase('idle')
-                return
-            }
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}))
+            setError(body.error ?? "Impossible d'ouvrir ce paquet")
+            setPhase('idle')
+            return
+        }
 
-            const data: { cards: CardFaceData[]; unopenedPacks: number; pityCounter: number } = await res.json()
+        const data: { cards: CardFaceData[]; unopenedPacks: number; pityCounter: number } = await res.json()
 
-            setCards(data.cards)
-            setPacksLeft(data.unopenedPacks)
-            setPityCounter(data.pityCounter)
-            setRevealedIndices(new Set())
-            setPhase('revealing')
-        }, 600)
+        setCards(data.cards)
+        setPacksLeft(data.unopenedPacks)
+        setPityCounter(data.pityCounter)
+        setRevealedIndices(new Set())
+        setPhase('revealing')
     }
 
     function revealCard(index: number) {
@@ -135,7 +137,7 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
                         </p>
                     )}
 
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="w-full max-w-3xl grid grid-cols-5 gap-4">
                         {cards.map((card, i) => (
                             <PackCardReveal
                                 key={`${card.id}-${i}`}

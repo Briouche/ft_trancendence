@@ -6,11 +6,11 @@ const LEGENDARY_RARITY = "Légendaire";
 
 // Poids relatifs de tirage par rareté (avant application de la pity légendaire).
 const RARITY_WEIGHTS: Record<string, number> = {
-  "Commune": 60,
+  "Commune": 40,
   "Peu commune": 25,
-  "Rare": 10,
-  "Épique": 4,
-  "Légendaire": 1,
+  "Rare": 15,
+  "Épique": 10,
+  "Légendaire": 2,
 };
 
 interface DrawableCard {

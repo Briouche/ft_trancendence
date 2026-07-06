@@ -1,38 +1,44 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import CardFace, { type CardFaceData } from '@/components/CardFace'
+import { type CardFaceData } from '@/components/CardFace'
+
+const BookScene = dynamic(() => import('./BookScene'), { ssr: false })
 
 type Card = CardFaceData & { ownedQty: number }
 
-const HALF_SIZE       = 6
+const HALF_SIZE        = 6
 const CARDS_PER_PAGE   = HALF_SIZE * 2
 const FLIP_THRESHOLD   = 0.35
-const FLIP_DURATION_MS = 450
+const FLIP_DURATION_MS = 550
 
 function normalize(value: string): string {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
-// Le champ costNum en base n'est pas fiable (souvent \u00e0 0 m\u00eame quand cost ne l'est pas) :
-// on trie donc sur le vrai co\u00fbt affich\u00e9 sur la carte. "X" (co\u00fbt variable) est tri\u00e9 en dernier.
+// Le champ costNum en base n'est pas fiable (souvent à 0 même quand cost ne l'est pas) :
+// on trie donc sur le vrai coût affiché sur la carte. "X" (coût variable) est trié en dernier.
 function parseCost(cost: string): number {
     const n = Number(cost)
     return Number.isNaN(n) ? Infinity : n
 }
 
-type Side = 'left' | 'right'
-type FlipState = { direction: 'next' | 'prev'; progress: number; dragging: boolean }
+function easeOutCubic(t: number): number {
+    return 1 - Math.pow(1 - t, 3)
+}
+
+type FlipState = { direction: 'next' | 'prev'; progress: number } | null
 
 export default function CollectionBook({ cards }: { cards: Card[] }) {
     const [search, setSearch]   = useState('')
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
     const [page, setPage]       = useState(0)
-    const [flip, setFlip]       = useState<FlipState | null>(null)
+    const [flip, setFlip]       = useState<FlipState>(null)
 
-    const bookRef  = useRef<HTMLDivElement>(null)
-    const dragInfo = useRef<{ direction: 'next' | 'prev'; startX: number; width: number } | null>(null)
+    const dragStart = useRef<{ direction: 'next' | 'prev' } | null>(null)
+    const settleRaf  = useRef<number | null>(null)
 
     const filtered = useMemo(() => {
         const query = normalize(search.trim())
@@ -53,159 +59,83 @@ export default function CollectionBook({ cards }: { cards: Card[] }) {
         ? filtered.slice(targetPage * CARDS_PER_PAGE, targetPage * CARDS_PER_PAGE + CARDS_PER_PAGE)
         : []
 
+    const leftCards  = pageCards.slice(0, HALF_SIZE)
+    const rightCards = pageCards.slice(HALF_SIZE)
+    // Le dos de la page qui tourne montre la moitié cible de l'AUTRE côté (elle finit posée
+    // en face, comme une vraie page de livre) : next tourne à droite -> dos = future page gauche.
+    const backCards = flip
+        ? (flip.direction === 'next' ? targetCards.slice(0, HALF_SIZE) : targetCards.slice(HALF_SIZE))
+        : []
+
     function canGo(direction: 'next' | 'prev'): boolean {
         return direction === 'next' ? currentPage < totalPages - 1 : currentPage > 0
+    }
+
+    function stopSettle() {
+        if (settleRaf.current !== null) {
+            cancelAnimationFrame(settleRaf.current)
+            settleRaf.current = null
+        }
+    }
+
+    function resetFlip() {
+        stopSettle()
+        dragStart.current = null
+        setFlip(null)
     }
 
     function updateSearch(value: string) {
         setSearch(value)
         setPage(0)
-        setFlip(null)
+        resetFlip()
     }
 
     function toggleSort() {
         setSortDir(d => d === 'asc' ? 'desc' : 'asc')
         setPage(0)
-        setFlip(null)
+        resetFlip()
     }
 
-    function startDrag(direction: 'next' | 'prev') {
-        return (e: React.PointerEvent<HTMLDivElement>) => {
-            if (flip || !canGo(direction)) return
-            const width = (bookRef.current?.offsetWidth ?? 800) / 2
-            dragInfo.current = { direction, startX: e.clientX, width }
-            setFlip({ direction, progress: 0, dragging: true })
-            e.currentTarget.setPointerCapture(e.pointerId)
+    // Anime `progress` de sa valeur actuelle vers `target` (0 ou 1) en JS (pas de transition
+    // CSS ici : la page est un mesh Three.js), puis avance la page et referme l'état.
+    function settleFlip(direction: 'next' | 'prev', from: number, target: 0 | 1) {
+        stopSettle()
+        const start = performance.now()
+        const tick = (now: number) => {
+            const t = Math.min(1, (now - start) / FLIP_DURATION_MS)
+            const progress = from + (target - from) * easeOutCubic(t)
+            setFlip({ direction, progress })
+            if (t < 1) {
+                settleRaf.current = requestAnimationFrame(tick)
+            } else {
+                settleRaf.current = null
+                if (target === 1) setPage(p => direction === 'next' ? p + 1 : p - 1)
+                setFlip(null)
+            }
         }
+        settleRaf.current = requestAnimationFrame(tick)
     }
 
-    function onDragMove(e: React.PointerEvent<HTMLDivElement>) {
-        const info = dragInfo.current
-        if (!info) return
-        const dx  = e.clientX - info.startX
-        const raw = info.direction === 'next' ? -dx : dx
-        const progress = Math.min(1, Math.max(0, raw / info.width))
-        setFlip({ direction: info.direction, progress, dragging: true })
-    }
-
-    function endDrag() {
-        const info = dragInfo.current
-        if (!info || !flip) return
-        dragInfo.current = null
-
-        const target = flip.progress > FLIP_THRESHOLD ? 1 : 0
-        if (flip.progress === target) {
-            // Déjà à la valeur cible (ex : drag allé jusqu'au bout) : le transform ne
-            // changera pas, donc aucune transition ne se déclenchera. On valide directement
-            // plutôt que d'attendre un onTransitionEnd qui ne viendra jamais.
-            if (target === 1) setPage(p => info.direction === 'next' ? p + 1 : p - 1)
-            setFlip(null)
-        } else {
-            setFlip({ ...flip, progress: target, dragging: false })
-        }
-    }
-
-    function flipToPage(direction: 'next' | 'prev') {
+    function onFlipStart(direction: 'next' | 'prev') {
         if (flip || !canGo(direction)) return
-        setFlip({ direction, progress: 0, dragging: true })
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setFlip(prev => prev ? { ...prev, progress: 1, dragging: false } : prev)
-            })
-        })
+        dragStart.current = { direction }
+        setFlip({ direction, progress: 0 })
     }
 
-    function handleTransitionEnd() {
-        if (!flip || flip.dragging) return
-        if (flip.progress >= 1) {
-            setPage(p => flip.direction === 'next' ? p + 1 : p - 1)
-        }
-        setFlip(null)
+    function onFlipMove(deltaRatio: number) {
+        if (!dragStart.current) return
+        const { direction } = dragStart.current
+        const raw = direction === 'next' ? -deltaRatio : deltaRatio
+        setFlip({ direction, progress: Math.min(1, Math.max(0, raw)) })
     }
 
-    function renderHalf(side: Side) {
-        const isTurning = flip !== null && (
-            (side === 'right' && flip.direction === 'next') ||
-            (side === 'left'  && flip.direction === 'prev')
-        )
-
-        const currentHalf = side === 'left' ? pageCards.slice(0, HALF_SIZE) : pageCards.slice(HALF_SIZE)
-        const staticHalf  = isTurning
-            ? (side === 'left' ? targetCards.slice(0, HALF_SIZE) : targetCards.slice(HALF_SIZE))
-            : currentHalf
-
-        const angle  = isTurning && flip ? (side === 'right' ? -1 : 1) * flip.progress * 180 : 0
-        const origin = side === 'right' ? 'left center' : 'right center'
-
-        return (
-            <div className="relative flex-1 [perspective:2200px]">
-                <div className="rounded-2xl border-4 border-leather-800 bg-leather-900 p-3 shadow-2xl">
-                    <div
-                        key={currentPage}
-                        className="paper-texture animate-page-settle relative grid min-h-[620px] grid-cols-2
-                            grid-rows-3 gap-4 rounded-xl bg-parchment-100 p-5"
-                    >
-                        {staticHalf.length === 0 && (
-                            <p className="col-span-full self-center text-center font-serif italic text-leather-700">
-                                Aucune carte
-                            </p>
-                        )}
-                        {staticHalf.map(card => (
-                            <CardFace key={card.id} card={card} ownedQty={card.ownedQty} />
-                        ))}
-                    </div>
-                </div>
-
-                {isTurning && flip && (
-                    <div
-                        className="absolute inset-0 [transform-style:preserve-3d]"
-                        style={{
-                            transform:       `rotateY(${angle}deg)`,
-                            transformOrigin: origin,
-                            transition:      flip.dragging ? 'none' : `transform ${FLIP_DURATION_MS}ms ease`,
-                        }}
-                    >
-                        <div
-                            onTransitionEnd={handleTransitionEnd}
-                            className="absolute inset-0 rounded-2xl border-4 border-leather-800 bg-leather-900
-                                p-3 shadow-2xl [backface-visibility:hidden]"
-                        >
-                            <div className="paper-texture relative grid min-h-[620px] grid-cols-2 grid-rows-3 gap-4
-                                rounded-xl bg-parchment-100 p-5">
-                                {currentHalf.map(card => (
-                                    <CardFace key={card.id} card={card} ownedQty={card.ownedQty} />
-                                ))}
-                            </div>
-                            <div
-                                className="pointer-events-none absolute inset-0 rounded-2xl bg-black"
-                                style={{ opacity: Math.min(0.45, flip.progress * 0.6) }}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {side === 'left' && canGo('prev') && (
-                    <div
-                        onPointerDown={startDrag('prev')}
-                        onPointerMove={onDragMove}
-                        onPointerUp={endDrag}
-                        onPointerCancel={endDrag}
-                        title="Glisser pour revenir en arrière"
-                        className="absolute inset-y-0 left-0 z-30 w-8 cursor-grab touch-none active:cursor-grabbing"
-                    />
-                )}
-                {side === 'right' && canGo('next') && (
-                    <div
-                        onPointerDown={startDrag('next')}
-                        onPointerMove={onDragMove}
-                        onPointerUp={endDrag}
-                        onPointerCancel={endDrag}
-                        title="Glisser pour tourner la page"
-                        className="absolute inset-y-0 right-0 z-30 w-8 cursor-grab touch-none active:cursor-grabbing"
-                    />
-                )}
-            </div>
-        )
+    function onFlipEnd() {
+        if (!dragStart.current || !flip) return
+        const { direction } = dragStart.current
+        dragStart.current = null
+        // progress===0 : simple clic (aucun glissement) -> on joue quand même le tournage complet.
+        const target = (flip.progress === 0 || flip.progress > FLIP_THRESHOLD) ? 1 : 0
+        settleFlip(direction, flip.progress, target)
     }
 
     return (
@@ -246,30 +176,18 @@ export default function CollectionBook({ cards }: { cards: Card[] }) {
                 {filtered.length} carte{filtered.length !== 1 ? 's' : ''} · page {currentPage + 1} / {totalPages}
             </p>
 
-            {/* Le livre : deux demi-pages autour de la reliure centrale */}
-            <div ref={bookRef} className="relative flex w-full max-w-6xl">
-                {renderHalf('left')}
-                <div className="w-3 shrink-0 bg-gradient-to-r from-black/50 via-leather-950 to-black/50" />
-                {renderHalf('right')}
-            </div>
-
-            <div className="flex gap-4">
-                <button
-                    onClick={() => flipToPage('prev')}
-                    disabled={!canGo('prev')}
-                    className="rounded-lg border border-leather-700 bg-ink-900 px-5 py-2.5 font-display text-sm
-                        font-bold text-parchment-100 transition-colors hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                    ⟵ Page précédente
-                </button>
-                <button
-                    onClick={() => flipToPage('next')}
-                    disabled={!canGo('next')}
-                    className="rounded-lg border border-leather-700 bg-ink-900 px-5 py-2.5 font-display text-sm
-                        font-bold text-parchment-100 transition-colors hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                    Page suivante ⟶
-                </button>
+            <div className="w-full max-w-6xl">
+                <BookScene
+                    leftCards={leftCards}
+                    rightCards={rightCards}
+                    backCards={backCards}
+                    flip={flip}
+                    canGoPrev={canGo('prev')}
+                    canGoNext={canGo('next')}
+                    onFlipStart={onFlipStart}
+                    onFlipMove={onFlipMove}
+                    onFlipEnd={onFlipEnd}
+                />
             </div>
         </div>
     )

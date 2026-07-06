@@ -3,23 +3,23 @@ import Link from 'next/link'
 const MENU = [
     {
         href:        '/collection',
-        label:       'Le Grimoire',
+        label:       'Collection',
         description: 'Parcourir ta collection de cartes',
-        emoji:       '📖',
+        emoji:       '',
         available:   true,
     },
     {
         href:        '/deck',
-        label:       'Atelier du Scribe',
+        label:       'Creation de deck',
         description: 'Composer ton deck pour la prochaine partie',
-        emoji:       '🖋️',
+        emoji:       '',
         available:   true,
     },
     {
         href:        '/packs',
-        label:       'Le Coffre',
+        label:       'PACK OPPENING',
         description: 'Ouvrir tes paquets de cartes',
-        emoji:       '🗝️',
+        emoji:       '',
         available:   true,
     },
     {
@@ -39,10 +39,10 @@ export default function HomePage() {
                     ~ ft_transcendence ~
                 </p>
                 <h1 className="font-display text-5xl font-bold text-parchment-100 tracking-wide">
-                    La Bibliothèque
+                    Le Super Jeu de fou
                 </h1>
                 <p className="font-serif italic text-parchment-300/60 text-lg mt-2">
-                    Un jeu de cartes à collectionner
+                    Un TCG fait maison
                 </p>
             </div>
 

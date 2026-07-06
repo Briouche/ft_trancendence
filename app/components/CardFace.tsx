@@ -30,13 +30,13 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 bg-parchment-100 shadow-lg shadow-black/50`}
         >
             {ownedQty !== undefined && ownedQty > 1 && (
-                <span className="absolute left-1 top-1 z-10 rounded bg-ink-950/85 px-1.5 py-0.5 font-display text-[10px] font-bold text-parchment-100">
+                <span className="absolute left-1 top-1 rounded bg-ink-950/85 px-1.5 py-0.5 font-display text-[10px] font-bold text-parchment-100">
                     x{ownedQty}
                 </span>
             )}
 
             {/* Coût en mana, directement sur la carte */}
-            <span className="absolute right-1.5 top-1.5 z-10 font-display text-base font-black text-sky-800">
+            <span className="absolute right-1.5 top-1.5 font-display text-base font-black text-sky-800">
                 {card.cost}◆
             </span>
 
