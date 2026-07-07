@@ -73,7 +73,7 @@ export async function clearAuthCookie() {
  * should strip it before forwarding the result to a Client Component,
  * since it's an internal implementation detail with no UI purpose.
  */
-async function getAuthenticatedUser<T extends Prisma.UserSelect>(
+export async function getAuthenticatedUser<T extends Prisma.UserSelect>(
   select: T,
 ): Promise<Prisma.UserGetPayload<{ select: T }> | null> {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
@@ -82,19 +82,26 @@ async function getAuthenticatedUser<T extends Prisma.UserSelect>(
   const payload = await verifyAuthToken(token);
   if (!payload) return null;
 
-  // 1. Force the database query to return both the requested select fields AND tokenVersion
+  // Cast here: Prisma's `Exact<>` check on `select` can't unify a generic T
+  // with its own intersection type (TS2719). This is a Prisma+generics
+  // limitation, not a runtime risk — `tokenVersion: true` is always merged
+  // in below, so it's guaranteed present on `user`.
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
     select: { ...select, tokenVersion: true } as Prisma.UserSelect,
   });
 
-  // 2. Safely check the mismatch
-  if (!user || (user as any).tokenVersion !== payload.tokenVersion) return null;
+  if (!user) return null;
 
-  // 3. Delete tokenVersion before returning so it matches the expected Promise type perfectly
-  const { tokenVersion, ...sanitizedUser } = user as any;
+  // Same reasoning: assert the shape we know is true at runtime instead of
+  // fighting the generic inference through GetFindResult.
+  const typedUser = user as { tokenVersion: number } & Record<string, unknown>;
 
-  return sanitizedUser as Prisma.UserGetPayload<{ select: T }>;
+  if (typedUser.tokenVersion !== payload.tokenVersion) return null;
+
+  const { tokenVersion: _tokenVersion, ...sanitizedUser } = typedUser;
+
+  return sanitizedUser as unknown as Prisma.UserGetPayload<{ select: T }>;
 }
 
 // Wrapped in React's cache() so multiple Server Components rendered in

@@ -10,7 +10,7 @@ add_domain:
 	grep -qxF "127.0.0.1	$(DOMAIN_NAME)" /etc/hosts || echo "127.0.0.1	$(DOMAIN_NAME)" | sudo tee -a /etc/hosts
 
 # Development Setup
-dev: npm-clean
+dev: down
 	cd app && npm install
 	docker compose up
 
@@ -35,11 +35,11 @@ npm-clean: down
 
 # Wipe all built image states to free disk storage space
 docker-clean:
-	docker system prune -f
-	docker image prune -f
+	docker system prune -af
+	docker image prune -af
 
 # Hard factory reset of the development cycle
-fclean: down docker-clean
+fclean: npm-clean docker-clean
 
 # Full fresh run
 re: fclean all
