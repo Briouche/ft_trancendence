@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -19,13 +20,19 @@ export default function Home() {
   return (
     <div>
       <header>
+        <div className="fixed top-4 right-25 z-50">
+          <Link href="/profile" className="top-button top-button-accent">
+            Profile
+          </Link>
+        </div>
+
         <div className="fixed top-4 right-4 z-50">
           <button
             type="button"
             onClick={handleLogout}
-            className="border border-gray-300 rounded-2xl px-3 py-2.5 text-sm bg-white hover:bg-gray-100 transition"
+            className="top-button top-button-accent text-danger hover:text-white"
           >
-            Logout
+            Log out
           </button>
         </div>
       </header>

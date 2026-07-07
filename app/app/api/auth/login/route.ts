@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import argon2 from "argon2";
+
 import prisma from "@/lib/prisma";
 import { signAuthToken, setAuthCookie } from "@/lib/auth";
 import { rateLimit, getClientIp, retryAfterHeader } from "@/lib/rate-limit";
@@ -15,6 +16,7 @@ const EMAIL_LIMIT = 5;
 const EMAIL_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
+  // Limit requests
   const ip = getClientIp(req);
   const ipLimit = rateLimit(`login:ip:${ip}`, IP_LIMIT, IP_WINDOW_MS);
   if (!ipLimit.success) {
@@ -24,6 +26,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Get the body and run a few checks
   let body: unknown;
   try {
     body = await req.json();
@@ -45,6 +48,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
+  // Check size and refuse too big to avoid DDOS
+  if (email.length > 100 || password.length > 100) {
+    return NextResponse.json({ error: "Body too big" }, { status: 400 });
+  }
+
   const normalizedEmail = email.trim().toLowerCase();
 
   const emailLimit = rateLimit(
@@ -59,6 +67,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Check database for user
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
   });
@@ -72,6 +81,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
+  // Set sign setAuthCookie
   const token = await signAuthToken({
     userId: user.id,
     tokenVersion: user.tokenVersion,

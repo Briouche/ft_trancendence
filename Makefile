@@ -31,11 +31,12 @@ down:
 npm-clean: down
 	rm -rf app/.next
 	rm -rf app/dist
+	rm -rf app/node_modules
 
 # Wipe all built image states to free disk storage space
 docker-clean:
 	docker system prune -f
-	docker image prune -af
+	docker image prune -f
 
 # Hard factory reset of the development cycle
 fclean: down docker-clean

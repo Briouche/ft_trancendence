@@ -46,10 +46,7 @@ export default function SignIn() {
     <div>
       <header>
         <div className="fixed top-4 right-4 z-50">
-          <Link
-            href="/register"
-            className="border border-gray-300 rounded-2xl px-3 py-2.5 text-sm bg-white hover:bg-gray-100 transition"
-          >
+          <Link href="/register" className="top-button top-button-accent">
             Register
           </Link>
         </div>

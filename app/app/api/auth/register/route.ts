@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import argon2 from "argon2";
+
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { signAuthToken, setAuthCookie } from "@/lib/auth";
@@ -9,12 +10,11 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const MIN_PASSWORD_LENGTH = 8;
 
-// Registration is inherently rarer than login, so a tighter, longer
-// window is appropriate — mainly to blunt scripted mass account creation.
 const IP_LIMIT = 5;
 const IP_WINDOW_MS = 60 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
+  // Limit requests
   const ip = getClientIp(req);
   const ipLimit = rateLimit(`register:ip:${ip}`, IP_LIMIT, IP_WINDOW_MS);
   if (!ipLimit.success) {
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Get the body and run a few checks
   let body: unknown;
   try {
     body = await req.json();
@@ -45,16 +46,26 @@ export async function POST(req: NextRequest) {
     typeof email !== "string" ||
     typeof username !== "string" ||
     typeof password !== "string" ||
+    typeof confirmPassword !== "string" ||
     !email ||
     !username ||
-    !password
+    !password ||
+    !confirmPassword
   ) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  // Optional: only validated if the caller sends it. This is a UX safety
-  // net for form-based clients that collect the password twice — other
-  // services calling this endpoint directly aren't required to send it.
+  // Check size and refuse too big to avoid DDOS
+  if (
+    email.length > 100 ||
+    username.length > 100 ||
+    password.length > 100 ||
+    confirmPassword.length > 100
+  ) {
+    return NextResponse.json({ error: "Body too big" }, { status: 400 });
+  }
+
+  // Check that both passwords match
   if (confirmPassword !== undefined && confirmPassword !== password) {
     return NextResponse.json(
       { error: "Passwords don't match" },
@@ -62,6 +73,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Normalise strings for save storage in database
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedUsername = username.trim().toLowerCase();
 
@@ -109,6 +121,7 @@ export async function POST(req: NextRequest) {
 
   const hashed = await argon2.hash(password, { type: argon2.argon2id });
 
+  // Create user in database
   let user;
   try {
     user = await prisma.user.create({
@@ -132,8 +145,7 @@ export async function POST(req: NextRequest) {
     throw err;
   }
 
-  // Log the new user in immediately, same as /login — saves callers an
-  // extra round trip and matches the UX the old registerAction gave.
+  // Set sign setAuthCookie
   const token = await signAuthToken({
     userId: user.id,
     tokenVersion: user.tokenVersion,
