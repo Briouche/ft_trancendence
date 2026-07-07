@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import argon2 from "argon2";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { signAuthToken, setAuthCookie } from "@/lib/auth";
 import { rateLimit, getClientIp, retryAfterHeader } from "@/lib/rate-limit";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,10 +34,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { email, username, password } = (body ?? {}) as {
+  const { email, username, password, confirmPassword } = (body ?? {}) as {
     email?: unknown;
     username?: unknown;
     password?: unknown;
+    confirmPassword?: unknown;
   };
 
   if (
@@ -48,6 +50,16 @@ export async function POST(req: NextRequest) {
     !password
   ) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  // Optional: only validated if the caller sends it. This is a UX safety
+  // net for form-based clients that collect the password twice — other
+  // services calling this endpoint directly aren't required to send it.
+  if (confirmPassword !== undefined && confirmPassword !== password) {
+    return NextResponse.json(
+      { error: "Passwords don't match" },
+      { status: 400 },
+    );
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -84,24 +96,27 @@ export async function POST(req: NextRequest) {
     },
   });
   if (existing) {
-    return NextResponse.json({ error: "User already exists" }, { status: 409 });
+    return NextResponse.json(
+      {
+        error:
+          existing.email === normalizedEmail
+            ? "That email is already registered"
+            : "That username is taken",
+      },
+      { status: 409 },
+    );
   }
 
   const hashed = await argon2.hash(password, { type: argon2.argon2id });
 
+  let user;
   try {
-    const user = await prisma.user.create({
+    user = await prisma.user.create({
       data: {
         email: normalizedEmail,
         username: normalizedUsername,
         password: hashed,
       },
-    });
-
-    return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      username: user.username,
     });
   } catch (err) {
     // Handles the race where two requests pass the pre-check simultaneously.
@@ -116,4 +131,18 @@ export async function POST(req: NextRequest) {
     }
     throw err;
   }
+
+  // Log the new user in immediately, same as /login — saves callers an
+  // extra round trip and matches the UX the old registerAction gave.
+  const token = await signAuthToken({
+    userId: user.id,
+    tokenVersion: user.tokenVersion,
+  });
+  await setAuthCookie(token);
+
+  return NextResponse.json({
+    id: user.id,
+    email: user.email,
+    username: user.username,
+  });
 }
