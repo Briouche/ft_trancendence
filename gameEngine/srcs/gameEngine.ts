@@ -1,6 +1,7 @@
 import { MinionCard, SpellCard } from "./card";
 import { Board } from "./board";
 import { Player } from "./player";
+import { GameContext } from "./effect";
 
 export class GameEngine
 {
@@ -36,9 +37,6 @@ export class GameEngine
         const minions: MinionCard[] = this.board.getMinions(this.currentTurn);
         for (const minion of minions)
             minion.canAttack = true;
-
-        console.log("\n=== " + player.hero.name + "'s turn ===");
-        console.log(this.toString());
     }
 
     endTurn(): void
@@ -52,16 +50,8 @@ export class GameEngine
         const player: Player = this.activePlayer();
         const card           = player.hand.getCards()[cardIndex];
 
-        if (!card)
-        {
-            console.log("No card at that index.");
+        if (!card || card.manaCost > player.currentMana)
             return false;
-        }
-        if (card.manaCost > player.currentMana)
-        {
-            console.log("Not enough mana. Need " + card.manaCost + ", have " + player.currentMana + ".");
-            return false;
-        }
 
         player.hand.play(cardIndex);
         player.spendMana(card.manaCost);
@@ -69,12 +59,17 @@ export class GameEngine
         if (card instanceof MinionCard)
         {
             this.board.playMinion(this.currentTurn, card);
-            console.log(player.hero.name + " plays minion: " + card.name);
+            if (card.effects.battlecry)
+            {
+                let context: GameContext = {engine: this, owner: this.activePlayer(), source: card};
+                card.effects.battlecry.execute(context);
+            }
         }
         else if (card instanceof SpellCard)
         {
-            console.log(player.hero.name + " casts spell: " + card.name);
-            card.effect({ engine: this, caster: player });
+            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: card };
+            card.effect.execute(context);
+            this.processDeaths();
         }
 
         return true;
@@ -88,12 +83,10 @@ export class GameEngine
 
         if (!attacker)
         {
-            console.log("No minion at that position.");
             return false;
         }
         if (!attacker.canAttack)
         {
-            console.log(attacker.name + " summoning sickness");
             return false;
         }
 
@@ -103,23 +96,19 @@ export class GameEngine
         {
             const enemyHero = this.players[opponentIndex].hero;
             enemyHero.takeDamage(attacker.attack);
-            console.log(attacker.name + " attacks " + enemyHero.name + " for " + attacker.attack + " damage.");
         }
         else
         {
             const target: MinionCard = this.board.getMinions(opponentIndex)[targetIndex];
             if (!target)
             {
-                console.log("No enemy minion at that position.");
                 return false;
             }
 
             attacker.takeDamage(target.attack);
             target.takeDamage(attacker.attack);
-            console.log(attacker.name + " attacks " + target.name + ".");
-
-            this.board.clearDead(this.currentTurn);
-            this.board.clearDead(opponentIndex);
+            
+            this.processDeaths();
         }
 
         this.checkWinCondition();
@@ -136,7 +125,43 @@ export class GameEngine
         for (const player of this.players)
         {
             if (!player.hero.isAlive())
+            {
                 console.log("\n=== " + player.hero.name + " has been defeated! Game over. ===");
+            }        
+        }
+    }
+
+    processDeaths(): void
+    {
+        const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
+        // loop until no more deaths
+        while (true)
+        {
+            const deadCurrent: MinionCard[] = this.board.collectDead(this.currentTurn);
+            const deadOpponent: MinionCard[] = this.board.collectDead(opponentIndex);
+
+            if (deadCurrent.length === 0 && deadOpponent.length === 0)
+                break;
+
+            this.board.clearDead(this.currentTurn);
+            this.board.clearDead(opponentIndex);
+
+            for (const minion of deadCurrent)
+            {
+                if (minion.effects.deathrattle)
+                {
+                    const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
+                    minion.effects.deathrattle.execute(context);
+                }
+            }
+            for (const minion of deadOpponent)
+            {
+                if (minion.effects.deathrattle)
+                {
+                    const ctx: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };
+                    minion.effects.deathrattle.execute(ctx);
+                }
+            }
         }
     }
 

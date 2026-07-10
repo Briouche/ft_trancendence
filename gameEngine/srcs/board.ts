@@ -15,7 +15,6 @@ export class Board
     {
         if (this.minions[playerIndex].length >= MAX_BOARD_SIZE)
         {
-            console.log("Board is full! Can't play more minions.");
             return false;
         }
         this.minions[playerIndex].push(minion);
@@ -25,6 +24,17 @@ export class Board
     getMinions(playerIndex: 0 | 1): MinionCard[]
     {
         return this.minions[playerIndex];
+    }
+
+    collectDead(playerIndex: 0 | 1): MinionCard[]
+    {
+        const dead: MinionCard[] = [];
+        for (const minion of this.minions[playerIndex])
+        {
+            if (!minion.isAlive())
+                dead.push(minion)
+        }
+        return dead;
     }
 
     clearDead(playerIndex: 0 | 1): void

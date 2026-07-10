@@ -43,7 +43,6 @@ export class Player
     {
         if (this.deck.isEmpty())
         {
-            console.log(this.hero.name + " has no cards left — fatigue!");
             this.hero.takeDamage(this.fatigue);
             this.fatigue++;
             return false;
