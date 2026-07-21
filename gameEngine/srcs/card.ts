@@ -22,13 +22,15 @@ export abstract class Card
 }
 
 //effects added on minions, all null if not added
-interface MinionEffects
+interface Keywords
 {
     battlecry?: Effect;
     deathrattle?: Effect;
+    rush?: boolean;
+    taunt?: boolean;
+    onAttack?: Effect;
     //onDamage?: Effect;
     //onMinionDamage?: Effect;
-    //onAttack?: Effect;
 }
 
 export class MinionCard extends Card
@@ -37,11 +39,11 @@ export class MinionCard extends Card
     public readonly maxHealth: number;
     public currentHealth:      number;
     public canAttack:          boolean = false;
-    public effects:            MinionEffects = {};
+    public effects:            Keywords = {};
 
     constructor(name: string, manaCost: number,
                 description: string, attack: number,
-                maxHealth: number, effects: MinionEffects = {})
+                maxHealth: number, effects: Keywords = {})
     {
         super(name, manaCost, description);
         this.attack      = attack;

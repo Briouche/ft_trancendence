@@ -2,6 +2,9 @@ import { MinionCard, SpellCard } from "./card";
 import { Board } from "./board";
 import { Player } from "./player";
 import { GameContext } from "./effect";
+import { Targetable } from "./target";
+import { Effect } from "./effect";
+import { Hero } from "./hero";
 
 export class GameEngine
 {
@@ -36,7 +39,11 @@ export class GameEngine
 
         const minions: MinionCard[] = this.board.getMinions(this.currentTurn);
         for (const minion of minions)
+        {
             minion.canAttack = true;
+            if (minion.effects.rush && minion.effects.rush == true)
+                minion.effects.rush = false;
+        }
     }
 
     endTurn(): void
@@ -45,10 +52,10 @@ export class GameEngine
         this.startTurn();
     }
 
-    playCard(cardIndex: number): boolean
+    playCard(cardIndex: number, targets: Map<Effect, Targetable | null>): boolean
     {
         const player: Player = this.activePlayer();
-        const card           = player.hand.getCards()[cardIndex];
+        const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
             return false;
@@ -61,13 +68,15 @@ export class GameEngine
             this.board.playMinion(this.currentTurn, card);
             if (card.effects.battlecry)
             {
-                let context: GameContext = {engine: this, owner: this.activePlayer(), source: card};
+                let context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
                 card.effects.battlecry.execute(context);
             }
+            else if (card.effects.rush)
+                card.canAttack = true;
         }
         else if (card instanceof SpellCard)
         {
-            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: card };
+            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined };
             card.effect.execute(context);
             this.processDeaths();
         }
@@ -76,41 +85,31 @@ export class GameEngine
     }
 
     // targetIndex -1 = attack hero directly
-    attackWithMinion(attackerIndex: number, targetIndex: number): boolean
+    attackWithMinion(attackerIndex: number, target: Targetable): boolean
     {
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
         const attacker: MinionCard = this.board.getMinions(this.currentTurn)[attackerIndex];
 
-        if (!attacker)
-        {
+        if (!attacker || !attacker.canAttack)
             return false;
-        }
-        if (!attacker.canAttack)
-        {
-            return false;
-        }
 
         attacker.canAttack = false;
 
-        if (targetIndex === -1)
+        if (attacker.effects.onAttack && attacker.effects.onAttack.resolver && !attacker.effects.onAttack.resolver.requiresInput)
         {
-            const enemyHero = this.players[opponentIndex].hero;
-            enemyHero.takeDamage(attacker.attack);
+            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker };
+            attacker.effects.onAttack.execute(context);
         }
-        else
-        {
-            const target: MinionCard = this.board.getMinions(opponentIndex)[targetIndex];
-            if (!target)
-            {
-                return false;
-            }
+        if (target instanceof Hero)
+            this.players[opponentIndex].hero.takeDamage(attacker.attack);
 
+        else if (target instanceof MinionCard)
+        {
             attacker.takeDamage(target.attack);
             target.takeDamage(attacker.attack);
-            
-            this.processDeaths();
         }
 
+        this.processDeaths();
         this.checkWinCondition();
         return true;
     }
