@@ -35,8 +35,8 @@ interface Keywords
 
 export class MinionCard extends Card
 {
-    public readonly attack:    number;
-    public readonly maxHealth: number;
+    public attack:    number;
+    public maxHealth: number;
     public currentHealth:      number;
     public canAttack:          boolean = false;
     public effects:            Keywords = {};

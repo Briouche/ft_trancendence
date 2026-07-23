@@ -1,8 +1,6 @@
 import * as readline from "readline";
 import { GameEngine } from "./gameEngine";
-import { Hero }       from "./hero";
 import { Player }     from "./player";
-import { Deck, makeBasicDeck }       from "./deck";
 import { render, printMessage, printCommands, printTargetList } from "./display";
 import { Card, MinionCard, SpellCard } from "./card";
 import { Effect } from "./effect";
@@ -88,14 +86,17 @@ async function collectTargets(card: Card, engine: GameEngine): Promise<Map<Effec
     return result;
 }
 
-async function handlePlayCard(cardIndex: number, engine: GameEngine): Promise<void> 
+async function handlePlayCard(cardIndex: number, engine: GameEngine, boardIndex?: number): Promise<void> 
 {
    const card = engine.activePlayer().hand.getCards()[cardIndex];
 
    const targets = await collectTargets(card, engine);
     if (targets === null)
         return;
-    engine.playCard(cardIndex, targets);
+    if (boardIndex !== undefined)
+        engine.playCard(cardIndex, targets, boardIndex);
+    else
+        engine.playCard(cardIndex, targets);
 }
 
 async function handleAttack(attackerIndex: number, engine: GameEngine): Promise<void>
@@ -132,12 +133,16 @@ async function handleCommand(input: string, engine: GameEngine): Promise<void>
     if (command === "p")
     {
         const cardIndex: number = parseInt(parts[1]);
+        const boardIndex: number = parseInt(parts[2]);
         if (isNaN(cardIndex))
         {
             printMessage("Usage: p <cardIndex>");
             return;
         }
-        await handlePlayCard(cardIndex, engine);
+        if (!isNaN(boardIndex))
+            await handlePlayCard(cardIndex, engine, boardIndex);
+        else
+            await handlePlayCard(cardIndex, engine);
         return;
     }
 
@@ -157,10 +162,8 @@ async function handleCommand(input: string, engine: GameEngine): Promise<void>
     printMessage("Unknown command. Commands: p <n>  |  a <n> <t>  |  e");
 }
 
-export async function gameLoop(): Promise<void>
+export async function gameLoop(player1: Player, player2: Player): Promise<void>
 {
-    const player1: Player = new Player(new Hero("Stef"),  makeBasicDeck());
-    const player2: Player = new Player(new Hero("Bribz"), makeBasicDeck());
     const engine: GameEngine = new GameEngine([player1, player2]);
 
     printCommands();

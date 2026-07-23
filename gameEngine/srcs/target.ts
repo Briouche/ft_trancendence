@@ -3,6 +3,7 @@ import { Hero }       from "./hero";
 import { Player }     from "./player";
 import { GameEngine } from "./gameEngine";
 import { GameContext } from "./effect";
+import { Context } from "node:vm";
 
 //make object for a target that accepts both minion and hero,
 export interface Targetable
@@ -28,7 +29,7 @@ export abstract class TargetResolver
 
     abstract resolve(context: GameContext): Targetable[];
 
-    protected filterTaunt(targets: Targetable[], enemyMinions: MinionCard[]): Targetable[]
+    protected tauntFilter(targets: Targetable[], enemyMinions: MinionCard[]): Targetable[]
     {
         const tauntMinions: MinionCard[] = enemyMinions.filter(m => m.effects && m.effects.taunt);
         if (tauntMinions.length > 0)
@@ -92,7 +93,7 @@ export class EnemyCharacterResolver extends TargetResolver
         else
             targets = [...enemyMinions, enemyHero];
 
-        return this.filterTaunt(targets, enemyMinions);
+        return this.tauntFilter(targets, enemyMinions);
     }
 }
 
@@ -108,7 +109,7 @@ export class EnemyMinionResolver extends TargetResolver
     {
         const oppIdx: 0 | 1        = this.opponentIndex(context.engine);
         const enemyMinions: MinionCard[] = context.engine.board.getMinions(oppIdx);
-        return this.filterTaunt([...enemyMinions], enemyMinions);
+        return this.tauntFilter([...enemyMinions], enemyMinions);
     }
 }
 
@@ -144,9 +145,42 @@ export class AllMinionsResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        return [
-            ...context.engine.board.getMinions(0),
-            ...context.engine.board.getMinions(1)];
+        return [...context.engine.board.getMinions(0), ...context.engine.board.getMinions(1)];
+    }
+}
+
+// all allied minions
+export class AlliedMinionsResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(false);
+    }
+
+    resolve(context: GameContext): Targetable[]
+    {
+        return [...context.engine.board.getMinions(context.engine.currentTurn)];
+    }
+}
+
+// all allied minions but the source
+export class OtherAlliedMinionsResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(false);
+    }
+
+    resolve(context: GameContext): Targetable[]
+    {
+        let targets: Targetable[] = [];
+
+        for (const minion of context.engine.board.getMinions(context.engine.currentTurn))
+        {
+            if (minion != context.source)
+                targets.push(minion);
+        }
+        return targets;
     }
 }
 
@@ -167,5 +201,37 @@ export class RandomEnemyResolver extends TargetResolver
             return [];
         const randomIndex: number = Math.floor(Math.random() * enemies.length);
         return [enemies[randomIndex]];
+    }
+}
+
+export class NeighboringMinionsResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(false);
+    }
+
+    resolve(context: GameContext): Targetable[]
+    {
+        let neighbors: Targetable[] = [];
+        if (context.source instanceof MinionCard)
+        {
+            let board = context.engine.board.getMinions(context.owner.id);
+            let boardIndex = -1;
+            let i = 0;
+            for (const minion of board)
+            {
+                if (minion == context.source)
+                    boardIndex = i;
+                i++;
+            }
+            if (boardIndex == -1)
+                return neighbors;
+            if (board[boardIndex - 1])
+                neighbors.push(board[boardIndex - 1]);
+            if (board[boardIndex + 1])
+                neighbors.push(board[boardIndex + 1]);
+        }
+        return neighbors;
     }
 }

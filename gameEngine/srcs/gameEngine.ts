@@ -9,19 +9,18 @@ import { Hero } from "./hero";
 export class GameEngine
 {
     public readonly players: [Player, Player];
-    public board:            Board;
-    public currentTurn:      0 | 1;
+    public board: Board;
+    public currentTurn: 0 | 1;
 
     constructor(players: [Player, Player])
     {
-        this.players     = players;
-        this.board       = new Board();
+        this.players = players;
+        this.board = new Board();
         this.currentTurn = 0;
     }
 
     startGame(): void
     {
-        console.log("=== Game Start ===");
         for (let i = 0; i < 2; i++)
         {
             this.players[i].deck.shuffle();
@@ -52,9 +51,9 @@ export class GameEngine
         this.startTurn();
     }
 
-    playCard(cardIndex: number, targets: Map<Effect, Targetable | null>): boolean
+    playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): boolean
     {
-        const player: Player = this.activePlayer();
+        const player = this.activePlayer();
         const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
@@ -65,7 +64,10 @@ export class GameEngine
 
         if (card instanceof MinionCard)
         {
-            this.board.playMinion(this.currentTurn, card);
+            if (boardIndex !== undefined)
+                this.board.playMinion(this.currentTurn, card, boardIndex);
+            else
+                this.board.playMinion(this.currentTurn, card);
             if (card.effects.battlecry)
             {
                 let context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
@@ -76,15 +78,13 @@ export class GameEngine
         }
         else if (card instanceof SpellCard)
         {
-            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined };
+            let context: GameContext = {engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined};
             card.effect.execute(context);
-            this.processDeaths();
         }
-
+        this.processDeaths();
         return true;
     }
 
-    // targetIndex -1 = attack hero directly
     attackWithMinion(attackerIndex: number, target: Targetable): boolean
     {
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
@@ -133,7 +133,7 @@ export class GameEngine
     processDeaths(): void
     {
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
-        // loop until no more deaths
+
         while (true)
         {
             const deadCurrent: MinionCard[] = this.board.collectDead(this.currentTurn);
