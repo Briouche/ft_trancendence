@@ -1,0 +1,34 @@
+# Dependency directories
+node_modules*
+
+# Next.js build output
+.next
+out
+
+# Version control
+.git
+
+# Environment variables
+.env
+.env.example
+.env.*.local
+.env.local
+.env.development
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker-related files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# OS/Editor files
+.DS_Store
+.vscode/
+.zed

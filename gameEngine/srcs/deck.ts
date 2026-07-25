@@ -1,4 +1,5 @@
-import { Card, MinionCard, SpellCard } from "./card";
+import { Card, SpellCard, MinionCard } from "./card";
+import { makeCollectionDeck } from "./cardLoader";
 import { AddEffectfEffect, BuffEffect, CombinedEffect, DamageEffect, DrawCardEffect, HealEffect, RandomMissileEffect, SummonMinionEffect } from "./effect";
 import { AllCharactersResolver, AlliedMinionsResolver, AllMinionsResolver, AnyCharacterResolver, NeighboringMinionsResolver, OtherAlliedMinionsResolver, RandomEnemyResolver } from "./target";
 
@@ -41,7 +42,7 @@ export class Deck
     }
 }
 
-export function makeBasicDeck() : Deck
+export function makeBasicDeck(): Deck
 {
     return new Deck ([
         new MinionCard("DrawingWisp",  0, "battlecry: draw 1.",     1, 1, { battlecry: new DrawCardEffect(1) }),

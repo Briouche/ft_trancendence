@@ -1,11 +1,10 @@
-import Image from "next/image";
+import { verifyUserCookie } from "@/lib/auth";
 
-export default function Home() {
-  return (
-    <div>
-      <h1>This is a first title</h1>
-      <h2>This is a second title</h2>
-      <h3>Another title to see</h3>
-    </div>
-  );
+import Home from "@/components/Home";
+import SignIn from "@/components/SignIn";
+
+export default async function HomePage() {
+  const user = await verifyUserCookie();
+
+  return <div>{user ? <Home /> : <SignIn />}</div>;
 }
