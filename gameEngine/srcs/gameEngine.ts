@@ -3,6 +3,12 @@ import { Board } from "./board";
 import { Player } from "./player";
 import { GameContext } from "./effect";
 
+export type Action =
+    | { type: "playCard"; cardIndex: number }
+    | { type: "attack"; attackerIndex: number; targetIndex: number }
+    | { type: "endTurn" };
+
+
 export class GameEngine
 {
     public readonly players: [Player, Player];
@@ -126,7 +132,7 @@ export class GameEngine
         {
             if (!player.hero.isAlive())
             {
-                console.log("\n=== " + player.hero.name + " has been defeated! Game over. ===");
+                // console.log("\n=== " + player.hero.name + " has been defeated! Game over. ===");
             }        
         }
     }
@@ -172,4 +178,63 @@ export class GameEngine
              + "---\n"
              + this.board.toString();
     }
+
+    clone(): GameEngine
+    {
+        const copy = new GameEngine([this.players[0].clone(), this.players[1].clone()]);
+        copy.board       = this.board.clone();
+        copy.currentTurn = this.currentTurn;
+        return copy;
+    }
+
+    //getLegalActions() duplicates the mana/canAttack checks already inside playCard()/attackWithMinion().
+    //If either of those changes, this needs to change with it — flag it now so it doesn't silently drift.
+    
+    getLegalActions(): Action[]
+    {
+        const actions: Action[] = [];
+        const player: Player = this.activePlayer();
+        const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
+
+        const hand = player.hand.getCards();
+        for (let i = 0; i < hand.length; i++)
+        {
+            if (hand[i].manaCost <= player.currentMana)
+                actions.push({ type: "playCard", cardIndex: i });
+        }
+
+        const attackers = this.board.getMinions(this.currentTurn);
+        const targets    = this.board.getMinions(opponentIndex);
+        for (let i = 0; i < attackers.length; i++)
+        {
+            if (!attackers[i].canAttack)
+                continue;
+            actions.push({ type: "attack", attackerIndex: i, targetIndex: -1 });
+            for (let t = 0; t < targets.length; t++)
+                actions.push({ type: "attack", attackerIndex: i, targetIndex: t });
+        }
+
+        actions.push({ type: "endTurn" });
+        return actions;
+    }
+
+    isTerminal(): boolean
+    {
+        return !this.players[0].hero.isAlive() || !this.players[1].hero.isAlive();
+    }
+
+    getWinner(): 0 | 1 | null
+    {
+        const p0Alive = this.players[0].hero.isAlive();
+        const p1Alive = this.players[1].hero.isAlive();
+
+        if (!p0Alive && !p1Alive)
+            return null;
+        if (!p0Alive)
+            return 1;
+        if (!p1Alive)
+            return 0;
+        return null;
+    }
 }
+

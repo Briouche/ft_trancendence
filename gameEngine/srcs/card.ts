@@ -19,6 +19,10 @@ export abstract class Card
     {
         return "[" + this.getType() + "] " + this.name + " (" + this.manaCost + " mana) - " + this.description;
     }
+
+    //-----
+
+    abstract clone(): Card;
 }
 
 //effects added on minions, all null if not added
@@ -77,6 +81,17 @@ export class MinionCard extends Card
         return "[Minion] " + this.name + " (" + this.manaCost + " mana) "
             + this.attack + "/" + this.currentHealth + " - " + this.description;
     }
+
+    //-----
+
+    clone(): MinionCard
+    {
+        const copy = new MinionCard(this.name, this.manaCost, this.description,
+                                     this.attack, this.maxHealth, this.effects);
+        copy.currentHealth = this.currentHealth;
+        copy.canAttack     = this.canAttack;
+        return copy;
+    }
 }
 
 export class SpellCard extends Card
@@ -92,5 +107,12 @@ export class SpellCard extends Card
     getType(): string
     {
         return "Spell: " + this.description;
+    }
+
+    //-----
+
+    clone(): SpellCard
+    {
+        return new SpellCard(this.name, this.manaCost, this.description, this.effect);
     }
 }

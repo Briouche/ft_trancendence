@@ -33,4 +33,13 @@ export class Hero
     {
         return this.name + " (" + this.currentHealth + "/" + STARTING_HEALTH + " HP)";
     }
+
+    //-----
+
+    clone(): Hero
+    {
+        const copy = new Hero(this.name);
+        copy.currentHealth = this.currentHealth;
+        return copy;
+    }
 }

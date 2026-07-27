@@ -59,4 +59,16 @@ export class Player
             + " | Deck: " + this.deck.size()
             + " | Hand: " + this.hand.size();
     }
+
+    //-----
+
+    clone(): Player
+    {
+        const copy = new Player(this.hero.clone(), this.deck.clone());
+        copy.hand        = this.hand.clone();
+        copy.currentMana = this.currentMana;
+        copy.maxMana     = this.maxMana;
+        copy.fatigue     = this.fatigue;
+        return copy;
+    }
 }

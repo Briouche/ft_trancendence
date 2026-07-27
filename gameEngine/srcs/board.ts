@@ -72,4 +72,16 @@ export class Board
 
         return result;
     }
+
+    //-----
+
+    clone(): Board
+    {
+        const copy = new Board();
+        copy.minions = [
+            this.minions[0].map(m => m.clone()),
+            this.minions[1].map(m => m.clone())
+        ];
+        return copy;
+    }
 }
