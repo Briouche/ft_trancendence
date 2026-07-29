@@ -19,11 +19,11 @@ const MENU = [
     available: true,
   },
   {
-    href: "/game",
+    href: "/play",
     label: "Jouer une partie",
-    description: "Bientôt disponible",
+    description: "En construction",
     emoji: "⚔️",
-    available: false,
+    available: true,
   },
 ];
 
