@@ -19,31 +19,33 @@ export abstract class Card
     {
         return "[" + this.getType() + "] " + this.name + " (" + this.manaCost + " mana) - " + this.description;
     }
+
+    //-----
+
+    abstract clone(): Card;
 }
 
 //effects added on minions, all null if not added
-interface Keywords
+interface MinionEffects
 {
     battlecry?: Effect;
     deathrattle?: Effect;
-    rush?: boolean;
-    taunt?: boolean;
-    onAttack?: Effect;
     //onDamage?: Effect;
     //onMinionDamage?: Effect;
+    //onAttack?: Effect;
 }
 
 export class MinionCard extends Card
 {
-    public attack:    number;
-    public maxHealth: number;
+    public readonly attack:    number;
+    public readonly maxHealth: number;
     public currentHealth:      number;
     public canAttack:          boolean = false;
-    public effects:            Keywords = {};
+    public effects:            MinionEffects = {};
 
     constructor(name: string, manaCost: number,
                 description: string, attack: number,
-                maxHealth: number, effects: Keywords = {})
+                maxHealth: number, effects: MinionEffects = {})
     {
         super(name, manaCost, description);
         this.attack      = attack;
@@ -79,6 +81,17 @@ export class MinionCard extends Card
         return "[Minion] " + this.name + " (" + this.manaCost + " mana) "
             + this.attack + "/" + this.currentHealth + " - " + this.description;
     }
+
+    //-----
+
+    clone(): MinionCard
+    {
+        const copy = new MinionCard(this.name, this.manaCost, this.description,
+                                     this.attack, this.maxHealth, this.effects);
+        copy.currentHealth = this.currentHealth;
+        copy.canAttack     = this.canAttack;
+        return copy;
+    }
 }
 
 export class SpellCard extends Card
@@ -94,5 +107,12 @@ export class SpellCard extends Card
     getType(): string
     {
         return "Spell: " + this.description;
+    }
+
+    //-----
+
+    clone(): SpellCard
+    {
+        return new SpellCard(this.name, this.manaCost, this.description, this.effect);
     }
 }

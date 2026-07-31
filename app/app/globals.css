@@ -1,46 +1,5 @@
 @import "tailwindcss";
 
 @theme {
-  /* --------------------------
-  Text styles
-  -------------------------- */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-
-  /* --------------------------
-  Color palette
-  -------------------------- */
-  --color-primary: #000000;
-  --color-secondary: #666666;
-  --color-accent: #f59e0b;
-  --color-success: #16a34a;
-  --color-danger: #dc2626;
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
-
-  /* --------------------------
-  Spacing
-  -------------------------- */
-  --spacing-padding-x: 1.5rem;
-  --spacing-padding-y: 1rem;
-
-  /* --------------------------
-  Dimensions
-  -------------------------- */
-  --height-header: 4rem;
-  --height-footer: 4rem;
-}
-
-@layer components {
-  .top-button {
-    @apply w-20 h-11 flex items-center justify-center
-           border border-gray-300 rounded-2xl text-sm
-           bg-white transition;
-  }
-  .top-button-accent {
-    @apply hover:bg-accent hover:text-white;
-  }
-  .top-button-muted {
-    @apply hover:bg-gray-100;
-  }
+	--color-brand-primary: #1a73e8;
 }

@@ -1,41 +1,36 @@
-import { PrismaClient } from "@prisma/client";
-import * as argon2 from "argon2";
-import * as fs from "fs";
-import * as path from "path";
+import { PrismaClient } from '@prisma/client'
 
-interface RawUser {
-  email: string;
-  username: string;
-  password: string;
-}
+const SEED_USERS = [
+	{
+		email: 'alex.vanguard@shadowrealm.com',
+		name: 'Alex Vanguard',
+		password: 'test1',
+	},
+	{
+		email: 'elena.spellweaver@mythos.gg',
+		name: 'Elena Spellweaver',
+		password: 'test2',
+	},
+	{
+		email: 'kai.cyberblade@neoncity.io',
+		name: 'Kai Cyberblade',
+		password: 'test3',
+	},
+]
 
 export async function seedUsers(prisma: PrismaClient) {
-  const jsonPath = path.resolve(__dirname, "./data/users-collection.json");
-  const raw = fs.readFileSync(jsonPath, "utf-8");
-  const data = JSON.parse(raw) as { users: RawUser[] };
+	console.log('👥 Seeding 3 random test users...')
 
-  console.log(`👥 Seeding ${data.users.length} users...`);
+	for (const user of SEED_USERS) {
+		await prisma.user.upsert({
+			where: { email: user.email },
+			update: {
+				name: user.name,
+				password: user.password,
+			},
+			create: user,
+		})
+	}
 
-  for (const user of data.users) {
-    const email = user.email.toLowerCase();
-    const username = user.username.toLowerCase();
-    const password = await argon2.hash(user.password, {
-      type: argon2.argon2id,
-    });
-
-    await prisma.user.upsert({
-      where: { email },
-      update: {
-        username,
-        password,
-      },
-      create: {
-        email,
-        username,
-        password,
-      },
-    });
-  }
-
-  console.log("✅ Users successfully seeded.");
+	console.log('✅ Users successfully seeded.')
 }

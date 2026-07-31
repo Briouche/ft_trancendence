@@ -1,14 +1,14 @@
+const STARTING_HEALTH: number = 20;
 
 export class Hero
 {
-    public readonly name: string;
-    public maxHealth: number = 20;
-    public currentHealth: number;
+    public readonly name:  string;
+    public currentHealth:  number;
 
     constructor(name: string)
     {
         this.name          = name;
-        this.currentHealth = this.maxHealth;
+        this.currentHealth = STARTING_HEALTH;
     }
 
     takeDamage(amount: number): void
@@ -18,8 +18,8 @@ export class Hero
 
     heal(amount: number): void
     {
-        if (this.currentHealth + amount > this.maxHealth)
-            this.currentHealth = this.maxHealth;
+        if (this.currentHealth + amount > STARTING_HEALTH)
+            this.currentHealth = STARTING_HEALTH;
         else
             this.currentHealth += amount;
     }
@@ -31,6 +31,15 @@ export class Hero
 
     toString(): string
     {
-        return this.name + " (" + this.currentHealth + "/" + this.maxHealth + " HP)";
+        return this.name + " (" + this.currentHealth + "/" + STARTING_HEALTH + " HP)";
+    }
+
+    //-----
+
+    clone(): Hero
+    {
+        const copy = new Hero(this.name);
+        copy.currentHealth = this.currentHealth;
+        return copy;
     }
 }
