@@ -48,14 +48,4 @@ export class Hand
             result += "  [" + i + "] " + this.cards[i].toString() + "\n";
         return result;
     }
-
-    //-----
-
-    clone(): Hand
-    {
-        const copy = new Hand();
-        for (const card of this.cards)
-            copy.add(card.clone());
-        return copy;
-    }
 }

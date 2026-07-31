@@ -11,13 +11,16 @@ export class Board
         this.minions = [[], []];
     }
 
-    playMinion(playerIndex: 0 | 1, minion: MinionCard): boolean
+    playMinion(playerIndex: 0 | 1, minion: MinionCard, index: number = -1): boolean
     {
         if (this.minions[playerIndex].length >= MAX_BOARD_SIZE)
         {
             return false;
         }
-        this.minions[playerIndex].push(minion);
+        if (index == -1)
+            this.minions[playerIndex].push(minion);
+        else
+            this.minions[playerIndex].splice(index, 0, minion);
         return true;
     }
 
@@ -71,17 +74,5 @@ export class Board
         }
 
         return result;
-    }
-
-    //-----
-
-    clone(): Board
-    {
-        const copy = new Board();
-        copy.minions = [
-            this.minions[0].map(m => m.clone()),
-            this.minions[1].map(m => m.clone())
-        ];
-        return copy;
     }
 }
