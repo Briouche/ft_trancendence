@@ -4,7 +4,6 @@
 // plausible set of cards so the AI can still reason about "what if they have X".
 // This gets called once per "world" — see mcts.ts for what a world is.
 
-
 import { GameEngine } from "../gameEngine/srcs/gameEngine";
 import { Player } from "../gameEngine/srcs/player";
 import { Card } from "../gameEngine/srcs/card";

@@ -1,6 +1,7 @@
 // MCTS tree mechanics: selection, expansion, simulation, backprop.
 
 import { GameEngine } from "../gameEngine/srcs/gameEngine";
+import { Targetable } from "../gameEngine/srcs/target";
 import { Action } from "./types";
 
 const UCB1_C = Math.SQRT2;
@@ -27,11 +28,16 @@ export function applyAction(engine: GameEngine, action: Action): GameEngine {
 
   switch (action.type) {
     case "playCard":
-      clone.playCard(action.cardIndex);
+      clone.playCard(action.cardIndex, new Map());
       break;
-    case "attack":
-      clone.attackWithMinion(action.attackerIndex, action.targetIndex);
+    case "attack": {
+      const opponentIdx: 0 | 1 = clone.currentTurn === 0 ? 1 : 0;
+      const target: Targetable = action.targetIndex === -1
+        ? clone.players[opponentIdx].hero
+        : clone.board.getMinions(opponentIdx)[action.targetIndex];
+      clone.attackWithMinion(action.attackerIndex, target);
       break;
+    }
     case "endTurn":
       clone.endTurn();
       break;

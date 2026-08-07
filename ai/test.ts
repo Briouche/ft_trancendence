@@ -12,8 +12,8 @@ import { getBestAction } from "./mcts";
 import { applyAction } from "./tree";
 
 function runTest(): void {
-  const p1 = new Player(new Hero("AI-1"), makeBasicDeck());
-  const p2 = new Player(new Hero("AI-2"), makeBasicDeck());
+  const p1 = new Player(new Hero("AI-1"), makeBasicDeck(), 0);
+  const p2 = new Player(new Hero("AI-2"), makeBasicDeck(), 1);
   let engine = new GameEngine([p1, p2]);
   engine.startGame();
 
