@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { Card, CardData } from "../objects/Card";
 
-const HAND_Y_RATIO = 1 / 6;
+const HAND_Y_RATIO = 1 / 8;
 const CARD_WIDTH_RATIO = 0.085;
 const CARD_ASPECT_RATIO = 1.4;
 const OVERLAP_RATIO = 0.55;

@@ -18,6 +18,7 @@ export class Card extends Phaser.GameObjects.Container
     public cardData: CardData;
     public isDragging: boolean = false;
     public isHovering: boolean = false;
+    public canAttack: boolean = true;
     private object: Phaser.GameObjects.Rectangle;
 
     private baseX = 0;
