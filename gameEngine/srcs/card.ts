@@ -1,3 +1,4 @@
+import { Effect } from "./effect";
 
 export abstract class Card
 {
@@ -20,19 +21,35 @@ export abstract class Card
     }
 }
 
+//effects added on minions, all null if not added
+interface Keywords
+{
+    battlecry?: Effect;
+    deathrattle?: Effect;
+    rush?: boolean;
+    taunt?: boolean;
+    onAttack?: Effect;
+    //onDamage?: Effect;
+    //onMinionDamage?: Effect;
+}
+
 export class MinionCard extends Card
 {
-    public readonly attack:    number;
-    public readonly maxHealth: number;
+    public attack:    number;
+    public maxHealth: number;
     public currentHealth:      number;
     public canAttack:          boolean = false;
+    public effects:            Keywords = {};
 
-    constructor(name: string, manaCost: number, description: string, attack: number, maxHealth: number)
+    constructor(name: string, manaCost: number,
+                description: string, attack: number,
+                maxHealth: number, effects: Keywords = {})
     {
         super(name, manaCost, description);
         this.attack      = attack;
         this.maxHealth   = maxHealth;
         this.currentHealth = maxHealth;
+        this.effects = effects;
     }
 
     getType(): string
@@ -66,9 +83,9 @@ export class MinionCard extends Card
 
 export class SpellCard extends Card
 {
-    public readonly effect: (targets: any) => void; //any should change, placeholder for just not checking incoming type
+    public readonly effect: Effect;
 
-    constructor(name: string, manaCost: number, description: string, effect: (targets: any) => void)
+    constructor(name: string, manaCost: number, description: string, effect: Effect)
     {
         super(name, manaCost, description);
         this.effect = effect;
@@ -76,6 +93,6 @@ export class SpellCard extends Card
 
     getType(): string
     {
-        return "Spell";
+        return "Spell: " + this.description;
     }
 }

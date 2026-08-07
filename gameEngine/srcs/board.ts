@@ -11,20 +11,33 @@ export class Board
         this.minions = [[], []];
     }
 
-    playMinion(playerIndex: 0 | 1, minion: MinionCard): boolean
+    playMinion(playerIndex: 0 | 1, minion: MinionCard, index: number = -1): boolean
     {
         if (this.minions[playerIndex].length >= MAX_BOARD_SIZE)
         {
-            console.log("Board is full! Can't play more minions.");
             return false;
         }
-        this.minions[playerIndex].push(minion);
+        if (index == -1)
+            this.minions[playerIndex].push(minion);
+        else
+            this.minions[playerIndex].splice(index, 0, minion);
         return true;
     }
 
     getMinions(playerIndex: 0 | 1): MinionCard[]
     {
         return this.minions[playerIndex];
+    }
+
+    collectDead(playerIndex: 0 | 1): MinionCard[]
+    {
+        const dead: MinionCard[] = [];
+        for (const minion of this.minions[playerIndex])
+        {
+            if (!minion.isAlive())
+                dead.push(minion)
+        }
+        return dead;
     }
 
     clearDead(playerIndex: 0 | 1): void

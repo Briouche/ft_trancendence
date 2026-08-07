@@ -1,6 +1,7 @@
 import { GameEngine } from "./gameEngine";
 import { Player }     from "./player";
 import { MinionCard } from "./card";
+import { Targetable } from "./target";
 
 
 //display game in terminal, temp before graphic interface
@@ -82,7 +83,7 @@ export function printCommands(): void
 {
     console.log(THIN_DIVIDER);
     console.log("  p <n>        play card at index n");
-    console.log("  a <n> <t>    attack with minion n -> target t  (-1 = hero)");
+    console.log("  a <n>        attack with minion n -> choose target after");
     console.log("  e            end turn");
     console.log(DIVIDER);
 }
@@ -111,4 +112,18 @@ export function render(engine: GameEngine): void
 export function printMessage(message: string): void
 {
     console.log("  >> " + message);
+}
+
+
+export function printTargetList(targets: Targetable[]): void
+{
+    let index: number = 0;
+
+    console.log(" >> Pick a target (or q to cancel):");
+    console.log(THIN_DIVIDER);
+    for (const target of targets)
+    {
+        console.log(" >> " + target.name + "[" + index++ + "]");
+    }
+    console.log(DIVIDER);
 }
