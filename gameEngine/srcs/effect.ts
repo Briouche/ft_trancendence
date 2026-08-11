@@ -219,7 +219,7 @@ export class SummonMinionEffect extends Effect
         for (let i = 0; i < this._amount; i++)
         {
             if (this._tokens[i])
-                context.engine.board.playMinion(context.owner.id, this._tokens[i]);
+                context.engine.board.playMinion(context.owner.index, this._tokens[i]);
         }
     }
 }

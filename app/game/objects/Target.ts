@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { Card } from "./Card";
 import { Hero } from "./Hero";
 
-export type ResolvedTarget = { kind: "hero"; hero: Hero } | { kind: "minion"; card: Card };
+export type ResolvedTarget = { kind: "hero"; hero: Hero; id: string } | { kind: "minion"; card: Card; id: string };
 
 export class Target
 {
@@ -10,11 +10,14 @@ export class Target
     private kind: "minion" | "hero";
     private getCard?: () => Card | null;
     private hero?: Hero;
+    private highlighted: boolean = false;
+    private highlight: Phaser.GameObjects.Rectangle;
 
     private constructor(scene: Phaser.Scene, kind: "minion" | "hero")
     {
         this.kind = kind;
         this.zone = scene.add.zone(0, 0, 0, 0).setRectangleDropZone(0, 0);
+        this.highlight = scene.add.rectangle(0, 0, 0, 0, 0xffff00, 0).setStrokeStyle(3, 0xffff00).setVisible(false);
     }
 
     static forMinionSlot(scene: Phaser.Scene, getCard: () => Card | null): Target
@@ -46,19 +49,31 @@ export class Target
         this.zone.setPosition(x , y);
         const isValid = this.kind === "hero" || (this.getCard?.() != null);
         this.zone.input?.hitArea.setTo(-width / 2, -height / 2, isValid ? width : 0, isValid ? height : 0);
+        this.highlight.setVisible(this.highlighted);
     }
 
     resolve(): ResolvedTarget | undefined
     {
         if (this.kind === "hero" && this.hero)
-            return { kind: "hero", hero: this.hero };
+            return { kind: "hero", hero: this.hero, id: this.hero.heroData.id };
 
         if (this.kind === "minion" && this.getCard)
         {
             const card = this.getCard();
             if (card)
-                return { kind: "minion", card };
+                return { kind: "minion", card, id: card.cardData.id };
         }
         return undefined;
+    }
+
+    setHighlighted(value: boolean): void
+    {
+        this.highlighted = value;
+        this.highlight.setVisible(value);
+    }
+
+    isHighlighted(): boolean
+    {
+        return this.highlighted;
     }
 }

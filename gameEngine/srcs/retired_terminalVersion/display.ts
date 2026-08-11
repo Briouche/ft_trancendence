@@ -1,7 +1,7 @@
-import { GameEngine } from "./gameEngine";
-import { Player }     from "./player";
-import { MinionCard } from "./card";
-import { Targetable } from "./target";
+import { GameEngine } from "../gameEngine";
+import { Player }     from "../player";
+import { MinionCard } from "../card";
+import { Targetable } from "../target";
 
 
 //display game in terminal, temp before graphic interface

@@ -2,105 +2,118 @@ import Phaser from "phaser";
 import { Card, CardData } from "../objects/Card";
 import { Hero, HeroData } from "./Hero";
 import { Target, ResolvedTarget } from "./Target";
+import { EndTurn } from "./EndTurn";
 
-const PLAYER_Y_RATIO = 0.60;
-const OPPONENT_Y_RATIO = 0.35;
-const SLOT_WIDTH_RATIO = 0.090;
+const BOARD_GAP_RATIO = 0.125;
+const SLOT_WIDTH_RATIO = 0.09;
 const SLOT_SIZE_RATIO = 0.07;
 const SLOT_ASPECT_RATIO = 1.4;
 const BOARD_PADDING_RATIO = 0.035;
+
 const HERO_X_RATIO = 0.85;
 const HERO_Y_RATIO = 0.85;
 const HERO_SIZE_RATIO = 0.15;
 
-export interface BoardSlot
-{
-    index: number;
-    x: number;
-    y: number;
-    card: Card | null;
-}
+const END_TURN_WIDTH_RATIO = 0.1;
+const END_TURN_HEIGHT_RATIO = 0.055;
+const END_TURN_X_RATIO = 0.86;
+const END_TURN_Y_RATIO = 0.5;
 
 export class Board
 {
     private scene: Phaser.Scene;
-    public slots: BoardSlot[] = [];
-    public opponentSlots: BoardSlot[] = [];
+
+    public playerCards: Card[] = [];
+    public opponentCards: Card[] = [];
+    private maxSlots: number = 6;
+
+    private myTurn: boolean = false;
 
     public playerHero: Hero;
     public opponentHero: Hero;
 
     private boardZone: Phaser.GameObjects.Zone;
-
     private playerGraphic: Phaser.GameObjects.Rectangle;
     private opponentGraphic: Phaser.GameObjects.Rectangle;
+    private endTurn: EndTurn;
 
     private allTargets: Target[] = [];
-    private slotSize = 0;
-    private slotHeight = 0;
 
-    constructor(scene: Phaser.Scene, slotCount = 6, playerHeroData: HeroData = { name: "PLAYER B)", health: 30 }, opponentHeroData: HeroData = { name: "Opponent >:]", health: 30 })
+    constructor(scene: Phaser.Scene, slotCount = 6, playerHeroData: HeroData = { id: "hero-0", name: "PLAYER B)", health: 20 }, opponentHeroData: HeroData = { id: "hero-1", name: "Opponent >:]", health: 20 })
     {
         this.scene = scene;
         this.boardZone = scene.add.zone(0, 0, 0, 0).setRectangleDropZone(0, 0);
         this.playerGraphic = scene.add.rectangle(0, 0, 0, 0, 0x1a3a1a, 0.3).setStrokeStyle(1, 0x3a5a3a);
         this.opponentGraphic = scene.add.rectangle(0, 0, 0, 0, 0x1a3a1a, 0.3).setStrokeStyle(1, 0x3a5a3a);
+        
         for (let i = 0; i < slotCount; i++)
         {
-            this.opponentSlots.push({ index: i, x: 0, y: 0, card: null });
-            this.slots.push({ index: i, x: 0, y: 0, card: null });
-
-            const playerSlot = this.slots[i];
-            const opponentSlot = this.opponentSlots[i];
             //player slots are pair, opponent slots are odd index
-            this.allTargets.push(Target.forMinionSlot(scene, () => playerSlot.card));
-            this.allTargets.push(Target.forMinionSlot(scene, () => opponentSlot.card));
+            this.allTargets.push(Target.forMinionSlot(scene, () => this.playerCards[i] ?? null));
+            this.allTargets.push(Target.forMinionSlot(scene, () => this.opponentCards[i] ?? null));
         }
 
         this.playerHero = new Hero(scene, playerHeroData, HERO_SIZE_RATIO * scene.scale.height);
         this.opponentHero = new Hero(scene, opponentHeroData, HERO_SIZE_RATIO * scene.scale.height);
-
         this.allTargets.push(Target.forHero(scene, this.playerHero));
         this.allTargets.push(Target.forHero(scene, this.opponentHero));
+
+        this.endTurn = new EndTurn(scene, 10, 10);
+    }
+
+    //get X for count amount of cards
+    private computeXs(count: number, width: number): number[]
+    {
+        if (count === 0)
+            return [];
+        const spacing = width * SLOT_WIDTH_RATIO;
+        const totalWidth = (count - 1) * spacing;
+        const startX = width / 2 - totalWidth / 2;
+        const xs: number[] = [];
+        for (let i = 0; i < count; i++)
+            xs.push(startX + i * spacing);
+        return xs;
     }
 
     layout(width = this.scene.scale.width, height = this.scene.scale.height)
     {
-        this.slotSize = width * SLOT_SIZE_RATIO;
-        this.slotHeight = this.slotSize * SLOT_ASPECT_RATIO;
+        const slotSize = width * SLOT_SIZE_RATIO;
+        const slotHeight = slotSize * SLOT_ASPECT_RATIO;
 
-        const slotSpacing = width * SLOT_WIDTH_RATIO;
-        const totalWidth = (this.slots.length - 1) * slotSpacing;
-        const startX = width / 2 - totalWidth / 2;
+        const maxSpacing = width * SLOT_WIDTH_RATIO;
+        const maxTotalWidth = (this.maxSlots - 1) * maxSpacing;
+        const boardWidth = maxTotalWidth + slotSize + width * BOARD_PADDING_RATIO * 2;
+        const boardHeight = slotHeight + height * BOARD_PADDING_RATIO * 2;
+        
+        const playerY = height * BOARD_GAP_RATIO + height * 0.5;
+        const opponentY = height * 0.5 - height * BOARD_GAP_RATIO;
 
-        const boardWidth = totalWidth + this.slotSize + width * BOARD_PADDING_RATIO * 2;
-        const boardHeight = this.slotHeight + height * BOARD_PADDING_RATIO * 2;
+        this.layoutRow(this.playerCards, playerY, width);
+        this.layoutRow(this.opponentCards, opponentY, width);
 
-        this.layoutRow(this.slots, height * PLAYER_Y_RATIO, startX, slotSpacing);
-        this.layoutRow(this.opponentSlots, height * OPPONENT_Y_RATIO, startX, slotSpacing);
-
-        this.boardZone.setPosition(width / 2, height * PLAYER_Y_RATIO);
+        this.boardZone.setPosition(width / 2, playerY);
         this.boardZone.setSize(boardWidth, boardHeight);
         this.boardZone.input?.hitArea.setTo(0, 0, boardWidth, boardHeight);
 
-        this.playerGraphic.setPosition(width / 2, height * PLAYER_Y_RATIO);
+        this.playerGraphic.setPosition(width / 2, playerY);
         this.playerGraphic.setSize(boardWidth, boardHeight);
         this.playerGraphic.setDepth(0);
 
-        this.opponentGraphic.setPosition(width / 2, height * OPPONENT_Y_RATIO);
+        this.opponentGraphic.setPosition(width / 2, opponentY);
         this.opponentGraphic.setSize(boardWidth, boardHeight);
         this.opponentGraphic.setDepth(0);
 
-        for (let i = 0; i < this.slots.length; i++)
+        const playerXs = this.computeXs(this.playerCards.length, width);
+        const opponentXs = this.computeXs(this.opponentCards.length, width);
+        for (let i = 0; i < this.maxSlots; i++)
         {
             const playerTarget = this.allTargets[i * 2];
             const opponentTarget = this.allTargets[i * 2 + 1];
-            playerTarget.layout(this.slots[i].x, this.slots[i].y, this.slotSize, this.slotHeight);
-            opponentTarget.layout(this.opponentSlots[i].x, this.opponentSlots[i].y, this.slotSize, this.slotHeight);
+            playerTarget.layout(playerXs[i] ?? 0, playerY, slotSize, slotHeight);
+            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, slotSize, slotHeight);
         }
 
         const heroX = width * HERO_X_RATIO;
-
         const playerHeroY = height * HERO_Y_RATIO;
         const opponentHeroY = height * (1 - HERO_Y_RATIO);
 
@@ -111,24 +124,89 @@ export class Board
         const opponentHeroTarget = this.allTargets[this.allTargets.length - 1];
         playerHeroTarget.layout(heroX, playerHeroY, this.playerHero.width, this.playerHero.height);
         opponentHeroTarget.layout(heroX, opponentHeroY, this.opponentHero.width, this.opponentHero.height);
+
+        const endTurnWidth = width * END_TURN_WIDTH_RATIO;
+        const endTurnHeight = height * END_TURN_HEIGHT_RATIO;
+        this.endTurn.resize(endTurnWidth, endTurnHeight);
+        this.endTurn.setPosition(width * END_TURN_X_RATIO, height * END_TURN_Y_RATIO);
     }
 
-    private layoutRow(slots: BoardSlot[], y: number, startX: number, spacing: number)
+    private layoutRow(cards: Card[], y: number, width: number)
     {
-        for (let i = 0; i < slots.length; i++)
+        const xs = this.computeXs(cards.length, width);
+        for (let i = 0; i < cards.length; i++)
         {
-            const slot = slots[i];
-            const x = startX + i * spacing;
-            slot.x = x;
-            slot.y = y;
+            const card = cards[i];
+            card.setTransform(xs[i], y, 0, i);
+            if (!card.isDragging)
+                card.returnToBase();
+        }
+    }
 
-            if (slot.card)
+    findInsertIndex(dropX: number, side: number = 0): number | undefined
+    {
+        const cards = side === 0 ? this.playerCards : this.opponentCards;
+        if (cards.length >= this.maxSlots)
+            return undefined;
+
+        const xs = this.computeXs(cards.length, this.scene.scale.width);
+        for (let i = 0; i < xs.length; i++)
+        {
+            if (dropX < xs[i])
+                return i;
+        }
+        return cards.length;
+    }
+
+    insertCard(card: Card, index: number, side: number = 0)
+    {
+        const cards = side === 0 ? this.playerCards : this.opponentCards;
+        cards.splice(index, 0, card);
+
+        if (side === 1)
+            card.disableInteractive();
+        else
+            card.setInteractive({ draggable: true, useHandCursor: true });
+
+        this.layout();
+    }
+
+    syncBoardFromState(yourBoard: CardData[], opponentBoard: CardData[], isMyTurn: boolean): void
+    {
+        this.myTurn = isMyTurn;
+        this.playerCards = this.syncRow(this.playerCards, yourBoard, 0);
+        this.opponentCards = this.syncRow(this.opponentCards, opponentBoard, 1);
+        this.layout();
+    }
+
+    private syncRow(cards: Card[], dataList: CardData[], side: number): Card[]
+    {
+        const remaining = [...cards];
+        const next: Card[] = [];
+
+        for (const data of dataList)
+        {
+            const existingIndex = remaining.findIndex((c) => c.cardData.id === data.id);
+            if (existingIndex !== -1)
             {
-                slot.card.setTransform(x, y, 0, i);
-                if (!slot.card.isDragging)
-                    slot.card.returnToBase();
+                const card = remaining[existingIndex];
+                card.updateData(data);
+                next.push(card);
+                remaining.splice(existingIndex, 1);
+            }
+            else
+            {
+                const card = new Card(this.scene, data);
+                if (side === 1)
+                    card.disableInteractive();
+                else
+                    card.setInteractive({ draggable: true, useHandCursor: true });
+                next.push(card);
             }
         }
+
+        remaining.forEach((c) => c.destroy());
+        return next;
     }
 
     getZone(): Phaser.GameObjects.Zone
@@ -136,44 +214,20 @@ export class Board
         return this.boardZone;
     }
 
-    findNearestOpenSlot(dropX: number, side: number = 0): BoardSlot | undefined
-    {
-        const slots = side === 0 ? this.slots : this.opponentSlots;
-        const openSlots = slots.filter((s) => s.card === null);
-        if (openSlots.length === 0)
-            return undefined;
-        return openSlots.reduce((closest, slot) => Math.abs(slot.x - dropX) < Math.abs(closest.x - dropX) ? slot : closest);
-    }
-
-    findOpenSlot(side: number = 0): BoardSlot | undefined
-    {
-        const slots = side === 0 ? this.slots : this.opponentSlots;
-        for (let i = 0; i < slots.length; i++)
-        {
-            if (slots[i].card === null)
-                return slots[i];
-        }
-        return undefined;
-    }
-
-    placeCard(card: Card, slot: BoardSlot, side: number = 0)
-    {
-        slot.card = card;
-        card.setTransform(slot.x, slot.y, 0, slot.index);
-        card.returnToBase();
-        if (side === 1)
-            card.disableInteractive();
-    }
-
     removeCard(card: Card)
     {
-        for (const slot of [...this.slots, ...this.opponentSlots])
+        const playerIndex = this.playerCards.indexOf(card);
+        if (playerIndex !== -1)
         {
-            if (slot.card === card)
-            {
-                slot.card = null;
-                return;
-            }
+            this.playerCards.splice(playerIndex, 1);
+            this.layout(); // remaining cards recenter to close the gap
+            return;
+        }
+        const opponentIndex = this.opponentCards.indexOf(card);
+        if (opponentIndex !== -1)
+        {
+            this.opponentCards.splice(opponentIndex, 1);
+            this.layout();
         }
     }
 
@@ -190,19 +244,42 @@ export class Board
 
     containsCard(card: Card, side: number = 0): boolean
     {
-        const slots = side === 0 ? this.slots : this.opponentSlots;
-        return slots.some((s) => s.card === card);
+        const cards = side === 0 ? this.playerCards : this.opponentCards;
+        return cards.includes(card);
     }
 
-    /** Dev-only helper until real opponent state comes from the server. */
-    addOpponentMockCard(data: CardData, slotIndex: number)
+    getTargetById(id: string): Target | undefined
     {
-        const slot = this.opponentSlots[slotIndex];
-        if (!slot || slot.card)
-            return;
-        const size = this.slotSize || this.scene.scale.width * SLOT_SIZE_RATIO;
-        const height = this.slotHeight || size * SLOT_ASPECT_RATIO;
-        const card = new Card(this.scene, data, size, height);
-        this.placeCard(card, slot, 1);
+        return this.allTargets.find((target: Target) =>
+            {
+                const resolved = target.resolve();
+
+                if (resolved?.kind == "hero")
+                    return resolved?.hero.heroData.id === id;
+                else
+                    return resolved?.card.cardData.id === id;
+            });
+    }
+
+    setTargetHighlights(legalIds: Set<string>): void
+    {
+        for (const target of this.allTargets)
+        {
+            const resolved = target.resolve();
+
+            if (!resolved)
+                continue;
+
+            if (resolved?.kind == "hero")
+                target.setHighlighted(legalIds.has(resolved.hero.heroData.id));
+            else
+                target.setHighlighted(legalIds.has(resolved.card.cardData.id));
+        }
+    }
+
+    clearTargetHighlights(): void
+    {
+        for (const target of this.allTargets)
+            target.setHighlighted(false);
     }
 }

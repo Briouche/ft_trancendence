@@ -216,7 +216,7 @@ export class NeighboringMinionsResolver extends TargetResolver
         let neighbors: Targetable[] = [];
         if (context.source instanceof MinionCard)
         {
-            let board = context.engine.board.getMinions(context.owner.id);
+            let board = context.engine.board.getMinions(context.owner.index);
             let boardIndex = -1;
             let i = 0;
             for (const minion of board)

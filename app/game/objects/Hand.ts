@@ -36,6 +36,7 @@ export class Hand
         let index = this.cards.indexOf(card);
         if (index !== -1)
             this.cards.splice(index, 1);
+        card.destroy();
         this.layout();
     }
 
@@ -82,5 +83,44 @@ export class Hand
             if (!card.isDragging && !card.isHovering)
                 card.returnToBase();
         }
+    }
+
+    syncHandFromState(cards: CardData[]): void
+    {
+        const incomingIds: Set<string> = new Set(cards.map((c) => c.id));
+        const current: Card[] = this.getCards();
+
+        for (const card of current)
+        {
+            if (!incomingIds.has(card.cardData.id))
+                this.removeCard(card);
+        }
+
+        for (const data of cards)
+        {
+            const existing: Card | undefined = this.getCards().find((c) => c.cardData.id === data.id);
+
+            if (existing)
+                existing.updateData(data);
+            else
+                this.addCard(data);
+        }
+
+        this.layout();
+    }
+
+    extractCard(card: Card): void
+    {
+        const index = this.cards.indexOf(card);
+        if (index !== -1)
+            this.cards.splice(index, 1);
+        this.layout();
+    }
+
+    returnCard(card: Card): void
+    {
+        if (!this.cards.includes(card))
+            this.cards.push(card);
+        this.layout();
     }
 }

@@ -1,10 +1,10 @@
 import * as readline from "readline";
-import { GameEngine } from "./gameEngine";
-import { Player }     from "./player";
+import { GameEngine } from "../gameEngine";
+import { Player }     from "../player";
 import { render, printMessage, printCommands, printTargetList } from "./display";
-import { Card, MinionCard, SpellCard } from "./card";
-import { Effect } from "./effect";
-import { Targetable, EnemyCharacterResolver } from "./target";
+import { Card, MinionCard, SpellCard } from "../card";
+import { Effect } from "../effect";
+import { Targetable, EnemyCharacterResolver } from "../target";
 
 const rl = readline.createInterface({ input:  process.stdin, output: process.stdout });
 

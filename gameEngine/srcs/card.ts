@@ -5,12 +5,14 @@ export abstract class Card
     public readonly name:        string;
     public readonly manaCost:    number;
     public readonly description: string;
+    public readonly id: string;
 
-    constructor(name: string, manaCost: number, description: string)
+    constructor(name: string, manaCost: number, description: string, id: string)
     {
-        this.name        = name;
-        this.manaCost    = manaCost;
+        this.name = name;
+        this.manaCost = manaCost;
         this.description = description;
+        this.id = id;
     }
 
     abstract getType(): string;
@@ -41,11 +43,11 @@ export class MinionCard extends Card
     public canAttack:          boolean = false;
     public effects:            Keywords = {};
 
-    constructor(name: string, manaCost: number,
+    constructor(id: string = "", name: string, manaCost: number,
                 description: string, attack: number,
                 maxHealth: number, effects: Keywords = {})
     {
-        super(name, manaCost, description);
+        super(name, manaCost, description, id);
         this.attack      = attack;
         this.maxHealth   = maxHealth;
         this.currentHealth = maxHealth;
@@ -85,9 +87,9 @@ export class SpellCard extends Card
 {
     public readonly effect: Effect;
 
-    constructor(name: string, manaCost: number, description: string, effect: Effect)
+    constructor(id: string = "", name: string, manaCost: number, description: string, effect: Effect)
     {
-        super(name, manaCost, description);
+        super(name, manaCost, description, id);
         this.effect = effect;
     }
 

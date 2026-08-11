@@ -13,13 +13,15 @@ export class Player
     public currentMana:   number;
     public maxMana:       number;
     public fatigue:       number;
-    public id:            0 | 1;
+    public id:            string;
+    public index:         0 | 1;
 
-    constructor(hero: Hero, deck: Deck, id: 0 | 1)
+    constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1)
     {
         this.hero = hero;
         this.deck = deck;
         this.id = id;
+        this.index = index;
         this.hand = new Hand();
         this.currentMana = 0;
         this.maxMana = 0;

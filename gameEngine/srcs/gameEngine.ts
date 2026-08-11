@@ -119,15 +119,16 @@ export class GameEngine
         return this.players[this.currentTurn];
     }
 
-    checkWinCondition(): void
+    checkWinCondition(): boolean
     {
         for (const player of this.players)
         {
             if (!player.hero.isAlive())
             {
-                console.log("\n=== " + player.hero.name + " has been defeated! Game over. ===");
+                return true;
             }        
         }
+        return false;
     }
 
     processDeaths(): void

@@ -8,6 +8,7 @@ const STROKE_COLOR = 0xff5555;
 
 export interface HeroData
 {
+    id: string;
     name: string;
     health: number;
     maxHealth?: number;
