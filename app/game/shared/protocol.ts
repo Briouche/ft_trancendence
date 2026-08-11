@@ -20,6 +20,10 @@ export interface ClientGameState
     playerBoard: ClientCard[];
     opponentBoard: ClientCard[];
     pendingPrompt?: TargetPrompt;
+    mana: number;
+    maxMana: number;
+    playerDeck: number;
+    opponentDeck: number;
 }
 
 export type TargetOption = { type: "hero"; id: string; }

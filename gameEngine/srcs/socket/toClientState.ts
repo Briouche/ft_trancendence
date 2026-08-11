@@ -55,5 +55,9 @@ export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGam
         opponentHandCount: engine.players[opponentIndex].hand.size(),
         playerBoard: engine.board.getMinions(playerIndex).map(toClientCard),
         opponentBoard: engine.board.getMinions(opponentIndex).map(toClientCard),
+        mana: engine.players[playerIndex].currentMana,
+        maxMana: engine.players[playerIndex].maxMana,
+        playerDeck: engine.players[playerIndex].deck.size(),
+        opponentDeck: engine.players[opponentIndex].deck.size()
     };
 }

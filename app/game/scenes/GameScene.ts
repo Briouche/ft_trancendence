@@ -70,7 +70,7 @@ export class GameScene extends Phaser.Scene
 
     private onServerState(state: ClientGameState): void
     {
-        this.board.syncBoardFromState(state.playerBoard, state.opponentBoard, this.isMyTurn);
+        this.board.syncBoardFromState(state.playerBoard, state.opponentBoard, state);
         this.opponentHand.setCount(state.opponentHandCount);
         this.hand.syncHandFromState(state.playerHand);
 
@@ -78,6 +78,12 @@ export class GameScene extends Phaser.Scene
         this.board.opponentHero.setHealth(state.opponentHero);
 
         this.isMyTurn = state.yourTurn;
+
+        if (!state.pendingPrompt)
+        {
+            this.clearWaitingState()
+            return ;
+        }
 
         if (this.pendingPlayCardId !== null)
         {
@@ -90,9 +96,6 @@ export class GameScene extends Phaser.Scene
                 this.awaitingServer = false;
             }
         }
-
-        if (!state.pendingPrompt && this.pendingPrompt === null)
-            this.awaitingServer = false;
     }
 
     private onServerPrompt(prompt: TargetPrompt): void
@@ -116,26 +119,7 @@ export class GameScene extends Phaser.Scene
     private onServerRejected(reason: string): void
     {
         console.warn("Server rejected action:", reason);
-
-        if (this.aimingCard)
-        {
-            this.cancelAim();
-            return;
-        }
-
-        this.awaitingServer = false;
-        this.pendingPlayCardId = null;
-
-        if (this.targetingCard)
-        {
-            this.targetArrow?.destroy();
-            this.targetArrow = null;
-            this.targetingCard.returnToBase();
-            this.targetingCard = null;
-        }
-
-        this.board.clearTargetHighlights();
-        this.pendingPrompt = null;
+        this.clearWaitingState();
     }
 
     private onGameOver(winner: "you" | "opponent"): void
@@ -196,11 +180,11 @@ export class GameScene extends Phaser.Scene
             }
             if (this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack !== undefined)
             {
-                this.handleMinionTargetedDrop(obj, zone);
+                this.handleMinionTargetedDrop(obj, zone, _p);
                 return;
             }
             if (this.hand.containsCard(obj))
-                this.handleCardDrop(obj, zone);
+                this.handleCardDrop(obj, zone, _p);
         });
 
         this.input.on("dragend", (_p: Phaser.Input.Pointer, obj: Card) =>
@@ -243,11 +227,11 @@ export class GameScene extends Phaser.Scene
         });
     }
 
-    private handleCardDrop(card: Card, zone: Phaser.GameObjects.Zone)
+    private handleCardDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer)
     {
         const index = this.board.findInsertIndex(card.x);
 
-        if (zone !== this.board.getZone() || index === undefined)
+        if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }) || index === undefined)
         {
             card.returnToBase();
             return;
@@ -277,9 +261,9 @@ export class GameScene extends Phaser.Scene
         EventManager.emit("client:playCard", { cardId: card.cardData.id });
     }
 
-    private handleMinionTargetedDrop(card: Card, zone: Phaser.GameObjects.Zone): void
+    private handleMinionTargetedDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer): void
     {
-        if (zone !== this.board.getZone())
+        if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }))
         {
             card.returnToBase();
             return;
@@ -406,5 +390,32 @@ export class GameScene extends Phaser.Scene
                 { x: toX, y: toY, duration: 60, onComplete: () => { if (card.active) card.returnToBase(); } },
             ],
         });
+    }
+
+    private clearWaitingState(): void
+    {
+        this.awaitingServer = false;
+        this.awaitingTarget = false;
+        this.pendingPrompt = null;
+
+        this.board.clearTargetHighlights();
+
+        this.targetArrow?.destroy();
+        this.targetArrow = null;
+
+        if (this.aimingCard)
+        {
+            this.aimingCard.setWaiting(false);
+            this.aimingCard = null;
+        }
+
+        if (this.targetingCard)
+        {
+            this.targetingCard.returnToBase();
+            this.targetingCard = null;
+        }
+
+        this.pendingPlayCardId = null;
+        this.capturedTargetId = null;
     }
 }

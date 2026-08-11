@@ -35,11 +35,13 @@ export class Card extends Phaser.GameObjects.Container
     private baseRot = 0;
     private baseDepth = 0;
     private cardHeight: number;
+    private cardWidth: number;
 
     constructor(scene: Phaser.Scene, cardData: CardData, width: number = DEFAULT_WIDTH, height: number = DEFAULT_HEIGHT)
     {
         super(scene, 0, 0);
         this.cardData = cardData;
+        this.cardWidth = width;
         this.cardHeight = height;
         this.object = scene.add.rectangle(0, 0, width, height, 0x2b2b3a).setStrokeStyle(2, 0xffffff);
 
@@ -57,6 +59,7 @@ export class Card extends Phaser.GameObjects.Container
         }
 
         this.setSize(width, height);
+        this.resize(width, height);
         scene.add.existing(this);
 
         this.setInteractive({ draggable: true, useHandCursor: true });
@@ -98,6 +101,33 @@ export class Card extends Phaser.GameObjects.Container
             targets: this, x: this.baseX, y: this.baseY,
             rotation: this.baseRot, duration, ease: "Back.Out" });
         this.setDepth(this.baseDepth);
+    }
+
+    resize(width: number, height: number): void
+    {
+        this.cardWidth = width;
+        this.cardHeight = height;
+
+        this.object.setSize(width, height);
+        this.setSize(width, height);
+
+        if (this.input && this.input.hitArea)
+            this.input.hitArea.setTo(0, 0, width, height);
+
+        this.nameText.setPosition(0, -height * 0.42);
+        this.nameText.setFontSize(`${Math.round(height * 0.08)}px`);
+        this.nameText.setWordWrapWidth(width * 0.85);
+
+        this.costText.setPosition(-width * 0.42, -height * 0.44);
+        this.costText.setFontSize(`${Math.round(height * 0.12)}px`);
+
+        if (this.attackText && this.healthText)
+        {
+            this.attackText.setPosition(-width * 0.42, height * 0.42);
+            this.attackText.setFontSize(`${Math.round(height * 0.1)}px`);
+            this.healthText.setPosition(width * 0.42, height * 0.42);
+            this.healthText.setFontSize(`${Math.round(height * 0.1)}px`);
+        }
     }
 
     setTransform(x: number, y: number, rotation: number, depth: number)

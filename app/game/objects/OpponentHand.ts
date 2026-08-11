@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 import { OpponentCard } from "./OpponentCard";
 
-const HAND_Y_RATIO = 1 / 8;          // distance from the TOP of the canvas
-const CARD_WIDTH_RATIO = 0.075;
+const HAND_Y_RATIO = 0.12;          // distance from the TOP of the canvas
+const CARD_HEIGHT_RATIO = 0.2;
 const CARD_ASPECT_RATIO = 1.4;
 const OVERLAP_RATIO = 0.55;
-const MAX_HAND_WIDTH_RATIO = 0.9;
+const MAX_HAND_SPAN_RATIO = 0.5;
 const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
 
@@ -23,8 +23,8 @@ export class OpponentHand
     {
         while (this.cards.length < count)
         {
-            const cardWidth = this.scene.scale.width * CARD_WIDTH_RATIO;
-            const cardHeight = cardWidth * CARD_ASPECT_RATIO;
+            const cardHeight = this.scene.scale.height * CARD_HEIGHT_RATIO;
+            const cardWidth = cardHeight / CARD_ASPECT_RATIO;
             this.cards.push(new OpponentCard(this.scene, cardWidth, cardHeight));
         }
         while (this.cards.length > count)
@@ -43,10 +43,11 @@ export class OpponentHand
         if (amount === 0)
             return ;
 
-        const cardWidth = widthCanvas * CARD_WIDTH_RATIO;
+        const cardHeight = heightCanvas * CARD_HEIGHT_RATIO;
+        const cardWidth = cardHeight / CARD_ASPECT_RATIO;
         const handY = heightCanvas * HAND_Y_RATIO;
         const maxSpacing = cardWidth * OVERLAP_RATIO;
-        const maxTotalWidth = widthCanvas * MAX_HAND_WIDTH_RATIO;
+        const maxTotalWidth = heightCanvas * MAX_HAND_SPAN_RATIO;
 
         let spacing = 0;
         if (amount > 1)
@@ -67,6 +68,7 @@ export class OpponentHand
             const dip = Math.pow(norm, 2) * heightCanvas * ARC_DIP_RATIO;
             const y = handY - dip;
             const rotation = Phaser.Math.DegToRad(-norm * MAX_FAN_ANGLE_DEG);
+            card.resize(cardWidth, cardHeight);
 
             this.scene.tweens.add({ targets: card, x, y, rotation, duration: 150, ease: "Back.Out" });
             card.setDepth(i);
