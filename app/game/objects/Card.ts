@@ -21,6 +21,7 @@ export class Card extends Phaser.GameObjects.Container
     public cardData: CardData;
     public isDragging: boolean = false;
     public isHovering: boolean = false;
+    private hasBeenPLaced = false;
     private waitingTween: Phaser.Tweens.Tween | null = null;
     private object: Phaser.GameObjects.Rectangle;
 
@@ -63,33 +64,16 @@ export class Card extends Phaser.GameObjects.Container
         scene.add.existing(this);
 
         this.setInteractive({ draggable: true, useHandCursor: true });
-        this.startHover();
+    }
+
+    getBasePosition(): { x: number; y: number; rotation: number }
+    {
+        return { x: this.baseX, y: this.baseY, rotation: this.baseRot };
     }
 
     private hasValidScene(): boolean
     {
         return !!this.scene && this.active;
-    }
-
-    startHover()
-    {
-        this.on("pointerover", () =>
-            {
-                if (this.isDragging || !this.hasValidScene())
-                    return;
-                this.isHovering = true;
-                this.scene.tweens.add({ targets: this, x: this.baseX,
-                    y: this.baseY - this.cardHeight * HOVER_RATIO,
-                    rotation: 0, duration: 120, ease: "Sine.Out" });
-                this.setDepth(1000);
-            });
-        this.on("pointerout", () =>
-            {
-                this.isHovering = false;
-                if (this.isDragging || !this.hasValidScene())
-                    return;
-                this.returnToBase();
-            });
     }
 
     returnToBase(duration = 150)
@@ -136,6 +120,15 @@ export class Card extends Phaser.GameObjects.Container
         this.baseRot = rotation;
         this.baseX = x;
         this.baseY = y;
+
+        if (!this.hasBeenPLaced)
+        {
+            this.hasBeenPLaced = true;
+            this.x = x;
+            this.y = y;
+            this.rotation = rotation;
+            this.setDepth(depth);
+        }
     }
 
     updateData(data: CardData): void

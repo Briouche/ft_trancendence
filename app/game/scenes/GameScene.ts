@@ -6,7 +6,8 @@ import { Board } from "../objects/Board";
 import { OpponentHand } from "../objects/OpponentHand";
 import { TargetArrow } from "../objects/TargetArrow";
 import { ResolvedTarget } from "../objects/Target";
-import { ClientGameState, TargetPrompt } from "../shared/protocol";
+import { ClientGameState, TargetPrompt, GameEvent } from "../shared/protocol";
+import { summonAnimation, attackAnimation, turnBannerAnimation, deathAnimation } from "../animations";
 
 export class GameScene extends Phaser.Scene
 {
@@ -27,6 +28,11 @@ export class GameScene extends Phaser.Scene
     private pendingPlayCardId: string | null = null;
     private capturedTargetId: string | null = null;
 
+    private pendingAnimations = 0;
+    private animationChain: Promise<void> = Promise.resolve();
+    private queuedState: ClientGameState | null = null;
+    private pendingSummonIds = new Set<string>();
+
     constructor()
     {
         super("GameScene");
@@ -43,6 +49,7 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:prompt", (prompt: TargetPrompt) => this.onServerPrompt(prompt));
         EventManager.on("server:gameOver", (winner: "you" | "opponent") => this.onGameOver(winner));
         EventManager.on("server:rejected", (reason: string) => this.onServerRejected(reason));
+        EventManager.on("server:event", (event: GameEvent) => this.onServerEvent(event));
 
         this.layout();
         EventManager.emit("client:ready");
@@ -70,6 +77,16 @@ export class GameScene extends Phaser.Scene
 
     private onServerState(state: ClientGameState): void
     {
+        if (this.pendingAnimations > 0)
+        {
+            this.queuedState = state;
+            return;
+        }
+        this.applyState(state);
+    }
+
+    private applyState(state: ClientGameState): void
+    {
         this.board.syncBoardFromState(state.playerBoard, state.opponentBoard, state);
         this.opponentHand.setCount(state.opponentHandCount);
         this.hand.syncHandFromState(state.playerHand);
@@ -79,17 +96,20 @@ export class GameScene extends Phaser.Scene
 
         this.isMyTurn = state.yourTurn;
 
-        if (!state.pendingPrompt)
+        for (const id of this.pendingSummonIds)
         {
-            this.clearWaitingState()
-            return ;
+            const card = this.board.findCardById?.(id);
+            if (card)
+                summonAnimation(this, card);
         }
+        this.pendingSummonIds.clear();
+
+        if (!state.pendingPrompt) { this.clearWaitingState(); return; }
 
         if (this.pendingPlayCardId !== null)
         {
             const stillInHand = state.playerHand.some((card) => card.id === this.pendingPlayCardId);
             const stillOnBoard = state.playerBoard.some((card) => card.id === this.pendingPlayCardId);
-
             if (!stillInHand && !stillOnBoard)
             {
                 this.pendingPlayCardId = null;
@@ -303,8 +323,8 @@ export class GameScene extends Phaser.Scene
             return;
         }
 
+        this.awaitingServer = true;
         EventManager.emit("client:requestAttack", { attackerId: attacker.cardData.id, targetId: resolvedTarget.id });
-        this.animateAttack(attacker, zone.x, zone.y);
     }
 
     private requestPlayCard(card: Card, boardIndex?: number): void
@@ -374,22 +394,58 @@ export class GameScene extends Phaser.Scene
         this.pendingPrompt = null;
     }
 
-    private animateAttack(card: Card, toX: number, toY: number)
+    private onServerEvent(event: GameEvent): void
     {
-        const angle = Phaser.Math.Angle.Between(card.x, card.y, toX, toY);
-        const pullBackDistance = 60;
+        switch (event.type)
+        {
+            case "attack": this.runAnimation(() => this.playAttackEvent(event)); break;
+            case "cardPlayed": this.runAnimation(() => this.playCardPlayedEvent(event)); break;
+            case "minionDied": this.runAnimation(() => this.playMinionDiedEvent(event)); break;
+            case "turnEnded": this.runAnimation(() => this.playTurnEndedEvent(event)); break;
+        }
+    }
 
-        const backX = card.x - Math.cos(angle) * pullBackDistance;
-        const backY = card.y - Math.sin(angle) * pullBackDistance;
-
-        this.tweens.chain({
-            targets: card,
-            tweens: [
-                { x: backX, y: backY, duration: 300, ease: "back.out" },
-                { x: toX, y: toY, duration: 100, ease: "expo.in", onComplete: () => { if (card.active) this.cameras.main.shake(150, 0.01); } },
-                { x: toX, y: toY, duration: 60, onComplete: () => { if (card.active) card.returnToBase(); } },
-            ],
+    private runAnimation(run: () => Promise<void>): void
+    {
+        this.pendingAnimations++;
+        this.animationChain = this.animationChain.then(run).finally(() =>
+        {
+            this.pendingAnimations--;
+            if (this.pendingAnimations === 0 && this.queuedState)
+            {
+                const state = this.queuedState;
+                this.queuedState = null;
+                this.applyState(state);
+            }
         });
+    }
+
+    private async playAttackEvent(event: Extract<GameEvent, { type: "attack" }>): Promise<void>
+    {
+        const attackerCard = this.board.findCardById?.(event.attackerId);
+        const targetEntry = this.board.getAllTargets().find((t) => t.resolve()?.id === event.targetId);
+        const zone = targetEntry?.getZone();
+
+        if (!attackerCard || !zone) return;
+        await attackAnimation(this, attackerCard, zone.x, zone.y);
+    }
+
+    private async playMinionDiedEvent(event: Extract<GameEvent, { type: "minionDied" }>): Promise<void>
+    {
+        const card = this.board.findCardById?.(event.minionId);
+        if (!card) return;
+        await deathAnimation(this, card);
+    }
+
+    private async playCardPlayedEvent(event: Extract<GameEvent, { type: "cardPlayed" }>): Promise<void>
+    {
+        this.pendingSummonIds.add(event.cardId);
+    }
+
+    private async playTurnEndedEvent(event: Extract<GameEvent, { type: "turnEnded" }>): Promise<void>
+    {
+        const label = event.nextPlayerIndex === this.playerIndex ? "Your Turn" : "Opponent's Turn";
+        await turnBannerAnimation(this, label);
     }
 
     private clearWaitingState(): void

@@ -6,6 +6,7 @@ import { EndTurn } from "./EndTurn";
 import { Manabar } from "./ManaBar";
 import { Deck } from "./Deck";
 import { ClientGameState } from "../shared/protocol";
+import { attachCardHover } from "../animations";
 
 const BOARD_GAP_RATIO = 0.125;
 const SLOT_SIZE_RATIO = 0.20;
@@ -195,7 +196,10 @@ export class Board
         if (side === 1)
             card.disableInteractive();
         else
+        {
             card.setInteractive({ draggable: true, useHandCursor: true });
+            attachCardHover(card);
+        }
 
         this.layout();
     }
@@ -234,7 +238,10 @@ export class Board
                 if (side === 1)
                     card.disableInteractive();
                 else
+                {
                     card.setInteractive({ draggable: true, useHandCursor: true });
+                    attachCardHover(card);
+                }
                 next.push(card);
             }
         }
@@ -321,5 +328,18 @@ export class Board
     {
         for (const target of this.allTargets)
             target.setHighlighted(false);
+    }
+
+    findCardById(id: string): Card | undefined
+    {
+        return this.playerCards.find((c) => c.cardData.id === id) ?? this.opponentCards.find((c) => c.cardData.id === id);
+    }
+
+    getDeckPosition(side: number): { x: number, y: number }
+    {
+        const deck = side === 0 ? this.playerDeck : this.opponentDeck;
+        const centerX = deck.graphic.x + (deck.graphic.width * deck.graphic.originX);
+        const centerY = deck.graphic.y + (deck.graphic.height * deck.graphic.originY);
+        return { x: centerX, y: centerY };
     }
 }

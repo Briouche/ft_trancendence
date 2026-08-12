@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { Card, CardData } from "../objects/Card";
+import { attachCardHover } from "../animations";
 
 const HAND_Y_RATIO = 0.12;
 const CARD_HEIGHT_RATIO = 0.25;
@@ -26,6 +27,7 @@ export class Hand
         const cardWidth = cardHeight / CARD_ASPECT_RATIO;
 
         const card: Card = new Card(this.scene, data, cardWidth, cardHeight);
+        attachCardHover(card);
         this.cards.push(card);
         this.layout();
         return card;

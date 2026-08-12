@@ -26,8 +26,13 @@ export interface ClientGameState
     opponentDeck: number;
 }
 
+export type GameEvent = { type: "attack"; attackerId: string; targetId: string; playerIndex: 0 | 1; damage: number; targetDied: boolean }
+    | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number }
+    | { type: "minionDied"; minionId: string; playerIndex: 0 | 1 }
+    | { type: "turnEnded"; nextPlayerIndex: 0 | 1 };
+
 export type TargetOption = { type: "hero"; id: string; }
-                            | { type: "minion"; id: string; }
+    | { type: "minion"; id: string; }
 
 export interface TargetPrompt
 {
@@ -36,13 +41,14 @@ export interface TargetPrompt
 }
 
 export type ClientMessage = { type: "ready" }
-                            | { type: "playCard"; cardId: string; boardIndex?: number; }
-                            | { type: "attack"; attackerId: string; targetId: string; }
-                            | { type: "targetChoice"; targetId: string | null }
-                            | { type: "endTurn" };
+    | { type: "playCard"; cardId: string; boardIndex?: number; }
+    | { type: "attack"; attackerId: string; targetId: string; }
+    | { type: "targetChoice"; targetId: string | null }
+    | { type: "endTurn" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
-                            | { type: "state"; state: ClientGameState }
-                            | { type: "prompt"; prompt: TargetPrompt }
-                            | { type: "rejected"; reason: string }
-                            | { type: "gameOver"; winner: "you" | "opponent" };
+    | { type: "state"; state: ClientGameState }
+    | { type: "event"; event: GameEvent }
+    | { type: "prompt"; prompt: TargetPrompt }
+    | { type: "rejected"; reason: string }
+    | { type: "gameOver"; winner: "you" | "opponent" };

@@ -30,6 +30,8 @@ socket.on("message", (msg: ServerMessage) =>
         EventManager.emit("server:rejected", msg.reason);
     else if (msg.type === "gameOver")
         EventManager.emit("server:gameOver", msg.winner);
+    else if (msg.type === "event")
+        EventManager.emit("server:event", msg.event);
 });
 
 EventManager.on("client:ready", () =>

@@ -4,7 +4,7 @@ export class Deck
 {
     private scene: Phaser.Scene;
     private count: number = 0;
-    private graphic: Phaser.GameObjects.Rectangle;
+    public graphic: Phaser.GameObjects.Rectangle;
     private text: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene, x: number, y: number, width = 90, height = 60)

@@ -3,7 +3,7 @@ import { Socket } from "socket.io";
 import { Player } from "../player";
 import { Hero }       from "../hero";
 import { makeBasicDeck }       from "../deck";
-import { ClientMessage, ServerMessage, TargetOption, TargetPrompt } from "../shared/protocol";
+import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent } from "../shared/protocol";
 import { toClientState } from "./toClientState";
 import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
@@ -104,6 +104,12 @@ export class GameSession
         this.send(playerIndex, { type: "rejected", reason });
     }
 
+    private broadcastEvent(event: GameEvent): void
+    {
+        this.send(0, { type: "event", event });
+        this.send(1, { type: "event", event });
+    }
+
     private broadcastState(): void
     {
         this.send(0, { type: "state", state: toClientState(this.engine, 0) });
@@ -163,7 +169,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, boardIndex });
         this.broadcastState();
         this.checkGameOver();
     }
@@ -261,7 +267,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex });
         this.broadcastState();
         this.checkGameOver();
     }
@@ -307,7 +313,12 @@ export class GameSession
             this.reject(playerIndex, "unsuccesful attack");
             return;
         }
+        const damage = attacker.attack;
+        const targetDied = !this.isTargetAlive(target);
 
+        this.broadcastEvent({ type: "attack", attackerId, targetId, playerIndex, damage, targetDied });
+        if (targetDied && target instanceof MinionCard)
+            this.broadcastEvent({ type: "minionDied", minionId: target.id, playerIndex: playerIndex });
         this.broadcastState();
         this.checkGameOver();
     }
@@ -335,6 +346,7 @@ export class GameSession
     {
         this.engine.endTurn();
         this.pending = null;
+        this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
         this.broadcastState();
     }
 
@@ -345,5 +357,12 @@ export class GameSession
 
         const ownerIndex: number = this.engine.players[0].hero === target ? 0 : 1;
         return { id: "hero-" + ownerIndex, type: "hero" };
+    }
+
+    private isTargetAlive(target: Targetable): boolean
+    {
+        if (target instanceof MinionCard)
+            return (target as any).isAlive ? (target as any).isAlive() : (target as any).health > 0;
+        return (target as Hero).isAlive();
     }
 }
