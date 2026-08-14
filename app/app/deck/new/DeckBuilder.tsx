@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import CardFace, { type CardFaceData } from '@/components/CardFace'
+
+const DeskRoom = dynamic(() => import('../DeskRoom'), { ssr: false })
 
 type Card = CardFaceData & { qty: number }
 
@@ -90,10 +93,11 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
     }
 
     return (
-        <div className="min-h-screen bg-ink-950 flex">
+        <DeskRoom>
+        <div className="min-h-screen flex">
 
             {/* Panneau gauche — toutes les cartes possédées */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 bg-ink-950/85 backdrop-blur-sm p-6 overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">
@@ -147,7 +151,7 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
             </div>
 
             {/* Panneau droit — deck en cours */}
-            <div className="w-80 bg-ink-900 border-l border-leather-800 p-4 flex flex-col gap-4 sticky top-0 h-screen overflow-y-auto">
+            <div className="w-80 bg-ink-900/90 backdrop-blur-sm border-l border-leather-800 p-4 flex flex-col gap-4 sticky top-0 h-screen overflow-y-auto">
                 <div>
                     <h2 className="font-display font-bold text-lg text-parchment-100 mb-1">Mon deck</h2>
                     <p className="font-serif text-xs text-parchment-300/60">
@@ -209,5 +213,6 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
                 </button>
             </div>
         </div>
+        </DeskRoom>
     )
 }

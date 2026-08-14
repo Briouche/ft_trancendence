@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import PackCardReveal from './PackCardReveal'
 import type { CardFaceData } from '@/components/CardFace'
+
+const VaultRoom = dynamic(() => import('./VaultRoom'), { ssr: false })
 
 type Phase = 'idle' | 'shaking' | 'revealing'
 
@@ -75,8 +78,9 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
     const packsUntilLegendary = 5 - pityCounter
 
     return (
-        <div className="min-h-screen bg-ink-950 flex flex-col items-center p-6 md:p-10 gap-10">
-            <div className="w-full max-w-3xl flex items-center justify-between">
+        <VaultRoom phase={phase}>
+        <div className="min-h-screen flex flex-col items-center p-6 md:p-10 gap-10">
+            <div className="w-full max-w-3xl flex items-center justify-between rounded-xl bg-ink-950/80 backdrop-blur-sm p-4">
                 <div>
                     <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">Le Coffre</p>
                     <h1 className="font-display text-3xl font-bold text-parchment-100">Ouverture de paquets</h1>
@@ -171,5 +175,6 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
                 </>
             )}
         </div>
+        </VaultRoom>
     )
 }

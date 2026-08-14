@@ -5,6 +5,8 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Sparkles, PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
 import CardFace, { type CardFaceData } from '@/components/CardFace'
+import Lantern from '@/components/library/Lantern'
+import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
 
 type Card = CardFaceData & { ownedQty: number }
 
@@ -35,7 +37,7 @@ function CardGrid({ cards }: { cards: Card[] }) {
             {cards.length === 0 && (
                 <p style={{
                     gridColumn: '1 / -1', alignSelf: 'center', textAlign: 'center',
-                    fontStyle: 'italic', color: '#6b4226',
+                    fontStyle: 'italic', color: PALETTE.leather700,
                 }}>
                     Aucune carte
                 </p>
@@ -54,7 +56,7 @@ function PageStack({ side, cards }: { side: 'left' | 'right'; cards: Card[] }) {
         <group position={[x, BOOK_HEIGHT / 2, 0]}>
             <mesh position={[0, 0, PAGE_DEPTH / 2 - 0.02]} castShadow receiveShadow>
                 <boxGeometry args={[HALF_WIDTH, BOOK_HEIGHT, PAGE_DEPTH]} />
-                <meshStandardMaterial color="#e6d3a3" roughness={0.95} />
+                <meshStandardMaterial color={PALETTE.parchment200} roughness={0.95} />
             </mesh>
             <Html transform distanceFactor={DISTANCE_FACTOR} position={[0, 0, PAGE_DEPTH]} center>
                 <CardGrid cards={cards} />
@@ -132,7 +134,7 @@ function Spine() {
     return (
         <mesh position={[0, BOOK_HEIGHT / 2, PAGE_DEPTH / 2]} castShadow receiveShadow>
             <boxGeometry args={[SPINE_WIDTH, BOOK_HEIGHT + 0.14, PAGE_DEPTH + 0.1]} />
-            <meshStandardMaterial color="#331f13" roughness={0.6} />
+            <meshStandardMaterial color={PALETTE.leather900} roughness={0.6} />
         </mesh>
     )
 }
@@ -144,7 +146,7 @@ function CoverEdge({ side }: { side: 'left' | 'right' }) {
     return (
         <mesh position={[x, BOOK_HEIGHT / 2, PAGE_DEPTH / 2]} castShadow receiveShadow>
             <boxGeometry args={[0.1, BOOK_HEIGHT + 0.14, PAGE_DEPTH + 0.1]} />
-            <meshStandardMaterial color="#4a2d1a" roughness={0.6} />
+            <meshStandardMaterial color={PALETTE.leather800} roughness={0.6} />
         </mesh>
     )
 }
@@ -160,7 +162,7 @@ function Candle({ position }: { position: [number, number, number] }) {
         <group position={position}>
             <mesh castShadow>
                 <cylinderGeometry args={[0.11, 0.13, 0.55, 16]} />
-                <meshStandardMaterial color="#f2e6c9" roughness={0.7} />
+                <meshStandardMaterial color={PALETTE.parchment100} roughness={0.7} />
             </mesh>
             <mesh ref={flameRef} position={[0, 0.36, 0]}>
                 <coneGeometry args={[0.05, 0.16, 8]} />
@@ -192,7 +194,7 @@ function Vial({ position, hue }: { position: [number, number, number]; hue: numb
             </mesh>
             <mesh position={[0, 0.19, 0]}>
                 <cylinderGeometry args={[0.03, 0.04, 0.06, 8]} />
-                <meshStandardMaterial color="#4a2d1a" roughness={0.8} />
+                <meshStandardMaterial color={PALETTE.leather800} roughness={0.8} />
             </mesh>
         </group>
     )
@@ -234,7 +236,7 @@ function LooseCard({ position, rotation }: { position: [number, number, number];
     return (
         <mesh position={position} rotation={[-Math.PI / 2, 0, rotation]} castShadow receiveShadow>
             <boxGeometry args={[0.5, 0.7, 0.02]} />
-            <meshStandardMaterial color="#f2e6c9" roughness={0.85} />
+            <meshStandardMaterial color={PALETTE.parchment100} roughness={0.85} />
         </mesh>
     )
 }
@@ -249,10 +251,10 @@ function Scene({
 }) {
     return (
         <>
-            <color attach="background" args={['#0a0704']} />
-            <fog attach="fog" args={['#0a0704', 7, 16]} />
+            <color attach="background" args={[ATMOSPHERE.background]} />
+            <fog attach="fog" args={[ATMOSPHERE.background, 7, 16]} />
 
-            <ambientLight intensity={0.55} color="#8a7a5c" />
+            <ambientLight intensity={0.55} color={ATMOSPHERE.ambientColor} />
             <directionalLight
                 position={[3, 6, 4]}
                 intensity={1.3}
@@ -263,11 +265,12 @@ function Scene({
             <directionalLight position={[-4, 3, -3]} intensity={0.35} color="#8fb8ff" />
 
             <Sparkles count={40} scale={[6, 3, 4]} size={2} speed={0.25} opacity={0.35} color="#d4af37" />
+            <Lantern mode="mouse-track" distance={6.5} spreadX={2.6} spreadY={1.6} />
 
             {/* La table */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
                 <planeGeometry args={[30, 30]} />
-                <meshStandardMaterial color="#4a3320" roughness={0.55} metalness={0.1} />
+                <meshStandardMaterial color={PALETTE.ink800} roughness={0.55} metalness={0.1} />
             </mesh>
 
             {/* Le livre, légèrement penché en arrière comme sur un lutrin */}
