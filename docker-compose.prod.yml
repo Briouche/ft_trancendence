@@ -1,0 +1,32 @@
+
+services:
+  proxy:
+    build:
+      context: ./proxy
+      args:
+        DOMAIN_NAME: ${DOMAIN_NAME}
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+    volumes:
+      - next_static:/var/www/html/_next/static:ro
+      - next_public:/var/www/html/public:ro
+    restart: always
+
+  app:
+    build:
+      target: production
+    volumes:
+      - next_static:/app/.next/static
+      - next_public:/app/public
+    restart: always
+
+  db:
+    restart: always
+
+volumes:
+  next_static:
+  next_public:

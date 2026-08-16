@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+  /* Base Colors */
+  --background: #e6edf4;
+  --background-secondary: #dce5f0;
+  --foreground: #0f172a;
+  --accent: #2563eb;
+
+  /* Status Colors (Light Mode) */
+  --success: #16a34a; /* Green */
+  --warning: #d97706; /* Amber */
+  --error: #dc2626;   /* Red */
+}
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-gaming: var(--font-gaming), ui-sans-serif, system-ui, sans-serif;
+  --font-formal: var(--font-formal), ui-serif, Georgia, serif;
+
+  /* Spacing */
+  --spacing-vertical: 1rem;
+  --spacing-horizontal: 0.5rem;
+  --spacing-section: 1.25rem;
+  --spacing-text-gap: 1rem;
+
+  /* Border Radiuses (Generates rounded-btn, rounded-card, etc.) */
+  --radius-btn: 0.5rem;
+  --radius-card: 1rem;
+  --radius-modal: 1.5rem;
+
+  /* Animations (Generates animate-glow) */
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+
+  @keyframes glow {
+    0% { box-shadow: 0 0 5px var(--accent); opacity: 0.8; }
+    100% { box-shadow: 0 0 20px var(--accent), 0 0 10px var(--accent); opacity: 1; }
+  }
+}
+
+/* Automatically triggers based on user's system preferences */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Base Colors */
+    --background: #020617;
+    --background-secondary: #1e293b;
+    --foreground: #f1f5f9;
+    --accent: #60a5fa;
+
+    /* Status Colors (Dark Mode - adjusted for better contrast) */
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --error: #f87171;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

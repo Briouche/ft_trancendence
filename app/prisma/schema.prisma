@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  adapter  = "@prisma/adapter-pg"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  // lower case all email addresses and usernames when using them
+  email    String @unique
+  username String @unique
+
+  // Nullable because OAuth-only accounts never set one
+  password String?
+
+  // Used to logout-everywhere, password change, or suspected compromise
+  // A JWT is only accepted if its embedded tokenVersion matches this value
+  tokenVersion Int @default(0)
+}
