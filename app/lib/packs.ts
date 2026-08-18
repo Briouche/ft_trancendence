@@ -44,7 +44,12 @@ function drawOneCard(pool: DrawableCard[]): DrawableCard | null {
 
 export async function openPack(prisma: PrismaClient, userId: number) {
   return prisma.$transaction(async (tx) => {
-    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+    // select explicite : la table User réelle n'a pas de colonne `name` (contrairement au schema
+    // Prisma) — un findUnique sans select tente de la lire et fait planter la requête.
+    const user = await tx.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { id: true, unopenedPacks: true, pityCounter: true },
+    });
 
     if (user.unopenedPacks <= 0) {
       throw new Error("Aucun paquet disponible pour cet utilisateur.");
@@ -95,6 +100,7 @@ export async function openPack(prisma: PrismaClient, userId: number) {
         unopenedPacks: { decrement: 1 },
         pityCounter: gotLegendary ? 0 : { increment: 1 },
       },
+      select: { unopenedPacks: true, pityCounter: true },
     });
 
     const countByCard = new Map<string, number>();

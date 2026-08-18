@@ -19,7 +19,7 @@ export default async function EditDeckPage({ params }: { params: Promise<{ id: s
         })
     ])
 
-    if (!deck) return <div className="text-white p-8">Deck introuvable</div>
+    if (!deck) return <div className="text-white p-8">Deck not found</div>
 
     // qty ici = nombre d'exemplaires possédés par le joueur (utilisé comme plafond dans DeckBuilder)
     const cards = owned.map(({ card, qty }) => ({ ...card, qty }))

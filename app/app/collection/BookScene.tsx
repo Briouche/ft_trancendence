@@ -5,16 +5,17 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Sparkles, PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
 import CardFace, { type CardFaceData } from '@/components/CardFace'
-import Lantern from '@/components/library/Lantern'
 import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
 
 type Card = CardFaceData & { ownedQty: number }
 
 const HALF_WIDTH   = 1.7
-const BOOK_HEIGHT  = 2.4
+// Plus haut qu'avant (2.4) : une grille 2×3 de cartes au format 3/4 (portrait) est
+// naturellement bien plus haute que large — sur une page trop large pour ce ratio, la grille
+// ne pouvait remplir qu'une seule dimension à la fois (largeur OU hauteur, jamais les deux).
+const BOOK_HEIGHT  = 3.0
 const SPINE_WIDTH  = 0.16
 const PAGE_DEPTH   = 0.22
-const CARD_PX      = 560
 const DISTANCE_FACTOR = 0.7
 const FLIP_THRESHOLD   = 0.35
 const FLIP_DURATION_MS = 550
@@ -25,32 +26,40 @@ function easeOutCubic(t: number): number {
     return 1 - Math.pow(1 - t, 3)
 }
 
-function CardGrid({ cards }: { cards: Card[] }) {
+// La largeur ne peut pas être choisie librement : avec des cartes en ratio 3/4 (plus hautes
+// que larges) sur 3 lignes, la hauteur nécessaire est ~2x la largeur totale — une largeur trop
+// grande (ex: 820px) forçait des cartes plus hautes que leur propre ligne, donc elles
+// débordaient sur la suivante. 540px est calculé pour que 3 lignes de cartes en 246px de large
+// (donc 328px de haut) tiennent pile dans 1050px.
+// Hauteur calculée pile pour la largeur choisie (pas au-delà) : avec gap=16 et padding=16 de
+// chaque côté, 3 lignes de cartes ratio 3/4 ont besoin exactement de `2×largeur − 32` de haut.
+// Une hauteur plus grande que ça laissait de l'espace mort entre les rangées (ce qui empêchait
+// les cartes de vraiment remplir le livre).
+function CardGrid({ cards, onCardClick }: { cards: Card[]; onCardClick?: (card: Card) => void }) {
     return (
-        <div
-            style={{
-                width: CARD_PX, height: CARD_PX * 1.28,
-                display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)',
-                gap: 14, padding: 14,
-            }}
-        >
+        <div className="w-[850px] h-[1668px] grid grid-cols-2 grid-rows-3 gap-4 p-4">
             {cards.length === 0 && (
-                <p style={{
-                    gridColumn: '1 / -1', alignSelf: 'center', textAlign: 'center',
-                    fontStyle: 'italic', color: PALETTE.leather700,
-                }}>
-                    Aucune carte
+                <p className="col-span-full self-center text-center italic text-leather-700">
+                    No cards
                 </p>
             )}
             {cards.map(card => (
-                <CardFace key={card.id} card={card} ownedQty={card.ownedQty} />
+                // stopPropagation : sans ça le clic remonte jusqu'à la zone de tournage de page
+                // (qui couvre tout l'écran) et fait tourner la page au lieu de zoomer la carte.
+                <div
+                    key={card.id}
+                    onClick={e => { e.stopPropagation(); onCardClick?.(card) }}
+                    className="cursor-pointer"
+                >
+                    <CardFace card={card} ownedQty={card.ownedQty} />
+                </div>
             ))}
         </div>
     )
 }
 
 // Une demi-page statique (celle qui ne tourne pas), posée à plat sur la pile de pages.
-function PageStack({ side, cards }: { side: 'left' | 'right'; cards: Card[] }) {
+function PageStack({ side, cards, onCardClick }: { side: 'left' | 'right'; cards: Card[]; onCardClick?: (card: Card) => void }) {
     const x = side === 'left' ? -(SPINE_WIDTH / 2 + HALF_WIDTH / 2) : (SPINE_WIDTH / 2 + HALF_WIDTH / 2)
     return (
         <group position={[x, BOOK_HEIGHT / 2, 0]}>
@@ -58,8 +67,11 @@ function PageStack({ side, cards }: { side: 'left' | 'right'; cards: Card[] }) {
                 <boxGeometry args={[HALF_WIDTH, BOOK_HEIGHT, PAGE_DEPTH]} />
                 <meshStandardMaterial color={PALETTE.parchment200} roughness={0.95} />
             </mesh>
-            <Html transform distanceFactor={DISTANCE_FACTOR} position={[0, 0, PAGE_DEPTH]} center>
-                <CardGrid cards={cards} />
+            {/* zIndexRange : les cartes doivent passer devant les zones de tournage de page
+                (des <div> plein écran superposées au Canvas) pour que leur clic les intercepte
+                en premier, sans quoi elles ne sont jamais atteignables. */}
+            <Html transform distanceFactor={DISTANCE_FACTOR} position={[0, 0.05, PAGE_DEPTH]} center zIndexRange={[100, 0]}>
+                <CardGrid cards={cards} onCardClick={onCardClick} />
             </Html>
         </group>
     )
@@ -84,46 +96,53 @@ function FlippingPage({
 
     const sign         = side === 'right' ? -1 : 1
     const angle         = sign * flip.progress * Math.PI
-    const localX        = side === 'left' ? -HALF_WIDTH / 2 : HALF_WIDTH / 2
+    // Même décalage que PageStack (SPINE_WIDTH/2 + HALF_WIDTH/2), pivoté depuis le centre exact
+    // de la reliure (x=0) : avant, le pivot était sur le bord de la reliure (±SPINE_WIDTH/2) mais
+    // le contenu n'était décalé que de HALF_WIDTH/2 — la page tournée finissait donc décalée
+    // d'une largeur de reliure par rapport à la pile de pages statique en face.
+    const localX        = side === 'left' ? -(SPINE_WIDTH / 2 + HALF_WIDTH / 2) : (SPINE_WIDTH / 2 + HALF_WIDTH / 2)
     const facingFront    = flip.progress < 0.5
 
     return (
-        <group position={[side === 'right' ? SPINE_WIDTH / 2 : -SPINE_WIDTH / 2, BOOK_HEIGHT / 2, 0]}
-            rotation={[0, angle, 0]}>
-            <group position={[localX, 0, PAGE_DEPTH]}>
-                <Html
-                    transform
-                    distanceFactor={DISTANCE_FACTOR}
-                    center
-                    style={{ visibility: facingFront ? 'visible' : 'hidden', backfaceVisibility: 'hidden' }}
-                >
-                    <div style={{ position: 'relative' }}>
-                        <CardGrid cards={front} />
-                        <div
-                            style={{
-                                position: 'absolute', inset: 0, background: 'black', pointerEvents: 'none',
-                                opacity: Math.min(0.5, flip.progress * 0.7),
-                            }}
-                        />
-                    </div>
-                </Html>
-                <group rotation={[0, Math.PI, 0]}>
+        // Le décalage en profondeur (+PAGE_DEPTH, même valeur que le Html de PageStack) doit
+        // rester HORS du groupe tourné : appliqué à l'intérieur (comme avant), une rotation de
+        // ~180° inverse son signe (+PAGE_DEPTH devient -PAGE_DEPTH) et la page atterrit du
+        // mauvais côté de la reliure en profondeur — ce qui, vu la caméra en perspective et le
+        // livre incliné, se lisait comme "les cartes finissent en dessous" des pages fixes.
+        <group position={[0, BOOK_HEIGHT / 2, PAGE_DEPTH]}>
+            <group rotation={[0, angle, 0]}>
+                {/* +0.05 en Y : même décalage que le Html de PageStack. */}
+                <group position={[localX, 0.05, 0]}>
                     <Html
                         transform
                         distanceFactor={DISTANCE_FACTOR}
                         center
-                        style={{ visibility: facingFront ? 'hidden' : 'visible', backfaceVisibility: 'hidden' }}
+                        className={`${facingFront ? 'visible' : 'invisible'} [backface-visibility:hidden]`}
                     >
-                        <div style={{ position: 'relative' }}>
-                            <CardGrid cards={back} />
+                        <div className="relative">
+                            <CardGrid cards={front} />
                             <div
-                                style={{
-                                    position: 'absolute', inset: 0, background: 'black', pointerEvents: 'none',
-                                    opacity: Math.min(0.5, (1 - flip.progress) * 0.7),
-                                }}
+                                className="absolute inset-0 bg-black pointer-events-none"
+                                style={{ opacity: Math.min(0.5, flip.progress * 0.7) }}
                             />
                         </div>
                     </Html>
+                    <group rotation={[0, Math.PI, 0]}>
+                        <Html
+                            transform
+                            distanceFactor={DISTANCE_FACTOR}
+                            center
+                            className={`${facingFront ? 'invisible' : 'visible'} [backface-visibility:hidden]`}
+                        >
+                            <div className="relative">
+                                <CardGrid cards={back} />
+                                <div
+                                    className="absolute inset-0 bg-black pointer-events-none"
+                                    style={{ opacity: Math.min(0.5, (1 - flip.progress) * 0.7) }}
+                                />
+                            </div>
+                        </Html>
+                    </group>
                 </group>
             </group>
         </group>
@@ -139,63 +158,51 @@ function Spine() {
     )
 }
 
-function CoverEdge({ side }: { side: 'left' | 'right' }) {
+// `active` : survol de la zone cliquable correspondante (pas de la page) — juste un léger
+// grossissement du bord plutôt qu'un halo lumineux, pour rester discret.
+function CoverEdge({ side, active = false }: { side: 'left' | 'right'; active?: boolean }) {
     const x = side === 'left'
         ? -(SPINE_WIDTH / 2 + HALF_WIDTH + 0.05)
         : (SPINE_WIDTH / 2 + HALF_WIDTH + 0.05)
     return (
-        <mesh position={[x, BOOK_HEIGHT / 2, PAGE_DEPTH / 2]} castShadow receiveShadow>
+        <mesh
+            position={[x, BOOK_HEIGHT / 2, PAGE_DEPTH / 2]}
+            scale={active ? [1.35, 1.02, 1.15] : [1, 1, 1]}
+            castShadow
+            receiveShadow
+        >
             <boxGeometry args={[0.1, BOOK_HEIGHT + 0.14, PAGE_DEPTH + 0.1]} />
             <meshStandardMaterial color={PALETTE.leather800} roughness={0.6} />
         </mesh>
     )
 }
 
-function Candle({ position }: { position: [number, number, number] }) {
-    const flameRef = useRef<THREE.Mesh>(null)
+// Même lampe sur pied que celle posée à côté du fauteuil de lecture dans le hall — on
+// continue visuellement dans la même pièce, comme si le joueur s'était juste assis dedans
+// avec son livre plutôt que d'être passé dans un tout autre décor (table + bougie + fioles).
+function FloorLamp({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
+    const glassRef = useRef<THREE.Mesh>(null)
     useFrame(({ clock }) => {
-        if (!flameRef.current) return
+        if (!glassRef.current) return
+        const mat = glassRef.current.material as THREE.MeshStandardMaterial
         const t = clock.getElapsedTime()
-        flameRef.current.scale.setScalar(1 + Math.sin(t * 9) * 0.08 + Math.sin(t * 17) * 0.04)
+        mat.emissiveIntensity = 1.6 + Math.sin(t * 6.5) * 0.16 + Math.sin(t * 12.3) * 0.08
     })
     return (
-        <group position={position}>
-            <mesh castShadow>
-                <cylinderGeometry args={[0.11, 0.13, 0.55, 16]} />
-                <meshStandardMaterial color={PALETTE.parchment100} roughness={0.7} />
+        <group position={position} scale={scale}>
+            <mesh position={[0, 0.02, 0]} castShadow>
+                <cylinderGeometry args={[0.13, 0.15, 0.04, 20]} />
+                <meshStandardMaterial color={PALETTE.gold600} metalness={0.6} roughness={0.35} />
             </mesh>
-            <mesh ref={flameRef} position={[0, 0.36, 0]}>
-                <coneGeometry args={[0.05, 0.16, 8]} />
-                <meshStandardMaterial color="#ffb347" emissive="#ff8c1a" emissiveIntensity={2.2} toneMapped={false} />
+            <mesh position={[0, 0.5, 0]} castShadow>
+                <cylinderGeometry args={[0.02, 0.025, 0.96, 10]} />
+                <meshStandardMaterial color={PALETTE.gold600} metalness={0.55} roughness={0.4} />
             </mesh>
-            <pointLight position={[0, 0.4, 0]} color="#ffb066" intensity={1.4} distance={4} decay={2} />
-        </group>
-    )
-}
-
-function Vial({ position, hue }: { position: [number, number, number]; hue: number }) {
-    const liquidRef = useRef<THREE.Mesh>(null)
-    useFrame(({ clock }) => {
-        if (!liquidRef.current) return
-        const mat = liquidRef.current.material as THREE.MeshStandardMaterial
-        const t = clock.getElapsedTime()
-        mat.color.setHSL((hue + Math.sin(t * 0.3) * 0.06) % 1, 0.65, 0.5)
-        mat.emissive.setHSL((hue + Math.sin(t * 0.3) * 0.06) % 1, 0.7, 0.35)
-    })
-    return (
-        <group position={position}>
-            <mesh castShadow>
-                <cylinderGeometry args={[0.09, 0.09, 0.34, 16, 1, true]} />
-                <meshStandardMaterial color="#dfe8ea" roughness={0.1} transparent opacity={0.25} side={THREE.DoubleSide} />
+            <mesh ref={glassRef} position={[0, 1.02, 0]}>
+                <sphereGeometry args={[0.14, 16, 16]} />
+                <meshStandardMaterial color="#fff2c4" emissive="#ffb066" emissiveIntensity={1.6} roughness={0.3} transparent opacity={0.85} toneMapped={false} />
             </mesh>
-            <mesh position={[0, -0.06, 0]} ref={liquidRef}>
-                <cylinderGeometry args={[0.075, 0.075, 0.16, 16]} />
-                <meshStandardMaterial emissiveIntensity={0.8} toneMapped={false} />
-            </mesh>
-            <mesh position={[0, 0.19, 0]}>
-                <cylinderGeometry args={[0.03, 0.04, 0.06, 8]} />
-                <meshStandardMaterial color={PALETTE.leather800} roughness={0.8} />
-            </mesh>
+            <pointLight position={[0, 1.02, 0]} color="#ffb066" intensity={1.6} distance={4} decay={2} />
         </group>
     )
 }
@@ -242,18 +249,32 @@ function LooseCard({ position, rotation }: { position: [number, number, number];
 }
 
 function Scene({
-    leftCards, rightCards, flip, backCards,
+    leftCards, rightCards, flip, backCards, revealCards, hoverSide, onCardClick,
 }: {
     leftCards: Card[]
     rightCards: Card[]
     flip: FlipState
     backCards: Card[]
+    revealCards: Card[]
+    hoverSide: 'prev' | 'next' | null
+    onCardClick?: (card: Card) => void
 }) {
+    // Pendant qu'une page tourne, la pile fixe du côté qui tourne montre déjà le contenu de la
+    // page suivante (cachée dessous, comme dans un vrai livre) au lieu de l'ancienne page qui ne
+    // change qu'au tout dernier instant.
+    const displayLeftCards  = flip?.direction === 'prev' ? revealCards : leftCards
+    const displayRightCards = flip?.direction === 'next' ? revealCards : rightCards
     return (
         <>
             <color attach="background" args={[ATMOSPHERE.background]} />
             <fog attach="fog" args={[ATMOSPHERE.background, 7, 16]} />
 
+            {/* Éclairage fixe, pas de lanterne qui suit la souris : elle faisait varier la
+                luminosité de façon incohérente au moindre mouvement — même choix que pour le
+                hall (parallaxe retirée), pour une scène stable plutôt que réactive à la souris.
+                Ambiante/directionnelle remises à leur niveau d'origine (les monter délavait les
+                couleurs, l'ambiante étant un gris-bleu froid) ; un point light chaud fixe
+                remplace la teinte de la lanterne à la place. */}
             <ambientLight intensity={0.55} color={ATMOSPHERE.ambientColor} />
             <directionalLight
                 position={[3, 6, 4]}
@@ -263,9 +284,9 @@ function Scene({
                 shadow-mapSize={[1024, 1024]}
             />
             <directionalLight position={[-4, 3, -3]} intensity={0.35} color="#8fb8ff" />
+            <pointLight position={[0, 2.4, 2.5]} intensity={9} color="#ffb066" distance={12} decay={2} />
 
             <Sparkles count={40} scale={[6, 3, 4]} size={2} speed={0.25} opacity={0.35} color="#d4af37" />
-            <Lantern mode="mouse-track" distance={6.5} spreadX={2.6} spreadY={1.6} />
 
             {/* La table */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
@@ -275,19 +296,19 @@ function Scene({
 
             {/* Le livre, légèrement penché en arrière comme sur un lutrin */}
             <group rotation={[-0.16, 0, 0]}>
-                <PageStack side="left" cards={leftCards} />
-                <PageStack side="right" cards={rightCards} />
+                <PageStack side="left" cards={displayLeftCards} onCardClick={onCardClick} />
+                <PageStack side="right" cards={displayRightCards} onCardClick={onCardClick} />
                 <Spine />
-                <CoverEdge side="left" />
-                <CoverEdge side="right" />
+                <CoverEdge side="left" active={hoverSide === 'prev'} />
+                <CoverEdge side="right" active={hoverSide === 'next'} />
                 <FlippingPage side="left" flip={flip} front={leftCards} back={backCards} />
                 <FlippingPage side="right" flip={flip} front={rightCards} back={backCards} />
             </group>
 
-            <Candle position={[-2.5, 0.3, 1.9]} />
-            <Vial position={[2.15, 0.17, 1.6]} hue={0.36} />
-            <Vial position={[2.4, 0.17, 1.95]} hue={0.82} />
-            <Vial position={[2.6, 0.17, 1.4]} hue={0.12} />
+            {/* Lampe haute et proche de la caméra, sur la droite : seul le bas (pied + début du
+                pied) reste dans le cadre, comme si elle se trouvait derrière/à côté de l'épaule
+                du joueur assis dans le fauteuil du hall — pas posée en face sur la table. */}
+            <FloorLamp position={[1.7, 0, 3]} scale={3} />
             <LooseCard position={[-2.0, 0.011, 2.5]} rotation={0.3} />
             <LooseCard position={[-1.7, 0.011, 2.7]} rotation={-0.5} />
             <ScurryingMouse />
@@ -305,12 +326,17 @@ export type BookSceneProps = {
     onFlipEnd: () => void
     flip: FlipState
     backCards: Card[]
+    revealCards: Card[]
+    onCardClick?: (card: Card) => void
 }
 
 export default function BookScene({
-    leftCards, rightCards, canGoPrev, canGoNext, onFlipStart, onFlipMove, onFlipEnd, flip, backCards,
+    leftCards, rightCards, canGoPrev, canGoNext, onFlipStart, onFlipMove, onFlipEnd, flip, backCards, revealCards, onCardClick,
 }: BookSceneProps) {
     const dragStartX = useRef<number | null>(null)
+    // Survol d'une zone cliquable (pas de drag) : allume le bord de la page correspondante,
+    // pour donner un vrai retour visuel avant même de cliquer.
+    const [hoverSide, setHoverSide] = useState<'prev' | 'next' | null>(null)
 
     function startDrag(direction: 'next' | 'prev') {
         return (e: React.PointerEvent<HTMLDivElement>) => {
@@ -333,20 +359,33 @@ export default function BookScene({
     }
 
     return (
-        <div className="relative h-[640px] w-full">
+        <div className="fixed inset-0">
             <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
-                <PerspectiveCamera makeDefault position={[0, 2.5, 6.5]} fov={32} onUpdate={c => c.lookAt(0, 1.55, 0)} />
-                <Scene leftCards={leftCards} rightCards={rightCards} flip={flip} backCards={backCards} />
+                {/* Reculée (7.7, contre 6.5) et recentrée (BOOK_HEIGHT/2 = 1.5, contre 1.55) pour
+                    le livre plus haut qu'avant — sinon le haut des pages disparaissait derrière
+                    la barre d'en-tête. */}
+                {/* lookAt remonté (1.5 -> 1.8) : viser plus haut fait apparaître le livre plus bas
+                    dans le cadre, avec une vraie marge sous la barre d'en-tête. */}
+                {/* Caméra rapprochée (8.1 -> 6.5) pour agrandir le livre à l'écran, sans toucher
+                    à ses proportions internes ni au remplissage des cartes déjà calibrés. */}
+                <PerspectiveCamera makeDefault position={[0, 2.4, 7.2]} fov={32} onUpdate={c => c.lookAt(0, 1.9, 0)} />
+                <Scene leftCards={leftCards} rightCards={rightCards} flip={flip} backCards={backCards} revealCards={revealCards} hoverSide={hoverSide} onCardClick={onCardClick} />
             </Canvas>
 
+            {/* 50/50 plutôt que des bandes de 25% aux extrémités : le livre étant centré et
+                assez large à l'écran, des bandes fines ne couvraient qu'un vide de part et
+                d'autre — la moitié de l'écran garantit que le livre, où qu'il soit affiché,
+                est toujours couvert par l'une des deux zones. */}
             {canGoPrev && (
                 <div
                     onPointerDown={startDrag('prev')}
                     onPointerMove={onMove}
                     onPointerUp={onUp}
                     onPointerCancel={onUp}
-                    title="Cliquer ou glisser pour revenir en arrière"
-                    className="absolute inset-y-0 left-0 w-1/4 cursor-pointer touch-none"
+                    onPointerEnter={() => setHoverSide('prev')}
+                    onPointerLeave={() => setHoverSide(null)}
+                    title="Click or drag to go back"
+                    className="absolute inset-y-0 left-0 w-1/2 cursor-pointer touch-none"
                 />
             )}
             {canGoNext && (
@@ -355,8 +394,10 @@ export default function BookScene({
                     onPointerMove={onMove}
                     onPointerUp={onUp}
                     onPointerCancel={onUp}
-                    title="Cliquer ou glisser pour tourner la page"
-                    className="absolute inset-y-0 right-0 w-1/4 cursor-pointer touch-none"
+                    onPointerEnter={() => setHoverSide('next')}
+                    onPointerLeave={() => setHoverSide(null)}
+                    title="Click or drag to turn the page"
+                    className="absolute inset-y-0 right-0 w-1/2 cursor-pointer touch-none"
                 />
             )}
         </div>

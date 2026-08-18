@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cinzel, Cinzel_Decorative, Crimson_Text } from "next/font/google";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
 import "./globals.css";
@@ -26,7 +26,13 @@ const cinzelDecorative = Cinzel_Decorative({
 
 export const metadata: Metadata = {
   title: "ft_transcendence",
-  description: "La bibliothèque de cartes de ft_transcendence",
+  description: "The card library of ft_transcendence",
+};
+
+// Émis comme <meta name="color-scheme" content="dark"> dans le <head> — lu par le navigateur
+// avant même que globals.css arrive, donc c'est la première ligne de défense contre le flash blanc.
+export const viewport: Viewport = {
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -38,7 +44,11 @@ export default function RootLayout({
     <html
       lang="fr"
       className={`${cinzel.variable} ${crimson.variable} ${cinzelDecorative.variable} h-full antialiased`}
+      style={{ backgroundColor: '#0b0c0d' }}
     >
+      {/* backgroundColor en inline ici (pas en classe Tailwind) : le but est justement
+          d'éviter le flash blanc pendant que la feuille Tailwind s'injecte encore en dev
+          (Turbopack) — une classe utilitaire subirait le même délai. */}
       <body className="min-h-full flex flex-col bg-ink-950">
         <TransitionOverlay />
         {children}

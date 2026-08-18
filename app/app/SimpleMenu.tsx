@@ -13,10 +13,10 @@ export default function SimpleMenu({ onWantHub }: { onWantHub?: () => void }) {
                     ~ ft_transcendence ~
                 </p>
                 <h1 className="font-display text-5xl font-bold text-parchment-100 tracking-wide">
-                    Le Super Jeu de fou
+                    The Super Crazy Game
                 </h1>
                 <p className="font-serif italic text-parchment-300/60 text-lg mt-2">
-                    Un TCG fait maison
+                    A homemade TCG
                 </p>
             </div>
 
@@ -59,7 +59,7 @@ export default function SimpleMenu({ onWantHub }: { onWantHub?: () => void }) {
                     className="rounded-full border border-gold-500/40 bg-ink-900 px-4 py-2 font-serif text-xs
                         text-parchment-300/70 transition-colors hover:bg-ink-800"
                 >
-                    ↩ Entrer dans la bibliothèque (3D)
+                    ↩ Enter the library (3D)
                 </button>
             )}
         </div>

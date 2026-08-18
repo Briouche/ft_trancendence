@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
-
-const DeskRoom = dynamic(() => import('./DeskRoom'), { ssr: false })
+import DeskRoom from './DeskRoom'
+import { type CardFaceData } from '@/components/CardFace'
 
 type Deck = {
     id:        number
@@ -12,19 +11,19 @@ type Deck = {
     cards:     { qty: number }[]
 }
 
-export default function DeckList({ decks }: { decks: Deck[] }) {
+export default function DeckList({ decks, decorCards = [] }: { decks: Deck[]; decorCards?: CardFaceData[] }) {
     return (
-        <DeskRoom>
+        <DeskRoom cards={decorCards}>
             <div className="min-h-screen p-6 md:p-10">
                 <div className="max-w-2xl mx-auto">
                     <div className="flex items-center justify-between mb-8 rounded-xl bg-ink-950/80 backdrop-blur-sm p-5">
                         <div>
                             <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">
-                                Atelier du Scribe
+                                Scribe's Workshop
                             </p>
-                            <h1 className="font-display text-3xl font-bold text-parchment-100">Mes decks</h1>
+                            <h1 className="font-display text-3xl font-bold text-parchment-100">My Decks</h1>
                             <p className="font-serif italic text-parchment-300/60 mt-1">
-                                {decks.length} deck{decks.length !== 1 ? 's' : ''} sauvegardé{decks.length !== 1 ? 's' : ''}
+                                {decks.length} deck{decks.length !== 1 ? 's' : ''} saved
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -40,7 +39,7 @@ export default function DeckList({ decks }: { decks: Deck[] }) {
                                 className="rounded-lg border border-gold-500/50 bg-leather-800 px-5 py-2.5 font-display text-sm
                                     font-bold text-parchment-100 shadow transition-colors hover:bg-leather-700"
                             >
-                                + Nouveau deck
+                                + New deck
                             </Link>
                         </div>
                     </div>
@@ -48,8 +47,8 @@ export default function DeckList({ decks }: { decks: Deck[] }) {
                     {decks.length === 0 ? (
                         <div className="text-center py-20 rounded-xl bg-ink-950/80 backdrop-blur-sm text-parchment-300/50">
                             <p className="text-5xl mb-4">🖋️</p>
-                            <p className="font-display text-lg text-parchment-200">Aucun deck pour l'instant</p>
-                            <p className="font-serif text-sm mt-2">Crée ton premier deck pour commencer</p>
+                            <p className="font-display text-lg text-parchment-200">No decks yet</p>
+                            <p className="font-serif text-sm mt-2">Create your first deck to get started</p>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-4">
@@ -65,12 +64,12 @@ export default function DeckList({ decks }: { decks: Deck[] }) {
                                         <div>
                                             <h2 className="font-display font-bold text-lg text-parchment-100">{deck.name}</h2>
                                             <p className="font-serif text-sm text-parchment-300/60 mt-1">
-                                                {total} carte{total !== 1 ? 's' : ''}
+                                                {total} card{total !== 1 ? 's' : ''}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-serif text-xs text-parchment-300/50">
-                                                {new Date(deck.createdAt).toLocaleDateString('fr-FR')}
+                                                {new Date(deck.createdAt).toLocaleDateString('en-US')}
                                             </span>
                                             <span className="text-gold-400 text-sm">✒︎</span>
                                         </div>

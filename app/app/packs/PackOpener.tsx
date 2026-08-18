@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import PackCardReveal from './PackCardReveal'
+import PackCardCircle from './PackCardCircle'
+import PackCardZoom from './PackCardZoom'
 import type { CardFaceData } from '@/components/CardFace'
+import SceneLoading from '@/components/library/SceneLoading'
 
-const VaultRoom = dynamic(() => import('./VaultRoom'), { ssr: false })
+const VaultRoom = dynamic(() => import('./VaultRoom'), { ssr: false, loading: SceneLoading })
 
 type Phase = 'idle' | 'shaking' | 'revealing'
 
@@ -19,6 +21,7 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
     const [phase, setPhase]                     = useState<Phase>('idle')
     const [cards, setCards]                     = useState<CardFaceData[]>([])
     const [revealedIndices, setRevealedIndices] = useState<Set<number>>(new Set())
+    const [zoomedIndex, setZoomedIndex]         = useState<number | null>(null)
     const [error, setError]                     = useState('')
     const [granting, setGranting]               = useState(false)
 
@@ -35,7 +38,7 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
 
         if (!res.ok) {
             const body = await res.json().catch(() => ({}))
-            setError(body.error ?? "Impossible d'ouvrir ce paquet")
+            setError(body.error ?? "Unable to open this pack")
             setPhase('idle')
             return
         }
@@ -62,6 +65,7 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
         setPhase('idle')
         setCards([])
         setRevealedIndices(new Set())
+        setZoomedIndex(null)
     }
 
     async function grantFreePack() {
@@ -78,12 +82,16 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
     const packsUntilLegendary = 5 - pityCounter
 
     return (
-        <VaultRoom phase={phase}>
-        <div className="min-h-screen flex flex-col items-center p-6 md:p-10 gap-10">
-            <div className="w-full max-w-3xl flex items-center justify-between rounded-xl bg-ink-950/80 backdrop-blur-sm p-4">
+        <VaultRoom phase={phase} openEnabled={phase === 'idle' && packsLeft > 0} onOpen={openPack}>
+        {/* pointer-events-none sur le conteneur : le vide autour du texte (là où se trouve le
+            coffre, dans le Canvas en dessous) doit laisser passer le clic jusqu'à lui — sinon ce
+            conteneur (min-h-screen, donc plein écran même sans contenu visible partout) intercepte
+            tout, y compris hors de ses éléments visibles, et le coffre ne reçoit jamais le clic. */}
+        <div className="min-h-screen flex flex-col items-center p-6 md:p-10 gap-10 pointer-events-none">
+            <div className="w-full max-w-3xl flex items-center justify-between rounded-xl bg-ink-950/80 backdrop-blur-sm p-4 pointer-events-auto">
                 <div>
-                    <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">Le Coffre</p>
-                    <h1 className="font-display text-3xl font-bold text-parchment-100">Ouverture de paquets</h1>
+                    <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">The Vault</p>
+                    <h1 className="font-display text-3xl font-bold text-parchment-100">Pack Opening</h1>
                 </div>
                 <Link
                     href="/"
@@ -94,12 +102,12 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
                 </Link>
             </div>
 
-            <div className="text-center">
+            <div className="text-center pointer-events-auto">
                 <p className="font-serif text-parchment-300/70">
-                    {packsLeft} paquet{packsLeft !== 1 ? 's' : ''} disponible{packsLeft !== 1 ? 's' : ''}
+                    {packsLeft} pack{packsLeft !== 1 ? 's' : ''} available
                     {' · '}
                     <span className="text-gold-400">
-                        {packsUntilLegendary} paquet{packsUntilLegendary !== 1 ? 's' : ''} avant légendaire garantie
+                        {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
                     </span>
                 </p>
                 {/* Bouton temporaire en attendant un vrai mode de jeu pour gagner des paquets */}
@@ -109,48 +117,33 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
                     className="mt-3 rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
                         text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
                 >
-                    ✦ {granting ? 'Ajout...' : 'Gagner un paquet gratuit (temporaire)'}
+                    ✦ {granting ? 'Adding...' : 'Get a free pack (temporary)'}
                 </button>
+
+                {/* Le coffre lui-même (dans la scène 3D derrière) est le bouton d'ouverture — ce
+                    texte remplace l'ancienne carte 2D "Tap to open" posée par-dessus. */}
+                {(phase === 'idle' || phase === 'shaking') && (
+                    <p className="mt-4 font-serif text-sm italic text-parchment-300/50">
+                        {packsLeft > 0 ? 'Click the chest to open a pack' : 'No packs available'}
+                    </p>
+                )}
             </div>
 
-            {(phase === 'idle' || phase === 'shaking') && (
-                <button
-                    onClick={openPack}
-                    disabled={packsLeft <= 0}
-                    className={`flex h-64 w-48 flex-col items-center justify-center gap-3 rounded-2xl border-4
-                        border-gold-500/50 bg-gradient-to-br from-leather-800 to-ink-900 shadow-2xl
-                        transition-transform disabled:cursor-not-allowed disabled:opacity-30
-                        ${phase === 'shaking' ? 'animate-pack-shake' : 'cursor-pointer hover:scale-105'}`}
-                >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold-400/70 bg-leather-900/50">
-                        <span className="font-display text-3xl text-gold-400/90">✦</span>
-                    </div>
-                    <span className="font-display font-bold text-parchment-100">
-                        {packsLeft > 0 ? 'Toucher pour ouvrir' : 'Aucun paquet'}
-                    </span>
-                </button>
-            )}
-
-            {error && <p className="font-serif text-red-400">{error}</p>}
+            {error && <p className="pointer-events-auto font-serif text-red-400">{error}</p>}
 
             {phase === 'revealing' && (
-                <>
+                <div className="flex flex-col items-center gap-10 pointer-events-auto">
                     {!allRevealed && (
                         <p className="-mt-6 font-serif text-sm italic text-parchment-300/50">
-                            Touche une carte pour la révéler
+                            Tap a card to reveal it
                         </p>
                     )}
 
-                    <div className="w-full max-w-3xl grid grid-cols-5 gap-4">
-                        {cards.map((card, i) => (
-                            <PackCardReveal
-                                key={`${card.id}-${i}`}
-                                card={card}
-                                revealed={revealedIndices.has(i)}
-                                onReveal={() => revealCard(i)}
-                            />
-                        ))}
-                    </div>
+                    <PackCardCircle
+                        cards={cards}
+                        revealedIndices={revealedIndices}
+                        onSelect={setZoomedIndex}
+                    />
 
                     {allRevealed && (
                         <div className="flex gap-4">
@@ -160,7 +153,7 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
                                     className="rounded-lg border border-gold-500/50 bg-leather-800 px-6 py-3 font-display
                                         font-bold text-parchment-100 shadow transition-colors hover:bg-leather-700"
                                 >
-                                    Ouvrir un autre paquet
+                                    Open another pack
                                 </button>
                             )}
                             <Link
@@ -168,13 +161,20 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
                                 className="rounded-lg border border-leather-700 bg-ink-900 px-6 py-3 font-display
                                     font-bold text-parchment-100 transition-colors hover:bg-ink-800"
                             >
-                                Voir ma collection
+                                View my collection
                             </Link>
                         </div>
                     )}
-                </>
+                </div>
             )}
         </div>
+
+        <PackCardZoom
+            card={zoomedIndex !== null ? cards[zoomedIndex] : null}
+            revealed={zoomedIndex !== null && revealedIndices.has(zoomedIndex)}
+            onReveal={() => { if (zoomedIndex !== null) revealCard(zoomedIndex) }}
+            onClose={() => setZoomedIndex(null)}
+        />
         </VaultRoom>
     )
 }

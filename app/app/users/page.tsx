@@ -11,49 +11,45 @@ export default async function UsersPage() {
   });
 
   return (
-    <main style={{ maxWidth: "600px", margin: "40px auto", padding: "0 20px", fontFamily: "sans-serif" }}>
-      <h2>Manage Users</h2>
+    <main className="max-w-[600px] mx-auto my-10 px-5 font-serif text-parchment-100">
+      <h2 className="font-display text-2xl font-bold text-parchment-100 mb-6">Manage Users</h2>
 
       {/* --- Create User Form --- */}
-      <section style={{ marginBottom: "40px", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
-        <h3 style={{ marginTop: 0 }}>Add New User</h3>
-        <form action={createUser} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <section className="mb-10 p-5 border border-leather-700 rounded-lg bg-ink-900">
+        <h3 className="font-display text-lg text-parchment-100 mt-0 mb-3">Add New User</h3>
+        <form action={createUser} className="flex flex-col gap-3">
           <div>
-            <label style={{ display: "block", marginBottom: "4px" }}>Name</label>
-            <input type="text" name="name" style={{ width: "100%", padding: "8px", boxSizing: "border-box" }} />
-          </div>
-
-          <div>
-            <label style={{ display: "block", marginBottom: "4px" }}>Email *</label>
+            <label className="block mb-1 text-sm text-parchment-300/70">Name</label>
             <input
-              type="email"
-              name="email"
-              required
-              style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+              type="text"
+              name="name"
+              className="w-full box-border rounded-md border border-leather-700 bg-ink-950 px-3 py-2 text-parchment-100"
             />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "4px" }}>Password *</label>
+            <label className="block mb-1 text-sm text-parchment-300/70">Email *</label>
+            <input
+              type="email"
+              name="email"
+              required
+              className="w-full box-border rounded-md border border-leather-700 bg-ink-950 px-3 py-2 text-parchment-100"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm text-parchment-300/70">Password *</label>
             <input
               type="password"
               name="password"
               required
-              style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+              className="w-full box-border rounded-md border border-leather-700 bg-ink-950 px-3 py-2 text-parchment-100"
             />
           </div>
 
           <button
             type="submit"
-            style={{
-              padding: "10px",
-              backgroundColor: "#0070f3",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              marginTop: "8px",
-            }}
+            className="mt-2 rounded-md border border-gold-500/50 bg-leather-800 px-4 py-2.5 font-display font-bold text-gold-300 cursor-pointer hover:bg-leather-700 transition-colors"
           >
             Create User
           </button>
@@ -62,27 +58,21 @@ export default async function UsersPage() {
 
       {/* --- Display Users List --- */}
       <section>
-        <h3>Existing Users ({users.length})</h3>
+        <h3 className="font-display text-lg text-parchment-100 mb-2">Existing Users ({users.length})</h3>
         {users.length === 0 ? (
-          <p style={{ color: "#666" }}>No users found in the database.</p>
+          <p className="text-parchment-300/50">No users found in the database.</p>
         ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
+          <ul className="list-none p-0">
             {users.map((user) => (
               <li
                 key={user.id}
-                style={{
-                  padding: "12px",
-                  borderBottom: "1px solid #eee",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
+                className="flex items-center justify-between py-3 border-b border-leather-800"
               >
                 <div>
-                  <strong>{user.name || "Anonymous"}</strong>
-                  <span style={{ color: "#666", marginLeft: "8px" }}>({user.email})</span>
+                  <strong className="text-parchment-100">{user.name || "Anonymous"}</strong>
+                  <span className="ml-2 text-parchment-300/50">({user.email})</span>
                 </div>
-                <small style={{ color: "#999" }}>
+                <small className="text-parchment-300/40">
                   ID: {user.id} — {new Date(user.createdAt).toLocaleDateString()}
                 </small>
               </li>

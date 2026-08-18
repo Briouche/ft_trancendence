@@ -27,35 +27,31 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
     return (
         <div
             className={`relative flex aspect-[3/4] w-full flex-col rounded-lg border-[3px] ${rarity.border} ${rarity.glow}
-                bg-parchment-100 shadow-lg shadow-black/50`}
+                bg-[#e8dcc0] shadow-lg shadow-black/50`}
         >
             {ownedQty !== undefined && ownedQty > 1 && (
-                <span className="absolute left-1 top-1 rounded bg-ink-950/85 px-1.5 py-0.5 font-display text-[10px] font-bold text-parchment-100">
+                <span className="absolute left-1 top-1 rounded bg-ink-950/85 px-2 py-0.5 font-display text-lg font-bold text-parchment-100">
                     x{ownedQty}
                 </span>
             )}
 
-            {/* Coût en mana, directement sur la carte */}
-            <span className="absolute right-1.5 top-1.5 font-display text-base font-black text-sky-800">
-                {card.cost}◆
-            </span>
-
             {/* Bannière du nom */}
-            <div className="px-2 pr-8 pt-2 text-center">
-                <h3 className="truncate font-display text-sm font-bold leading-tight text-ink-900">
+            <div className="px-2 pt-2 text-center">
+                <h3 className="truncate font-display text-3xl font-bold leading-tight text-ink-900">
                     {card.name}
                 </h3>
-                <p className="font-serif text-[11px] italic text-leather-700">{card.rarity}</p>
+                <p className="font-serif text-base italic text-leather-700">{card.rarity}</p>
             </div>
 
-            {/* Illustration (emoji en attendant de vrais artworks) */}
-            <div className="mx-2 mt-1 flex flex-1 items-center justify-center rounded border border-leather-800/30 bg-parchment-200/70">
-                <span className="text-5xl drop-shadow-sm">{card.emoji}</span>
+            {/* Illustration (emoji en attendant de vrais artworks) — taille inchangée, seul le
+                texte grandit. */}
+            <div className="mx-2 mt-1 flex flex-1 items-center justify-center rounded border border-leather-800/30 bg-[#d9c49b]/70">
+                <span className="text-7xl drop-shadow-sm">{card.emoji}</span>
             </div>
 
             {/* Description, mots-clés en gras dans le texte */}
             <div className="flex-1 overflow-y-auto px-2 py-1.5">
-                <p className="whitespace-pre-line font-serif text-[13px] leading-snug text-ink-800">
+                <p className="whitespace-pre-line font-serif text-2xl leading-snug text-ink-800">
                     {segments.map((seg, i) => seg.bold
                         ? <strong key={i} className="font-bold text-leather-900">{seg.text}</strong>
                         : <span key={i}>{seg.text}</span>
@@ -63,10 +59,12 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 </p>
             </div>
 
-            {/* ATK / DEF, directement sur la carte, pas de pastilles */}
-            <div className="flex items-center justify-between border-t border-leather-800/25 px-2 py-1.5">
-                <span className="font-display text-base font-black text-red-800">⚔ {card.atk}</span>
-                <span className="font-display text-base font-black text-slate-700">🛡 {card.def}</span>
+            {/* ATK / coût / DEF sur une même ligne, en bas de la carte — la barre a plus de
+                place (py-4 au lieu de py-1.5) pour que les trois puissent grandir (text-4xl). */}
+            <div className="grid grid-cols-3 items-center border-t border-leather-800/25 px-2 py-4">
+                <span className="justify-self-start font-display text-4xl font-black text-red-800">⚔ {card.atk}</span>
+                <span className="justify-self-center font-display text-4xl font-black text-sky-800">{card.cost}◆</span>
+                <span className="justify-self-end font-display text-4xl font-black text-slate-700">🛡 {card.def}</span>
             </div>
         </div>
     )

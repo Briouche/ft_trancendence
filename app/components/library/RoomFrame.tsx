@@ -2,7 +2,6 @@
 
 import { type ReactNode } from 'react'
 import RoomCanvas from './RoomCanvas'
-import { PALETTE } from './theme'
 
 // Cadre partagé pour les "salles" de la bibliothèque (atelier du scribe, coffre à paquets...) :
 // un vrai décor three-fiber en fond plein écran (même ambiance/lanterne que le reste du site),
@@ -11,7 +10,7 @@ import { PALETTE } from './theme'
 // Canvas de RoomCanvas — plus des `<div>` positionnées en absolu.
 export default function RoomFrame({ decor, children }: { decor?: ReactNode; children?: ReactNode }) {
     return (
-        <div className="relative min-h-screen w-full" style={{ background: PALETTE.ink950 }}>
+        <div className="relative min-h-screen w-full bg-ink-950">
             <div className="fixed inset-0 overflow-hidden">
                 <RoomCanvas>{decor}</RoomCanvas>
             </div>
