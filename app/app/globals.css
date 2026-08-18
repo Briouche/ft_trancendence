@@ -54,11 +54,20 @@ body {
 @theme {
   --animate-legendary-glow: legendary-glow 1.8s ease-in-out infinite;
   --animate-card-pop: card-pop 0.4s ease-out backwards;
+  --animate-legendary-reveal: legendary-reveal 0.9s ease-out;
 }
 
 @keyframes legendary-glow {
   0%, 100% { box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55); }
   50%      { box-shadow: 0 0 35px 10px rgba(212, 175, 55, 0.9); }
+}
+
+/* Éclat doré ponctuel, une seule fois, au moment précis où une carte légendaire se retourne face
+   visible — le pulse continu de legendary-glow prend ensuite le relais une fois la carte posée. */
+@keyframes legendary-reveal {
+  0%   { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+  35%  { box-shadow: 0 0 55px 18px rgba(212, 175, 55, 0.95); }
+  100% { box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55); }
 }
 
 @keyframes card-pop {

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-const CARDS_PER_PACK = 10;
+const CARDS_PER_PACK = 8;
 const PACKS_BEFORE_GUARANTEED_LEGENDARY = 5;
 const LEGENDARY_RARITY = "Légendaire";
 

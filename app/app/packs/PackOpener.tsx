@@ -25,8 +25,10 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
     const [error, setError]                     = useState('')
     const [granting, setGranting]               = useState(false)
 
-    async function openPack() {
-        if (packsLeft <= 0 || phase !== 'idle') return
+    // Logique d'ouverture proprement dite, séparée du clic sur le coffre : "Open another pack"
+    // doit la déclencher directement (le coffre s'anime tout seul), sans repasser par idle et
+    // attendre un nouveau clic sur le coffre.
+    async function runOpen() {
         setError('')
         setPhase('shaking')
 
@@ -52,6 +54,11 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
         setPhase('revealing')
     }
 
+    function openPack() {
+        if (packsLeft <= 0 || phase !== 'idle') return
+        runOpen()
+    }
+
     function revealCard(index: number) {
         setRevealedIndices(prev => {
             if (prev.has(index)) return prev
@@ -61,11 +68,32 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
         })
     }
 
-    function openAnother() {
+    // Premier clic sur une carte encore dos tourné : elle se retourne sur place, dans le cercle
+    // (petite), sans passer au premier plan. Recliquer une carte déjà révélée l'amène en grand
+    // (PackCardZoom), qui reste ouvert jusqu'à un clic à côté pour le refermer.
+    function selectCard(index: number) {
+        if (revealedIndices.has(index)) {
+            setZoomedIndex(index)
+        } else {
+            revealCard(index)
+        }
+    }
+
+    // "Back" : referme le coffre et revient à idle, un nouveau clic sur le coffre est nécessaire.
+    function goBack() {
         setPhase('idle')
         setCards([])
         setRevealedIndices(new Set())
         setZoomedIndex(null)
+    }
+
+    // "Open another pack" : le coffre doit s'ouvrir directement, sans repasser par un clic dessus.
+    function openAnotherPack() {
+        if (packsLeft <= 0) return
+        setCards([])
+        setRevealedIndices(new Set())
+        setZoomedIndex(null)
+        runOpen()
     }
 
     async function grantFreePack() {
@@ -130,49 +158,64 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
             </div>
 
             {error && <p className="pointer-events-auto font-serif text-red-400">{error}</p>}
+        </div>
 
-            {phase === 'revealing' && (
-                <div className="flex flex-col items-center gap-10 pointer-events-auto">
-                    {!allRevealed && (
-                        <p className="-mt-6 font-serif text-sm italic text-parchment-300/50">
-                            Tap a card to reveal it
-                        </p>
+        {phase === 'revealing' && (
+            // Cercle sorti du flux normal (fixed, centré sur TOUTE la fenêtre) plutôt que posé
+            // dans la colonne sous l'en-tête : sinon la hauteur du bandeau du dessus repousse le
+            // cercle vers le bas et ses cartes du bas sortent de l'écran. pointer-events-none :
+            // le centre (occupé par le coffre) est vide, ne doit pas intercepter le zoom affiché
+            // par-dessus au même endroit — chaque élément interactif repasse en pointer-events-auto.
+            <div className="fixed inset-0 z-20 flex flex-col items-center justify-center gap-6
+                bg-ink-950/40 backdrop-blur-md pointer-events-none">
+                {/* Colonne de gauche : "Back" visible dès l'ouverture du paquet (pas besoin
+                    d'attendre d'avoir tout révélé pour revenir au coffre), puis les deux autres
+                    boutons juste en dessous une fois tout révélé — plus un rang centré à part. */}
+                <div className="pointer-events-auto absolute left-6 top-6 flex flex-col gap-3">
+                    <button
+                        onClick={goBack}
+                        className="rounded-lg border border-leather-700 bg-ink-900 px-4 py-2
+                            font-display text-sm font-bold text-parchment-100 transition-colors hover:bg-ink-800"
+                    >
+                        ⟵ Back
+                    </button>
+
+                    {allRevealed && packsLeft > 0 && (
+                        <button
+                            onClick={openAnotherPack}
+                            className="rounded-lg border border-gold-500/50 bg-leather-800 px-4 py-2 font-display
+                                text-sm font-bold text-parchment-100 shadow transition-colors hover:bg-leather-700"
+                        >
+                            Open another pack
+                        </button>
                     )}
-
-                    <PackCardCircle
-                        cards={cards}
-                        revealedIndices={revealedIndices}
-                        onSelect={setZoomedIndex}
-                    />
-
                     {allRevealed && (
-                        <div className="flex gap-4">
-                            {packsLeft > 0 && (
-                                <button
-                                    onClick={openAnother}
-                                    className="rounded-lg border border-gold-500/50 bg-leather-800 px-6 py-3 font-display
-                                        font-bold text-parchment-100 shadow transition-colors hover:bg-leather-700"
-                                >
-                                    Open another pack
-                                </button>
-                            )}
-                            <Link
-                                href="/collection"
-                                className="rounded-lg border border-leather-700 bg-ink-900 px-6 py-3 font-display
-                                    font-bold text-parchment-100 transition-colors hover:bg-ink-800"
-                            >
-                                View my collection
-                            </Link>
-                        </div>
+                        <Link
+                            href="/collection"
+                            className="rounded-lg border border-leather-700 bg-ink-900 px-4 py-2 font-display
+                                text-sm font-bold text-parchment-100 transition-colors hover:bg-ink-800"
+                        >
+                            View my collection
+                        </Link>
                     )}
                 </div>
-            )}
-        </div>
+
+                {!allRevealed && (
+                    <p className="font-serif text-sm italic text-parchment-300/60">
+                        Tap a card to reveal it
+                    </p>
+                )}
+
+                <PackCardCircle
+                    cards={cards}
+                    revealedIndices={revealedIndices}
+                    onSelect={selectCard}
+                />
+            </div>
+        )}
 
         <PackCardZoom
             card={zoomedIndex !== null ? cards[zoomedIndex] : null}
-            revealed={zoomedIndex !== null && revealedIndices.has(zoomedIndex)}
-            onReveal={() => { if (zoomedIndex !== null) revealCard(zoomedIndex) }}
             onClose={() => setZoomedIndex(null)}
         />
         </VaultRoom>

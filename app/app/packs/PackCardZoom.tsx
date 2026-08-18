@@ -4,16 +4,15 @@ import { useEffect, useRef, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 
-// Grand plan d'une carte du paquet, avec la même bascule qui suit la souris (parallaxe) que le
-// zoom de la Collection — sauf qu'ici la carte part dos tourné : cliquer dessus joue le
-// retournement (comme avant dans le damier), un par un, plutôt que de tout révéler d'un coup.
+// Grand plan d'une carte déjà révélée du paquet, avec la même bascule qui suit la souris
+// (parallaxe) que le zoom de la Collection. Le retournement se joue désormais directement dans
+// le cercle (PackCardCircle) — ce zoom n'est plus qu'un "regarder de plus près" volontaire,
+// ouvert par un second clic sur une carte déjà retournée, fermé par un clic à côté.
 export default function PackCardZoom({
-    card, revealed, onReveal, onClose,
+    card, onClose,
 }: {
-    card:     CardFaceData | null
-    revealed: boolean
-    onReveal: () => void
-    onClose:  () => void
+    card:    CardFaceData | null
+    onClose: () => void
 }) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 })
     const cardRef = useRef<HTMLDivElement>(null)
@@ -48,42 +47,26 @@ export default function PackCardZoom({
     if (!card) return null
 
     return (
+        // pointer-events-auto : `pointer-events` est hérité, et le parent (VaultRoom) est passé
+        // en pointer-events-none pour laisser les clics atteindre le coffre dans le Canvas —
+        // sans ce reset explicite ici, ce plein écran hériterait ce "none" et deviendrait
+        // entièrement inerte (aucun clic, ni sur la carte ni sur le fond pour fermer).
         <div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-ink-950/85 backdrop-blur-sm"
+            className="pointer-events-auto fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-ink-950/70 backdrop-blur-lg"
             onClick={onClose}
         >
             <div
                 ref={cardRef}
-                onClick={e => { e.stopPropagation(); if (!revealed) onReveal() }}
-                className="w-[300px] [perspective:1200px]"
+                onClick={e => e.stopPropagation()}
+                className="w-[300px] transition-transform duration-150 ease-out will-change-transform"
                 style={{
-                    transform: `perspective(900px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 10}deg)`,
+                    transform: `perspective(900px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 10}deg) scale(1.04)`,
                 }}
             >
-                <div
-                    className={`relative aspect-[3/4] w-full transition-transform duration-700 [transform-style:preserve-3d]
-                        ${revealed ? '[transform:rotateY(180deg)]' : 'cursor-pointer'}`}
-                >
-                    {/* Dos de la carte : sceau de cire sur cuir */}
-                    <div className="absolute inset-0 flex items-center justify-center rounded-lg border-[3px]
-                        border-gold-500/60 bg-gradient-to-br from-leather-800 to-ink-900 shadow-2xl [backface-visibility:hidden]">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold-400/70 bg-leather-900/60">
-                            <span className="font-display text-2xl text-gold-400/90">✦</span>
-                        </div>
-                    </div>
-
-                    {/* Face de la carte */}
-                    <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                        <div className={revealed ? 'animate-card-pop h-full' : 'h-full'}>
-                            <ScaledCardFace card={card} />
-                        </div>
-                    </div>
-                </div>
+                <ScaledCardFace card={card} />
             </div>
 
-            <p className="font-serif text-sm italic text-parchment-300/50">
-                {revealed ? 'Click outside to close' : 'Tap the card to reveal it'}
-            </p>
+            <p className="font-serif text-sm italic text-parchment-300/50">Click outside to close</p>
         </div>
     )
 }

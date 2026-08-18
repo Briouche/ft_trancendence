@@ -5,8 +5,6 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { PerspectiveCamera, RoundedBox, MeshDistortMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 import Atmosphere from '@/components/library/Atmosphere'
-import Lantern from '@/components/library/Lantern'
-import MouseParallaxRig from '@/components/library/MouseParallaxRig'
 import { PALETTE } from '@/components/library/theme'
 
 type Phase = 'idle' | 'shaking' | 'revealing'
@@ -76,13 +74,20 @@ function Chest({ phase, openEnabled, onOpen }: { phase: Phase; openEnabled: bool
                     </RoundedBox>
                 </group>
 
+                {/* Intérieur creux : une cavité plus petite, encastrée et sombre, plutôt que de
+                    laisser voir l'envers (non éclairé) de la coque extérieure une fois le
+                    couvercle ouvert — donne un vrai fond de coffre au lieu d'un bloc plein. */}
+                <RoundedBox args={[0.98, 0.5, 0.58]} radius={0.03} smoothness={3} position={[0, 0.22, 0]}>
+                    <meshStandardMaterial color={PALETTE.ink950} roughness={0.9} side={THREE.BackSide} />
+                </RoundedBox>
+
                 <mesh position={[0, 0.42, 0.37]} castShadow>
                     <sphereGeometry args={[0.07, 16, 16]} />
                     <meshStandardMaterial color={PALETTE.gold500} metalness={0.6} roughness={0.3} />
                 </mesh>
 
                 {/* Lueur intérieure : orbe organique (distordu, pas une sphère lisse) qui suit la phase */}
-                <mesh position={[0, 0.5, 0]} visible={phase !== 'idle'}>
+                <mesh position={[0, 0.4, 0]} visible={phase !== 'idle'}>
                     <icosahedronGeometry args={[0.22, 4]} />
                     <MeshDistortMaterial
                         color={color}
@@ -115,17 +120,29 @@ export default function VaultRoom({
         <div className="relative min-h-screen w-full bg-ink-950">
             <div className="fixed inset-0 overflow-hidden">
                 <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
-                    <PerspectiveCamera makeDefault position={[0, 1.15, 3.2]} fov={38} onUpdate={c => c.lookAt(0, 0.45, 0)} />
+                    {/* Caméra fixe (pas de rig souris) : le coffre reste bien centré sur la page,
+                        au lieu de dériver au moindre mouvement de souris. */}
+                    <PerspectiveCamera makeDefault position={[0, 1.1, 3.2]} fov={38} onUpdate={c => c.lookAt(0, 0.4, 0)} />
                     <Atmosphere />
-                    <Lantern mode="mouse-track" distance={6} spreadX={2.5} spreadY={1.5} />
-                    <MouseParallaxRig strength={0.5} vertical={0.3} />
 
+                    {/* Pas de lanterne/spot dédié : c'était son faisceau étroit et intense qui
+                        frappait le sol de plein fouet et le faisait ressortir comme une flaque
+                        de lumière (lue comme "une texture de bois"). Les deux directionnelles
+                        (douces, uniformes) suffisent à lire le coffre en 3D sans ce problème. */}
                     <directionalLight position={[3, 6, 4]} intensity={0.9} color="#fff2df" castShadow shadow-mapSize={[1024, 1024]} />
-                    <directionalLight position={[-4, 3, -3]} intensity={0.25} color="#8fb8ff" />
+                    <directionalLight position={[-4, 3, -3]} intensity={0.3} color="#8fb8ff" />
 
+                    {/* Lumière d'appoint chaude, proche et courte portée (distance/decay serrés) :
+                        éclaire le coffre lui-même sans retomber loin sur le sol autour — contrairement
+                        à la lanterne retirée plus haut, celle-ci reste fixe et n'arrose jamais le sol
+                        en biais (ce qui créait le reflet "bois"). */}
+                    <pointLight position={[0, 1.5, 1]} color="#ffcf94" intensity={2.6} distance={2.6} decay={2} />
+
+                    {/* Sol du coffre : dalle de pierre mate et sombre, quasi invisible — un vrai
+                        caveau, pas une table éclairée. */}
                     <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
                         <circleGeometry args={[16, 64]} />
-                        <meshStandardMaterial color={PALETTE.ink800} roughness={0.6} metalness={0.15} />
+                        <meshStandardMaterial color={PALETTE.ink950} roughness={1} metalness={0} />
                     </mesh>
 
                     <Chest phase={phase} openEnabled={openEnabled} onOpen={onOpen} />
