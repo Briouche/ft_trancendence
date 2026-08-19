@@ -27,13 +27,9 @@ function parseNum(value: string): number {
 }
 
 function rawToMinionCard(raw: RawCard): MinionCard {
-	return new MinionCard(
-		`${raw.emoji} ${raw.name}`,
-		parseNum(raw.cost),
-		raw.desc,
-		parseNum(raw.atk),
-		parseNum(raw.def),
-	)
+	return new MinionCard(raw.id, `${raw.emoji} ${raw.name}`, 
+		parseNum(raw.cost), raw.desc, 
+			parseNum(raw.atk), parseNum(raw.def))
 }
 
 export function loadAllCards(): RawCard[] {

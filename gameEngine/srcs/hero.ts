@@ -4,10 +4,12 @@ export class Hero
     public readonly name: string;
     public maxHealth: number = 20;
     public currentHealth: number;
+    public readonly id: string = "";
 
-    constructor(name: string)
+    constructor(name: string, id: string = "")
     {
-        this.name          = name;
+        this.name = name;
+        this.id = id;
         this.currentHealth = this.maxHealth;
     }
 

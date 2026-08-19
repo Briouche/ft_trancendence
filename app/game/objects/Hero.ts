@@ -8,6 +8,7 @@ const STROKE_COLOR = 0xff5555;
 
 export interface HeroData
 {
+    id: string;
     name: string;
     health: number;
     maxHealth?: number;
@@ -16,6 +17,8 @@ export interface HeroData
 export class Hero extends Phaser.GameObjects.Container
 {
     public heroData: HeroData;
+    private portrait: Phaser.GameObjects.Rectangle;
+    private nameText: Phaser.GameObjects.Text;
     private healthText: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene, heroData: HeroData, size: number = DEFAULT_SIZE)
@@ -23,15 +26,25 @@ export class Hero extends Phaser.GameObjects.Container
         super(scene, 0, 0);
         this.heroData = heroData;
 
-        const portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
-        const nameText = scene.add.text(0, -size * 0.6, heroData.name,
+        this.portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
+        this.nameText = scene.add.text(0, -size * 0.6, heroData.name,
             { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff" }).setOrigin(0.5, 1);
         this.healthText = scene.add.text(0, 0, `${heroData.health}`,
             { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR }).setOrigin(0.5);
 
-        this.add([portrait, nameText, this.healthText]);
+        this.add([this.portrait, this.nameText, this.healthText]);
         this.setSize(size, size);
         scene.add.existing(this);
+    }
+
+    resize(size: number): void
+    {
+        this.portrait.setSize(size, size);
+        this.nameText.setPosition(0, -size * 0.6);
+        this.nameText.setFontSize(`${Math.round(size * 0.14)}px`);
+        this.healthText.setPosition(0, 0);
+        this.healthText.setFontSize(`${Math.round(size * 0.3)}px`);
+        this.setSize(size, size);
     }
 
     setHealth(health: number)

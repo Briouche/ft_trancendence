@@ -1,9 +1,18 @@
 import Phaser from "phaser";
+import type { GameMode } from "@/game/GameConfig";
 
-export class BootScene extends Phaser.Scene {
+export class BootScene extends Phaser.Scene
+{
+    private mode!: GameMode;
+
     constructor()
     {
         super("BootScene");
+    }
+
+    init(data: { mode: GameMode })
+    {
+        this.mode = data.mode;
     }
 
     preload()
@@ -14,6 +23,6 @@ export class BootScene extends Phaser.Scene {
 
     create()
     {
-        this.scene.start("GameScene");
+        this.scene.start("GameScene", { mode: this.mode });
     }
 }

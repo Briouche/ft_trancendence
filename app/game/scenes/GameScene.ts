@@ -1,26 +1,14 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../objects/Card";
+import { Card } from "../objects/Card";
 import { EventManager } from "../EventManager";
 import { Hand } from "../objects/Hand";
-import { Board, BoardSlot } from "../objects/Board";
+import { Board } from "../objects/Board";
 import { OpponentHand } from "../objects/OpponentHand";
 import { TargetArrow } from "../objects/TargetArrow";
+import { ResolvedTarget } from "../objects/Target";
+import { ClientGameState, TargetPrompt } from "../shared/protocol";
+import type { GameMode } from "@/game/GameConfig";
 
-const MOCK_HAND: CardData[] = [
-    { index: 0, name: "Fire Imp", cost: 2, attack: 3, health: 1 },
-    { index: 0, name: "Fire Imp", cost: 2, attack: 3, health: 1 },
-    { index: 0, name: "Fire Imp", cost: 2, attack: 3, health: 1 },
-    { index: 0, name: "Fire Imp", cost: 2, attack: 3, health: 1 },
-    { index: 0, name: "Fire Imp", cost: 2, attack: 3, health: 1 },
-    { index: 1, name: "Stone Wall", cost: 3, attack: 0, health: 6 },
-    { index: 1, name: "Stone Wall", cost: 3, attack: 0, health: 6 },
-    { index: 2, name: "Healing Rain", cost: 4 },
-];
-
-const MOCK_OPPONENT_BOARD: CardData[] = [
-    { index: 100, name: "Goblin Grunt", cost: 1, attack: 2, health: 1 },
-    { index: 101, name: "Iron Golem", cost: 5, attack: 4, health: 7 },
-];
 
 export class GameScene extends Phaser.Scene
 {
@@ -28,12 +16,29 @@ export class GameScene extends Phaser.Scene
     private board!: Board;
     private opponentHand!: OpponentHand;
 
-    private targettingCard: Card | null = null;
+    private playerIndex: 0 | 1 | null = null;
+    private isMyTurn: boolean = false;
+
+    private targetingCard: Card | null = null;
     private targetArrow: TargetArrow | null = null;
+    private aimingCard: Card | null = null;
+
+    private awaitingServer: boolean = false;
+    private awaitingTarget: boolean = false;
+    private pendingPrompt: TargetPrompt | null = null;
+    private pendingPlayCardId: string | null = null;
+    private capturedTargetId: string | null = null;
+
+    private mode!: GameMode;
 
     constructor()
     {
         super("GameScene");
+    }
+
+    init(data: { mode: GameMode })
+    {
+        this.mode = data.mode;
     }
 
     create()
@@ -42,20 +47,14 @@ export class GameScene extends Phaser.Scene
         this.board = new Board(this);
         this.opponentHand = new OpponentHand(this);
 
-        //temp until input from engine
-        MOCK_HAND.forEach((data) => 
-            this.hand.addCard(data));
-        this.opponentHand.setCount(7);
-        MOCK_OPPONENT_BOARD.forEach((data, i) => this.board.addOpponentMockCard(data, i));
+        EventManager.on("server:assigned", (playerIndex: 0 | 1) => this.onAssigned(playerIndex));
+        EventManager.on("server:state", (state: ClientGameState) => this.onServerState(state));
+        EventManager.on("server:prompt", (prompt: TargetPrompt) => this.onServerPrompt(prompt));
+        EventManager.on("server:gameOver", (winner: "you" | "opponent") => this.onGameOver(winner));
+        EventManager.on("server:rejected", (reason: string) => this.onServerRejected(reason));
 
         this.layout();
-
-        // dropzone debugger: view "hitbox"
-        this.input.enableDebug(this.board.getZone());
-        this.board.getAllTargets().forEach((target) =>
-        {
-            this.input.enableDebug(target.getZone());
-        });
+        EventManager.emit(this.mode === "solo" ? "client:readySolo" : "client:ready");
 
         this.scale.on("resize", this.layout, this);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
@@ -64,11 +63,6 @@ export class GameScene extends Phaser.Scene
         });
 
         this.registerInput();
-
-        EventManager.on("server:cardPlayed", (data: { cardId: string }) =>
-        {
-            console.log("Server confirmed card played:", data.cardId);
-        });
     }
 
     private layout()
@@ -78,26 +72,101 @@ export class GameScene extends Phaser.Scene
         this.opponentHand.layout();
     }
 
-    //handle drag and drop
+    private onAssigned(playerIndex: 0 | 1): void
+    {
+        this.playerIndex = playerIndex;
+    }
+
+    private onServerState(state: ClientGameState): void
+    {
+        this.board.syncBoardFromState(state.playerBoard, state.opponentBoard, state);
+        this.opponentHand.setCount(state.opponentHandCount);
+        this.hand.syncHandFromState(state.playerHand);
+
+        this.board.playerHero.setHealth(state.playerHero);
+        this.board.opponentHero.setHealth(state.opponentHero);
+
+        this.isMyTurn = state.yourTurn;
+
+        if (!state.pendingPrompt)
+        {
+            this.clearWaitingState()
+            return ;
+        }
+
+        if (this.pendingPlayCardId !== null)
+        {
+            const stillInHand = state.playerHand.some((card) => card.id === this.pendingPlayCardId);
+            const stillOnBoard = state.playerBoard.some((card) => card.id === this.pendingPlayCardId);
+
+            if (!stillInHand && !stillOnBoard)
+            {
+                this.pendingPlayCardId = null;
+                this.awaitingServer = false;
+            }
+        }
+    }
+
+    private onServerPrompt(prompt: TargetPrompt): void
+    {
+        this.pendingPrompt = prompt;
+
+        if (this.capturedTargetId !== null && prompt.forCardId === this.pendingPlayCardId)
+        {
+            const stillLegal = prompt.options.some((o) => o.id === this.capturedTargetId);
+            const targetId = stillLegal ? this.capturedTargetId : null;
+            this.capturedTargetId = null;
+            EventManager.emit("client:targetChoice", targetId);
+            return;
+        }
+
+        this.awaitingServer = false;
+        this.awaitingTarget = true;
+        this.board.setTargetHighlights(new Set(prompt.options.map((o) => o.id)));
+    }
+
+    private onServerRejected(reason: string): void
+    {
+        console.warn("Server rejected action:", reason);
+        this.clearWaitingState();
+    }
+
+    private onGameOver(winner: "you" | "opponent"): void
+    {
+        this.awaitingTarget = false;
+        this.input.enabled = false;
+    }
+
     private registerInput()
     {
         this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Card) =>
         {
+            if (!(obj instanceof Card) || !this.isMyTurn || this.awaitingServer || this.awaitingTarget || this.aimingCard)
+                return;
+
             obj.isDragging = true;
             obj.setDepth(1000);
+
             if (this.board.containsCard(obj, 0) && obj.canAttack)
             {
-                this.targettingCard = obj;
+                this.targetingCard = obj;
+                this.targetArrow = new TargetArrow(this, obj.x, obj.y);
+                return;
+            }
+
+            if (this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack === undefined)
+            {
+                this.targetingCard = obj;
                 this.targetArrow = new TargetArrow(this, obj.x, obj.y);
             }
         });
 
         this.input.on("drag", (_p: Phaser.Input.Pointer, obj: Card, dragX: number, dragY: number) =>
         {
-            if (this.targettingCard === obj)
+            if (this.targetingCard === obj)
             {
                 this.targetArrow?.updateEnd(_p.x, _p.y);
-                return ;
+                return;
             }
             if (this.hand.containsCard(obj))
             {
@@ -108,87 +177,254 @@ export class GameScene extends Phaser.Scene
 
         this.input.on("drop", (_p: Phaser.Input.Pointer, obj: Card, zone: Phaser.GameObjects.Zone) =>
         {
-            if (this.targettingCard === obj && this.board.containsCard(obj, 0) && obj.canAttack)
+            if (this.targetingCard === obj && this.board.containsCard(obj, 0) && obj.canAttack)
             {
-                const resolvedTarget = this.board.resolveTarget(zone);
-                console.log("attack drop -> zone:", zone, "resolved:", resolvedTarget);
-                if (!resolvedTarget)
-                    return ;
-
-                this.animateAttack(obj, zone.x, zone.y);
-                return ;
+                this.handleAttackDrop(obj, zone);
+                return;
             }
-
+            if (this.targetingCard === obj && this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack === undefined)
+            {
+                this.handleSpellTargetDrop(obj, zone);
+                return;
+            }
+            if (this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack !== undefined)
+            {
+                this.handleMinionTargetedDrop(obj, zone, _p);
+                return;
+            }
             if (this.hand.containsCard(obj))
-            {
-                //right now only accept board as dropzone, later should change to avaiable targets for spells too?
-                if (zone !== this.board.getZone())
-                    return ;
-                const slot = this.board.findNearestOpenSlot(obj.x);
-                if (slot)
-                    this.playCard(obj, slot);
-            }
+                this.handleCardDrop(obj, zone, _p);
         });
 
-        //handle snapback
         this.input.on("dragend", (_p: Phaser.Input.Pointer, obj: Card) =>
         {
             obj.isDragging = false;
 
-            if (this.targettingCard === obj)
+            if (this.targetingCard === obj)
             {
-                this.targetArrow?.destroy();
-                this.targetArrow = null;
-                this.targettingCard = null;
-                return ;
+                if (this.targetArrow)
+                {
+                    this.targetArrow.destroy();
+                    this.targetArrow = null;
+                    this.targetingCard = null;
+                    obj.returnToBase();
+                }
+                return;
             }
-            if (this.hand.containsCard(obj))
+
+            if (this.hand.containsCard(obj) && this.pendingPlayCardId !== obj.cardData.id)
                 obj.returnToBase();
+        });
+
+        this.input.on("pointermove", (p: Phaser.Input.Pointer) =>
+        {
+            if (this.aimingCard && this.targetArrow)
+                this.targetArrow.updateEnd(p.x, p.y);
+        });
+
+        this.input.on("pointerdown", (p: Phaser.Input.Pointer) =>
+        {
+            if (!this.aimingCard || !this.awaitingTarget || this.pendingPrompt === null)
+                return;
+
+            const hit = this.findTargetAt(p);
+
+            if (hit && this.pendingPrompt.options.some((o) => o.id === hit.id))
+                this.confirmAim(hit.id);
+            else
+                this.cancelAim();
         });
     }
 
-    private playCard(card: Card, slot: BoardSlot)
+    private handleCardDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer)
     {
-        this.hand.removeCard(card);
-        this.board.placeCard(card, slot);
+        const index = this.board.findInsertIndex(card.x);
 
-        //hookup to engine
-        EventManager.emit("client:playCard", { cardId: card.cardData.index, slotIndex: slot.index });
+        if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }) || index === undefined)
+        {
+            card.returnToBase();
+            return;
+        }
+
+        this.requestPlayCard(card, index);
+    }
+
+    private handleSpellTargetDrop(card: Card, zone: Phaser.GameObjects.Zone): void
+    {
+        const resolvedTarget = this.board.resolveTarget(zone);
+
+        this.targetArrow?.destroy();
+        this.targetArrow = null;
+        this.targetingCard = null;
+
+        if (!resolvedTarget)
+        {
+            card.returnToBase();
+            return;
+        }
+
+        this.awaitingServer = true;
+        this.pendingPlayCardId = card.cardData.id;
+        this.capturedTargetId = resolvedTarget.id;
+
+        EventManager.emit("client:playCard", { cardId: card.cardData.id });
+    }
+
+    private handleMinionTargetedDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer): void
+    {
+        if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }))
+        {
+            card.returnToBase();
+            return;
+        }
+
+        const boardIndex = this.board.findInsertIndex(card.x);
+        if (boardIndex === undefined)
+        {
+            card.returnToBase();
+            return;
+        }
+
+        this.hand.extractCard(card);
+        this.board.insertCard(card, boardIndex, 0);
+        card.setWaiting(true);
+
+        this.awaitingServer = true;
+        this.pendingPlayCardId = card.cardData.id;
+        this.aimingCard = card;
+
+        this.targetArrow = new TargetArrow(this, card.x, card.y);
+
+        EventManager.emit("client:playCard", { cardId: card.cardData.id, boardIndex });
+    }
+
+    private handleAttackDrop(attacker: Card, zone: Phaser.GameObjects.Zone): void
+    {
+        const resolvedTarget = this.board.resolveTarget(zone);
+
+        this.targetArrow?.destroy();
+        this.targetArrow = null;
+        this.targetingCard = null;
+
+        if (!resolvedTarget)
+        {
+            attacker.returnToBase();
+            return;
+        }
+
+        EventManager.emit("client:requestAttack", { attackerId: attacker.cardData.id, targetId: resolvedTarget.id });
+        this.animateAttack(attacker, zone.x, zone.y);
+    }
+
+    private requestPlayCard(card: Card, boardIndex?: number): void
+    {
+        if (this.awaitingServer || !this.isMyTurn)
+            return;
+
+        this.awaitingServer = true;
+        this.pendingPlayCardId = card.cardData.id;
+
+        EventManager.emit("client:playCard", { cardId: card.cardData.id, boardIndex });
+    }
+
+    private findTargetAt(pointer: Phaser.Input.Pointer): ResolvedTarget | undefined
+    {
+        const hits = this.input.hitTestPointer(pointer);
+
+        for (const obj of hits)
+        {
+            const target = this.board.getAllTargets().find((t) => t.getZone() === obj);
+            if (target)
+            {
+                const resolved = target.resolve();
+                if (resolved)
+                    return resolved;
+            }
+        }
+        return undefined;
+    }
+
+    private confirmAim(targetId: string): void
+    {
+        EventManager.emit("client:targetChoice", targetId);
+
+        this.targetArrow?.destroy();
+        this.targetArrow = null;
+
+        this.aimingCard?.setWaiting(false);
+        this.aimingCard = null;
+
+        this.awaitingTarget = false;
+        this.board.clearTargetHighlights();
+        this.pendingPrompt = null;
+    }
+
+    private cancelAim(): void
+    {
+        if (this.aimingCard)
+        {
+            this.board.removeCard(this.aimingCard);
+            this.aimingCard.setWaiting(false);
+            this.hand.returnCard(this.aimingCard);
+            this.aimingCard.returnToBase();
+        }
+
+        EventManager.emit("client:targetChoice", null);
+
+        this.targetArrow?.destroy();
+        this.targetArrow = null;
+        this.aimingCard = null;
+
+        this.pendingPlayCardId = null;
+        this.awaitingTarget = false;
+        this.awaitingServer = false;
+
+        this.board.clearTargetHighlights();
+        this.pendingPrompt = null;
     }
 
     private animateAttack(card: Card, toX: number, toY: number)
     {
         const angle = Phaser.Math.Angle.Between(card.x, card.y, toX, toY);
-        const pullBackDistance = 60; 
-        
+        const pullBackDistance = 60;
+
         const backX = card.x - Math.cos(angle) * pullBackDistance;
         const backY = card.y - Math.sin(angle) * pullBackDistance;
 
         this.tweens.chain({
             targets: card,
             tweens: [
-                {
-                    x: backX,
-                    y: backY,
-                    duration: 300,       
-                    ease: 'back.out'
-                },
-                {
-                    x: toX,
-                    y: toY,
-                    duration: 100,       
-                    ease: 'expo.in', 
-                    onComplete: () => { this.cameras.main.shake(150, 0.01); }
-                },
-                {
-                    x: toX,              
-                    y: toY,
-                    duration: 60,       
-                    onComplete: () => {
-                        card.returnToBase();
-                    }
-                }
-            ]
+                { x: backX, y: backY, duration: 300, ease: "back.out" },
+                { x: toX, y: toY, duration: 100, ease: "expo.in", onComplete: () => { if (card.active) this.cameras.main.shake(150, 0.01); } },
+                { x: toX, y: toY, duration: 60, onComplete: () => { if (card.active) card.returnToBase(); } },
+            ],
         });
+    }
+
+    private clearWaitingState(): void
+    {
+        this.awaitingServer = false;
+        this.awaitingTarget = false;
+        this.pendingPrompt = null;
+
+        this.board.clearTargetHighlights();
+
+        this.targetArrow?.destroy();
+        this.targetArrow = null;
+
+        if (this.aimingCard)
+        {
+            this.aimingCard.setWaiting(false);
+            this.aimingCard = null;
+        }
+
+        if (this.targetingCard)
+        {
+            this.targetingCard.returnToBase();
+            this.targetingCard = null;
+        }
+
+        this.pendingPlayCardId = null;
+        this.capturedTargetId = null;
     }
 }
