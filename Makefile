@@ -1,26 +1,20 @@
 all: dev
 
 dev:
-	docker compose up
+	docker compose up --build
 
 prod:
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
-rebuild: down
-	docker compose build --no-cache
-	docker compose up
+clean:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.prod.yml down
 
-down:
-	docker compose down -v
+fclean: clean
+	docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.prod.yml down -v
 
-npm-clean: down
-	rm -rf app/app/generated
-	rm -rf app/node_modules
-	rm -rf app/.next
-
-docker-clean: down
-	docker compose down --rmi all
-
-fclean: npm-clean docker-clean
+ffclean: fclean
+	docker image prune -af
+	docker volume prune -f
+	docker system prune -af
 
 re: fclean all

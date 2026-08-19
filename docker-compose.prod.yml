@@ -1,18 +1,32 @@
+
 services:
   proxy:
-    build: ./nginx
+    build:
+      context: ./proxy
+      args:
+        DOMAIN_NAME: ${DOMAIN_NAME}
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - next_static:/var/www/html/_next/static:ro
+      - next_public:/var/www/html/public:ro
     restart: always
 
   app:
     build:
       target: production
+    volumes:
+      - next_static:/app/.next/static
+      - next_public:/app/public
     restart: always
-    command: sh -c "npx prisma migrate deploy && node server.js"
 
   db:
     restart: always
+
+volumes:
+  next_static:
+  next_public:
