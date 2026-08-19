@@ -78,7 +78,7 @@ export default function RegisterForm() {
             Already have an account?{" "}
             <Link
               href={ROUTES.home}
-              className="font-medium text-foreground hover:underline"
+              className="font-medium text-ink-text hover:underline"
             >
               Sign in
             </Link>

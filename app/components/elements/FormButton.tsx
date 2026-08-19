@@ -13,7 +13,7 @@ export default function FormButton({
     <button
       type="submit"
       disabled={disabled}
-      className={`w-72 rounded-btn bg-accent px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`w-72 rounded-btn border border-gold-500/50 bg-leather-800 px-4 py-2 font-pixel text-lg text-gold-300 transition-colors hover:bg-leather-700 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
       {children}
     </button>

@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm ci --libc=musl
 
 # --- STAGE 2: Development Stage ---
 FROM node:20-alpine AS development

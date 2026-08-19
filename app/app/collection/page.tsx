@@ -1,12 +1,15 @@
+import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
+import { getSession } from '@/lib/session'
+import { ROUTES } from '@/config/routes'
 import CollectionBook from './CollectionBook'
 
 export default async function CollectionPage() {
-    // TODO: remplacer par l'utilisateur connecté quand l'auth sera en place
-    const userId = 1
+    const session = await getSession()
+    if (!session) redirect(ROUTES.home)
 
     const owned = await prisma.userCard.findMany({
-        where:   { userId },
+        where:   { userId: session.userId },
         include: { card: true },
         orderBy: { card: { name: 'asc' } }, // CollectionBook retrie ensuite par le vrai coût côté client
     })

@@ -1,10 +1,16 @@
+import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
+import { getSession } from '@/lib/session'
+import { ROUTES } from '@/config/routes'
 import DeckList from './DeckList'
 
 export default async function DecksPage() {
+    const session = await getSession()
+    if (!session) redirect(ROUTES.home)
+
     const [decks, decorPool] = await Promise.all([
         prisma.deck.findMany({
-            where:   { userId: 1 }, // TODO: remplacer par l'utilisateur connecté
+            where:   { userId: session.userId },
             include: { cards: true },
             orderBy: { createdAt: 'desc' },
         }),

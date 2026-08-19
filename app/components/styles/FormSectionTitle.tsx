@@ -8,6 +8,6 @@ export default function FormSectionTitle({
   className = "",
 }: FormSectionTitleProps) {
   return (
-    <p className={`text-sm text-foreground/60 ${className}`}>{children}</p>
+    <p className={`font-pixel text-base text-ink-muted ${className}`}>{children}</p>
   );
 }

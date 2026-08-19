@@ -1,7 +1,7 @@
 export const english = {
   // home page
-  appName: "Jeu super de Cartes",
-  copyright: "Jeu super de Cartes. All rights reserved.",
+  appName: "ft_transcendence",
+  copyright: "ft_transcendence. All rights reserved.",
   privacyPolicy: "Privacy Policy",
   termsOfService: "Terms of Service",
 

@@ -51,14 +51,13 @@ export default function SignInForm() {
     <div className="flex flex-1 flex-col items-center justify-center p-vertical">
       <Form
         title="Sign In"
-        subtitle="Welcome back."
         action={handleSubmit}
         footer={
           <>
             New here?{" "}
             <Link
               href={ROUTES.register}
-              className="font-medium text-foreground hover:underline"
+              className="font-medium text-ink-text hover:underline"
             >
               Create an account
             </Link>

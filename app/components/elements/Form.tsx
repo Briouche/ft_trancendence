@@ -21,9 +21,9 @@ export default function Form({
 }: FormProps) {
   return (
     <RoundedRectangle className={`py-2 ${className}`}>
-      <h2 className="text-center text-2xl font-semibold">{title}</h2>
+      <h2 className="text-center font-pixel text-6xl">{title}</h2>
       {subtitle && (
-        <p className="text-center text-sm text-foreground/60 mt-1">
+        <p className="text-center font-pixel text-sm text-ink-muted mt-1">
           {subtitle}
         </p>
       )}
@@ -38,7 +38,7 @@ export default function Form({
       </form>
 
       {footer && (
-        <p className="text-center text-sm text-foreground/60 mt-4">
+        <p className="text-center font-pixel text-sm text-ink-muted mt-4">
           {footer}
         </p>
       )}

@@ -8,7 +8,7 @@ interface NoticeSectionProps {
 export function NoticeSection({ title, children }: NoticeSectionProps) {
   return (
     <section className="mb-section">
-      <h2 className="text-xl font-semibold mb-2">{title}</h2>
+      <h2 className="font-pixel text-2xl text-ink-text mb-2">{title}</h2>
       {children}
     </section>
   );

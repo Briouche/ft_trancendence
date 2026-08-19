@@ -13,11 +13,11 @@ export default async function Header() {
   return (
 
     <header className="py-2 text-center">
-      <RoundedRectangle className="p-4">
+      <RoundedRectangle className="p-4" variant="parchment-roll-panel">
         <div className="grid grid-cols-3 items-center gap-4">
           <div />
 
-          <h1 className="text-2xl font-semibold hover:underline justify-self-center">
+          <h1 className="font-pixel text-5xl hover:underline justify-self-center -translate-y-2">
             <Link href={ROUTES.home}>
               {english.appName}
             </Link>

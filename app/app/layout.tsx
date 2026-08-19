@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { Cinzel, Cinzel_Decorative, Crimson_Text } from "next/font/google";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
 import AudioProvider from "@/components/AudioProvider";
@@ -26,6 +27,15 @@ const cinzelDecorative = Cinzel_Decorative({
   weight: ["400", "700", "900"],
 });
 
+// Police du Pixel Parchment UI Kit (fichier local, pas sur Google Fonts) — utilisée
+// uniquement sur les cartes papyrus (Header, Footer, Form, Notice), pas sur le reste du jeu
+// (hall 3D, deck builder, cartes...) qui garde Cinzel/Crimson.
+const shPinscher = localFont({
+  src: "./fonts/SHPinscher-Regular.otf",
+  variable: "--font-sh-pinscher",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "ft_transcendence",
   description: "The card library of ft_transcendence",
@@ -45,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${cinzel.variable} ${crimson.variable} ${cinzelDecorative.variable} h-full antialiased`}
+      className={`${cinzel.variable} ${crimson.variable} ${cinzelDecorative.variable} ${shPinscher.variable} h-full antialiased`}
       style={{ backgroundColor: '#0b0c0d' }}
     >
       {/* backgroundColor en inline ici (pas en classe Tailwind) : le but est justement
