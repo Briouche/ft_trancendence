@@ -7,6 +7,7 @@ import PackCardCircle from './PackCardCircle'
 import PackCardZoom from './PackCardZoom'
 import type { CardFaceData } from '@/components/CardFace'
 import SceneLoading from '@/components/library/SceneLoading'
+import { useAudio } from '@/components/AudioProvider'
 
 const VaultRoom = dynamic(() => import('./VaultRoom'), { ssr: false, loading: SceneLoading })
 
@@ -24,6 +25,7 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
     const [zoomedIndex, setZoomedIndex]         = useState<number | null>(null)
     const [error, setError]                     = useState('')
     const [granting, setGranting]               = useState(false)
+    const { playFlip }                          = useAudio()
 
     // Logique d'ouverture proprement dite, séparée du clic sur le coffre : "Open another pack"
     // doit la déclencher directement (le coffre s'anime tout seul), sans repasser par idle et
@@ -59,9 +61,12 @@ export default function PackOpener({ initialPacks, initialPityCounter }: {
         runOpen()
     }
 
+    // playFlip() ici plutôt que dans le updater de setRevealedIndices : l'appelant (selectCard)
+    // garantit déjà que la carte n'est pas encore révélée avant d'appeler revealCard — un effet
+    // de bord dans un updater serait dupliqué par le double-appel du StrictMode en dev.
     function revealCard(index: number) {
+        playFlip()
         setRevealedIndices(prev => {
-            if (prev.has(index)) return prev
             const next = new Set(prev)
             next.add(index)
             return next

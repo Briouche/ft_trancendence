@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cinzel, Cinzel_Decorative, Crimson_Text } from "next/font/google";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
+import AudioProvider from "@/components/AudioProvider";
+import AudioToggleButton from "@/components/AudioToggleButton";
 import "./globals.css";
 
 const cinzel = Cinzel({
@@ -51,7 +53,12 @@ export default function RootLayout({
           (Turbopack) — une classe utilitaire subirait le même délai. */}
       <body className="min-h-full flex flex-col bg-ink-950">
         <TransitionOverlay />
-        {children}
+        {/* AudioProvider vit dans le layout racine (jamais démonté entre deux pages, contrairement
+            au contenu de `children`) : la nappe ambiante ne redémarre pas à chaque navigation. */}
+        <AudioProvider>
+          {children}
+          <AudioToggleButton />
+        </AudioProvider>
       </body>
     </html>
   );
