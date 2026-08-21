@@ -28,7 +28,7 @@ export function createGameServer(port: number): void
                 const humanSeat: Seat = { kind: "human", socket };
                 const aiSeat: Seat = { kind: "ai" };
 
-                const session: GameSession = new GameSession(humanSeat, aiSeat, player0, player1);
+                const session: GameSession = new GameSession(humanSeat, aiSeat, player0, player1, msg.difficulty);
 
                 sessions.set(socket.id + "|ai", session);
                 return;

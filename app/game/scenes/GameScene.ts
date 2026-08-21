@@ -8,6 +8,7 @@ import { TargetArrow } from "../objects/TargetArrow";
 import { ResolvedTarget } from "../objects/Target";
 import { ClientGameState, TargetPrompt } from "../shared/protocol";
 import type { GameMode } from "@/game/GameConfig";
+import type { Difficulty } from "@/game/shared/protocol";
 
 
 export class GameScene extends Phaser.Scene
@@ -30,15 +31,17 @@ export class GameScene extends Phaser.Scene
     private capturedTargetId: string | null = null;
 
     private mode!: GameMode;
+    private difficulty!: Difficulty;
 
     constructor()
     {
         super("GameScene");
     }
 
-    init(data: { mode: GameMode })
+    init(data: { mode: GameMode; difficulty: Difficulty })
     {
         this.mode = data.mode;
+        this.difficulty = data.difficulty;
     }
 
     create()
@@ -54,7 +57,10 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:rejected", (reason: string) => this.onServerRejected(reason));
 
         this.layout();
-        EventManager.emit(this.mode === "solo" ? "client:readySolo" : "client:ready");
+        if (this.mode === "solo")
+            EventManager.emit("client:readySolo", this.difficulty);
+        else
+            EventManager.emit("client:ready");
 
         this.scale.on("resize", this.layout, this);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>

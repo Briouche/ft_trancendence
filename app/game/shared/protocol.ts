@@ -35,8 +35,10 @@ export interface TargetPrompt
     options: TargetOption[];
 }
 
+export type Difficulty = "facile" | "moyen" | "difficile";
+
 export type ClientMessage = { type: "ready" }
-                            | { type: "readySolo" }
+                            | { type: "readySolo"; difficulty: Difficulty }
                             | { type: "playCard"; cardId: string; boardIndex?: number; }
                             | { type: "attack"; attackerId: string; targetId: string; }
                             | { type: "targetChoice"; targetId: string | null }

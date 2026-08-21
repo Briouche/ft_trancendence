@@ -10,18 +10,20 @@ import { Action } from "./types";
 import { determinize } from "./determinize";
 import { createNode, selectBestChild, expand, simulate, backpropagate } from "./tree";
 
-const MCTS_SIMULATIONS       = parseInt(process.env.MCTS_SIMULATIONS ?? "500");
-const DETERMINIZATION_WORLDS = parseInt(process.env.MCTS_WORLDS      ?? "5");
 
-export function getBestAction(engine: GameEngine): Action 
+export function getBestAction(
+  engine: GameEngine,
+  simulations: number,
+  worlds: number
+): Action 
 {
   const currentPlayer: 0 | 1 = engine.currentTurn;
   const scores = new Map<string, { action: Action; total: number; count: number }>();
 
-  for (let w = 0; w < DETERMINIZATION_WORLDS; w++) {
+  for (let w = 0; w < worlds; w++) {
     const root = createNode(determinize(engine, currentPlayer), null, null);
 
-    for (let i = 0; i < MCTS_SIMULATIONS; i++) {
+    for (let i = 0; i < simulations; i++) {
       let node = root;
       while (!node.state.isTerminal() && node.untriedActions.length === 0 && node.children.length > 0) {
         node = selectBestChild(node);

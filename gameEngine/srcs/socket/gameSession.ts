@@ -10,6 +10,7 @@ import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
 import { getBestAction } from "../ai/mcts";
 import { Action } from "../ai/types";
+import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
 
 export type Seat = { kind: "human"; socket: Socket } | { kind: "ai" };
 
@@ -28,9 +29,11 @@ export class GameSession
     private seats: [Seat, Seat];
     private pending: PendingTarget | null = null;
     private gameOver : boolean = false;
+    private difficulty: Difficulty;
 
-    constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player)
-    {
+    constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen")
+    {   
+        this.difficulty = difficulty;
         this.seats = [seat0, seat1];
         this.engine = new GameEngine([player0, player1]);
         this.bindHandlers();
@@ -353,14 +356,24 @@ export class GameSession
         this.runAiTurnLoop();
     }
 
-    private runAiTurnLoop(): void
+    private async runAiTurnLoop(): Promise<void>
     {
+        const { simulations, worlds } = DIFFICULTY_PRESETS[this.difficulty];
+
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
-            const action: Action = getBestAction(this.engine);
+            const action: Action = getBestAction(this.engine, simulations, worlds);
 
             this.applyAiAction(action);
+
+            if (action.type !== "endTurn")
+                await this.delay(1500);
         }
+    }
+
+    private delay(ms: number): Promise<void>
+    {
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     private applyAiAction(action: Action): void
