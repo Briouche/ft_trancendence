@@ -1,0 +1,110 @@
+import Phaser from "phaser";
+import { Hand } from "../../objects/Hand";
+import { Board } from "../../objects/board/Board";
+import { OpponentHand } from "../../objects/OpponentHand";
+import { ClientGameState } from "../../shared/protocol";
+import { summonAnimation, drawCardAnimation } from "../../animations";
+import { GameFlowState } from "./GameFlowState";
+
+interface TableRefs
+{
+    hand: Hand;
+    board: Board;
+    opponentHand: OpponentHand;
+}
+
+//syncs with serverstate, use apply on every recieved state from the server
+export class StateSyncController
+{
+    private previousState: ClientGameState | null = null;
+    private pendingSummonIds = new Set<string>();
+    private pendingDrawIds = new Set<string>();
+
+    private table: TableRefs | null = null;
+
+    constructor(private scene: Phaser.Scene, private flow: GameFlowState, private onTableCreated: (table: TableRefs) => void, private onWaitingCleared: () => void)
+    {}
+
+    flagSummon(cardId: string): void
+    {
+        this.pendingSummonIds.add(cardId);
+    }
+
+    apply(state: ClientGameState): void
+    {
+        if (this.table === null)
+        {
+            const hand = new Hand(this.scene);
+            const board = new Board(this.scene, 6, state.playerHero, state.opponentHero);
+            const opponentHand = new OpponentHand(this.scene);
+
+            this.table = { hand, board, opponentHand };
+            this.onTableCreated(this.table);
+        }
+
+        const { hand, board, opponentHand } = this.table;
+
+        this.detectDraws(state);
+
+        board.syncBoardFromState(state.playerBoard, state.opponentBoard, state);
+        opponentHand.setCount(state.opponentHandCount);
+        hand.syncHandFromState(state.playerHand);
+
+        board.playerHero.setHealth(state.playerHero.health);
+        board.opponentHero.setHealth(state.opponentHero.health);
+
+        this.flow.isMyTurn = state.yourTurn;
+
+        for (const id of this.pendingSummonIds)
+        {
+            const card = board.findCardById(id);
+            if (card)
+                summonAnimation(this.scene, card);
+        }
+        this.pendingSummonIds.clear();
+
+        for (const id of this.pendingDrawIds)
+        {
+            const card = hand.findCardById(id);
+            if (card)
+            {
+                const deckPos = board.getDeckPosition(0);
+                drawCardAnimation(this.scene, card, deckPos.x, deckPos.y);
+            }
+        }
+        this.pendingDrawIds.clear();
+
+        this.previousState = state;
+
+        if (!state.pendingPrompt)
+        {
+            this.onWaitingCleared();
+            return;
+        }
+
+        if (this.flow.pendingPlayCardId !== null)
+        {
+            const stillInHand = state.playerHand.some((c) => c.id === this.flow.pendingPlayCardId);
+            const stillOnBoard = state.playerBoard.some((c) => c.id === this.flow.pendingPlayCardId);
+            if (!stillInHand && !stillOnBoard)
+            {
+                this.flow.pendingPlayCardId = null;
+                this.flow.awaitingServer = false;
+            }
+        }
+    }
+
+    private detectDraws(state: ClientGameState): void
+    {
+        //add mulligan here in future
+        if (this.previousState === null)
+            return;
+
+        const previousIds = new Set(this.previousState.playerHand.map((c) => c.id));
+        for (const card of state.playerHand)
+        {
+            if (!previousIds.has(card.id))
+                this.pendingDrawIds.add(card.id);
+        }
+    }
+}

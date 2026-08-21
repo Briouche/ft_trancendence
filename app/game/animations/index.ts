@@ -4,3 +4,4 @@ export * from "./summon";
 export * from "./turnBanner";
 export * from "./hover";
 export * from "./draw";
+export * from "./damage";

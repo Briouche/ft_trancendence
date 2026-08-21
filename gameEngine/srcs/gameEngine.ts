@@ -6,11 +6,24 @@ import { Targetable } from "./target";
 import { Effect } from "./effect";
 import { Hero } from "./hero";
 
+export interface DamageRecord
+{
+    target: Targetable;
+    amount: number;
+}
+
+export interface ActionResult
+{
+    succes: boolean;
+    damageEvents: DamageRecord[];
+}
+
 export class GameEngine
 {
     public readonly players: [Player, Player];
     public board: Board;
     public currentTurn: 0 | 1;
+    private damageEvents: DamageRecord[] = [];
 
     constructor(players: [Player, Player])
     {
@@ -51,13 +64,14 @@ export class GameEngine
         this.startTurn();
     }
 
-    playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): boolean
+    playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): ActionResult
     {
+        this.damageEvents = [];
         const player = this.activePlayer();
         const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
-            return false;
+            return { succes: false, damageEvents: [] };
 
         player.hand.play(cardIndex);
         player.spendMana(card.manaCost);
@@ -82,16 +96,17 @@ export class GameEngine
             card.effect.execute(context);
         }
         this.processDeaths();
-        return true;
+        return { succes: true, damageEvents: this.damageEvents };
     }
 
-    attackWithMinion(attackerIndex: number, target: Targetable): boolean
+    attackWithMinion(attackerIndex: number, target: Targetable): ActionResult
     {
+        this.damageEvents = [];
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
         const attacker: MinionCard = this.board.getMinions(this.currentTurn)[attackerIndex];
 
         if (!attacker || !attacker.canAttack)
-            return false;
+            return { succes: false, damageEvents: [] };
 
         attacker.canAttack = false;
 
@@ -101,17 +116,22 @@ export class GameEngine
             attacker.effects.onAttack.execute(context);
         }
         if (target instanceof Hero)
+        {
             this.players[opponentIndex].hero.takeDamage(attacker.attack);
+            this.recordDamage(this.players[opponentIndex].hero, attacker.attack);
+        }
 
         else if (target instanceof MinionCard)
         {
             attacker.takeDamage(target.attack);
+            this.recordDamage(target, attacker.attack);
             target.takeDamage(attacker.attack);
+            this.recordDamage(attacker, target.attack);
         }
 
         this.processDeaths();
         this.checkWinCondition();
-        return true;
+        return { succes: true, damageEvents: this.damageEvents };
     }
 
     activePlayer(): Player
@@ -163,6 +183,11 @@ export class GameEngine
                 }
             }
         }
+    }
+
+    recordDamage(target: Targetable, amount: number)
+    {
+        this.damageEvents.push({ target, amount });
     }
 
     toString(): string

@@ -34,6 +34,7 @@ export class EndTurn extends Phaser.GameObjects.Container
         this.background.setSize(width, height);
         this.label.setFontSize(Math.round(height * 0.35));
         this.setSize(width, height);
+        this.setDepth(500);
 
         if (this.input)
             this.input.hitArea.setTo(0, 0, width, height);

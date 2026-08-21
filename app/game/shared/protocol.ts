@@ -10,11 +10,19 @@ export interface ClientCard
     requiresTarget: boolean
 }
 
+export interface ClientHero
+{
+    id: string;
+    name: string;
+    health: number;
+    maxHealth?: number;
+}
+
 export interface ClientGameState 
 {
     yourTurn: boolean;
-    playerHero: number;
-    opponentHero: number;
+    playerHero: ClientHero;
+    opponentHero: ClientHero;
     playerHand: ClientCard[];
     opponentHandCount: number;
     playerBoard: ClientCard[];
@@ -26,10 +34,12 @@ export interface ClientGameState
     opponentDeck: number;
 }
 
-export type GameEvent = { type: "attack"; attackerId: string; targetId: string; playerIndex: 0 | 1; damage: number; targetDied: boolean }
+export type GameEvent = { type: "attack"; attackerId: string; targetId: string; playerIndex: 0 | 1; }
+    | { type: "damage"; targetId: string; amount: number; targetDied: boolean }
     | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number }
     | { type: "minionDied"; minionId: string; playerIndex: 0 | 1 }
-    | { type: "turnEnded"; nextPlayerIndex: 0 | 1 };
+    | { type: "turnEnded"; nextPlayerIndex: 0 | 1 }
+    | { type: "cardDrawn"; playerIndex: 0 | 1; cardId?: string };
 
 export type TargetOption = { type: "hero"; id: string; }
     | { type: "minion"; id: string; }

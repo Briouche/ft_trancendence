@@ -1,4 +1,5 @@
 import { Card } from "../objects/Card";
+import { OpponentCard } from "../objects/OpponentCard";
 
 export function drawCardAnimation(scene: Phaser.Scene, card: Card, fromX: number, fromY: number): Promise<void>
 {
@@ -12,16 +13,14 @@ export function drawCardAnimation(scene: Phaser.Scene, card: Card, fromX: number
         card.setAlpha(0);
         card.setScale(0.7);
 
-        scene.tweens.add({
+        scene.tweens.chain({
             targets: card,
-            x: base.x,
-            y: base.y,
-            rotation: base.rotation,
-            alpha: 1,
-            scale: 1,
-            duration: 300,
-            ease: "Cubic.Out",
-            onComplete: () => resolve(),
+            tweens: [
+                { x: card.x, y: card.y, duration: 200, scale: 0.5, ease: "Cubic.out" },
+                { x: scene.scale.canvas.width / 2.5, y: scene.scale.canvas.height / 2.5, rotation: 0, alpha: 1, scale: 1.5, duration: 500, ease: "Cubic.out" },
+                { duration: 1000 },
+                { x: base.x, y: base.y, scale: 1, rotation: base.rotation, duration: 200, ease: "Cubic.InOut", onComplete: () => resolve() }
+            ]
         });
     });
 }

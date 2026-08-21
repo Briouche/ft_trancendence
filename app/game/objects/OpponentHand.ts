@@ -37,6 +37,11 @@ export class OpponentHand
         return this.cards.length;
     }
 
+    getObject(index: number): OpponentCard
+    {
+        return this.cards[index];
+    }
+
     layout(widthCanvas = this.scene.scale.width, heightCanvas = this.scene.scale.height)
     {
         const amount = this.cards.length;

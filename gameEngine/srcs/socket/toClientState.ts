@@ -1,8 +1,9 @@
 import { Card, MinionCard, SpellCard } from "../card";
 import { GameEngine } from "../gameEngine";
 import { Effect } from "../effect";
-import { ClientCard, ClientGameState, TargetOption } from "../shared/protocol";
+import { ClientCard, ClientGameState, ClientHero, TargetOption } from "../shared/protocol";
 import { Targetable } from "../target";
+import { Player } from "../player";
 
 function getOnPlayEffects(card: Card): Effect[]
 {
@@ -43,14 +44,21 @@ function toClientCard(card: Card): ClientCard
     return clientCard;
 }
 
+function toClientHero(player: Player): ClientHero
+{
+    // Use the hero's own id and name so the client receives full hero identity emitted by the engine
+    let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth };
+    return data;
+}
+
 export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGameState
 {
     const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
 
     return {
         yourTurn: engine.currentTurn === playerIndex,
-        playerHero: engine.players[playerIndex].hero.currentHealth,
-        opponentHero: engine.players[opponentIndex].hero.currentHealth,
+        playerHero: toClientHero(engine.players[playerIndex]),
+        opponentHero: toClientHero(engine.players[opponentIndex]),
         playerHand: engine.players[playerIndex].hand.getCards().map(toClientCard),
         opponentHandCount: engine.players[opponentIndex].hand.size(),
         playerBoard: engine.board.getMinions(playerIndex).map(toClientCard),

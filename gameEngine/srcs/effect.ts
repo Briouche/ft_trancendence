@@ -61,7 +61,10 @@ export class DamageEffect extends Effect
         if (this.resolver && this.resolver.requiresInput)
         {
             if (context.target)
+            {
                 context.target.takeDamage(this._amount);
+                context.engine.recordDamage(context.target, this._amount);
+            }
         }
         else if (this.resolver)
         {
@@ -69,6 +72,7 @@ export class DamageEffect extends Effect
             for (let target of targets)
             {
                 target.takeDamage(this._amount);
+                context.engine.recordDamage(target, this._amount);
             }
         }
     }
@@ -260,7 +264,13 @@ export class RandomMissileEffect extends Effect
             if (this.resolver && !this.resolver.requiresInput)
             {
                 let target = this.resolver.resolve(context);
-                target[0].takeDamage(this._damage);
+                if (target[0].isAlive())
+                {
+                    target[0].takeDamage(this._damage);
+                    context.engine.recordDamage(target[0], this._damage);
+                }
+                else
+                    i--;
             }
         }
     }

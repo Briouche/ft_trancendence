@@ -113,6 +113,11 @@ export class Hand
         this.layout();
     }
 
+    findCardById(id: string): Card | undefined
+    {
+        return (this.cards.find((card) => card.cardData.id === id));
+    }
+
     extractCard(card: Card): void
     {
         const index = this.cards.indexOf(card);
