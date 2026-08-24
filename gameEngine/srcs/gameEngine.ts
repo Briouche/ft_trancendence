@@ -12,10 +12,17 @@ export interface DamageRecord
     amount: number;
 }
 
+export interface effectTrigger
+{
+    sourceId: string;
+    trigger: "passive" | "battlecry" | "deathrattle";
+}
+
 export interface ActionResult
 {
     succes: boolean;
     damageEvents: DamageRecord[];
+    effectEvents: effectTrigger[];
 }
 
 export class GameEngine
@@ -24,6 +31,7 @@ export class GameEngine
     public board: Board;
     public currentTurn: 0 | 1;
     private damageEvents: DamageRecord[] = [];
+    private effectEvents: effectTrigger[] = [];
 
     constructor(players: [Player, Player])
     {
@@ -43,7 +51,7 @@ export class GameEngine
         this.startTurn();
     }
 
-    startTurn(): void
+    startTurn(): ActionResult
     {
         const player: Player = this.activePlayer();
         player.gainMana();
@@ -55,23 +63,46 @@ export class GameEngine
             minion.canAttack = true;
             if (minion.effects.rush && minion.effects.rush == true)
                 minion.effects.rush = false;
+            if (minion.effects.startOfTurnEffect !== undefined)
+            {
+                let context: GameContext = { engine: this, owner: this.activePlayer(), source: minion, target: undefined };
+                minion.effects.startOfTurnEffect.execute(context);
+                this.effectEvents.push({ sourceId: minion.id, trigger: "passive" });
+                this.processDeaths();
+            }
         }
+        return {succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents};
     }
 
-    endTurn(): void
+    endTurn(): ActionResult
     {
+        this.damageEvents = [];
+        this.effectEvents = [];
+        const minions: MinionCard[] = this.board.getMinions(this.currentTurn);
+        for (const minion of minions)
+        {
+            if (minion.effects.endOfTurnEffect !== undefined)
+            {
+                let context: GameContext = { engine: this, owner: this.activePlayer(), source: minion, target: undefined };
+                minion.effects.endOfTurnEffect.execute(context);
+                this.effectEvents.push({ sourceId: minion.id, trigger: "passive" });
+                this.processDeaths();
+            }
+        }
         this.currentTurn = this.currentTurn === 0 ? 1 : 0;
-        this.startTurn();
+        this.startTurn(); // effects and events caused by start turn are ignored right now
+        return {succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents};
     }
 
     playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): ActionResult
     {
         this.damageEvents = [];
+        this.effectEvents = [];
         const player = this.activePlayer();
         const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
-            return { succes: false, damageEvents: [] };
+            return { succes: false, damageEvents: [], effectEvents: [] };
 
         player.hand.play(cardIndex);
         player.spendMana(card.manaCost);
@@ -86,6 +117,7 @@ export class GameEngine
             {
                 let context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
                 card.effects.battlecry.execute(context);
+                this.effectEvents.push({ sourceId: card.id, trigger: "battlecry" });
             }
             else if (card.effects.rush)
                 card.canAttack = true;
@@ -96,17 +128,18 @@ export class GameEngine
             card.effect.execute(context);
         }
         this.processDeaths();
-        return { succes: true, damageEvents: this.damageEvents };
+        return { succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents };
     }
 
     attackWithMinion(attackerIndex: number, target: Targetable): ActionResult
     {
+        this.effectEvents = [];
         this.damageEvents = [];
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
         const attacker: MinionCard = this.board.getMinions(this.currentTurn)[attackerIndex];
 
         if (!attacker || !attacker.canAttack)
-            return { succes: false, damageEvents: [] };
+            return { succes: false, damageEvents: [], effectEvents: [] };
 
         attacker.canAttack = false;
 
@@ -114,6 +147,7 @@ export class GameEngine
         {
             let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker };
             attacker.effects.onAttack.execute(context);
+            this.effectEvents.push({ sourceId: attacker.id, trigger: "passive" });
         }
         if (target instanceof Hero)
         {
@@ -131,7 +165,7 @@ export class GameEngine
 
         this.processDeaths();
         this.checkWinCondition();
-        return { succes: true, damageEvents: this.damageEvents };
+        return { succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents };
     }
 
     activePlayer(): Player
@@ -172,6 +206,7 @@ export class GameEngine
                 {
                     const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
                     minion.effects.deathrattle.execute(context);
+                    this.effectEvents.push({ sourceId: minion.id, trigger: "deathrattle" });
                 }
             }
             for (const minion of deadOpponent)
@@ -180,6 +215,7 @@ export class GameEngine
                 {
                     const ctx: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };
                     minion.effects.deathrattle.execute(ctx);
+                    this.effectEvents.push({ sourceId: minion.id, trigger: "deathrattle" });
                 }
             }
         }

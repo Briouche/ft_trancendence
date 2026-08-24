@@ -31,6 +31,8 @@ interface Keywords
     rush?: boolean;
     taunt?: boolean;
     onAttack?: Effect;
+    endOfTurnEffect?: Effect;
+    startOfTurnEffect?: Effect;
     //onDamage?: Effect;
     //onMinionDamage?: Effect;
 }

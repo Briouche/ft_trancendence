@@ -1,4 +1,4 @@
-import { GameEngine } from "../gameEngine";
+import { ActionResult, effectTrigger, GameEngine } from "../gameEngine";
 import { Socket } from "socket.io";
 import { Player } from "../player";
 import { Hero }       from "../hero";
@@ -170,7 +170,13 @@ export class GameSession
             return;
         }
         this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, boardIndex });
+        this.broadcastEffectEvents(result.effectEvents);
         this.broadcastDamageEvents(result.damageEvents);
+        for (let i = 0; i < result.damageEvents.length; i++)
+        {
+            if (!result.damageEvents[i].target.isAlive() && result.damageEvents[i].target instanceof MinionCard)
+                this.broadcastEvent({type: "minionDied", minionId: result.damageEvents[i].target.id, playerIndex: playerIndex});
+        }
         this.broadcastState();
         this.checkGameOver();
     }
@@ -270,7 +276,13 @@ export class GameSession
             return;
         }
         this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex });
+        this.broadcastEffectEvents(result.effectEvents);
         this.broadcastDamageEvents(result.damageEvents);
+        for (let i = 0; i < result.damageEvents.length; i++)
+        {
+            if (!result.damageEvents[i].target.isAlive() && result.damageEvents[i].target instanceof MinionCard)
+                this.broadcastEvent({type: "minionDied", minionId: result.damageEvents[i].target.id, playerIndex: playerIndex});
+        }
         this.broadcastState();
         this.checkGameOver();
     }
@@ -321,6 +333,7 @@ export class GameSession
         const targetDied = !this.isTargetAlive(target);
 
         this.broadcastEvent({ type: "attack", attackerId, targetId, playerIndex });
+        this.broadcastEffectEvents(result.effectEvents);
         this.broadcastDamageEvents(result.damageEvents);
         if (targetDied && target instanceof MinionCard)
             this.broadcastEvent({ type: "minionDied", minionId: target.id, playerIndex: playerIndex });
@@ -351,8 +364,18 @@ export class GameSession
 
     handleEndTurn()
     {
-        this.engine.endTurn();
+        let result: ActionResult;
+        let playerIndex : 0 | 1 = this.engine.currentTurn as 0 | 1;
+
+        result = this.engine.endTurn();
         this.pending = null;
+        this.broadcastEffectEvents(result.effectEvents);
+        this.broadcastDamageEvents(result.damageEvents);
+        for (let i = 0; i < result.damageEvents.length; i++)
+        {
+            if (!result.damageEvents[i].target.isAlive() && result.damageEvents[i].target instanceof MinionCard)
+                this.broadcastEvent({type: "minionDied", minionId: result.damageEvents[i].target.id, playerIndex: playerIndex});
+        }
         this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
         this.broadcastState();
     }
@@ -385,22 +408,30 @@ export class GameSession
 
             if (!alive && record.target instanceof MinionCard)
             {
-                const ownerIndex = this.findOwnerIndex(record.target);
+                const ownerIndex = this.findOwnerIndex(record.target.id);
                 if (ownerIndex !== undefined)
                     this.broadcastEvent({ type: "minionDied", minionId: record.target.id, playerIndex: ownerIndex });
             }
         }
     }
 
-    private findOwnerIndex(target: Targetable): 0 | 1 | undefined
+    private broadcastEffectEvents(effectEvents: effectTrigger[])
     {
+        for (const record of effectEvents)
+            this.broadcastEvent({ type: "effect", minionId: record.sourceId, playerIndex: this.findOwnerIndex(record.sourceId), trigger: record.trigger });
+    }
+
+    private findOwnerIndex(targetId: string): 0 | 1
+    {
+        const target: Targetable = [...this.engine.board.getMinions(0), ...this.engine.board.getMinions(1),
+            this.engine.players[0].hero, this.engine.players[1].hero].find((candidate: Targetable) => candidate.id === targetId)!;
+
         if (target instanceof MinionCard)
         {
             if (this.engine.board.getMinions(0).includes(target))
                 return 0;
             if (this.engine.board.getMinions(1).includes(target))
                 return 1;
-            return undefined;
         }
         return this.engine.players[0].hero === target ? 0 : 1;
     }

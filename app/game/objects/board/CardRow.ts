@@ -42,9 +42,10 @@ export class CardRow
         return this.cards.length;
     }
 
-    insert(card: Card, index: number): void
+    insert(card: Card, index: number, isMyTurn: boolean): void
     {
         this.cards.splice(index, 0, card);
+        card.setCardContext(true, isMyTurn, this.side === 0);
         this.applyInteractivity(card);
     }
 
@@ -57,7 +58,7 @@ export class CardRow
         return true;
     }
 
-    sync(dataList: CardData[]): void
+    sync(dataList: CardData[], isMyTurn: boolean): void
     {
         const remaining = [...this.cards];
         const next: Card[] = [];
@@ -69,12 +70,14 @@ export class CardRow
             {
                 const card = remaining[existingIndex];
                 card.updateData(data);
+                card.setCardContext(true, isMyTurn, this.side === 0);
                 next.push(card);
                 remaining.splice(existingIndex, 1);
             }
             else
             {
                 const card = new Card(this.scene, data);
+                card.setCardContext(true, isMyTurn, this.side === 0);
                 this.applyInteractivity(card);
                 next.push(card);
             }

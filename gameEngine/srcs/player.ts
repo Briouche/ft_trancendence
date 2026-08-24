@@ -25,7 +25,7 @@ export class Player
         this.hand = new Hand();
         this.currentMana = 0;
         this.maxMana = 0;
-        this.fatigue = 0;
+        this.fatigue = 1;
     }
 
     gainMana(): void

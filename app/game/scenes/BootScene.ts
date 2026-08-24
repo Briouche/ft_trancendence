@@ -9,8 +9,10 @@ export class BootScene extends Phaser.Scene
 
     preload()
     {
-        // Load real assets here later, e.g.:
-        // this.load.image("card-back", "/assets/card-back.png");
+        // Load assets here :
+        this.load.image("shield_taunt", "/gameAssets/shield_taunt.png");
+        this.load.image("effect_lightning", "/gameAssets/lightning_bolt.png");
+        this.load.image("wooden_table", "/gameAssets/wooden_table.png");
     }
 
     create()

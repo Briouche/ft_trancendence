@@ -1,3 +1,12 @@
+export interface clientEffect
+{
+    taunt?: boolean;
+    deathrattle?: boolean;
+    startOfTurn?: boolean;
+    endOfTurn?: boolean;
+    onAttack?: boolean;
+}
+
 export interface ClientCard
 {
     id: string;
@@ -7,7 +16,8 @@ export interface ClientCard
     health?: number;
     canAttack?: boolean;
     description: string;
-    requiresTarget: boolean
+    requiresTarget: boolean;
+    effects: clientEffect;
 }
 
 export interface ClientHero
@@ -38,6 +48,7 @@ export type GameEvent = { type: "attack"; attackerId: string; targetId: string; 
     | { type: "damage"; targetId: string; amount: number; targetDied: boolean }
     | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number }
     | { type: "minionDied"; minionId: string; playerIndex: 0 | 1 }
+    | { type: "effect"; minionId: string; playerIndex: 0 | 1; trigger: "passive" | "battlecry" | "deathrattle" }
     | { type: "turnEnded"; nextPlayerIndex: 0 | 1 }
     | { type: "cardDrawn"; playerIndex: 0 | 1; cardId?: string };
 

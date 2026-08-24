@@ -5,3 +5,6 @@ export * from "./turnBanner";
 export * from "./hover";
 export * from "./draw";
 export * from "./damage";
+export * from "./battlecry";
+export * from "./deathrattle";
+export * from "./passive";

@@ -206,6 +206,34 @@ export class AddEffectfEffect extends Effect
     }
 }
 
+export class silenceEffect extends Effect
+{
+    constructor(resolver: TargetResolver)
+    {
+        super(resolver);
+    }
+
+    execute(context: GameContext): void
+    {
+        if (this.resolver && this.resolver.requiresInput)
+        {
+            if (context.target && context.target instanceof MinionCard)
+            {
+                context.target.effects = {};
+            }
+        }
+        else if (this.resolver && !this.resolver.requiresInput)
+        {
+            const targets: Targetable[] = this.resolver.resolve(context);
+            for (let target of targets)
+            {
+                if (target instanceof MinionCard)
+                    target.effects = {};
+            }
+        }
+    }
+}
+
 export class SummonMinionEffect extends Effect
 {
     private _tokens: MinionCard[];

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { Card } from "@/game/objects/Card";
 import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
@@ -13,11 +14,17 @@ interface TableRefs
     opponentHand: OpponentHand;
 }
 
+interface DeferredCardAnimation
+{
+    cardId: string;
+    run: (card: Card) => void;
+}
+
 //syncs with serverstate, use apply on every recieved state from the server
 export class StateSyncController
 {
     private previousState: ClientGameState | null = null;
-    private pendingSummonIds = new Set<string>();
+    private pendingCardAnimations: DeferredCardAnimation[] = [];
     private pendingDrawIds = new Set<string>();
 
     private table: TableRefs | null = null;
@@ -25,9 +32,9 @@ export class StateSyncController
     constructor(private scene: Phaser.Scene, private flow: GameFlowState, private onTableCreated: (table: TableRefs) => void, private onWaitingCleared: () => void)
     {}
 
-    flagSummon(cardId: string): void
+    deferUntilCardExists(cardId: string, run: (card: Card) => void): void
     {
-        this.pendingSummonIds.add(cardId);
+        this.pendingCardAnimations.push({ cardId, run });
     }
 
     apply(state: ClientGameState): void
@@ -55,13 +62,16 @@ export class StateSyncController
 
         this.flow.isMyTurn = state.yourTurn;
 
-        for (const id of this.pendingSummonIds)
+        const stillPending: DeferredCardAnimation[] = [];
+        for (const pending of this.pendingCardAnimations)
         {
-            const card = board.findCardById(id);
+            const card = board.findCardById(pending.cardId);
             if (card)
-                summonAnimation(this.scene, card);
+                pending.run(card);
+            else
+                stillPending.push(pending);
         }
-        this.pendingSummonIds.clear();
+        this.pendingCardAnimations = stillPending;
 
         for (const id of this.pendingDrawIds)
         {

@@ -1,13 +1,14 @@
 import Phaser from "phaser";
 import { Board } from "../../objects/board/Board";
 import { GameEvent } from "../../shared/protocol";
-import { attackAnimation, damageAnimation, deathAnimation, turnBannerAnimation } from "../../animations";
+import { Card } from "@/game/objects/Card";
+import { attackAnimation, battlecryAnimation, damageAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
 
 //handles the "GameEvent" signal
 // mostly runs the animations
 export class ServerEventPlayer
 {
-    constructor(private scene: Phaser.Scene, private board: Board, private getPlayerIndex: () => 0 | 1 | null, private onCardPlayed: (cardId: string) => void)
+    constructor(private scene: Phaser.Scene, private board: Board, private getPlayerIndex: () => 0 | 1 | null, private deferUntilCardExists: (cardId: string, run: (card: Card) => void) => void)
     {}
 
     async play(event: GameEvent): Promise<void>
@@ -19,6 +20,7 @@ export class ServerEventPlayer
             case "cardPlayed": return this.playCardPlayed(event);
             case "minionDied": return this.playMinionDied(event);
             case "turnEnded": return this.playTurnEnded(event);
+            case "effect": return this.playEffectTriggered(event);
         }
     }
 
@@ -52,12 +54,37 @@ export class ServerEventPlayer
 
     private async playCardPlayed(event: Extract<GameEvent, { type: "cardPlayed" }>): Promise<void>
     {
-        this.onCardPlayed(event.cardId);
+        this.deferUntilCardExists(event.cardId, (card) => summonAnimation(this.scene, card));
     }
 
     private async playTurnEnded(event: Extract<GameEvent, { type: "turnEnded" }>): Promise<void>
     {
         const label = event.nextPlayerIndex === this.getPlayerIndex() ? "Your Turn" : "Opponent's Turn";
         await turnBannerAnimation(this.scene, label);
+    }
+
+    private async playEffectTriggered(event: Extract<GameEvent, { type: "effect" }>): Promise<void>
+    {
+        const existing = this.board.findCardById(event.minionId);
+
+        if (existing)
+        {
+            await this.runEffectAnimation(event.trigger, existing);
+            return;
+        }
+        this.deferUntilCardExists(event.minionId, (card) =>
+        {
+            void this.runEffectAnimation(event.trigger, card);
+        });
+    }
+
+    private async runEffectAnimation(trigger: "passive" | "deathrattle" | "battlecry", card: Card): Promise<void>
+    {
+        if (trigger === "passive")
+            await passiveEffectAnimation(this.scene, card);
+        else if (trigger === "deathrattle")
+            await deathrattleAnimation(this.scene, card);
+        else if (trigger === "battlecry")
+            await battlecryAnimation(this.scene, card);
     }
 }

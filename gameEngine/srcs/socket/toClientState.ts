@@ -1,7 +1,7 @@
 import { Card, MinionCard, SpellCard } from "../card";
 import { GameEngine } from "../gameEngine";
 import { Effect } from "../effect";
-import { ClientCard, ClientGameState, ClientHero, TargetOption } from "../shared/protocol";
+import { ClientCard, ClientGameState, ClientHero, TargetOption, clientEffect } from "../shared/protocol";
 import { Targetable } from "../target";
 import { Player } from "../player";
 
@@ -26,12 +26,15 @@ function requiresTarget(card: Card): boolean
 
 function toClientCard(card: Card): ClientCard
 {
+    let effects: clientEffect = {};
+
     const clientCard: ClientCard = {
         id: card.id,
         name: card.name,
         cost: card.manaCost,
         description: card.description,
-        requiresTarget : requiresTarget(card)
+        requiresTarget : requiresTarget(card),
+        effects: effects
     };
 
     if (card instanceof MinionCard)
@@ -39,6 +42,16 @@ function toClientCard(card: Card): ClientCard
         clientCard.attack = card.attack;
         clientCard.health = card.currentHealth;
         clientCard.canAttack = card.canAttack;
+        if (card.effects.taunt)
+            clientCard.effects.taunt = true;
+        if (card.effects.deathrattle)
+            clientCard.effects.deathrattle = true;
+        if (card.effects.startOfTurnEffect)
+            clientCard.effects.startOfTurn = true;
+        if (card.effects.endOfTurnEffect)
+            clientCard.effects.endOfTurn = true;
+        if (card.effects.onAttack)
+            clientCard.effects.onAttack = true;
     }
 
     return clientCard;

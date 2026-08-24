@@ -48,12 +48,7 @@ export class GameScene extends Phaser.Scene
         this.board = table.board;
         this.opponentHand = table.opponentHand;
 
-        this.eventPlayer = new ServerEventPlayer(
-            this,
-            this.board,
-            () => this.flow.playerIndex,
-            (cardId) => this.stateSync.flagSummon(cardId)
-        );
+        this.eventPlayer = new ServerEventPlayer(this, this.board, () => this.flow.playerIndex, (cardId, run) => this.stateSync.deferUntilCardExists(cardId, run));
 
         this.input_ = new InputController(this, this.board, this.hand, this.flow);
         this.input_.register();
@@ -99,7 +94,7 @@ export class GameScene extends Phaser.Scene
 
     private onServerRejected(reason: string): void
     {
-        //console.warn("Server rejected action:", reason);
+        console.warn("Server rejected action:", reason);
         this.input_.clearWaitingState(true);
     }
 

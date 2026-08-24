@@ -3,7 +3,6 @@ import { Hero }       from "./hero";
 import { Player }     from "./player";
 import { GameEngine } from "./gameEngine";
 import { GameContext } from "./effect";
-import { Context } from "node:vm";
 
 //make object for a target that accepts both minion and hero,
 export interface Targetable
@@ -13,6 +12,7 @@ export interface Targetable
     heal(amount: number): void;
     currentHealth:   number;
     readonly name:   string;
+    readonly id: string;
 }
 
 

@@ -27,6 +27,7 @@ export class Hand
         const cardWidth = cardHeight / CARD_ASPECT_RATIO;
 
         const card: Card = new Card(this.scene, data, cardWidth, cardHeight);
+        card.setCardContext(false, false, true);
         attachCardHover(card);
         this.cards.push(card);
         this.layout();
@@ -105,7 +106,10 @@ export class Hand
             const existing: Card | undefined = this.getCards().find((c) => c.cardData.id === data.id);
 
             if (existing)
+            {
                 existing.updateData(data);
+                existing.setCardContext(false, false, true);
+            }
             else
                 this.addCard(data);
         }

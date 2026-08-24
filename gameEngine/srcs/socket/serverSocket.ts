@@ -34,8 +34,8 @@ export function createGameServer(port: number): void
                 const s1: Socket = waiting.shift()!;
 
                 //get real deck's from collection
-                const player0: Player = new Player(new Hero("Jimmy", "hero-0"), makeBasicDeck(), "hero-0", 0);
-                const player1: Player = new Player(new Hero("Franky", "hero-1"), makeBasicDeck(), "hero-1", 1);
+                const player0: Player = new Player(new Hero("Jimmy", "hero-0"), makeBasicDeck("0."), "hero-0", 0);
+                const player1: Player = new Player(new Hero("Franky", "hero-1"), makeBasicDeck("1."), "hero-1", 1);
 
                 const session: GameSession = new GameSession(s0, s1, player0, player1);
 

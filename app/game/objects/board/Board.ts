@@ -46,6 +46,8 @@ export class Board
     private opponentGraphic: Phaser.GameObjects.Rectangle;
     private endTurn: EndTurn;
 
+    private yourTurn: boolean = false;
+
     constructor(scene: Phaser.Scene, slotCount = 6, playerHeroData: HeroData, opponentHeroData: HeroData)
     {
         this.scene = scene;
@@ -156,14 +158,15 @@ export class Board
     insertCard(card: Card, index: number, side: 0 | 1 = 0): void
     {
         const row = side === 0 ? this.playerRow : this.opponentRow;
-        row.insert(card, index);
+        row.insert(card, index, this.yourTurn);
         this.layout();
     }
 
     syncBoardFromState(yourBoard: CardData[], opponentBoard: CardData[], state: ClientGameState): void
     {
-        this.playerRow.sync(yourBoard);
-        this.opponentRow.sync(opponentBoard);
+        this.yourTurn = state.yourTurn;
+        this.playerRow.sync(yourBoard, state.yourTurn);
+        this.opponentRow.sync(opponentBoard, state.yourTurn);
 
         this.opponentDeck.update(state.opponentDeck);
         this.playerDeck.update(state.playerDeck);
