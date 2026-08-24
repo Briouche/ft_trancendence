@@ -1,4 +1,5 @@
 import { Effect } from "./effect";
+import { legendary } from "./legendary";
 
 export abstract class Card
 {
@@ -6,13 +7,20 @@ export abstract class Card
     public readonly manaCost:    number;
     public readonly description: string;
     public readonly id: string;
+    private legendaryPassive: legendary | undefined;
 
-    constructor(name: string, manaCost: number, description: string, id: string)
+    constructor(name: string, manaCost: number, description: string, id: string, legendaryPassive?: legendary)
     {
         this.name = name;
         this.manaCost = manaCost;
         this.description = description;
         this.id = id;
+        this.legendaryPassive = legendaryPassive;
+    }
+
+    getLeg(): legendary | undefined
+    {
+        return this.legendaryPassive;
     }
 
     abstract getType(): string;
@@ -33,7 +41,8 @@ interface Keywords
     onAttack?: Effect;
     endOfTurnEffect?: Effect;
     startOfTurnEffect?: Effect;
-    //onDamage?: Effect;
+    archi?: boolean;
+    onDamage?: Effect;
     //onMinionDamage?: Effect;
 }
 
@@ -44,12 +53,13 @@ export class MinionCard extends Card
     public currentHealth:      number;
     public canAttack:          boolean = false;
     public effects:            Keywords = {};
+    public jeffeBuff: boolean = false;
 
     constructor(id: string = "", name: string, manaCost: number,
                 description: string, attack: number,
-                maxHealth: number, effects: Keywords = {})
+                maxHealth: number, effects: Keywords = {}, legendaryPassive?: legendary)
     {
-        super(name, manaCost, description, id);
+        super(name, manaCost, description, id, legendaryPassive);
         this.attack      = attack;
         this.maxHealth   = maxHealth;
         this.currentHealth = maxHealth;
@@ -89,9 +99,9 @@ export class SpellCard extends Card
 {
     public readonly effect: Effect;
 
-    constructor(id: string = "", name: string, manaCost: number, description: string, effect: Effect)
+    constructor(id: string = "", name: string, manaCost: number, description: string, effect: Effect, legendaryPassive?: legendary)
     {
-        super(name, manaCost, description, id);
+        super(name, manaCost, description, id, legendaryPassive);
         this.effect = effect;
     }
 

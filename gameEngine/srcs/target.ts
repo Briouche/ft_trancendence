@@ -114,8 +114,22 @@ export class EnemyMinionResolver extends TargetResolver
 }
 
 
-
 //no choice resolvers (no need to target by player)
+
+// only enemy hero
+export class EnemyHeroResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(false);
+    }
+
+    resolve(context: GameContext): Targetable[]
+    {
+        const oppIdx: 0 | 1        = this.opponentIndex(context.engine);
+        return [context.engine.players[oppIdx].hero];
+    }
+}
 
 // all characters
 export class AllCharactersResolver extends TargetResolver

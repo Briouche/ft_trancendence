@@ -5,6 +5,7 @@ import { GameContext } from "./effect";
 import { Targetable } from "./target";
 import { Effect } from "./effect";
 import { Hero } from "./hero";
+import { freddyPassive, jeffePassive, timmyPassive } from "./legendary";
 
 export interface DamageRecord
 {
@@ -44,6 +45,10 @@ export class GameEngine
     {
         for (let i = 0; i < 2; i++)
         {
+            this.players[i].checkDeckForLeg();
+            if (this.players[i].legPassive === "timmy")
+                timmyPassive(this.players[i]);
+            
             this.players[i].deck.shuffle();
             for (let j = 0; j < 3; j++)
                 this.players[i].drawCard();
@@ -113,6 +118,8 @@ export class GameEngine
                 this.board.playMinion(this.currentTurn, card, boardIndex);
             else
                 this.board.playMinion(this.currentTurn, card);
+            if (card.effects.archi)
+                this.players[this.currentTurn].archimedeCount++;
             if (card.effects.battlecry)
             {
                 let context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
@@ -152,15 +159,15 @@ export class GameEngine
         if (target instanceof Hero)
         {
             this.players[opponentIndex].hero.takeDamage(attacker.attack);
-            this.recordDamage(this.players[opponentIndex].hero, attacker.attack);
+            this.recordDamage(this.players[opponentIndex].hero, attacker.attack, this.players[opponentIndex]);
         }
 
         else if (target instanceof MinionCard)
         {
             attacker.takeDamage(target.attack);
-            this.recordDamage(target, attacker.attack);
             target.takeDamage(attacker.attack);
-            this.recordDamage(attacker, target.attack);
+            this.recordDamage(target, attacker.attack, this.players[opponentIndex]);
+            this.recordDamage(attacker, target.attack, this.players[this.currentTurn]);
         }
 
         this.processDeaths();
@@ -171,6 +178,18 @@ export class GameEngine
     activePlayer(): Player
     {
         return this.players[this.currentTurn];
+    }
+
+    findOwnerById(targetId: string): Player | undefined
+    {
+        for (const player of this.players)
+        {
+            if (player.hero.id === targetId
+                || player.index === 0 && this.board.getMinions(0).some(minion => minion.id === targetId)
+                || player.index === 1 && this.board.getMinions(1).some(minion => minion.id === targetId))
+                return player;
+        }
+        return undefined;
     }
 
     checkWinCondition(): boolean
@@ -208,6 +227,16 @@ export class GameEngine
                     minion.effects.deathrattle.execute(context);
                     this.effectEvents.push({ sourceId: minion.id, trigger: "deathrattle" });
                 }
+                if (this.players[this.currentTurn].legPassive === "freddy")
+                {
+                    this.players[this.currentTurn].freddyCount++;
+                    //console.log("minion died: " + minion.name + ": freddycount = " + this.players[this.currentTurn].freddyCount);
+                    if (this.players[this.currentTurn].freddyCount % 4 === 0)
+                    {
+                        const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
+                        freddyPassive(context, this.players[this.currentTurn].freddyCount / 4);
+                    }
+                }
             }
             for (const minion of deadOpponent)
             {
@@ -217,13 +246,31 @@ export class GameEngine
                     minion.effects.deathrattle.execute(ctx);
                     this.effectEvents.push({ sourceId: minion.id, trigger: "deathrattle" });
                 }
+                if (this.players[opponentIndex].legPassive === "freddy")
+                {
+                    this.players[opponentIndex].freddyCount++;
+                    //console.log("minion died: " + minion.name + ": freddycount = " + this.players[opponentIndex].freddyCount);
+                    if (this.players[opponentIndex].freddyCount % 4 === 0)
+                    {
+                        const context: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };
+                        freddyPassive(context, this.players[opponentIndex].freddyCount / 4);
+                    }
+                }
             }
         }
     }
 
-    recordDamage(target: Targetable, amount: number)
+    recordDamage(target: Targetable, amount: number, owner: Player | undefined)
     {
         this.damageEvents.push({ target, amount });
+
+        if (target instanceof MinionCard && target.effects.onDamage && owner !== undefined)
+        {
+            const context: GameContext = { engine: this, owner: owner, source: target };
+            target.effects.onDamage.execute(context);
+        }
+        if (owner !== undefined && owner.legPassive === "jeffe" && target instanceof MinionCard)
+            jeffePassive(target);
     }
 
     toString(): string

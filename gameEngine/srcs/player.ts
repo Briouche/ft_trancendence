@@ -2,6 +2,7 @@ import { Deck } from "./deck";
 import { Hand } from "./hand";
 import { Hero } from "./hero";
 import { Card } from "./card";
+import { legendary } from "./legendary";
 
 const MAX_MANA: number = 7;
 
@@ -15,6 +16,9 @@ export class Player
     public fatigue:       number;
     public id:            string;
     public index:         0 | 1;
+    public legPassive: legendary | undefined;
+    public freddyCount: number = 0;
+    public archimedeCount: number = 0;
 
     constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1)
     {
@@ -54,6 +58,21 @@ export class Player
         const card: Card = this.deck.draw()!;
         this.hand.add(card);
         return true;
+    }
+
+    checkDeckForLeg()
+    {
+        const deck: Card[] = this.deck.getCards();
+
+        for (let i = 0; i < deck.length; i++)
+        {
+            let legPassive = deck[i].getLeg();
+            if (legPassive !== undefined)
+            {
+                this.legPassive = legPassive;
+                break ;
+            }
+        }
     }
 
     toString(): string

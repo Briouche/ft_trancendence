@@ -1,7 +1,7 @@
 import { Card, MinionCard } from "./card";
 import { GameEngine } from "./gameEngine";
 import { Player } from "./player";
-import { Targetable, TargetResolver } from "./target";
+import { EnemyHeroResolver, Targetable, TargetResolver } from "./target";
 import { Hero } from "./hero";
 
 export interface GameContext
@@ -63,7 +63,7 @@ export class DamageEffect extends Effect
             if (context.target)
             {
                 context.target.takeDamage(this._amount);
-                context.engine.recordDamage(context.target, this._amount);
+                context.engine.recordDamage(context.target, this._amount, context.engine.findOwnerById(context.target.id));
             }
         }
         else if (this.resolver)
@@ -72,7 +72,7 @@ export class DamageEffect extends Effect
             for (let target of targets)
             {
                 target.takeDamage(this._amount);
-                context.engine.recordDamage(target, this._amount);
+                context.engine.recordDamage(target, this._amount, context.engine.findOwnerById(target.id));
             }
         }
     }
@@ -234,6 +234,8 @@ export class silenceEffect extends Effect
     }
 }
 
+//bug to fix: when one of those effects is triggered twice, be careful to not have summons with the same Id's
+// see deathrattle triggered by freddy then minion dying, summons dont spawn twice
 export class SummonMinionEffect extends Effect
 {
     private _tokens: MinionCard[];
@@ -295,11 +297,75 @@ export class RandomMissileEffect extends Effect
                 if (target[0].isAlive())
                 {
                     target[0].takeDamage(this._damage);
-                    context.engine.recordDamage(target[0], this._damage);
+                    context.engine.recordDamage(target[0], this._damage, context.engine.findOwnerById(target[0].id));
                 }
                 else
                     i--;
             }
+        }
+    }
+}
+
+export class triggerDeathrattleEffect extends Effect
+{
+    constructor(resolver: TargetResolver)
+    {
+        super(resolver);
+    }
+
+    execute(context: GameContext): void
+    {
+        if (this.resolver && this.resolver.requiresInput)
+        {
+            if (context.target && context.target instanceof MinionCard)
+            {
+                if (context.target.effects.deathrattle)
+                    context.target.effects.deathrattle.execute(context);
+            }
+        }
+        else if (this.resolver && !this.resolver.requiresInput)
+        {
+            let targets = this.resolver.resolve(context);
+            for (let target of targets)
+            {
+                if (target instanceof MinionCard && target.effects.deathrattle)
+                    target.effects.deathrattle.execute(context);
+            }
+        }
+    }
+}
+
+export class timmyDamageEffect extends Effect
+{
+    constructor(resolver: TargetResolver)
+    {
+        super(resolver);
+    }
+
+    execute(context: GameContext): void
+    {
+        let damage: number = context.owner.hero.currentHealth - 20;
+
+        if (damage < 0)
+            damage = 0;
+        let effect = new DamageEffect(damage, this.resolver);
+        effect.execute(context);    
+    }
+}
+
+export class archiDamageEffect extends Effect
+{
+    constructor(resolver: TargetResolver)
+    {
+        super(resolver);
+    }
+
+    execute(context: GameContext): void
+    {
+        if (context.owner.archimedeCount >= 6)
+        {
+            let effect = new DamageEffect(50, this.resolver)
+            effect.execute(context);
         }
     }
 }
