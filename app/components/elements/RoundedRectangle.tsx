@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 export default function RoundedRectangle({
   children,
   className = "",
-  variant = "parchment-panel",
+  variant = "book-panel",
 }: {
   children: ReactNode;
   className?: string;
-  /** "parchment-panel" (coin unique enroulé, cartes hautes) ou "parchment-roll-panel"
-   *  (rouleau à deux embouts, bandeaux larges et fins comme Header/Footer). */
-  variant?: "parchment-panel" | "parchment-roll-panel";
+  /** "book-panel" (petit panneau plat, cartes), "book-cover-panel" (couverture illustrée,
+   *  bandeaux larges comme Header/Footer), ou "book-slot" (case fine, petites pastilles). */
+  variant?: "book-panel" | "book-cover-panel" | "book-slot";
 }) {
   return (
     <div className={`${variant} text-ink-text p-1.5 px-2 ${className}`}>

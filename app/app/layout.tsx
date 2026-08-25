@@ -1,38 +1,26 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Cinzel, Cinzel_Decorative, Crimson_Text } from "next/font/google";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
 import AudioProvider from "@/components/AudioProvider";
-import AudioToggleButton from "@/components/AudioToggleButton";
+import CustomCursor from "@/components/CustomCursor";
 import "./globals.css";
 
-const cinzel = Cinzel({
-  variable: "--font-cinzel",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "900"],
+// Pixel Game (1001fonts.com/pixel-game-font — gratuit usage personnel uniquement, voir credits
+// dans le README) — police de tout le front (globals.css y fait pointer
+// font-display/font-serif/font-sans/font-engraved/font-pixel).
+const pixelGame = localFont({
+  src: "./fonts/PixelGame-Regular.otf",
+  variable: "--font-pixel-game",
+  display: "swap",
 });
 
-const crimson = Crimson_Text({
-  variable: "--font-crimson",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
-});
-
-// Variante gravée/ciselée de Cinzel, pour les enseignes de porte du hall 3D — même famille que
-// le display, donc cohérente, mais plus lisible qu'une police "manuscrite" à ce niveau de détail.
-const cinzelDecorative = Cinzel_Decorative({
-  variable: "--font-cinzel-decorative",
-  subsets: ["latin"],
-  weight: ["400", "700", "900"],
-});
-
-// Police du Pixel Parchment UI Kit (fichier local, pas sur Google Fonts) — utilisée
-// uniquement sur les cartes papyrus (Header, Footer, Form, Notice), pas sur le reste du jeu
-// (hall 3D, deck builder, cartes...) qui garde Cinzel/Crimson.
-const shPinscher = localFont({
-  src: "./fonts/SHPinscher-Regular.otf",
-  variable: "--font-sh-pinscher",
+// Merchant Copy (S. John Ross, Cumberland Games & Diversions, cumberlandgames.com — gratuit
+// usage personnel/non-commercial uniquement, voir credits dans le README) — réservée aux cartes
+// (CardFace, --font-card dans globals.css). Chiffres complets et lisibles (contrairement à Gome
+// Pixel/Game Paused), style impression de reçu dot-matrix.
+const merchantCopy = localFont({
+  src: "./fonts/MerchantCopy-Regular.ttf",
+  variable: "--font-merchant-copy",
   display: "swap",
 });
 
@@ -55,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${cinzel.variable} ${crimson.variable} ${cinzelDecorative.variable} ${shPinscher.variable} h-full antialiased`}
+      className={`${pixelGame.variable} ${merchantCopy.variable} h-full antialiased`}
       style={{ backgroundColor: '#0b0c0d' }}
     >
       {/* backgroundColor en inline ici (pas en classe Tailwind) : le but est justement
@@ -63,11 +51,11 @@ export default function RootLayout({
           (Turbopack) — une classe utilitaire subirait le même délai. */}
       <body className="min-h-full flex flex-col bg-ink-950">
         <TransitionOverlay />
+        <CustomCursor />
         {/* AudioProvider vit dans le layout racine (jamais démonté entre deux pages, contrairement
             au contenu de `children`) : la nappe ambiante ne redémarre pas à chaque navigation. */}
         <AudioProvider>
           {children}
-          <AudioToggleButton />
         </AudioProvider>
       </body>
     </html>

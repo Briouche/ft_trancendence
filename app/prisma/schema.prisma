@@ -19,6 +19,10 @@ model User {
   // Nullable because OAuth-only accounts never set one
   password String?
 
+  // 42 intra user id — set once the account is linked via "Sign in with 42".
+  // Nullable/unique: most accounts won't have one, but no two can share the same.
+  fortyTwoId Int? @unique
+
   // Used to logout-everywhere, password change, or suspected compromise
   // A JWT is only accepted if its embedded tokenVersion matches this value
   tokenVersion Int @default(0)
@@ -28,6 +32,14 @@ model User {
   cards         UserCard[]
   unopenedPacks Int        @default(0)
   pityCounter   Int        @default(0)
+  // Aucun mode de jeu live n'existe encore : reste à 0 pour tout le monde pour l'instant, prêt
+  // à être incrémenté une fois qu'une partie peut se terminer.
+  wins          Int        @default(0)
+  // Index (0-19) dans le catalogue de dos de carte cosmétiques — voir lib/cardBacks.ts.
+  cardBack      Int        @default(0)
+  // Designs de dos de carte débloqués (index 0 offert d'office à tout le monde) — les autres
+  // s'obtiennent en paquet, comme un drop rare (voir lib/packs.ts).
+  unlockedCardBacks Int[]  @default([0])
 }
 
 enum Keyword {

@@ -10,13 +10,14 @@ export default async function PacksPage() {
 
     const user = await prisma.user.findUniqueOrThrow({
         where:  { id: session.userId },
-        select: { unopenedPacks: true, pityCounter: true },
+        select: { unopenedPacks: true, pityCounter: true, cardBack: true },
     })
 
     return (
         <PackOpener
             initialPacks={user.unopenedPacks}
             initialPityCounter={user.pityCounter}
+            cardBack={user.cardBack}
         />
     )
 }

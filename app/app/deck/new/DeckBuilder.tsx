@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 import DeskRoom from '../DeskRoom'
+import RoundedRectangle from '@/components/elements/RoundedRectangle'
 
 type Card = CardFaceData & { qty: number }
 
@@ -176,12 +177,12 @@ export default function DeckBuilder({ cards, deckId, initialName = '', initialDe
             {/* Panneau gauche — toutes les cartes possédées */}
             <div className="flex-1 bg-ink-950/85 backdrop-blur-sm p-6 overflow-y-auto">
                 <div className="flex items-center justify-between gap-4 mb-4">
-                    <div>
-                        <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">
+                    <RoundedRectangle variant="book-cover-panel" className="px-4 py-2">
+                        <p className="font-serif text-xs uppercase tracking-[0.25em] text-ink-muted mb-1">
                             Scribe's Workshop
                         </p>
-                        <h1 className="font-display text-2xl font-bold text-parchment-100">Build a deck</h1>
-                    </div>
+                        <h1 className="font-display text-2xl font-bold text-ink-text">Build a deck</h1>
+                    </RoundedRectangle>
 
                     {/* Filtre par coût exact, à côté du titre — cliquer une case n'affiche que les
                         cartes de ce coût-là ; recliquer la même case retire le filtre. */}

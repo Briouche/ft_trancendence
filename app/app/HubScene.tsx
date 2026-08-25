@@ -1,15 +1,15 @@
 'use client'
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { PerspectiveCamera, RoundedBox, Sparkles, Html } from '@react-three/drei'
+import { PerspectiveCamera, RoundedBox, Sparkles, Html, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import Lantern from '@/components/library/Lantern'
 import Candle from '@/components/library/Candle'
 import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
 import { MENU_ITEMS, type MenuItem } from './menu'
-import SimpleMenu from './SimpleMenu'
+import AccountMenu from './AccountMenu'
 
 // Le hall : une vraie salle en three-fiber, fermée par un anneau de bibliothèques. Pas de plan de
 // sol visible — juste le mobilier et les portes posés dans le noir/brouillard, comme une rangée
@@ -222,15 +222,81 @@ function TableChest({ position }: { position: [number, number, number] }) {
 // Le bibliothécaire lit maintenant comme un marchand encapuchonné : longue tunique qui
 // descend jusqu'au sol, cape plus sombre drapée sur les épaules, capuchon qui ombre tout le
 // visage — seuls les deux yeux, qui glissent à droite et à gauche, dépassent de l'ombre.
-function Librarian({ locked }: { locked: boolean }) {
-    const eyesRef = useRef<THREE.Group>(null)
+// Sprite-sheets CraftPix "Free City Trader" (craftpix.net/file-licenses/, voir credits dans le
+// README) : chaque frame fait 128×128px. idle.png tourne en boucle en permanence ; approval.png
+// se joue une fois au survol puis revient à idle.
+const TRADER_IDLE_FRAMES = 6
+const TRADER_APPROVAL_FRAMES = 8
+const TRADER_FRAME_MS = 140
+// Taille du plan (carré, comme les frames source) en unités 3D — la silhouette three.js
+// remplacée faisait ~1.46 de haut ; agrandie ici pour que le marchand se voie mieux derrière
+// son comptoir.
+const TRADER_SIZE = 1.85
 
+// Rendu en vrai plan WebGL texturé (pas un <Html> DOM) : un <Html transform> ne se
+// profondeur-teste jamais contre le canvas — il peint toujours par-dessus tout le rendu 3D
+// (et même par-dessus le curseur personnalisé), donc "caché derrière le comptoir/coffre" est
+// impossible avec du DOM. Un vrai mesh, lui, est occulté normalement par les autres meshes
+// (comptoir, coffre, lampe) via le depth buffer, sans code supplémentaire.
+function TraderSprite({ locked, hovered }: { locked: boolean; hovered: boolean }) {
+    const [idleTexture, approvalTexture] = useTexture([
+        '/sprites/trader/idle.png',
+        '/sprites/trader/approval.png',
+    ])
+    const materialRef = useRef<THREE.MeshBasicMaterial>(null)
+    const phaseRef = useRef<'idle' | 'approval'>('idle')
+    const frameRef = useRef(0)
+    const elapsedRef = useRef(0)
+    const wasHoveredRef = useRef(false)
+
+    // Filtrage au plus proche voisin (pas de mipmaps/lissage) pour garder les pixels nets à
+    // cette échelle, comme le reste des textures pixel-art du site.
+    useEffect(() => {
+        for (const tex of [idleTexture, approvalTexture]) {
+            tex.magFilter = THREE.NearestFilter
+            tex.minFilter = THREE.NearestFilter
+            tex.generateMipmaps = false
+        }
+    }, [idleTexture, approvalTexture])
+
+    // Animation pilotée par useFrame (comme le reste de la salle), pas par React state/effect :
+    // évite les setState en cascade et reste cohérent avec le style du fichier (dampings, etc).
     useFrame((state, delta) => {
-        if (!eyesRef.current) return
-        const t = state.clock.getElapsedTime()
-        const holdIndex = Math.floor(t / 1.6)
-        const targetX = (pseudoRandom(holdIndex * 3.7) - 0.5) * 0.07
-        eyesRef.current.position.x = THREE.MathUtils.damp(eyesRef.current.position.x, targetX, 14, delta)
+        // Le survol déclenche l'animation d'approbation (le marchand présente sa marchandise) ;
+        // elle se joue une fois entièrement avant de retomber en boucle idle, même si la souris a
+        // déjà quitté la zone entre-temps.
+        if (hovered && !locked && !wasHoveredRef.current) {
+            phaseRef.current = 'approval'
+            frameRef.current = 0
+            elapsedRef.current = 0
+        }
+        wasHoveredRef.current = hovered
+
+        const frameDuration = TRADER_FRAME_MS / 1000
+        elapsedRef.current += delta
+        while (elapsedRef.current >= frameDuration) {
+            elapsedRef.current -= frameDuration
+            const frameCount = phaseRef.current === 'idle' ? TRADER_IDLE_FRAMES : TRADER_APPROVAL_FRAMES
+            const next = frameRef.current + 1
+            if (phaseRef.current === 'approval' && next >= frameCount) {
+                phaseRef.current = 'idle'
+                frameRef.current = 0
+            } else {
+                frameRef.current = next % frameCount
+            }
+        }
+
+        const frameCount = phaseRef.current === 'idle' ? TRADER_IDLE_FRAMES : TRADER_APPROVAL_FRAMES
+        const tex = phaseRef.current === 'idle' ? idleTexture : approvalTexture
+        // repeat.x négatif + offset décalé d'une frame : retourne le sprite horizontalement
+        // (le geste de l'animation "approval" s'ouvre vers la gauche plutôt que vers la droite).
+        tex.repeat.set(-1 / frameCount, 1)
+        tex.offset.set((frameRef.current + 1) / frameCount, 0)
+
+        if (materialRef.current && materialRef.current.map !== tex) {
+            materialRef.current.map = tex
+            materialRef.current.needsUpdate = true
+        }
     })
 
     return (
@@ -241,48 +307,21 @@ function Librarian({ locked }: { locked: boolean }) {
             <OldLamp position={[-0.32, 0.5, 0.35]} />
             <TableChest position={[0.22, 0.5, 0.5]} />
 
-            {/* Un fantôme, tout simplement : un cylindre à largeur CONSTANTE (pas de rétrécissement
-                vers le haut, donc pas d'effet "cou puis tête") surmonté d'une demi-sphère de
-                exactement le même rayon — une seule silhouette arrondie et fluide, sans pointe. */}
-            <mesh position={[0, 0.6, 0]} castShadow>
-                <cylinderGeometry args={[0.26, 0.26, 1.2, 24]} />
-                <meshStandardMaterial color={PALETTE.ink900} roughness={0.9} />
+            {/* Reculé derrière le comptoir (z=-0.2, contre 0.205-0.755 pour le comptoir) : les
+                meshes opaques posés devant (comptoir, lampe, coffre) l'occultent maintenant
+                normalement via le depth buffer. alphaTest (pas transparent) : le plan reste
+                dans la passe de rendu opaque, avec un vrai test de profondeur pixel par pixel,
+                plutôt que la passe transparente (triée, plus fragile pour l'occlusion). */}
+            <mesh position={[0, TRADER_SIZE / 2, -0.2]}>
+                <planeGeometry args={[TRADER_SIZE, TRADER_SIZE]} />
+                <meshBasicMaterial
+                    ref={materialRef}
+                    map={idleTexture}
+                    alphaTest={0.5}
+                    color={locked ? '#6b6b6b' : '#ffffff'}
+                    toneMapped={false}
+                />
             </mesh>
-            <mesh position={[0, 1.2, 0]} castShadow>
-                <sphereGeometry args={[0.26, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshStandardMaterial color={PALETTE.ink900} roughness={0.9} />
-            </mesh>
-
-            {!locked && (
-                <>
-                    {/* Creux de la capuche, en meshBasicMaterial (pas Standard, pour ne pas
-                        s'ombrer lui-même). z=0.26 avec une bonne marge devant la surface du corps
-                        (0.26 pile) : le creux précédent était quasi coincident avec elle → z-fighting
-                        (scintillement en damier, lu comme "une texture" sur le visage). */}
-                    <mesh position={[0, 1.17, 0.26]} scale={[1, 0.85, 0.09]}>
-                        <sphereGeometry args={[0.18, 16, 12]} />
-                        <meshBasicMaterial color="#050505" />
-                    </mesh>
-
-                    {/* z=0.285 : un peu plus enfoncés dans le creux qu'avant (0.3), tout en
-                        gardant une marge de sécurité devant lui (≈0.276) pour éviter le
-                        z-fighting. Écart latéral réduit (±0.08, contre ±0.095) et amplitude de
-                        glissement réduite (0.07, contre 0.11, ci-dessus) : les yeux restent
-                        maintenant bien dans le rayon du creux (0.18) même en bout de course. */}
-                    <group ref={eyesRef} position={[0, 1.17, 0.285]}>
-                        <mesh position={[-0.08, 0, 0]} scale={[1.3, 0.4, 1]}>
-                            <sphereGeometry args={[0.028, 10, 8]} />
-                            <meshStandardMaterial color={PALETTE.gold400} emissive={PALETTE.gold400} emissiveIntensity={12} toneMapped={false} />
-                        </mesh>
-                        <mesh position={[0.08, 0, 0]} scale={[1.3, 0.4, 1]}>
-                            <sphereGeometry args={[0.028, 10, 8]} />
-                            <meshStandardMaterial color={PALETTE.gold400} emissive={PALETTE.gold400} emissiveIntensity={12} toneMapped={false} />
-                        </mesh>
-                        {/* Pas de pointLight ici : le matériau émissif suffit à faire briller les
-                            yeux eux-mêmes, sans éclairer (et donc délaver) le fantôme tout autour. */}
-                    </group>
-                </>
-            )}
 
             <pointLight position={[0, 0.6, 0.3]} color={PALETTE.gold500} intensity={0.45} distance={2.8} decay={2} />
         </group>
@@ -559,7 +598,16 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
                 <meshBasicMaterial transparent opacity={0} depthWrite={false} />
             </mesh>
 
-            {layout.variant === 'librarian' && <Librarian locked={locked} />}
+            {layout.variant === 'librarian' && (
+                // useTexture (TraderSprite) suspend le temps du chargement — sans Suspense ici,
+                // ça remonte comme une erreur non gérée dans l'arbre du Canvas (déstabilise le
+                // contexte WebGL en boucle). fallback={null} : rien ne s'affiche le temps que
+                // les deux textures du marchand chargent (quasi instantané, déjà en cache après
+                // le premier hotspot "librarian" rendu).
+                <Suspense fallback={null}>
+                    <TraderSprite locked={locked} hovered={hovered} />
+                </Suspense>
+            )}
             {layout.variant === 'books' && <CollectionProps />}
             {layout.variant === 'table' && <DeckTable />}
             {layout.variant === 'door' && <CellarDoor />}
@@ -567,7 +615,7 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
             <Html position={[0, LABEL_Y, 0]} center className="pointer-events-none">
                 <div className="text-center whitespace-nowrap">
                     <div
-                        className="font-engraved tracking-wide text-2xl [text-shadow:0_2px_10px_rgba(0,0,0,0.95),0_0_18px_rgba(0,0,0,0.6)]"
+                        className="font-engraved tracking-wide text-4xl [text-shadow:0_2px_10px_rgba(0,0,0,0.95),0_0_18px_rgba(0,0,0,0.6)]"
                         style={{ color: locked ? '#8a8d90' : (hovered ? PALETTE.gold300 : PALETTE.parchment200) }}
                     >
                         {item.label}
@@ -640,12 +688,12 @@ function Smoke({ position, count = 5 }: { position: [number, number, number]; co
 // génération supplémentaire. Rotation très lente, pas d'ombre, unlit (meshBasicMaterial, pas
 // affecté par les lumières de la scène) : un effet ambiant bon marché, pas une simulation.
 function RoomMist({ y, facingDown = false, radius = 8, count = 3, opacity = 0.1, color = '#333a40' }: {
-    y:          number
+    y: number
     facingDown?: boolean
-    radius?:    number
-    count?:     number
-    opacity?:   number
-    color?:     string
+    radius?: number
+    count?: number
+    opacity?: number
+    color?: string
 }) {
     const texture = useMemo(() => getSmokeTexture(), [])
     const refs = useRef<(THREE.Mesh | null)[]>([])
@@ -831,10 +879,13 @@ function ApproachCamera({ arrivingHref }: { arrivingHref: string | null }) {
     return null
 }
 
-export default function HubScene() {
+export default function HubScene({ username, cardCount, wins }: {
+    username:  string
+    cardCount: number
+    wins:      number
+}) {
     const router = useRouter()
-    const [transitioning, setTransitioning] = useState(false)
-    const [simpleMenu, setSimpleMenu] = useState(false)
+    const [, setTransitioning] = useState(false)
     const [hoveredHref, setHoveredHref] = useState<string | null>(null)
     const [arrivingHref, setArrivingHref] = useState<string | null>(null)
     const arrivingRef = useRef(false)
@@ -847,8 +898,6 @@ export default function HubScene() {
         // Assez long pour laisser l'approche caméra se jouer, assez court pour rester réactif.
         setTimeout(() => router.push(item.href), 650)
     }
-
-    if (simpleMenu) return <SimpleMenu onWantHub={() => setSimpleMenu(false)} />
 
     const locked = hoveredHref !== null && !MENU_ITEMS.find(i => i.href === hoveredHref)?.available
 
@@ -869,26 +918,12 @@ export default function HubScene() {
             </Canvas>
 
             <div className="pointer-events-none absolute inset-x-0 top-8 z-50 flex justify-center">
-                <h1 className="font-engraved tracking-wide text-[38px] text-parchment-200 [text-shadow:0_3px_10px_rgba(0,0,0,0.9)]">
+                <h1 className="font-engraved tracking-wide text-8xl text-parchment-200 [text-shadow:0_3px_10px_rgba(0,0,0,0.9)]">
                     ft_transcendence
                 </h1>
             </div>
 
-            {!transitioning && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-5 z-50 flex justify-center">
-                    <p className="rounded-full bg-ink-950/70 px-4 py-2 font-serif text-sm text-parchment-300/70">
-                        Move your mouse to explore · click an item to head there
-                    </p>
-                </div>
-            )}
-
-            <button
-                onClick={() => setSimpleMenu(true)}
-                className="pointer-events-auto absolute right-4 top-4 z-50 rounded-lg border border-white/15 bg-ink-900/80
-                    px-3 py-1.5 font-serif text-xs text-parchment-300/70 transition-colors hover:bg-ink-800"
-            >
-                ☰ Simple menu
-            </button>
+            <AccountMenu username={username} cardCount={cardCount} wins={wins} />
         </div>
     )
 }

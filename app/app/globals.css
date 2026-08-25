@@ -9,23 +9,32 @@
   color-scheme: dark;
 }
 
+/* Toutes les classes text-* de Tailwind sont basées en rem : ce seul réglage augmente
+   proportionnellement la taille du texte sur tout le site, sans toucher chaque fichier. */
+html {
+  font-size: 120%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-display: var(--font-cinzel);
-  --font-serif:  var(--font-crimson);
-  --font-sans:   var(--font-crimson);
-  --font-engraved: var(--font-cinzel-decorative);
-  /* Police du Pixel Parchment UI Kit — réservée aux cartes papyrus (Header, Footer, Form,
-     Notice) ; le reste du jeu garde font-display/font-serif (Cinzel/Crimson). */
-  --font-pixel: var(--font-sh-pinscher);
+  /* Police unique sur tout le front (Hub, cartes, deck builder, messages d'erreur...) : les
+     cinq alias pointent vers Pixel Game (1001fonts). */
+  --font-display: var(--font-pixel-game);
+  --font-serif: var(--font-pixel-game);
+  --font-sans: var(--font-pixel-game);
+  --font-engraved: var(--font-pixel-game);
+  --font-pixel: var(--font-pixel-game);
+
+  /* Police réservée aux cartes (CardFace) : Merchant Copy, différente du reste du site. */
+  --font-card: var(--font-merchant-copy);
 
   --color-ink-950: #0b0c0d;
   --color-ink-900: #15171a;
   --color-ink-800: #1f2225;
   --color-ink-700: #2b2f33;
 
-  --color-parchment-50:  #e9eae8;
+  --color-parchment-50: #e9eae8;
   --color-parchment-100: #d4d6d3;
   --color-parchment-200: #b7bab8;
   --color-parchment-300: #9a9d9b;
@@ -46,7 +55,7 @@
 
   /* Couleurs de texte utilisées À L'INTÉRIEUR des cartes papyrus (contraste sur fond clair) —
      à ne pas confondre avec --color-foreground, qui reste clair pour le reste du site (sombre). */
-  --color-ink-text:  #3b2c18;
+  --color-ink-text: #3b2c18;
   --color-ink-muted: #6d5a3e;
 
   --radius-btn: 0.5rem;
@@ -61,58 +70,147 @@ body {
   color: var(--foreground);
 }
 
-/* Vraie texture de parchemin (Pixel Parchment UI Kit) posée en 9-slice CSS : les 4 coins de
-   l'image (dont le coin haut-gauche enroulé) restent à taille native quelle que soit la taille
-   de la carte, seules les bandes droites entre eux s'étirent — voir
-   https://developer.mozilla.org/docs/Web/CSS/border-image pour la mécanique du 9-slice.
-   `fill` : la zone centrale de l'image est aussi peinte (sinon border-image ne dessine que le
-   pourtour et laisse le centre vide). */
-/* border-image-slice reste asymétrique (fidèle à l'image source, coin enroulé plus large côté
-   gauche) mais border-image-width/border-width sont symétriques gauche/droite : sinon le
-   contenu (texte centré) se retrouve visuellement décalé, poussé par une bordure gauche bien
-   plus épaisse que la droite. */
-.parchment-panel {
-  border-style: solid;
-  border-width: 55px 55px 30px 55px;
-  border-image-source: url("/textures/parchment-panel.png");
-  border-image-slice: 55 30 30 90 fill;
-  border-image-width: 55px 55px 30px 55px;
-  border-image-repeat: stretch;
+/* Curseur natif masqué partout : CustomCursor.tsx le remplace par le sprite du kit "Book
+   Styles" (avec animation au clic), donc plus rien ne doit afficher la flèche du système. */
+* {
+  cursor: none !important;
 }
 
-/* Même mécanique 9-slice, mais avec le rouleau à deux embouts (gauche + droite) du kit —
-   pour les bandeaux larges et fins (Header, Footer), plutôt que le coin unique enroulé de
-   .parchment-panel qui est pensé pour une carte plus haute que large. */
-.parchment-roll-panel {
+/* Sprites du "Complete UI Book Styles Pack" (Crusenho, crusenho.itch.io — voir credits dans le
+   README) posés en 9-slice CSS, comme les parchemins avant eux : voir
+   https://developer.mozilla.org/docs/Web/CSS/border-image pour la mécanique. Ce sont des sprites
+   pixel-art minuscules (30 à 224px de large à la source) : image-rendering: pixelated empêche le
+   navigateur de les lisser en les agrandissant, pour garder le rendu "pixel net" du kit. */
+.book-panel {
   border-style: solid;
-  border-width: 20px 100px 25px 100px;
-  border-image-source: url("/textures/parchment-roll.png");
-  border-image-slice: 20 80 25 120 fill;
-  border-image-width: 20px 100px 25px 100px;
+  border-width: 4px;
+  border-image-source: url("/textures/book/popup.png");
+  border-image-slice: 1 fill;
+  border-image-width: 4px;
   border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Bannière-ruban (Complete UI Essential Pack, thème Flat) — pour les bandeaux larges (Header,
+   Footer, titres de page), à la place de la couverture de livre rouge. Les extrémités du ruban
+   (repliées en biais) tiennent dans le slice gauche/droite, plus large que le haut/bas. */
+.book-cover-panel {
+  border-style: solid;
+  border-width: 16px 40px 4px 40px;
+  border-image-source: url("/textures/book/banner.png");
+  border-image-slice: 16 20 4 20 fill;
+  border-image-width: 16px 40px 4px 40px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Petite case (case d'inventaire) — pour les pastilles/boutons/cases (menu simple...) où le
+   cadre de .book-cover-panel dominerait un élément déjà petit. */
+.book-slot {
+  border-style: solid;
+  border-width: 6px;
+  border-image-source: url("/textures/book/slot.png");
+  border-image-slice: 2 fill;
+  border-image-width: 6px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Champ de texte (Complete UI Book Styles Pack, TravelBookLite — double liseré foncé/clair)
+   pour les <input> des formulaires (Sign In, Register...). */
+.book-input {
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url("/textures/book/input-field.png");
+  border-image-slice: 8 fill;
+  border-image-width: 8px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
 }
 
 @theme {
   --animate-legendary-glow: legendary-glow 1.8s ease-in-out infinite;
   --animate-card-pop: card-pop 0.4s ease-out backwards;
   --animate-legendary-reveal: legendary-reveal 0.9s ease-out;
+  --animate-pack-shake: pack-shake 0.6s ease-in-out infinite;
+  --animate-pack-tear-flap: pack-tear-flap 0.45s ease-in forwards;
+  --animate-pack-tear-body: pack-tear-body 0.45s ease-in forwards;
+  --animate-pack-flash: pack-flash 0.45s ease-out forwards;
+}
+
+/* Ouverture de paquet (PackOpener) : le paquet choisi tremble pendant l'appel réseau, puis se
+   déchire en deux le long d'une diagonale (angle mesuré sur le sprite "cardRIPfx" — le coin
+   haut-droit part comme un rabat déchiré, le reste s'affaisse) pendant qu'un flash doré derrière
+   lui monte en intensité — remplace l'ancien coffre 3D animé en three.js. Chaque moitié est un
+   <PackArt> découpé au clip-path (pas les frames de l'asset : leurs tailles de canvas varient
+   d'une frame à l'autre sans métadonnées d'offset pour les recaler, donc on préfère découper
+   directement le vrai visuel du paquet choisi — aligné par construction, en pleine couleur). */
+@keyframes pack-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(-3px) rotate(-2deg); }
+  20% { transform: translateX(4px) rotate(2deg); }
+  30% { transform: translateX(-4px) rotate(-2deg); }
+  40% { transform: translateX(4px) rotate(2deg); }
+  50% { transform: translateX(-3px) rotate(-1deg); }
+  60% { transform: translateX(3px) rotate(1deg); }
+  70% { transform: translateX(-2px) rotate(-1deg); }
+  80% { transform: translateX(2px) rotate(1deg); }
+  90% { transform: translateX(-1px) rotate(0deg); }
+}
+
+@keyframes pack-tear-flap {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(46px, -78px) rotate(38deg); opacity: 0; }
+}
+
+@keyframes pack-tear-body {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  25% { transform: translateY(3px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(34px) scale(0.9); opacity: 0; }
+}
+
+@keyframes pack-flash {
+  0%, 55% { opacity: 0; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes legendary-glow {
-  0%, 100% { box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55); }
-  50%      { box-shadow: 0 0 35px 10px rgba(212, 175, 55, 0.9); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55);
+  }
+
+  50% {
+    box-shadow: 0 0 35px 10px rgba(212, 175, 55, 0.9);
+  }
 }
 
 /* Éclat doré ponctuel, une seule fois, au moment précis où une carte légendaire se retourne face
    visible — le pulse continu de legendary-glow prend ensuite le relais une fois la carte posée. */
 @keyframes legendary-reveal {
-  0%   { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
-  35%  { box-shadow: 0 0 55px 18px rgba(212, 175, 55, 0.95); }
-  100% { box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+
+  35% {
+    box-shadow: 0 0 55px 18px rgba(212, 175, 55, 0.95);
+  }
+
+  100% {
+    box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55);
+  }
 }
 
 @keyframes card-pop {
-  from { opacity: 0; transform: translateY(12px) scale(0.9); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
 
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

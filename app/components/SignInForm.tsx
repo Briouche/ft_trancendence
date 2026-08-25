@@ -88,6 +88,19 @@ export default function SignInForm() {
         <FormButton className="mt-3" disabled={pending}>
           {pending ? "Signing in..." : "Sign in"}
         </FormButton>
+
+        <div className="flex items-center gap-3 py-1">
+          <span className="h-px flex-1 bg-ink-muted/30" />
+          <span className="font-pixel text-xs text-ink-muted">or</span>
+          <span className="h-px flex-1 bg-ink-muted/30" />
+        </div>
+
+        <a
+          href="/api/auth/42"
+          className="w-72 self-center rounded-btn border border-gold-500/50 bg-ink-900 px-4 py-2 text-center font-pixel text-lg text-gold-300 transition-colors hover:bg-ink-800"
+        >
+          Sign in with 42
+        </a>
       </Form>
     </div>
   );

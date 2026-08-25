@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
+import CardBackArt from '@/components/CardBackArt'
 
 // Tailles en fonction de vmin (1% de la plus petite dimension de la fenêtre) plutôt qu'en pixels
 // fixes : le cercle occupe alors toujours la même proportion de la page, quelle que soit sa
@@ -32,11 +33,12 @@ function useVmin() {
 // pour ouvrir la carte en grand (PackCardZoom). La bascule à la souris (parallaxe) est active
 // directement sur les 10, en continu, pas seulement une fois une carte agrandie.
 export default function PackCardCircle({
-    cards, revealedIndices, onSelect,
+    cards, revealedIndices, onSelect, cardBack,
 }: {
     cards:           CardFaceData[]
     revealedIndices: Set<number>
     onSelect:        (index: number) => void
+    cardBack:        number
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null)
@@ -96,12 +98,14 @@ export default function PackCardCircle({
                                 className={`relative aspect-[3/4] w-full transition-transform duration-500 [transform-style:preserve-3d]
                                     ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
                             >
-                                <div className="absolute inset-0 flex items-center justify-center rounded-lg border-[3px]
-                                    border-gold-500/60 bg-gradient-to-br from-leather-800 to-ink-900 shadow-lg [backface-visibility:hidden]">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gold-400/70 bg-leather-900/60">
-                                        <span className="font-display text-base text-gold-400/90">✦</span>
-                                    </div>
-                                </div>
+                                {/* Pas de bordure ajoutée ici (contrairement au dos par défaut avant) :
+                                    chaque design du catalogue a déjà son propre cadre dessiné dans le
+                                    sprite — en superposer une créait un double-cadre qui mangeait le bord
+                                    de l'image et donnait l'impression qu'elle ne remplissait pas la carte. */}
+                                <CardBackArt
+                                    index={cardBack}
+                                    className="absolute inset-0 rounded-lg shadow-lg [backface-visibility:hidden]"
+                                />
                                 {/* Éclat doré ponctuel à la révélation, en plus du contour de
                                     CardFace lui-même — le pull d'une légendaire doit se sentir. */}
                                 <div className={`absolute inset-0 rounded-lg [backface-visibility:hidden] [transform:rotateY(180deg)]

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { type CardFaceData } from '@/components/CardFace'
 import SceneLoading from '@/components/library/SceneLoading'
 import CardZoom from './CardZoom'
+import RoundedRectangle from '@/components/elements/RoundedRectangle'
 
 const BookScene = dynamic(() => import('./BookScene'), { ssr: false, loading: SceneLoading })
 
@@ -198,14 +199,14 @@ export default function CollectionBook({ cards }: { cards: Card[] }) {
             <div className="relative z-10 flex flex-col items-center gap-4 p-6 md:p-10 pointer-events-none">
                 <div className="w-full max-w-6xl flex items-center justify-between gap-4 rounded-xl
                     bg-ink-950/80 backdrop-blur-sm p-5 pointer-events-auto">
-                    <div>
-                        <h1 className="font-display text-3xl font-bold text-parchment-100 tracking-wide">
+                    <RoundedRectangle variant="book-cover-panel" className="px-4 py-2">
+                        <h1 className="font-display text-3xl font-bold text-ink-text tracking-wide">
                             Card Grimoire
                         </h1>
-                        <p className="font-serif text-sm italic text-parchment-300/70 mt-1">
+                        <p className="font-serif text-sm italic text-ink-muted mt-1">
                             {filtered.length} card{filtered.length !== 1 ? 's' : ''} · page {currentPage + 1} / {totalPages}
                         </p>
-                    </div>
+                    </RoundedRectangle>
 
                     {/* Filtre par coût exact, à côté du titre plutôt qu'en dessous (gagne de la
                         hauteur) : cliquer une case n'affiche que les cartes de ce coût-là ;

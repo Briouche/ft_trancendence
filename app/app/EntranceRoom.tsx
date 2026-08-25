@@ -10,8 +10,8 @@ import LibraryDoor from '@/components/library/LibraryDoor'
 export default function EntranceRoom({ children }: { children: ReactNode }) {
     return (
         <RoomFrame decor={<LibraryDoor />} parallax={false}>
-            {/* RoomFrame ne force pas de layout flex sur ses children (VaultRoom construit le
-                sien lui-même) — on reproduit ici la colonne plein écran que Header/Footer/
+            {/* RoomFrame ne force pas de layout flex sur ses children — on reproduit ici la
+                colonne plein écran que Header/Footer/
                 SignInForm attendaient de <body>, pour que SignInForm se centre bien entre les
                 deux. min-h-dvh (pas min-h-screen) : colle vraiment le footer en bas de l'écran
                 visible même quand la barre d'adresse du navigateur va et vient. */}

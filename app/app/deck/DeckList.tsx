@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import DeskRoom from './DeskRoom'
 import { type CardFaceData } from '@/components/CardFace'
+import RoundedRectangle from '@/components/elements/RoundedRectangle'
 
 type Deck = {
     id:        number
@@ -16,13 +17,13 @@ export default function DeckList({ decks, decorCards = [] }: { decks: Deck[]; de
         <DeskRoom cards={decorCards}>
             <div className="min-h-screen p-6 md:p-10">
                 <div className="max-w-2xl mx-auto">
-                    <div className="flex items-center justify-between mb-8 rounded-xl bg-ink-950/80 backdrop-blur-sm p-5">
+                    <RoundedRectangle variant="book-cover-panel" className="flex items-center justify-between mb-8 p-5">
                         <div>
-                            <p className="font-serif text-xs uppercase tracking-[0.25em] text-gold-400/70 mb-1">
+                            <p className="font-serif text-xs uppercase tracking-[0.25em] text-ink-muted mb-1">
                                 Scribe's Workshop
                             </p>
-                            <h1 className="font-display text-3xl font-bold text-parchment-100">My Decks</h1>
-                            <p className="font-serif italic text-parchment-300/60 mt-1">
+                            <h1 className="font-display text-3xl font-bold text-ink-text">My Decks</h1>
+                            <p className="font-serif italic text-ink-muted mt-1">
                                 {decks.length} deck{decks.length !== 1 ? 's' : ''} saved
                             </p>
                         </div>
@@ -42,7 +43,7 @@ export default function DeckList({ decks, decorCards = [] }: { decks: Deck[]; de
                                 + New deck
                             </Link>
                         </div>
-                    </div>
+                    </RoundedRectangle>
 
                     {decks.length === 0 ? (
                         <div className="text-center py-20 rounded-xl bg-ink-950/80 backdrop-blur-sm text-parchment-300/50">

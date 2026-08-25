@@ -18,7 +18,7 @@ export default function TextField({
       <FormSectionTitle>{label}</FormSectionTitle>
       <input
         {...inputProps}
-        className={`w-72 rounded-btn bg-white/40 border border-ink-text/25 px-4 py-2 text-ink-text placeholder:text-ink-muted/50 outline-none focus:ring-2 focus:ring-gold-500 ${className}`}
+        className={`book-input w-72 px-4 py-2 text-ink-text placeholder:text-ink-muted/50 outline-none focus:ring-2 focus:ring-gold-500 ${className}`}
       />
     </label>
   );

@@ -47,10 +47,11 @@ export default function PackCardZoom({
     if (!card) return null
 
     return (
-        // pointer-events-auto : `pointer-events` est hérité, et le parent (VaultRoom) est passé
-        // en pointer-events-none pour laisser les clics atteindre le coffre dans le Canvas —
-        // sans ce reset explicite ici, ce plein écran hériterait ce "none" et deviendrait
-        // entièrement inerte (aucun clic, ni sur la carte ni sur le fond pour fermer).
+        // pointer-events-auto : `pointer-events` est hérité, et le conteneur racine de
+        // PackOpener est passé en pointer-events-none pour laisser les clics atteindre les
+        // paquets/cartes affichés par-dessus — sans ce reset explicite ici, ce plein écran
+        // hériterait ce "none" et deviendrait entièrement inerte (aucun clic, ni sur la carte
+        // ni sur le fond pour fermer).
         <div
             className="pointer-events-auto fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-ink-950/70 backdrop-blur-lg"
             onClick={onClose}
