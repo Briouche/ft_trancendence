@@ -5,6 +5,7 @@ export interface clientEffect
     startOfTurn?: boolean;
     endOfTurn?: boolean;
     onAttack?: boolean;
+    onDamage?: boolean;
 }
 
 export interface ClientCard
@@ -14,6 +15,7 @@ export interface ClientCard
     cost: number;
     attack?: number;
     health?: number;
+    maxHealth?: number;
     canAttack?: boolean;
     description: string;
     requiresTarget: boolean;
@@ -26,6 +28,8 @@ export interface ClientHero
     name: string;
     health: number;
     maxHealth?: number;
+    archi?: number;
+    freddy?: number;
 }
 
 export interface ClientGameState 

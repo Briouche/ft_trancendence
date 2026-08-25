@@ -4,18 +4,26 @@ export class Deck
 {
     private scene: Phaser.Scene;
     private count: number = 0;
-    public graphic: Phaser.GameObjects.Rectangle;
+    public graphic: Phaser.GameObjects.Image;
     private text: Phaser.GameObjects.Text;
+    private width: number;
+    private height: number;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, width = 90, height = 60)
+    constructor(scene: Phaser.Scene, x: number, y: number, width = 150, height = 90)
     {
         this.scene = scene;
-        this.graphic = scene.add.rectangle(x, y, width, height, 0x8B4513, 0.7).setStrokeStyle(2, 0x000000);
+        this.width = width;
+        this.height = height;
+
+        this.graphic = scene.add.image(x, y, "cardBack").setDisplaySize(width, height);
+
         this.text = scene.add.text(x, y - 30, "",
         {
             fontSize: "24px",
             color: "#fff",
-            align: "center"
+            align: "center",
+            stroke: "#000000",
+            strokeThickness: 4 
         }).setOrigin(0.5).setVisible(false);
 
         this.setupInteractivity();
@@ -36,7 +44,9 @@ export class Deck
 
     resize(width: number, height: number): void
     {
-        this.graphic.setSize(width, height);
+        this.width = width;
+        this.height = height;
+        this.graphic.setDisplaySize(width, height);
     }
 
     update(count: number): void

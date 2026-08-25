@@ -13,6 +13,7 @@ export class BootScene extends Phaser.Scene
         this.load.image("shield_taunt", "/gameAssets/shield_taunt.png");
         this.load.image("effect_lightning", "/gameAssets/lightning_bolt.png");
         this.load.image("wooden_table", "/gameAssets/wooden_table.png");
+        this.load.image("cardBack", "gameAssets/cardBack.png");
     }
 
     create()

@@ -164,10 +164,11 @@ export class GameEngine
 
         else if (target instanceof MinionCard)
         {
+            const targetAttack: number = target.attack;
             attacker.takeDamage(target.attack);
             target.takeDamage(attacker.attack);
             this.recordDamage(target, attacker.attack, this.players[opponentIndex]);
-            this.recordDamage(attacker, target.attack, this.players[this.currentTurn]);
+            this.recordDamage(attacker, targetAttack, this.players[this.currentTurn]);
         }
 
         this.processDeaths();
@@ -268,6 +269,7 @@ export class GameEngine
         {
             const context: GameContext = { engine: this, owner: owner, source: target };
             target.effects.onDamage.execute(context);
+            this.effectEvents.push({ sourceId: target.id, trigger: "passive" })
         }
         if (owner !== undefined && owner.legPassive === "jeffe" && target instanceof MinionCard)
             jeffePassive(target);

@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 
 const DEFAULT_SIZE = 90;
-const MAX_HEALTH_COLOR = "#000000";
-const HEALTH_COLOR = "#760b0b";
+const BUFFED_HEALTH_COLOR = "#03c844";
+const MAX_HEALTH_COLOR = "#ffffff";
+const HEALTH_COLOR = "#d71010";
 const PORTRAIT_COLOR = 0x3a2b2b;
 const STROKE_COLOR = 0xff5555;
 
@@ -28,9 +29,9 @@ export class Hero extends Phaser.GameObjects.Container
 
         this.portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
         this.nameText = scene.add.text(0, -size * 0.6, heroData.name,
-            { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff" }).setOrigin(0.5, 1);
+            { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
         this.healthText = scene.add.text(0, 0, `${heroData.health}`,
-            { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR }).setOrigin(0.5);
+            { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR, stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5);
 
         this.add([this.portrait, this.nameText, this.healthText]);
         this.setSize(size, size);
@@ -51,7 +52,11 @@ export class Hero extends Phaser.GameObjects.Container
     {
         this.heroData.health = health;
         this.healthText.setText(`${health}`);
-        if (this.heroData.maxHealth && health < this.heroData.maxHealth)
+        if (health < 20)
             this.healthText.setColor(HEALTH_COLOR);
+        else if (health > 20)
+            this.healthText.setColor(BUFFED_HEALTH_COLOR);
+        else
+            this.healthText.setColor(MAX_HEALTH_COLOR);
     }
 }

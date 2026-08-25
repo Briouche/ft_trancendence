@@ -41,6 +41,7 @@ function toClientCard(card: Card): ClientCard
     {
         clientCard.attack = card.attack;
         clientCard.health = card.currentHealth;
+        clientCard.maxHealth = card.maxHealth;
         clientCard.canAttack = card.canAttack;
         if (card.effects.taunt)
             clientCard.effects.taunt = true;
@@ -52,6 +53,8 @@ function toClientCard(card: Card): ClientCard
             clientCard.effects.endOfTurn = true;
         if (card.effects.onAttack)
             clientCard.effects.onAttack = true;
+        if (card.effects.onDamage)
+            clientCard.effects.onDamage = true;
     }
 
     return clientCard;
@@ -61,6 +64,10 @@ function toClientHero(player: Player): ClientHero
 {
     // Use the hero's own id and name so the client receives full hero identity emitted by the engine
     let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth };
+    if (player.legPassive == "archimede")
+        data.archi = player.archimedeCount;
+    else if (player.legPassive == "freddy")
+        data.freddy = player.freddyCount;
     return data;
 }
 

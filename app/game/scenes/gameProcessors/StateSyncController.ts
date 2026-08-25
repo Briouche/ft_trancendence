@@ -13,7 +13,7 @@ interface TableRefs
     board: Board;
     opponentHand: OpponentHand;
 }
-
+ 
 interface DeferredCardAnimation
 {
     cardId: string;

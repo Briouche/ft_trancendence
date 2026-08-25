@@ -22,6 +22,8 @@ export class GameScene extends Phaser.Scene
     private board!: Board;
     private opponentHand!: OpponentHand;
 
+    private background!: Phaser.GameObjects.Image;
+
     constructor()
     {
         super("GameScene");
@@ -29,6 +31,13 @@ export class GameScene extends Phaser.Scene
 
     create()
     {
+        this.background = this.add.image(0, 0, "wooden_table");
+        this.background.setOrigin(0, 0);
+        this.background.setDepth(-1);
+        this.layoutBackground();
+
+        this.scale.on("resize", this.layoutBackground, this);
+
         this.animationQueue = new AnimationQueue((state) => this.stateSync.apply(state));
         this.stateSync = new StateSyncController(this, this.flow, (table) => this.onTableCreated(table), () => this.input_.clearWaitingState());
 
@@ -40,6 +49,23 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:event", (event: GameEvent) => this.onServerEvent(event));
 
         EventManager.emit("client:ready");
+    }
+
+    private layoutBackground()
+    {
+        const { width, height } = this.scale.gameSize;
+
+        this.background.setPosition(0, 0);
+
+        const scaleX = width / this.background.width;
+        const scaleY = height / this.background.height;
+        const scale = Math.max(scaleX, scaleY);
+
+        this.background.setScale(scale);
+        this.background.setPosition(
+            (width - this.background.displayWidth) / 2,
+            (height - this.background.displayHeight) / 2
+        );
     }
 
     private onTableCreated(table: { hand: Hand; board: Board; opponentHand: OpponentHand }): void
@@ -107,5 +133,10 @@ export class GameScene extends Phaser.Scene
     private onServerEvent(event: GameEvent): void
     {
         this.animationQueue.run(() => this.eventPlayer!.play(event));
+    }
+
+    shutdown()
+    {
+        this.scale.off("resize", this.layoutBackground, this);
     }
 }

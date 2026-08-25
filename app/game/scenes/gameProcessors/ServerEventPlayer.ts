@@ -42,6 +42,10 @@ export class ServerEventPlayer
 
         const targetObject = resolved.kind === "hero" ? resolved.hero : resolved.card;
         await damageAnimation(this.scene, targetObject, event.amount);
+        if (resolved.kind === "hero")
+            resolved.hero.setHealth(resolved.hero.heroData.health - event.amount);
+        else if (resolved.kind === "minion")
+            resolved.card.updateStats(resolved.card.cardData.health as number - event.amount, resolved.card.cardData.attack as number);
     }
 
     private async playMinionDied(event: Extract<GameEvent, { type: "minionDied" }>): Promise<void>

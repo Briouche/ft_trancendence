@@ -5,6 +5,10 @@ const DEFAULT_WIDTH = 120;
 const DEFAULT_HEIGHT = 168;
 const HOVER_RATIO = 0.25;
 
+const BUFFED_STAT_COLOR = "#09d84e";
+const MAX_STAT_COLOR = "#fbfbfb";
+const STAT_COLOR = "#eb0a0a";
+
 export interface CardData
 {
     id: string;
@@ -13,6 +17,7 @@ export interface CardData
     cost: number;
     attack?: number;
     health?: number;
+    maxHealth?: number;
     canAttack?: boolean;
     requiresTarget: boolean;
     effects: clientEffect;
@@ -21,6 +26,9 @@ export interface CardData
 export class Card extends Phaser.GameObjects.Container
 {
     public cardData: CardData;
+    public startingAttack: number = 0;
+    public startingHealth: number = 0;
+
     public isDragging: boolean = false;
     public isHovering: boolean = false;
     private hasBeenPLaced = false;
@@ -44,7 +52,6 @@ export class Card extends Phaser.GameObjects.Container
     private baseRot = 0;
     private baseDepth = 0;
     private cardHeight: number;
-    private cardWidth: number;
 
     private onBoard: boolean = false;
     private myTurn: boolean = false;
@@ -54,12 +61,13 @@ export class Card extends Phaser.GameObjects.Container
     {
         super(scene, 0, 0);
         this.cardData = cardData;
-        this.cardWidth = width;
         this.cardHeight = height;
         this.object = scene.add.rectangle(0, 0, width, height, 0x2b2b3a).setStrokeStyle(2, 0xffffff);
         
-        this.nameText = scene.add.text(0, -height * 0.42, cardData.name, { fontSize: `${Math.round(height * 0.08)}px`, color: "#fff", wordWrap: { width: width * 0.85 } }).setOrigin(0.5, 0);
-        this.costText = scene.add.text(-width * 0.42, -height * 0.44, `${cardData.cost}`, { fontSize: `${Math.round(height * 0.12)}px`, color: "#7fd7ff" }).setOrigin(0.5);
+        this.nameText = scene.add.text(0, -height * 0.42, cardData.name, { fontSize: `${Math.round(height * 0.08)}px`, color: "#fff", 
+                                    wordWrap: { width: width * 0.85 } }).setOrigin(0.5, 0);
+        this.costText = scene.add.text(-width * 0.42, -height * 0.44, `${cardData.cost}`, { fontSize: `${Math.round(height * 0.12)}px`,
+                                    color: "#7fd7ff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5);
         this.add([this.object, this.nameText, this.costText]);
         
         this.attackGlow = scene.add.graphics();
@@ -71,10 +79,12 @@ export class Card extends Phaser.GameObjects.Container
 
         if (cardData.attack !== undefined && cardData.health !== undefined)
         {
+            this.startingAttack = cardData.attack;
+            this.startingHealth = cardData.health;
             this.attackText = scene.add.text(-width * 0.42, height * 0.42, `${cardData.attack}`,
-                { fontSize: `${Math.round(height * 0.1)}px`, color: "#ffffff" }).setOrigin(0, 1);
+                { fontSize: `${Math.round(height * 0.1)}px`, color: "#ffffff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0, 1);
             this.healthText = scene.add.text(width * 0.42, height * 0.42, `${cardData.health}`,
-                { fontSize: `${Math.round(height * 0.1)}px`, color: "#ffffff" }).setOrigin(1, 1);
+                { fontSize: `${Math.round(height * 0.1)}px`, color: "#ffffff", stroke: "#000000", strokeThickness: 4  }).setOrigin(1, 1);
             this.add([this.attackText, this.healthText]);
         }
 
@@ -108,7 +118,6 @@ export class Card extends Phaser.GameObjects.Container
 
     resize(width: number, height: number): void
     {
-        this.cardWidth = width;
         this.cardHeight = height;
 
         this.object.setSize(width, height);
@@ -159,16 +168,35 @@ export class Card extends Phaser.GameObjects.Container
         this.nameText.setText(data.name);
         this.costText.setText(`${data.cost}`);
 
-        if (data.attack !== undefined && this.attackText)
-            this.attackText.setText(`${data.attack}`);
-
-        if (data.health !== undefined && this.healthText)
-            this.healthText.setText(`${data.health}`);
+        if (data.attack && data.health)
+            this.updateStats(data.health, data.attack);
 
         if (data.canAttack !== undefined)
             this.canAttack = data.canAttack;
 
         this.refreshEffectVisibility();
+    }
+
+    updateStats(health: number, attack: number)
+    {
+        if (this.attackText && this.healthText && this.cardData.maxHealth)
+        {
+            this.attackText.setText(`${attack}`);
+            this.healthText.setText(`${health}`);
+            if (attack > this.startingAttack)
+                this.attackText.setColor(BUFFED_STAT_COLOR);
+            else if (attack < this.startingAttack)
+                this.attackText.setColor(STAT_COLOR);
+            else
+                this.attackText.setColor(MAX_STAT_COLOR);
+
+            if (health > this.startingHealth)
+                this.healthText.setColor(BUFFED_STAT_COLOR);
+            else if (health < this.cardData.maxHealth)
+                this.healthText.setColor(STAT_COLOR);
+            else
+                this.healthText.setColor(MAX_STAT_COLOR);
+        }
     }
 
     setWaiting(active: boolean): void
@@ -239,7 +267,7 @@ export class Card extends Phaser.GameObjects.Container
     {
         this.tauntShield.setVisible(this.onBoard && !!this.cardData.effects.taunt);
         this.deathrattleSkull.setVisible(this.onBoard && !!this.cardData.effects.deathrattle);
-        this.effectBolt.setVisible(this.onBoard && (!!this.cardData.effects.endOfTurn || !!this.cardData.effects.startOfTurn || !!this.cardData.effects.onAttack));
+        this.effectBolt.setVisible(this.onBoard && (!!this.cardData.effects.endOfTurn || !!this.cardData.effects.startOfTurn || !!this.cardData.effects.onAttack || !!this.cardData.effects.onDamage));
         this.attackGlow.setVisible(this.onBoard && this.ownSide && this.myTurn && !!this.cardData.canAttack);
     }
 

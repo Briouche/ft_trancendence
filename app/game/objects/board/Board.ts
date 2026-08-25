@@ -16,6 +16,8 @@ const SLOT_ASPECT_RATIO = 0.8;
 const BOARD_PADDING_RATIO = 0.035;
 
 const CARD_HEIGHT_RATIO = 0.15;
+const DECK_HEIGHT_RATIO = 0.15;
+const DECK_WIDTH_RATIO = 0.10;
 
 const HERO_Y_RATIO = 0.85;
 const HERO_SIZE_RATIO = 0.16;
@@ -72,8 +74,8 @@ export class Board
 
         this.endTurn = new EndTurn(scene, 10, 10);
         this.playerManaBar = new Manabar(scene, 0, 0, 200, 20);
-        this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * 0.08, scene.scale.height * 0.12);
-        this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * 0.08, scene.scale.height * 0.12);
+        this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
+        this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
     }
 
     layout(width = this.scene.scale.width, height = this.scene.scale.height): void
@@ -145,8 +147,8 @@ export class Board
         const opponentDeckX = width / 2 - height * 0.6;
         const opponentDeckY = height * 0.4;
         this.opponentDeck.setPosition(opponentDeckX, opponentDeckY, height * 0.03);
-        this.playerDeck.resize(height * 0.08, height * 0.12);
-        this.opponentDeck.resize(height * 0.08, height * 0.12);
+        this.playerDeck.resize(height * DECK_WIDTH_RATIO, height * DECK_HEIGHT_RATIO);
+        this.opponentDeck.resize(height * DECK_WIDTH_RATIO, height * DECK_HEIGHT_RATIO);
     }
 
     findInsertIndex(dropX: number, side: 0 | 1 = 0): number | undefined
@@ -231,8 +233,6 @@ export class Board
     getDeckPosition(side: 0 | 1): { x: number; y: number }
     {
         const deck = side === 0 ? this.playerDeck : this.opponentDeck;
-        const centerX = deck.graphic.x + (deck.graphic.width * deck.graphic.originX);
-        const centerY = deck.graphic.y + (deck.graphic.height * deck.graphic.originY);
-        return { x: centerX, y: centerY };
+        return { x: deck.graphic.x, y: deck.graphic.y };
     }
 }
