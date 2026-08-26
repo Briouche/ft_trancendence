@@ -14,16 +14,6 @@ const pixelGame = localFont({
   display: "swap",
 });
 
-// Merchant Copy (S. John Ross, Cumberland Games & Diversions, cumberlandgames.com — gratuit
-// usage personnel/non-commercial uniquement, voir credits dans le README) — réservée aux cartes
-// (CardFace, --font-card dans globals.css). Chiffres complets et lisibles (contrairement à Gome
-// Pixel/Game Paused), style impression de reçu dot-matrix.
-const merchantCopy = localFont({
-  src: "./fonts/MerchantCopy-Regular.ttf",
-  variable: "--font-merchant-copy",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "ft_transcendence",
   description: "The card library of ft_transcendence",
@@ -43,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${pixelGame.variable} ${merchantCopy.variable} h-full antialiased`}
+      className={`${pixelGame.variable} h-full antialiased`}
       style={{ backgroundColor: '#0b0c0d' }}
     >
       {/* backgroundColor en inline ici (pas en classe Tailwind) : le but est justement

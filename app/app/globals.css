@@ -26,8 +26,9 @@ html {
   --font-engraved: var(--font-pixel-game);
   --font-pixel: var(--font-pixel-game);
 
-  /* Police réservée aux cartes (CardFace) : Merchant Copy, différente du reste du site. */
-  --font-card: var(--font-merchant-copy);
+  /* Police des cartes (CardFace) : la même que les titres/le reste du site (Pixel Game), plus
+     Merchant Copy dédiée. */
+  --font-card: var(--font-pixel-game);
 
   --color-ink-950: #0b0c0d;
   --color-ink-900: #15171a;
