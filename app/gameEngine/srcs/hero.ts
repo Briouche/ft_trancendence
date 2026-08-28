@@ -35,4 +35,13 @@ export class Hero
     {
         return this.name + " (" + this.currentHealth + "/" + this.maxHealth + " HP)";
     }
+
+    //-----
+
+    clone(): Hero
+    {
+        const copy = new Hero(this.name);
+        copy.currentHealth = this.currentHealth;
+        return copy;
+    }
 }

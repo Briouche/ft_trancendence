@@ -298,7 +298,8 @@ export class RandomEnemyResolver extends TargetResolver
     resolve(context: GameContext): Targetable[]
     {
         const oppIdx: 0 | 1  = this.opponentIndex(context.engine);
-        const enemies: Targetable[] = [...context.engine.board.getMinions(oppIdx), context.engine.players[oppIdx].hero];
+        const enemies: Targetable[] = [...context.engine.board.getMinions(oppIdx), context.engine.players[oppIdx].hero]
+            .filter((e: Targetable) => e.isAlive());
 
         if (enemies.length === 0)
             return [];

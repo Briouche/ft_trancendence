@@ -65,11 +65,14 @@ export interface TargetPrompt
     options: TargetOption[];
 }
 
+export type Difficulty = "facile" | "moyen" | "difficile";
+
 export type ClientMessage = { type: "ready" }
-    | { type: "playCard"; cardId: string; boardIndex?: number; }
-    | { type: "attack"; attackerId: string; targetId: string; }
-    | { type: "targetChoice"; targetId: string | null }
-    | { type: "endTurn" };
+                            | { type: "readySolo"; difficulty: Difficulty }
+                            | { type: "playCard"; cardId: string; boardIndex?: number; }
+                            | { type: "attack"; attackerId: string; targetId: string; }
+                            | { type: "targetChoice"; targetId: string | null }
+                            | { type: "endTurn" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }

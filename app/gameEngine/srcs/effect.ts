@@ -296,6 +296,8 @@ export class RandomMissileEffect extends Effect
             if (this.resolver && !this.resolver.requiresInput)
             {
                 let target = this.resolver.resolve(context);
+                if (target.length === 0)
+                    break;
                 if (target[0].isAlive())
                 {
                     target[0].takeDamage(this._damage);

@@ -49,6 +49,11 @@ export class Deck
     {
         return this.cards.length === 0;
     }
+
+    clone(): Deck
+    {
+        return new Deck(this.cards.map(card => card.cloneCopy()));
+    }
 }
 
 

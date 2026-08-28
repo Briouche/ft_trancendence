@@ -10,6 +10,11 @@ import { StateSyncController } from "./gameProcessors/StateSyncController";
 import { ServerEventPlayer } from "./gameProcessors/ServerEventPlayer";
 import { InputController } from "./gameProcessors/InputController";
 import { GameOverOverlay } from "../objects/GameOverOverlay";
+import { TargetArrow } from "../objects/TargetArrow";
+import { ResolvedTarget } from "../objects/Target";
+import type { GameMode } from "@/game/GameConfig";
+import type { Difficulty } from "@/game/shared/protocol";
+
 
 export class GameScene extends Phaser.Scene
 {
@@ -32,9 +37,18 @@ export class GameScene extends Phaser.Scene
     private onRejectedHandler = (reason: string) => this.onServerRejected(reason);
     private onEventHandler = (event: GameEvent) => this.onServerEvent(event);
 
+    private mode!: GameMode;
+    private difficulty!: Difficulty;
+
     constructor()
     {
         super("GameScene");
+    }
+
+    init(data: { mode: GameMode; difficulty: Difficulty })
+    {
+        this.mode = data.mode;
+        this.difficulty = data.difficulty;
     }
 
     create()
@@ -59,7 +73,10 @@ export class GameScene extends Phaser.Scene
         // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY,
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
-        EventManager.emit("client:ready");
+        if (this.mode === "solo")
+            EventManager.emit("client:readySolo", this.difficulty);
+        else
+            EventManager.emit("client:ready");
     }
 
     private layoutBackground()

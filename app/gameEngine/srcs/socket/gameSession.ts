@@ -8,6 +8,11 @@ import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
 import { DamageRecord } from "../gameEngine";
+import { getBestAction } from "../ai/mcts";
+import { Action } from "../ai/types";
+import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
+
+export type Seat = { kind: "human"; socket: Socket } | { kind: "ai" };
 
 interface PendingTarget
 {
@@ -21,13 +26,16 @@ interface PendingTarget
 export class GameSession
 {
     private engine: GameEngine;
-    private sockets: [Socket, Socket];
+    private seats: [Seat, Seat];
     private pending: PendingTarget | null = null;
     private gameOver : boolean = false;
+    private difficulty: Difficulty;
 
-    constructor(sock0: Socket, sock1: Socket, player0: Player, player1: Player)
-    {
-        this.sockets = [sock0, sock1];
+    constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen")
+    {   
+        this.difficulty = difficulty;
+        this.seats = [seat0, seat1];
+        console.log("Game Starting... with " + seat0.kind + " and " + seat1.kind);
         this.engine = new GameEngine([player0, player1]);
         this.bindHandlers();
         this.send(0, { type: "assigned", playerIndex: 0 });
@@ -35,13 +43,15 @@ export class GameSession
         console.log("players assigned... game starting!");
         this.engine.startGame();
         this.broadcastState();
+        this.runAiTurnLoop();
     }
 
-    private bindHandlers()
+    private bindHandlers(): void
     {
-        this.sockets.forEach((socket, playerIndex) =>
+        this.seats.forEach((seat, playerIndex) =>
         {
-            socket.on("message", (msg: ClientMessage) => this.handle(playerIndex as 0 | 1, msg));
+            if (seat.kind === "human")
+                seat.socket.on("message", (msg: ClientMessage) => this.handle(playerIndex as 0 | 1, msg));
         });
     }
 
@@ -58,7 +68,6 @@ export class GameSession
         if (this.pending !== null && msg.type !== "targetChoice")
         {
             this.reject(playerIndex, "waiting for target");
-            //remove pending? 
             return ;
         }
 
@@ -75,7 +84,6 @@ export class GameSession
         }
     }
 
-    //end of game is not very clear yet?
     private checkGameOver()
     {
         if (this.gameOver)
@@ -95,7 +103,10 @@ export class GameSession
 
     private send(playerIndex: number, msg: ServerMessage): void
     {
-        this.sockets[playerIndex].emit("message", msg);
+        const seat: Seat = this.seats[playerIndex];
+
+        if (seat.kind === "human")
+            seat.socket.emit("message", msg);
     }
 
     private reject(playerIndex: number, reason: string): void
@@ -216,7 +227,6 @@ export class GameSession
             return;
         }
 
-        //does cancellation work? add on esc or on right click
         if (targetId === null)
         {
             this.pending = null;
@@ -356,10 +366,19 @@ export class GameSession
         return effects;
     }
 
-    handleDisconnect(socket: Socket)
+    handleDisconnect(socket: Socket): void
     {
-        const winnerIndex = this.sockets[0] === socket ? 1 : 0;
-        this.sockets[winnerIndex].emit("message", { type: "gameOver", winner: "you" });
+        const seatIndex: number = this.seats.findIndex(
+            (seat: Seat) => seat.kind === "human" && seat.socket === socket
+        );
+
+        if (seatIndex === -1)
+            return;
+
+        const winnerSeat: Seat = this.seats[1 - seatIndex];
+
+        if (winnerSeat.kind === "human")
+            winnerSeat.socket.emit("message", { type: "gameOver", winner: "you" });
     }
 
     handleEndTurn()
@@ -378,6 +397,74 @@ export class GameSession
         }
         this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
         this.broadcastState();
+        this.runAiTurnLoop();
+    }
+
+    private async runAiTurnLoop(): Promise<void>
+    {
+        const { simulations, worlds } = DIFFICULTY_PRESETS[this.difficulty];
+
+        while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
+        {
+            let action: Action;
+
+            //bug where getBestAction never comes back, added timeout to cardLoader so no infinite wait 
+            //isnt a real solution because it still fails, just end turn?
+            try
+            {
+                action = await getBestAction(this.engine, simulations, worlds);
+            }
+            catch (err)
+            {
+                console.error("AI turn failed, ending turn instead of hanging:", err);
+                action = { type: "endTurn" };
+            }
+
+            this.applyAiAction(action);
+
+            if (action.type !== "endTurn")
+                await this.delay(1500);
+        }
+    }
+
+    private delay(ms: number): Promise<void>
+    {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    private applyAiAction(action: Action): void
+    {
+        switch (action.type)
+        {
+            case "playCard":
+            {
+                const targets: Map<Effect, Targetable | null> = new Map();
+                this.engine.playCard(action.cardIndex, targets);
+                break;
+            }
+            case "attack":
+            {
+                const target: Targetable = this.resolveAiTarget(action.targetIndex);
+                this.engine.attackWithMinion(action.attackerIndex, target);
+                break;
+            }
+            case "endTurn":
+                this.engine.endTurn();
+                break;
+        }
+
+        this.broadcastState();
+        this.checkGameOver();
+    }
+
+    private resolveAiTarget(targetIndex: number): Targetable
+    {
+        const opponentIndex: 0 | 1 = (1 - this.engine.currentTurn) as 0 | 1;
+
+        if (targetIndex === -1)
+            return this.engine.players[opponentIndex].hero;
+
+        return this.engine.board.getMinions(opponentIndex)[targetIndex];
     }
 
     private targetToOption(target: Targetable): TargetOption

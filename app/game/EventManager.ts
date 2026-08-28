@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { io } from "socket.io-client";
 import type { ClientMessage, ServerMessage } from "@/game/shared/protocol";
+import type { Difficulty } from "@/game/shared/protocol";
 
 //for now have a second port for socket communication between engine and client
 //if needed can be crammed into same port as the http server
@@ -32,6 +33,12 @@ socket.on("message", (msg: ServerMessage) =>
         EventManager.emit("server:gameOver", msg.winner);
     else if (msg.type === "event")
         EventManager.emit("server:event", msg.event);
+});
+
+EventManager.on("client:readySolo", (difficulty: Difficulty) =>
+{
+    const msg: ClientMessage = { type: "readySolo", difficulty };
+    socket.emit("message", msg);
 });
 
 EventManager.on("client:ready", () =>

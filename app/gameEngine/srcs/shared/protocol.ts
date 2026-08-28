@@ -59,6 +59,9 @@ export type GameEvent = { type: "attack"; attackerId: string; targetId: string; 
 export type TargetOption = { type: "hero"; id: string; }
     | { type: "minion"; id: string; }
 
+export type Difficulty = "facile" | "moyen" | "difficile";
+
+
 export interface TargetPrompt
 {
     forCardId: string;
@@ -66,6 +69,7 @@ export interface TargetPrompt
 }
 
 export type ClientMessage = { type: "ready" }
+    | { type: "readySolo"; difficulty: Difficulty }
     | { type: "playCard"; cardId: string; boardIndex?: number; }
     | { type: "attack"; attackerId: string; targetId: string; }
     | { type: "targetChoice"; targetId: string | null }

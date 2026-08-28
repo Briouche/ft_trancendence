@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/app/gameEngine/node_modules
+/gameEngine/node_modules
 /.pnp
 .pnp.*
 .yarn/*
