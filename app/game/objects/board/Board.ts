@@ -10,14 +10,15 @@ import { CardRow } from "./CardRow";
 import { TargetRegistry } from "./TargetRegistry";
 import { computeXs } from "./BoardMath";
 
+const BOARD_MARGIN = 0.1;
 const BOARD_GAP_RATIO = 0.125;
 const SLOT_SIZE_RATIO = 0.20;
 const SLOT_ASPECT_RATIO = 0.8;
 const BOARD_PADDING_RATIO = 0.035;
 
 const CARD_HEIGHT_RATIO = 0.15;
-const DECK_HEIGHT_RATIO = 0.15;
-const DECK_WIDTH_RATIO = 0.10;
+const DECK_HEIGHT_RATIO = 0.22;
+const DECK_WIDTH_RATIO = 0.15;
 
 const HERO_Y_RATIO = 0.85;
 const HERO_SIZE_RATIO = 0.16;
@@ -25,7 +26,7 @@ const HERO_OFFSET_RATIO = 0.5;
 
 const END_TURN_WIDTH_RATIO = 0.2;
 const END_TURN_HEIGHT_RATIO = 0.07;
-const END_TURN_OFFSET_RATIO = 0.55;
+const END_TURN_OFFSET_RATIO = 0.65;
 const END_TURN_Y_RATIO = 0.5;
 
 export class Board
@@ -44,6 +45,7 @@ export class Board
     private opponentDeck: Deck;
 
     private boardZone: Phaser.GameObjects.Zone;
+    //private boardGraphic: Phaser.GameObjects.NineSlice;
     private playerGraphic: Phaser.GameObjects.Rectangle;
     private opponentGraphic: Phaser.GameObjects.Rectangle;
     private endTurn: EndTurn;
@@ -58,8 +60,9 @@ export class Board
         this.opponentRow = new CardRow(scene, 1, slotCount);
 
         this.boardZone = scene.add.zone(0, 0, 0, 0).setRectangleDropZone(0, 0);
-        this.playerGraphic = scene.add.rectangle(0, 0, 0, 0, 0x1a3a1a, 0.3).setStrokeStyle(1, 0x3a5a3a);
-        this.opponentGraphic = scene.add.rectangle(0, 0, 0, 0, 0x1a3a1a, 0.3).setStrokeStyle(1, 0x3a5a3a);
+        //this.boardGraphic = scene.add.nineslice(0, 0, "boardFrame", undefined, 10, 10, 150, 150, 150, 150);
+        this.playerGraphic = scene.add.rectangle(0, 0, 0, 0, 0xa4c6e6, 0.07).setStrokeStyle(1, 0x7fa2c7);
+        this.opponentGraphic = scene.add.rectangle(0, 0, 0, 0, 0xa4c6e6, 0.07).setStrokeStyle(1, 0x7fa2c7);
 
         for (let i = 0; i < slotCount; i++)
         {
@@ -73,7 +76,7 @@ export class Board
         this.targets.add(Target.forHero(scene, this.opponentHero));
 
         this.endTurn = new EndTurn(scene, 10, 10);
-        this.playerManaBar = new Manabar(scene, 0, 0, 200, 20);
+        this.playerManaBar = new Manabar(scene, 0, 0, 250, 30);
         this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
         this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
     }
@@ -95,6 +98,10 @@ export class Board
         this.boardZone.setPosition(width / 2, playerY);
         this.boardZone.setSize(boardWidth, boardHeight);
         this.boardZone.input?.hitArea.setTo(0, 0, boardWidth, boardHeight);
+
+        //this.boardGraphic.setPosition(width / 2, height * 0.5);
+        //this.boardGraphic.setSize(boardWidth + BOARD_MARGIN * boardHeight * 2, boardHeight * 2 + BOARD_MARGIN * boardHeight * 2);
+        //this.boardGraphic.setDepth(0);
 
         this.playerGraphic.setPosition(width / 2, playerY);
         this.playerGraphic.setSize(boardWidth, boardHeight);
@@ -135,17 +142,17 @@ export class Board
         this.endTurn.resize(endTurnWidth, endTurnHeight);
         this.endTurn.setPosition(width / 2 + height * END_TURN_OFFSET_RATIO, height * END_TURN_Y_RATIO);
 
-        const manabarX = width / 2 - height * 0.5;
-        const manabarY = height * 0.9;
+        const manabarX = width / 2 - height * 0.55;
+        const manabarY = height * 0.8;
         this.playerManaBar.setPosition(manabarX, manabarY);
-        this.playerManaBar.resize(height * 0.22, height * 0.045);
+        this.playerManaBar.resize(height * 0.28, height * 0.05);
 
-        const playerDeckX = width / 2 - height * 0.6;
-        const playerDeckY = height * 0.6;
+        const playerDeckX = width / 2 - height * 0.65;
+        const playerDeckY = height * 0.63;
         this.playerDeck.setPosition(playerDeckX, playerDeckY, height * 0.03);
 
-        const opponentDeckX = width / 2 - height * 0.6;
-        const opponentDeckY = height * 0.4;
+        const opponentDeckX = width / 2 - height * 0.65;
+        const opponentDeckY = height * 0.37;
         this.opponentDeck.setPosition(opponentDeckX, opponentDeckY, height * 0.03);
         this.playerDeck.resize(height * DECK_WIDTH_RATIO, height * DECK_HEIGHT_RATIO);
         this.opponentDeck.resize(height * DECK_WIDTH_RATIO, height * DECK_HEIGHT_RATIO);
@@ -229,7 +236,7 @@ export class Board
     {
         return this.playerRow.findById(id) ?? this.opponentRow.findById(id);
     }
-
+    
     getDeckPosition(side: 0 | 1): { x: number; y: number }
     {
         const deck = side === 0 ? this.playerDeck : this.opponentDeck;

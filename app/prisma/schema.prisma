@@ -128,8 +128,10 @@ model Message {
 // ─────────────────────────────────────────────
 // Game Component Models
 // ─────────────────────────────────────────────
+
 model Card {
   id       String     @id
+  assetKey String     @default("placeholder_card")
   name     String
   type     String     @default("")
   rarity   String
@@ -143,7 +145,20 @@ model Card {
   color    String     @default("")
   legendId String     @default("")
   decks    DeckCard[]
+
+  taunt     Boolean?
+  rush      Boolean?
+  archi     Boolean?
+
+  battlecry         Json?
+  deathrattle       Json?
+  onAttack          Json?
+  onDamage          Json?
+  startOfTurnEffect Json?
+  endOfTurnEffect   Json?
+  spellEffect       Json? 
 }
+
 
 model Deck {
   id        Int        @id @default(autoincrement())

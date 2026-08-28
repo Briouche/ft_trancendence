@@ -28,7 +28,7 @@ export class Hero extends Phaser.GameObjects.Container
         this.heroData = heroData;
 
         this.portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
-        this.nameText = scene.add.text(0, -size * 0.6, heroData.name,
+        this.nameText = scene.add.text(0, -size * 0.2, heroData.name,
             { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
         this.healthText = scene.add.text(0, 0, `${heroData.health}`,
             { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR, stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5);
@@ -41,7 +41,7 @@ export class Hero extends Phaser.GameObjects.Container
     resize(size: number): void
     {
         this.portrait.setSize(size, size);
-        this.nameText.setPosition(0, -size * 0.6);
+        this.nameText.setPosition(0, -size * 0.5);
         this.nameText.setFontSize(`${Math.round(size * 0.14)}px`);
         this.healthText.setPosition(0, 0);
         this.healthText.setFontSize(`${Math.round(size * 0.3)}px`);
