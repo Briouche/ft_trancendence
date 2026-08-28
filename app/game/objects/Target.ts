@@ -4,6 +4,8 @@ import { Hero } from "./Hero";
 
 export type ResolvedTarget = { kind: "hero"; hero: Hero; id: string } | { kind: "minion"; card: Card; id: string };
 
+const HIGHLIGHT_DEPTH = 1500;
+
 export class Target
 {
     private zone: Phaser.GameObjects.Zone;
@@ -17,7 +19,7 @@ export class Target
     {
         this.kind = kind;
         this.zone = scene.add.zone(0, 0, 0, 0).setRectangleDropZone(0, 0);
-        this.highlight = scene.add.rectangle(0, 0, 0, 0, 0xffff00, 0).setStrokeStyle(3, 0xffff00).setVisible(false);
+        this.highlight = scene.add.rectangle(0, 0, 0, 0, 0xffe680, 0).setStrokeStyle(3, 0xffe680, 0.7).setVisible(false).setDepth(HIGHLIGHT_DEPTH);
     }
 
     static forMinionSlot(scene: Phaser.Scene, getCard: () => Card | null): Target
@@ -49,6 +51,7 @@ export class Target
         this.zone.setPosition(x , y);
         const isValid = this.kind === "hero" || (this.getCard?.() != null);
         this.zone.input?.hitArea.setTo(-width / 2, -height / 2, isValid ? width : 0, isValid ? height : 0);
+        this.highlight.setPosition(x, y).setSize(width, height);
         this.highlight.setVisible(this.highlighted);
     }
 

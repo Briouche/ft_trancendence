@@ -150,7 +150,7 @@ export class GameEngine
 
         attacker.canAttack = false;
 
-        if (attacker.effects.onAttack && attacker.effects.onAttack.resolver && !attacker.effects.onAttack.resolver.requiresInput)
+        if (attacker.effects.onAttack && (!attacker.effects.onAttack.resolver || !attacker.effects.onAttack.resolver.requiresInput))
         {
             let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker };
             attacker.effects.onAttack.execute(context);

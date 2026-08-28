@@ -2,20 +2,41 @@ import Phaser from "phaser";
 
 const DEFAULT_SIZE = 90;
 const BUFFED_HEALTH_COLOR = "#03c844";
-const MAX_HEALTH_COLOR = "#ffffff";
-const HEALTH_COLOR = "#d71010";
+const MAX_HEALTH_COLOR = "#000000";
+const HEALTH_COLOR = "#760606";
 const PORTRAIT_COLOR = 0x3a2b2b;
 const STROKE_COLOR = 0xff5555;
 
+const ZONE_WIDTH_RATIO = 1;
+const ZONE_HEIGHT_RATIO = 0.8;
+const ZONE_OFFSET_X_RATIO = 0;
+const ZONE_OFFSET_Y_RATIO = -0.1;
+const OPPONENT_ZONE_WIDTH_RATIO = 1;
+const OPPONENT_ZONE_HEIGHT_RATIO = 0.8;
+const OPPONENT_ZONE_OFFSET_X_RATIO = 0;
+const OPPONENT_ZONE_OFFSET_Y_RATIO = 0.1;
+
+const FRAME_SCALE = 2;
+const FRAME_OFFSET_X_RATIO = 0.21;
+const FRAME_OFFSET_Y_RATIO = 0.13;
+const OPPONENT_FRAME_OFFSET_X_RATIO = -0.17;
+const OPPONENT_FRAME_OFFSET_Y_RATIO = -0.12;
+
+const HEALTH_TEXT_OFFSET_X_RATIO = -0.58;
+const HEALTH_TEXT_OFFSET_Y_RATIO = 0.3;
+const OPPONENT_HEALTH_TEXT_OFFSET_X_RATIO = 0.58;
+const OPPONENT_HEALTH_TEXT_OFFSET_Y_RATIO = -0.3;
+const HEALTH_TEXT_DEPTH = 10;
+
 const COUNTER_COLOR = 0x2b2b3a;
 const COUNTER_STROKE_COLOR = 0x55aaff;
-const COUNTER_GAP = 6;
+const COUNTER_GAP = 2;
 const HOVER_DELAY_MS = 2000;
 const TOOLTIP_PADDING = 6;
 
 const COUNTER_INFO: Record<"freddy" | "archi", { divisor: number; description: string }> = {
     freddy: { divisor: 4, description: "Every 4 minions that die,\nfreddy summons a 1/1 skeleton." },
-    archi: { divisor: 6, description: "Once you have played all 6 bocal cards,\nplay Archimede to win the game." },
+    archi: { divisor: 6, description: "Once you have played\nall 6 bocal memebrs,\nplay Archimede to win the game." },
 };
 
 export interface HeroData
@@ -32,9 +53,11 @@ export class Hero extends Phaser.GameObjects.Container
 {
     public heroData: HeroData;
     private portrait: Phaser.GameObjects.Rectangle;
+    private frame: Phaser.GameObjects.Image;
     private nameText: Phaser.GameObjects.Text;
     private healthText: Phaser.GameObjects.Text;
     private size: number;
+    private isOpponent: boolean;
 
     private counterType?: "freddy" | "archi";
     private counterCircle?: Phaser.GameObjects.Arc;
@@ -43,20 +66,28 @@ export class Hero extends Phaser.GameObjects.Container
     private tooltipText?: Phaser.GameObjects.Text;
     private hoverTimer?: Phaser.Time.TimerEvent;
 
-    constructor(scene: Phaser.Scene, heroData: HeroData, size: number = DEFAULT_SIZE)
+    constructor(scene: Phaser.Scene, heroData: HeroData, size: number = DEFAULT_SIZE, isOpponent: boolean = false)
     {
         super(scene, 0, 0);
         this.heroData = heroData;
         this.size = size;
+        this.isOpponent = isOpponent;
 
         this.portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
         this.nameText = scene.add.text(0, -size * 0.2, heroData.name,
             { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
         this.healthText = scene.add.text(0, 0, `${heroData.health}`,
-            { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR, stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5);
+            { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR, stroke: "#ffffff", strokeThickness: 4  }).setDepth(HEALTH_TEXT_DEPTH);
 
-        this.add([this.portrait, this.nameText, this.healthText]);
-        this.setSize(size, size);
+        const frameOffset = this.getFrameOffset(size);
+        this.frame = scene.add.image(frameOffset.x, frameOffset.y, isOpponent ? "opponentHeroFrame" : "heroFrame");
+        this.frame.setDisplaySize(size * FRAME_SCALE, size * FRAME_SCALE);
+        this.positionHealthText(size);
+
+        this.add([this.portrait, this.nameText, this.healthText, this.frame]);
+        this.sort("depth");
+        const zoneLayout = this.getZoneLayout(size);
+        this.setSize(zoneLayout.width, zoneLayout.height);
         scene.add.existing(this);
 
         this.updateCounter();
@@ -68,12 +99,55 @@ export class Hero extends Phaser.GameObjects.Container
         this.portrait.setSize(size, size);
         this.nameText.setPosition(0, -size * 0.5);
         this.nameText.setFontSize(`${Math.round(size * 0.14)}px`);
-        this.healthText.setPosition(0, 0);
         this.healthText.setFontSize(`${Math.round(size * 0.3)}px`);
-        this.setSize(size, size);
+        const frameOffset = this.getFrameOffset(size);
+        this.frame.setPosition(frameOffset.x, frameOffset.y);
+        this.frame.setDisplaySize(size * FRAME_SCALE, size * FRAME_SCALE);
+        this.positionHealthText(size);
+        const zoneLayout = this.getZoneLayout(size);
+        this.setSize(zoneLayout.width, zoneLayout.height);
 
         if (this.counterCircle && this.counterText)
             this.positionCounter(this.counterCircle, this.counterText);
+    }
+
+    private getZoneLayout(size: number): { width: number; height: number; offsetX: number; offsetY: number }
+    {
+        const [widthRatio, heightRatio, offsetXRatio, offsetYRatio] = this.isOpponent
+            ? [OPPONENT_ZONE_WIDTH_RATIO, OPPONENT_ZONE_HEIGHT_RATIO, OPPONENT_ZONE_OFFSET_X_RATIO, OPPONENT_ZONE_OFFSET_Y_RATIO]
+            : [ZONE_WIDTH_RATIO, ZONE_HEIGHT_RATIO, ZONE_OFFSET_X_RATIO, ZONE_OFFSET_Y_RATIO];
+        return { width: size * widthRatio, height: size * heightRatio, offsetX: size * offsetXRatio, offsetY: size * offsetYRatio };
+    }
+
+    getZoneOffset(): { x: number; y: number }
+    {
+        const zoneLayout = this.getZoneLayout(this.size);
+        return { x: zoneLayout.offsetX, y: zoneLayout.offsetY };
+    }
+
+    private getFrameOffset(size: number): { x: number; y: number }
+    {
+        const [ratioX, ratioY] = this.isOpponent
+            ? [OPPONENT_FRAME_OFFSET_X_RATIO, OPPONENT_FRAME_OFFSET_Y_RATIO]
+            : [FRAME_OFFSET_X_RATIO, FRAME_OFFSET_Y_RATIO];
+        return { x: ratioX * size, y: ratioY * size };
+    }
+
+    private positionHealthText(size: number): void
+    {
+        const frameOffset = this.getFrameOffset(size);
+        const halfFrame = (size * FRAME_SCALE) / 2;
+        const [offsetXRatio, offsetYRatio] = this.isOpponent
+            ? [OPPONENT_HEALTH_TEXT_OFFSET_X_RATIO, OPPONENT_HEALTH_TEXT_OFFSET_Y_RATIO]
+            : [HEALTH_TEXT_OFFSET_X_RATIO, HEALTH_TEXT_OFFSET_Y_RATIO];
+        const offsetX = offsetXRatio * size;
+        const offsetY = offsetYRatio * size;
+
+        this.healthText.setOrigin(0.5);
+        if (this.isOpponent)
+            this.healthText.setPosition(frameOffset.x - halfFrame + offsetX, frameOffset.y + halfFrame + offsetY);
+        else
+            this.healthText.setPosition(frameOffset.x + halfFrame + offsetX, frameOffset.y - halfFrame + offsetY);
     }
 
     setHeroData(heroData: HeroData)
@@ -112,15 +186,19 @@ export class Hero extends Phaser.GameObjects.Container
             { fontSize: `${Math.round(radius * 0.9)}px`, color: "#fff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 
         this.add([this.counterCircle, this.counterText]);
+        this.sort("depth");
         this.positionCounter(this.counterCircle, this.counterText);
         this.setupCounterHover(this.counterCircle, COUNTER_INFO[type].description);
     }
 
     private positionCounter(circle: Phaser.GameObjects.Arc, text: Phaser.GameObjects.Text): void
     {
-        const x = this.size / 2 + circle.radius + COUNTER_GAP;
-        circle.setPosition(x, 0);
-        text.setPosition(x, 0);
+        const x = this.size / 3 + circle.radius + COUNTER_GAP;
+        let y = this.size / 3 + circle.radius;
+        if (this.isOpponent)
+            y = -y;
+        circle.setPosition(x, y);
+        text.setPosition(x, y);
     }
 
     private setupCounterHover(circle: Phaser.GameObjects.Arc, description: string): void
@@ -151,6 +229,7 @@ export class Hero extends Phaser.GameObjects.Container
         this.tooltipText.setPosition(x + TOOLTIP_PADDING, y + TOOLTIP_PADDING);
 
         this.add([this.tooltipBg, this.tooltipText]);
+        this.sort("depth");
     }
 
     private hideTooltip(): void

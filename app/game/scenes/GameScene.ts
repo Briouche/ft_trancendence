@@ -9,6 +9,7 @@ import { AnimationQueue } from "./gameProcessors/AnimationQueue";
 import { StateSyncController } from "./gameProcessors/StateSyncController";
 import { ServerEventPlayer } from "./gameProcessors/ServerEventPlayer";
 import { InputController } from "./gameProcessors/InputController";
+import { GameOverOverlay } from "../objects/GameOverOverlay";
 
 export class GameScene extends Phaser.Scene
 {
@@ -23,6 +24,13 @@ export class GameScene extends Phaser.Scene
     private opponentHand!: OpponentHand;
 
     private background!: Phaser.GameObjects.Image;
+
+    private onAssignedHandler = (playerIndex: 0 | 1) => { this.flow.playerIndex = playerIndex; };
+    private onStateHandler = (state: ClientGameState) => this.onServerState(state);
+    private onPromptHandler = (prompt: TargetPrompt) => this.onServerPrompt(prompt);
+    private onGameOverHandler = (winner: "you" | "opponent") => this.onGameOver(winner);
+    private onRejectedHandler = (reason: string) => this.onServerRejected(reason);
+    private onEventHandler = (event: GameEvent) => this.onServerEvent(event);
 
     constructor()
     {
@@ -41,12 +49,15 @@ export class GameScene extends Phaser.Scene
         this.animationQueue = new AnimationQueue((state) => this.stateSync.apply(state));
         this.stateSync = new StateSyncController(this, this.flow, (table) => this.onTableCreated(table), () => this.input_.clearWaitingState());
 
-        EventManager.on("server:assigned", (playerIndex: 0 | 1) => { this.flow.playerIndex = playerIndex; });
-        EventManager.on("server:state", (state: ClientGameState) => this.onServerState(state));
-        EventManager.on("server:prompt", (prompt: TargetPrompt) => this.onServerPrompt(prompt));
-        EventManager.on("server:gameOver", () => this.onGameOver());
-        EventManager.on("server:rejected", (reason: string) => this.onServerRejected(reason));
-        EventManager.on("server:event", (event: GameEvent) => this.onServerEvent(event));
+        EventManager.on("server:assigned", this.onAssignedHandler);
+        EventManager.on("server:state", this.onStateHandler);
+        EventManager.on("server:prompt", this.onPromptHandler);
+        EventManager.on("server:gameOver", this.onGameOverHandler);
+        EventManager.on("server:rejected", this.onRejectedHandler);
+        EventManager.on("server:event", this.onEventHandler);
+
+        // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY,
+        this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         EventManager.emit("client:ready");
     }
@@ -81,7 +92,7 @@ export class GameScene extends Phaser.Scene
 
         this.layout();
         this.scale.on("resize", this.layout, this);
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off("resize", this.layout, this));
+        this.events.once(Phaser.Scenes.Events.DESTROY, () => this.scale.off("resize", this.layout, this));
     }
 
     private layout(): void
@@ -124,10 +135,14 @@ export class GameScene extends Phaser.Scene
         this.input_.clearWaitingState(true);
     }
 
-    private onGameOver(): void
+    private onGameOver(winner: "you" | "opponent"): void
     {
         this.flow.awaitingTarget = false;
-        this.input.enabled = false;
+        this.input_.clearWaitingState();
+
+        const text = winner === "you" ? "YOU WIN!!" : "YOU LOSE :(";
+        const color = winner === "you" ? "#03c844" : "#760606";
+        new GameOverOverlay(this, text, color);
     }
 
     private onServerEvent(event: GameEvent): void
@@ -138,5 +153,11 @@ export class GameScene extends Phaser.Scene
     shutdown()
     {
         this.scale.off("resize", this.layoutBackground, this);
+        EventManager.off("server:assigned", this.onAssignedHandler);
+        EventManager.off("server:state", this.onStateHandler);
+        EventManager.off("server:prompt", this.onPromptHandler);
+        EventManager.off("server:gameOver", this.onGameOverHandler);
+        EventManager.off("server:rejected", this.onRejectedHandler);
+        EventManager.off("server:event", this.onEventHandler);
     }
 }

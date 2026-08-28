@@ -23,7 +23,7 @@ export type ResolverSpec =
 export type EffectSpec =
     | { kind: "damage"; amount: number; resolver: ResolverSpec }
     | { kind: "heal"; amount: number; resolver: ResolverSpec }
-    | { kind: "lifesteal;" }
+    | { kind: "lifesteal" }
     | { kind: "buff"; atk: number; health: number; resolver: ResolverSpec }
     | { kind: "draw"; amount: number }
     | { kind: "addKeyword"; value: boolean; keywordType: string; resolver: ResolverSpec }
@@ -74,7 +74,7 @@ export function buildEffect(spec: EffectSpec | null | undefined): Effect | undef
             return new DamageEffect(spec.amount, buildResolver(spec.resolver))
         case "heal":
             return new HealEffect(spec.amount, buildResolver(spec.resolver))
-        case "lifesteal;":
+        case "lifesteal":
             return new lifestealEffect()
         case "buff":
             return new BuffEffect(spec.atk, spec.health, buildResolver(spec.resolver))

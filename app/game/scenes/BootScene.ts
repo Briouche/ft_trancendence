@@ -17,6 +17,8 @@ export class BootScene extends Phaser.Scene
         this.load.image("banner", "gameAssets/UI_NoteBook_Banner04a.png");
         this.load.image("emptyEnergy", "gameAssets/UI_TravelBook_IconEnergy01g.png");
         this.load.image("fullEnergy", "gameAssets/UI_TravelBook_IconEnergy02a.png");
+        this.load.image("heroFrame", "gameAssets/hero.png");
+        this.load.image("opponentHeroFrame", "gameAssets/opponentHero.png")
         //this.load.image("boardFrame", "/gameAssets/UI_TabletBook_Cover01a.png")
     }
 

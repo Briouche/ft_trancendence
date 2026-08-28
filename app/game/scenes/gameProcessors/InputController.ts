@@ -52,6 +52,7 @@ export class InputController
             {
                 this.targetingCard = obj;
                 this.targetArrow = new TargetArrow(this.scene, obj.x, obj.y);
+                this.board.setTargetHighlights(this.board.getLegalAttackTargetIds());
                 return;
             }
 
@@ -59,6 +60,7 @@ export class InputController
             {
                 this.targetingCard = obj;
                 this.targetArrow = new TargetArrow(this.scene, obj.x, obj.y);
+                this.board.setTargetHighlights(this.board.getLegalSpellTargetIds());
             }
         });
 
@@ -108,6 +110,7 @@ export class InputController
                     this.targetArrow.destroy();
                     this.targetArrow = null;
                     this.targetingCard = null;
+                    this.board.clearTargetHighlights();
                     obj.returnToBase();
                 }
                 return;
@@ -193,6 +196,11 @@ export class InputController
         this.clickTargetCard = card;
         this.clickTargetMode = mode;
         this.targetArrow = new TargetArrow(this.scene, card.x, card.y);
+
+        if (mode === "attack")
+            this.board.setTargetHighlights(this.board.getLegalAttackTargetIds());
+        else
+            this.board.setTargetHighlights(this.board.getLegalSpellTargetIds());
     }
 
     private beginClickCardMove(card: Card): void
@@ -258,6 +266,7 @@ export class InputController
         this.targetArrow = null;
         this.clickTargetCard = null;
         this.clickTargetMode = null;
+        this.board.clearTargetHighlights();
     }
 
 
@@ -281,6 +290,7 @@ export class InputController
         this.targetArrow?.destroy();
         this.targetArrow = null;
         this.targetingCard = null;
+        this.board.clearTargetHighlights();
 
         if (!resolvedTarget)
         {
@@ -326,6 +336,7 @@ export class InputController
         this.targetArrow?.destroy();
         this.targetArrow = null;
         this.targetingCard = null;
+        this.board.clearTargetHighlights();
 
         if (!resolvedTarget)
         {

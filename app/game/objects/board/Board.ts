@@ -17,6 +17,7 @@ const SLOT_ASPECT_RATIO = 0.8;
 const BOARD_PADDING_RATIO = 0.035;
 
 const CARD_HEIGHT_RATIO = 0.15;
+const CARD_ASPECT_RATIO = 1.4;
 const DECK_HEIGHT_RATIO = 0.22;
 const DECK_WIDTH_RATIO = 0.15;
 
@@ -70,8 +71,8 @@ export class Board
             this.targets.add(Target.forMinionSlot(scene, () => this.opponentRow.all[i] ?? null));
         }
 
-        this.playerHero = new Hero(scene, playerHeroData, HERO_SIZE_RATIO * scene.scale.height);
-        this.opponentHero = new Hero(scene, opponentHeroData, HERO_SIZE_RATIO * scene.scale.height);
+        this.playerHero = new Hero(scene, playerHeroData, HERO_SIZE_RATIO * scene.scale.height, false);
+        this.opponentHero = new Hero(scene, opponentHeroData, HERO_SIZE_RATIO * scene.scale.height, true);
         this.targets.add(Target.forHero(scene, this.playerHero));
         this.targets.add(Target.forHero(scene, this.opponentHero));
 
@@ -111,14 +112,16 @@ export class Board
         this.opponentGraphic.setSize(boardWidth, boardHeight);
         this.opponentGraphic.setDepth(0);
 
-        const playerXs = computeXs(this.playerRow.all.length, height, width / 2, SLOT_SIZE_RATIO);
-        const opponentXs = computeXs(this.opponentRow.all.length, height, width / 2, SLOT_SIZE_RATIO);
+        const playerXs = computeXs(this.playerRow.all.length, height, width / 2, CARD_HEIGHT_RATIO);
+        const opponentXs = computeXs(this.opponentRow.all.length, height, width / 2, CARD_HEIGHT_RATIO);
+        const cardSize = height * CARD_HEIGHT_RATIO;
+        const cardHeight = cardSize * CARD_ASPECT_RATIO;
         for (let i = 0; i < this.maxSlots; i++)
         {
             const playerTarget = this.targets.at(i * 2);
             const opponentTarget = this.targets.at(i * 2 + 1);
-            playerTarget.layout(playerXs[i] ?? 0, playerY, slotSize, slotHeight);
-            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, slotSize, slotHeight);
+            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight);
+            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight);
         }
 
         const heroSize = height * HERO_SIZE_RATIO;
@@ -134,8 +137,10 @@ export class Board
         const allTargets = this.targets.all();
         const playerHeroTarget = allTargets[allTargets.length - 2];
         const opponentHeroTarget = allTargets[allTargets.length - 1];
-        playerHeroTarget.layout(heroX, playerHeroY, this.playerHero.width, this.playerHero.height);
-        opponentHeroTarget.layout(heroX, opponentHeroY, this.opponentHero.width, this.opponentHero.height);
+        const playerZoneOffset = this.playerHero.getZoneOffset();
+        const opponentZoneOffset = this.opponentHero.getZoneOffset();
+        playerHeroTarget.layout(heroX + playerZoneOffset.x, playerHeroY + playerZoneOffset.y, this.playerHero.width, this.playerHero.height);
+        opponentHeroTarget.layout(heroX + opponentZoneOffset.x, opponentHeroY + opponentZoneOffset.y, this.opponentHero.width, this.opponentHero.height);
 
         const endTurnWidth = height * END_TURN_WIDTH_RATIO;
         const endTurnHeight = height * END_TURN_HEIGHT_RATIO;
@@ -225,6 +230,25 @@ export class Board
     setTargetHighlights(legalIds: Set<string>): void
     {
         this.targets.setHighlights(legalIds);
+    }
+
+    getLegalAttackTargetIds(): Set<string>
+    {
+        const tauntMinions = this.opponentRow.all.filter((c) => c.cardData.effects?.taunt);
+        const minions = tauntMinions.length > 0 ? tauntMinions : this.opponentRow.all;
+
+        const ids = new Set(minions.map((c) => c.cardData.id));
+        if (tauntMinions.length === 0)
+            ids.add(this.opponentHero.heroData.id);
+        return ids;
+    }
+
+    getLegalSpellTargetIds(): Set<string>
+    {
+        const ids = new Set([...this.playerRow.all, ...this.opponentRow.all].map((c) => c.cardData.id));
+        ids.add(this.playerHero.heroData.id);
+        ids.add(this.opponentHero.heroData.id);
+        return ids;
     }
 
     clearTargetHighlights(): void
