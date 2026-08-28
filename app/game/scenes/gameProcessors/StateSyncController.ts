@@ -57,8 +57,8 @@ export class StateSyncController
         opponentHand.setCount(state.opponentHandCount);
         hand.syncHandFromState(state.playerHand);
 
-        board.playerHero.setHealth(state.playerHero.health);
-        board.opponentHero.setHealth(state.opponentHero.health);
+        board.playerHero.setHeroData(state.playerHero);
+        board.opponentHero.setHeroData(state.opponentHero);
 
         this.flow.isMyTurn = state.yourTurn;
 

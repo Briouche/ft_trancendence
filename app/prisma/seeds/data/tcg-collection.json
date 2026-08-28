@@ -4,13 +4,13 @@
     {
       "id": "mpzqp0u9",
       "name": "Le menestrel",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
       "atk": "1",
       "def": "4",
-      "desc": "battlecry: donne -1 ATK au créatures adverses",
+      "desc": "battlecry: donne -1 ATK au creatures adverses",
       "qty": 2,
       "emoji": "🎸",
       "color": "#D3D1C7",
@@ -20,7 +20,7 @@
     {
       "id": "mpzsx3l7",
       "name": "Timmy, the planetsucker",
-      "type": "",
+      "type": "creature",
       "rarity": "Légendaire",
       "cost": "5",
       "costNum": 0,
@@ -36,7 +36,7 @@
     {
       "id": "mpzsyfvk",
       "name": "golem endormi",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 0,
@@ -52,7 +52,7 @@
     {
       "id": "mpzqq8bs",
       "name": "Pyroblin",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -194,7 +194,7 @@
     {
       "id": "mqi87m6k",
       "name": "Bibliothequaire",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -210,13 +210,13 @@
     {
       "id": "mqi7p9nf",
       "name": "Joël el Jeffe (aka marcel au 1000 épices)",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Légendaire",
       "cost": "3",
       "costNum": 3,
       "atk": "2",
       "def": "5",
-      "desc": "passif:  créatures bléssées ont +1 d'ATQ - battlecry: inflige 1 point de dégats a ses voisins", 
+      "desc": "passif:  creatures bléssées ont +1 d'ATQ - battlecry: inflige 1 point de dégats a ses voisins", 
       "qty": 1,
       "emoji": "🍳",
       "color": "#F4C0D1",
@@ -226,7 +226,7 @@
     {
       "id": "mqi7qihp",
       "name": "Diablotin du piment",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -242,7 +242,7 @@
     {
       "id": "mqi7lqzb",
       "name": "CRS",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -258,12 +258,12 @@
     {
       "id": "mqi7molw",
       "name": "Poulet mécontent",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
       "atk": "2",
-      "def": "3",
+      "def": "2",
       "desc": "quand il subit des dégats, gagne 3 d'atk",
       "qty": 2,
       "emoji": "🐓",
@@ -274,7 +274,7 @@
     {
       "id": "mqi7wg1q",
       "name": "Client Mécontent",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -290,7 +290,7 @@
     {
       "id": "mqi7xr37",
       "name": "Second Braillaird",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -306,7 +306,7 @@
     {
       "id": "mqi7t2uf",
       "name": "Critique culinaire",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -317,12 +317,12 @@
       "emoji": "🧐",
       "color": "#F4C0D1",
       "legendId": "mqi7p9nf",
-      "startOfTurn": { "kind": "damage", "amount": 3, "resolver": { "kind": "bothHeroes" } }
+      "startOfTurnEffect": { "kind": "damage", "amount": 3, "resolver": { "kind": "bothHeroes" } }
     },
     {
       "id": "mqi730al",
       "name": "Pecheur repenti",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -354,7 +354,7 @@
     {
       "id": "mqi6orw9",
       "name": "Bertrand",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Épique",
       "cost": "3",
       "costNum": 3,
@@ -365,12 +365,12 @@
       "emoji": "🪴",
       "color": "#B5D4F4",
       "legendId": "",
-      "endOfTurn": { "kind": "heal", "amount": 4, "resolver": { "kind": "source" } }  
+      "endOfTurnEffect": { "kind": "heal", "amount": 4, "resolver": { "kind": "source" } }  
     },
     {
       "id": "mqi6qse2",
       "name": "Jumeau Goblin",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -488,13 +488,13 @@
     {
       "id": "mqi810rs",
       "name": "Lanceur de couteaux",
-      "type": "créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
       "atk": "3",
       "def": "4",
-      "desc": "quand cette créature subit des dégats, envoie deux couteaux infligeant 1 dégat au hasard",
+      "desc": "quand cette creature subit des dégats, envoie deux couteaux infligeant 1 dégat au hasard",
       "qty": 2,
       "emoji": "🔪",
       "color": "#F4C0D1",
@@ -697,7 +697,7 @@
     {
       "id": "mpzqt44t",
       "name": "cannibalisme",
-      "type": "",
+      "type": "sort",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -715,7 +715,7 @@
     {
       "id": "mpzr3mcy",
       "name": "Hyperactive cousin",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 0,
@@ -738,7 +738,7 @@
     {
       "id": "mpzs81x0",
       "name": "le (gros) thon poli",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 0,
@@ -755,7 +755,7 @@
     {
       "id": "mpzs8u1h",
       "name": "bloodsucker",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -772,7 +772,7 @@
     {
       "id": "mqi7ivjj",
       "name": "Opika",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -783,7 +783,7 @@
       "emoji": "🐹",
       "color": "#D3D1C7",
       "legendId": "",
-      "endOfTurn": { "kind": "damage", "amount": 2, "resolver": { "kind": "randomEnemy" } }
+      "endOfTurnEffect": { "kind": "damage", "amount": 2, "resolver": { "kind": "randomEnemy" } }
     },
     {
       "id": "mqi7ktmr",
@@ -835,7 +835,7 @@
     {
       "id": "mpzsjywa",
       "name": "Rat des champs",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 0,
