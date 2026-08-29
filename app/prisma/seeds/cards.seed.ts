@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Keyword } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
 import { EffectSpec } from '../../gameEngine/srcs/cardImport/effectFactory'
@@ -31,6 +31,29 @@ interface RawCard
 	startOfTurnEffect?: EffectSpec
 	endOfTurnEffect?:   EffectSpec
 	spellEffect?:       EffectSpec
+	keywords?: string[]
+}
+
+// Libellés tels qu'écrits dans le JSON -> valeur d'enum Prisma
+const KEYWORD_LABELS: Record<string, Keyword> = {
+	'Ruée':             Keyword.RUEE,
+	"Râle d'agonie":    Keyword.RALE_DAGONIE,
+	'Cri de guerre':    Keyword.CRI_DE_GUERRE,
+	'Régénération':     Keyword.REGENERATION,
+	'Aventurier':       Keyword.AVENTURIER,
+	'Taunt':            Keyword.TAUNT,
+	'Soigné':           Keyword.SOIGNE,
+	'Vol de vie':       Keyword.VOL_DE_VIE,
+	'Silence':          Keyword.SILENCE,
+}
+
+function parseKeywords(raw: string[] | undefined, cardId: string): Keyword[] {
+	if (!raw) return []
+	return raw.map(label => {
+		const keyword = KEYWORD_LABELS[label]
+		if (!keyword) throw new Error(`Mot-clé inconnu "${label}" sur la carte ${cardId}`)
+		return keyword
+	})
 }
 
 export async function seedCards(prisma: PrismaClient)

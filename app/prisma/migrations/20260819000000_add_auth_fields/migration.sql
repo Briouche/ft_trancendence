@@ -1,0 +1,4 @@
+-- No-op: username, tokenVersion, the optional password, and the dropped `name` column
+-- were already applied to this database by 20260704081602_user_management (a parallel
+-- migration from a different branch that made the same schema change independently).
+-- Kept as an empty step so migration history stays intact instead of being deleted.
