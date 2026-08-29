@@ -46,12 +46,12 @@ export class Target
      * zone (same trick as before - can't drop onto nothing); a hero zone is always valid.
      * Must be called every layout pass, same rule as Board's player dropzone.
      */
-    layout(x: number, y: number, width: number, height: number)
+    layout(x: number, y: number, width: number, height: number, highlightScale: number = 1)
     {
         this.zone.setPosition(x , y);
         const isValid = this.kind === "hero" || (this.getCard?.() != null);
         this.zone.input?.hitArea.setTo(-width / 2, -height / 2, isValid ? width : 0, isValid ? height : 0);
-        this.highlight.setPosition(x, y).setSize(width, height);
+        this.highlight.setPosition(x, y).setSize(width * highlightScale, height * highlightScale);
         this.highlight.setVisible(this.highlighted);
     }
 

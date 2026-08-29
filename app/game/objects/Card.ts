@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { clientEffect } from "../shared/protocol";
+import { ensureCardAsset } from "./CardAssetLoader";
 
 const DEFAULT_WIDTH = 120;
 const DEFAULT_HEIGHT = 168;
@@ -14,6 +15,7 @@ export interface CardData
     id: string;
     index?: number;
     name: string;
+    assetKey: string;
     cost: number;
     attack?: number;
     health?: number;
@@ -33,7 +35,7 @@ export class Card extends Phaser.GameObjects.Container
     public isHovering: boolean = false;
     private hasBeenPLaced = false;
     private waitingTween: Phaser.Tweens.Tween | null = null;
-    private object: Phaser.GameObjects.Rectangle;
+    private object: Phaser.GameObjects.Image;
 
     private nameText: Phaser.GameObjects.Text;
     private costText: Phaser.GameObjects.Text;
@@ -62,12 +64,14 @@ export class Card extends Phaser.GameObjects.Container
         super(scene, 0, 0);
         this.cardData = cardData;
         this.cardHeight = height;
-        this.object = scene.add.rectangle(0, 0, width, height, 0x2b2b3a).setStrokeStyle(2, 0xffffff);
-        
-        this.nameText = scene.add.text(0, -height * 0.42, cardData.name, { fontSize: `${Math.round(height * 0.08)}px`, color: "#fff", 
-                                    wordWrap: { width: width * 0.85 } }).setOrigin(0.5, 0);
+        const initialKey = scene.textures.exists(cardData.assetKey) ? cardData.assetKey : "placeholder_card";
+        this.object = scene.add.image(0, 0, initialKey);
+        this.object.setDisplaySize(width, height);
+
+        this.nameText = scene.add.text(0, -height * 0.42, cardData.name, { fontSize: `${Math.round(height * 0.08)}px`, color: "#020202", 
+                                    stroke: "#ffffff", strokeThickness: 3 ,wordWrap: { width: width * 0.85 } }).setOrigin(0.5, 0);
         this.costText = scene.add.text(-width * 0.42, -height * 0.44, `${cardData.cost}`, { fontSize: `${Math.round(height * 0.12)}px`,
-                                    color: "#7fd7ff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5);
+                                    color: "#f6f7f7", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5);
         this.add([this.object, this.nameText, this.costText]);
         
         this.attackGlow = scene.add.graphics();
@@ -93,6 +97,14 @@ export class Card extends Phaser.GameObjects.Container
         scene.add.existing(this);
 
         this.setInteractive({ draggable: true, useHandCursor: true });
+
+        if (initialKey !== cardData.assetKey)
+        {
+            ensureCardAsset(scene, cardData.assetKey, (key) => {
+                if (this.hasValidScene())
+                    this.object.setTexture(key).setDisplaySize(this.width, this.height);
+            });
+        }
     }
 
     getBasePosition(): { x: number; y: number; rotation: number }
@@ -120,25 +132,25 @@ export class Card extends Phaser.GameObjects.Container
     {
         this.cardHeight = height;
 
-        this.object.setSize(width, height);
+        this.object.setDisplaySize(width, height);
         this.setSize(width, height);
 
         if (this.input && this.input.hitArea)
             this.input.hitArea.setTo(0, 0, width, height);
 
-        this.nameText.setPosition(0, -height * 0.42);
-        this.nameText.setFontSize(`${Math.round(height * 0.08)}px`);
-        this.nameText.setWordWrapWidth(width * 0.85);
+        this.nameText.setPosition(-height * 0.05, -height * 0.4);
+        this.nameText.setFontSize(`${Math.round(height * 0.05)}px`);
+        this.nameText.setWordWrapWidth(width * 0.8);
 
-        this.costText.setPosition(-width * 0.42, -height * 0.44);
-        this.costText.setFontSize(`${Math.round(height * 0.12)}px`);
+        this.costText.setPosition(width * 0.32, -height * 0.365);
+        this.costText.setFontSize(`${Math.round(height * 0.15)}px`);
 
         if (this.attackText && this.healthText)
         {
-            this.attackText.setPosition(-width * 0.42, height * 0.42);
-            this.attackText.setFontSize(`${Math.round(height * 0.1)}px`);
-            this.healthText.setPosition(width * 0.42, height * 0.42);
-            this.healthText.setFontSize(`${Math.round(height * 0.1)}px`);
+            this.attackText.setPosition(-width * 0.4, height * 0.43);
+            this.attackText.setFontSize(`${Math.round(height * 0.13)}px`);
+            this.healthText.setPosition(width * 0.4, height * 0.43);
+            this.healthText.setFontSize(`${Math.round(height * 0.13)}px`);
         }
 
         this.drawEffects(width, height);
@@ -248,11 +260,13 @@ export class Card extends Phaser.GameObjects.Container
         this.deathrattleSkull.fillStyle(0xf5f5f0, 1);
         this.deathrattleSkull.fillRect(-s * 0.18, s * 0.15, s * 0.36, s * 0.18);
 
+        const glowWidth = width * 0.9;
+        const glowHeight = height * 0.9;
         this.attackGlow.clear();
         this.attackGlow.lineStyle(6, 0x00ff88, 0.25);
-        this.attackGlow.strokeRoundedRect(-width / 2 - 4, -height / 2 - 4, width + 8, height + 8, 8);
-        this.attackGlow.lineStyle(3, 0x00ff88, 0.9);
-        this.attackGlow.strokeRoundedRect(-width / 2 - 2, -height / 2 - 2, width + 4, height + 4, 8);
+        this.attackGlow.strokeRoundedRect(-glowWidth / 2 - 4, -glowHeight / 2 - 4, glowWidth + 8, glowHeight + 8, 8);
+        this.attackGlow.lineStyle(3, 0x00ff88, 0.7);
+        this.attackGlow.strokeRoundedRect(-glowWidth / 2 - 2, -glowHeight / 2 - 2, glowWidth + 4, glowHeight + 4, 8);
     }
 
     setCardContext(onBoard: boolean, isMyTurn: boolean, isOwnSide: boolean): void

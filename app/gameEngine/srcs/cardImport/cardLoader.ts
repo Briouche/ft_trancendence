@@ -44,7 +44,8 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
             startOfTurnEffect:  buildEffect(raw.startOfTurnEffect as EffectSpec | null),
             endOfTurnEffect:    buildEffect(raw.endOfTurnEffect as EffectSpec | null)
         },
-        resolveLegendaryPassive(raw.legendId)
+        resolveLegendaryPassive(raw.legendId),
+        raw.assetKey
     )
 }
 
@@ -59,7 +60,8 @@ function rawToCard(raw: RawCard, playerPrefix = ""): Card
             +raw.cost,
             raw.desc,
             buildEffect(raw.spellEffect as EffectSpec | null)!,
-            resolveLegendaryPassive(raw.legendId)
+            resolveLegendaryPassive(raw.legendId),
+            raw.assetKey
         )
     }
 

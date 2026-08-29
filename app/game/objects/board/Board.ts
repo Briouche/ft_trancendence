@@ -16,7 +16,7 @@ const SLOT_SIZE_RATIO = 0.20;
 const SLOT_ASPECT_RATIO = 0.8;
 const BOARD_PADDING_RATIO = 0.035;
 
-const CARD_HEIGHT_RATIO = 0.15;
+const CARD_HEIGHT_RATIO = 0.17;
 const CARD_ASPECT_RATIO = 1.4;
 const DECK_HEIGHT_RATIO = 0.22;
 const DECK_WIDTH_RATIO = 0.15;
@@ -120,8 +120,8 @@ export class Board
         {
             const playerTarget = this.targets.at(i * 2);
             const opponentTarget = this.targets.at(i * 2 + 1);
-            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight);
-            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight);
+            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight, 0.9);
+            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight, 0.9);
         }
 
         const heroSize = height * HERO_SIZE_RATIO;

@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { Board } from "../../objects/board/Board";
 import { GameEvent } from "../../shared/protocol";
 import { Card } from "@/game/objects/Card";
+import { showCardPreview } from "@/game/objects/CardPreview";
 import { attackAnimation, battlecryAnimation, damageAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
 
 //handles the "GameEvent" signal
@@ -58,6 +59,7 @@ export class ServerEventPlayer
 
     private async playCardPlayed(event: Extract<GameEvent, { type: "cardPlayed" }>): Promise<void>
     {
+        showCardPreview(this.scene, event.card, 2000);
         this.deferUntilCardExists(event.cardId, (card) => summonAnimation(this.scene, card));
     }
 

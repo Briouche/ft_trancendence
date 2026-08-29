@@ -1,5 +1,5 @@
 const CARD_ASPECT_RATIO = 1.4;
-const CARD_SPACING_ON_BOARD = 1.2;
+const CARD_SPACING_ON_BOARD = 1.05;
 
 export function computeXs(count: number, height: number, centerX: number, slotSizeRatio: number): number[]
 {

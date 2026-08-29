@@ -6,12 +6,16 @@ export interface clientEffect
     endOfTurn?: boolean;
     onAttack?: boolean;
     onDamage?: boolean;
+    battlecry?: boolean;
+    rush?: boolean;
+    archi?: boolean;
 }
 
 export interface ClientCard
 {
     id: string;
     name: string;
+    assetKey: string;
     cost: number;
     attack?: number;
     health?: number;
@@ -50,7 +54,7 @@ export interface ClientGameState
 
 export type GameEvent = { type: "attack"; attackerId: string; targetId: string; playerIndex: 0 | 1; }
     | { type: "damage"; targetId: string; amount: number; targetDied: boolean }
-    | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number }
+    | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number; card: ClientCard }
     | { type: "minionDied"; minionId: string; playerIndex: 0 | 1 }
     | { type: "effect"; minionId: string; playerIndex: 0 | 1; trigger: "passive" | "battlecry" | "deathrattle" }
     | { type: "turnEnded"; nextPlayerIndex: 0 | 1 }

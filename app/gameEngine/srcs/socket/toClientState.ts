@@ -24,13 +24,14 @@ function requiresTarget(card: Card): boolean
         effect.resolver !== null && effect.resolver.requiresInput === true);
 }
 
-function toClientCard(card: Card): ClientCard
+export function toClientCard(card: Card): ClientCard
 {
     let effects: clientEffect = {};
 
     const clientCard: ClientCard = {
         id: card.id,
         name: card.name,
+        assetKey: card.assetKey,
         cost: card.manaCost,
         description: card.description,
         requiresTarget : requiresTarget(card),
@@ -55,6 +56,12 @@ function toClientCard(card: Card): ClientCard
             clientCard.effects.onAttack = true;
         if (card.effects.onDamage)
             clientCard.effects.onDamage = true;
+        if (card.effects.battlecry)
+            clientCard.effects.battlecry = true;
+        if (card.effects.rush)
+            clientCard.effects.rush = true;
+        if (card.effects.archi)
+            clientCard.effects.archi = true;
     }
 
     return clientCard;

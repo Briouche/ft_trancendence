@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { Card, CardData } from "../Card";
-import { attachCardHover } from "../../animations";
+import { attachCardPreviewHover } from "../CardPreview";
 import { computeXs } from "./BoardMath";
 
 const CARD_ASPECT_RATIO = 1.4;
@@ -105,11 +105,9 @@ export class CardRow
     private applyInteractivity(card: Card): void
     {
         if (this.side === 1)
-            card.disableInteractive();
+            card.setInteractive(); // hover only — attack/target still goes through Target.ts's own zones, not the card object
         else
-        {
             card.setInteractive({ draggable: true, useHandCursor: true });
-            attachCardHover(card);
-        }
+        attachCardPreviewHover(card);
     }
 }

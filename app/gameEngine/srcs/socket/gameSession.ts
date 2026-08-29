@@ -3,7 +3,7 @@ import { Socket } from "socket.io";
 import { Player } from "../player";
 import { Hero }       from "../hero";
 import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent } from "../shared/protocol";
-import { toClientState } from "./toClientState";
+import { toClientState, toClientCard } from "./toClientState";
 import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
@@ -180,7 +180,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, boardIndex });
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, boardIndex, card: toClientCard(card) });
         this.broadcastEffectEvents(result.effectEvents);
         this.broadcastDamageEvents(result.damageEvents);
         for (let i = 0; i < result.damageEvents.length; i++)
@@ -285,7 +285,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex });
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
         this.broadcastEffectEvents(result.effectEvents);
         this.broadcastDamageEvents(result.damageEvents);
         for (let i = 0; i < result.damageEvents.length; i++)
