@@ -23,21 +23,34 @@ export default function CustomCursor() {
     const imgRef = useRef<HTMLImageElement>(null)
     const [frame, setFrame] = useState<Frame>('default')
     const revealed = useRef(false)
+    // Dernière position connue de la souris : un clic sans bouger la souris ne déclenche aucun
+    // "mousemove", donc reposition() a besoin d'une position à réutiliser hors de cet event.
+    const lastMouse = useRef({ x: 0, y: 0 })
+
+    // scale() après translate() : avec transform-origin à 0 0 (top-left), le point de la pointe
+    // (déjà compensé ci-dessous) reste sous la souris quelle que soit l'échelle. Sortie de
+    // l'effet mousemove pour pouvoir aussi être appelée directement au changement de frame (voir
+    // plus bas) : sinon l'animation de clic restait affichée à la position calculée pour la
+    // pointe PAR DÉFAUT (le mousemove suivant, souvent bien après la fin de l'anim, la corrigeait
+    // trop tard) — décalage visible entre le clic réel et l'anim.
+    function reposition(clientX: number, clientY: number, currentFrame: Frame) {
+        const el = imgRef.current
+        if (!el) return
+        const tip = currentFrame === 'default' ? DEFAULT_TIP : CLICK_TIP
+        const x = clientX - tip.x * DISPLAY_SCALE
+        const y = clientY - tip.y * DISPLAY_SCALE
+        el.style.transform = `translate(${x}px, ${y}px) scale(${DISPLAY_SCALE})`
+    }
 
     useEffect(() => {
         function onMove(e: MouseEvent) {
+            lastMouse.current = { x: e.clientX, y: e.clientY }
             const el = imgRef.current
-            if (!el) return
-            if (!revealed.current) {
+            if (el && !revealed.current) {
                 revealed.current = true
                 el.style.opacity = '1'
             }
-            const tip = frame === 'default' ? DEFAULT_TIP : CLICK_TIP
-            const x = e.clientX - tip.x * DISPLAY_SCALE
-            const y = e.clientY - tip.y * DISPLAY_SCALE
-            // scale() après translate() : avec transform-origin à 0 0 (top-left), le point de
-            // la pointe (déjà compensé ci-dessus) reste sous la souris quelle que soit l'échelle.
-            el.style.transform = `translate(${x}px, ${y}px) scale(${DISPLAY_SCALE})`
+            reposition(e.clientX, e.clientY, frame)
         }
         window.addEventListener('mousemove', onMove)
         return () => window.removeEventListener('mousemove', onMove)
@@ -47,14 +60,17 @@ export default function CustomCursor() {
         function onDown() {
             let i = 1
             setFrame(i as Frame)
+            reposition(lastMouse.current.x, lastMouse.current.y, i as Frame)
             const interval = setInterval(() => {
                 i += 1
                 if (i > 4) {
                     clearInterval(interval)
                     setFrame('default')
+                    reposition(lastMouse.current.x, lastMouse.current.y, 'default')
                     return
                 }
                 setFrame(i as Frame)
+                reposition(lastMouse.current.x, lastMouse.current.y, i as Frame)
             }, CLICK_FRAME_MS)
         }
         window.addEventListener('mousedown', onDown)

@@ -67,7 +67,7 @@ function parseCost(cost: string): number {
     return Number.isNaN(n) ? Infinity : n
 }
 
-const COST_FILTERS = [0, 1, 2, 3, 4, 5, 6, 7]
+const COST_FILTERS = [1, 2, 3, 4, 5, 6, 7]
 
 // La police pixel du site n'a qu'une seule graisse (pas de vrai fichier "Bold") : font-bold seul
 // ne s'y voit quasiment pas. Un léger text-shadow de la même couleur dans les 4 directions
@@ -97,7 +97,7 @@ function Slot({ children, onClick, highlighted }: { children?: React.ReactNode; 
                 <div className="h-full w-full rounded-sm border-2 border-dashed border-ink-900/15" />
             ) : (
                 <>
-                    {(hovered || highlighted) && <SelectHighlight className="-inset-2 z-10" animate={hovered} />}
+                    {(hovered || highlighted) && <SelectHighlight className="-inset-2 z-10" animate={false} />}
                     <div className="relative h-full">{children}</div>
                 </>
             )}
@@ -152,53 +152,46 @@ function AssetButton({ active, onClick, disabled, className = '', children }: {
     )
 }
 
-// Bouton générique "marqueur" — au clic, se lève (Marker01a_Open, 6 frames) puis se rabaisse
-// (Marker01a_Close, 6 frames), un aller-retour complet en guise de retour visuel, pas un état
-// persistant "ouvert" tant qu'actif. Au repos, la frame 1 du marqueur (la plus refermée) sert de
-// case fixe — plus aucun "Frame" statique nulle part sur ce bouton, uniquement le sprite marqueur,
-// animé ou non. Un translateY accompagne les frames pour un vrai mouvement de levée/abaissement,
-// pas juste un changement de texture dans une boîte immobile.
-const MARKER_STEP_MS = 30
-const MARKER_LIFT_PX = 6
+// Onglets Cards/Card Backs à cheval sur le bord GAUCHE du livre (comme dans la preview du pack :
+// une pile d'onglets verticaux qui dépassent sur le côté, pas au-dessus des pages). Le sprite
+// marqueur (Sprites Animated) est natif pour ce montage — bord plat = côté attaché, bord arrondi
+// = côté qui dépasse — donc mis à plat (pas de rotation, juste un miroir horizontal) : voir
+// public/textures/notebook/marker-side, recadré au contenu réel de chaque frame (le canevas
+// source est de taille fixe mais le contenu dessiné dedans ne touche PAS toujours le bord droit,
+// même refermé — sans ce recadrage un vide transparent restait visible entre l'onglet et le
+// livre). Largeur différente par état (le carré source recadré n'a pas la même largeur ouvert/
+// fermé), hauteur commune — la pile est alignée à droite (items-end) pour que le bord attaché
+// reste bien flush contre le livre quelle que soit la largeur.
+const SIDE_TAB_OPEN_WIDTH = 120
+const SIDE_TAB_CLOSED_WIDTH = 56
+const SIDE_TAB_HEIGHT = 88
 
-function MarkerButton({ onClick, className = '', children }: {
+function SideTab({ active, onClick, className = '', children }: {
+    active: boolean
     onClick: () => void
     className?: string
-    children: React.ReactNode
+    children?: React.ReactNode
 }) {
-    const [frame, setFrame] = useState(0) // 0 = repos (= frame "open-1") ; 1-6 = lève ; 7-12 = rabaisse
-
-    function handleClick() {
-        onClick()
-        let i = 1
-        const interval = setInterval(() => {
-            setFrame(i)
-            i += 1
-            if (i > 12) { clearInterval(interval); setFrame(0) }
-        }, MARKER_STEP_MS)
-    }
-
-    const resting = frame === 0
-    const rising = frame >= 1 && frame <= 6
-    const lift = resting ? 0 : rising ? -(frame / 6) * MARKER_LIFT_PX : -((12 - frame + 1) / 6) * MARKER_LIFT_PX
-    const markerSrc = resting ? 'open-1' : rising ? `open-${frame}` : `close-${frame - 6}`
-
     return (
         <button
-            onClick={handleClick}
-            className={`flex items-center justify-center ${className}`}
+            onClick={onClick}
+            className={`relative flex items-center justify-center transition-[width] duration-200 ease-out ${className}`}
             style={{
-                transform: `translateY(${lift}px)`,
-                borderStyle: 'solid',
-                borderWidth: '8px 8px 0 8px',
-                borderImageSource: `url(/textures/notebook/marker/${markerSrc}.png)`,
-                borderImageSlice: '8 8 0 8 fill',
-                borderImageWidth: '8px 8px 0 8px',
-                borderImageRepeat: 'stretch',
+                // La pile entière est alignée à droite (items-end, voir l'appelant) : cette
+                // largeur grandit/rétrécit donc depuis le bord DROIT (attaché au livre) vers la
+                // gauche — l'onglet a bien l'air de sortir du livre en s'ouvrant, pas de gonfler
+                // sur place. Le sprite change de frame en même temps (pas de morphing entre les
+                // deux images, juste la largeur de la boîte qui les entoure).
+                width: active ? SIDE_TAB_OPEN_WIDTH : SIDE_TAB_CLOSED_WIDTH,
+                height: SIDE_TAB_HEIGHT,
+                backgroundImage: `url(/textures/notebook/marker-side/${active ? 'open-6' : 'open-1'}.png)`,
+                backgroundSize: '100% 100%',
                 imageRendering: 'pixelated',
             }}
         >
-            {children}
+            {/* Icône visible seulement sur l'onglet actif — comme la preview du pack, où les
+                onglets fermés sont de simples pastilles vides, pas juste plus petites. */}
+            {active && children}
         </button>
     )
 }
@@ -254,16 +247,15 @@ function PageArrow({ direction, onClick, disabled }: {
     )
 }
 
-export default function CollectionBook({ cards, initialCardBack, unlockedCardBacks }: {
+export default function CollectionBook({ cards, initialCardBack, unlockedCardBacks, totalCardCount }: {
     cards: Card[]
     initialCardBack: number
     unlockedCardBacks: number[]
+    totalCardCount: number
 }) {
     const router = useRouter()
     const [tab, setTab] = useState<Tab>('cards')
     const [search, setSearch] = useState('')
-    const [sortBy, setSortBy] = useState<'cost' | 'name'>('cost')
-    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
     const [costFilter, setCostFilter] = useState<number | null>(null)
     const [cardsPage, setCardsPage] = useState(0)
     const [backsPage, setBacksPage] = useState(0)
@@ -277,19 +269,22 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
         const query = normalize(search.trim())
         let matches = query === ''
             ? cards
-            : cards.filter(c => normalize(c.name).includes(query) || normalize(c.desc).includes(query))
+            : cards.filter(c => normalize(c.name).includes(query)
+                || normalize(c.desc).includes(query)
+                || normalize(c.rarity).includes(query))
 
         if (costFilter !== null) {
-            matches = matches.filter(c => parseCost(c.cost) === costFilter)
+            // Plus d'éclair dédié au coût 0 (étoile retirée) : le premier éclair ("1") absorbe
+            // aussi les cartes à 0 mana, sinon elles ne seraient plus filtrables du tout.
+            matches = costFilter === 1
+                ? matches.filter(c => parseCost(c.cost) <= 1)
+                : matches.filter(c => parseCost(c.cost) === costFilter)
         }
 
-        return [...matches].sort((a, b) => {
-            if (sortBy === 'name') {
-                return sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
-            }
-            return sortDir === 'asc' ? parseCost(a.cost) - parseCost(b.cost) : parseCost(b.cost) - parseCost(a.cost)
-        })
-    }, [cards, search, sortBy, sortDir, costFilter])
+        // Plus de boutons de tri dans l'UI (retirés au profit du mana sur la page droite) :
+        // tri fixé sur son réglage par défaut (coût croissant).
+        return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))
+    }, [cards, search, costFilter])
 
     const cardsTotalPages = Math.max(1, Math.ceil(filteredCards.length / SLOTS_PER_PAGE))
     const currentCardsPage = Math.min(cardsPage, cardsTotalPages - 1)
@@ -314,17 +309,6 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
 
     function updateSearch(value: string) {
         setSearch(value)
-        setCardsPage(0)
-    }
-
-    // Recliquer le même critère inverse juste sa direction ; changer de critère repart en asc.
-    function selectSort(criteria: 'cost' | 'name') {
-        if (sortBy === criteria) {
-            setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-        } else {
-            setSortBy(criteria)
-            setSortDir('asc')
-        }
         setCardsPage(0)
     }
 
@@ -364,7 +348,9 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         className={`h-full w-full rounded-sm ${!unlocked.has(item) ? 'grayscale brightness-50' : ''}`}
                     />
                     {!unlocked.has(item) && (
-                        <span className="absolute inset-0 flex items-center justify-center text-lg">🔒</span>
+                        <span className="absolute inset-0 flex items-center justify-center">
+                            <Image src="/textures/collection/icon-locked.png" alt="Locked" width={28} height={40} unoptimized style={{ imageRendering: 'pixelated' }} />
+                        </span>
                     )}
                 </Slot>
             )
@@ -377,7 +363,22 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-ink-950 p-4 md:p-10">
+        // Table en bois (fournie par l'utilisateur, Downloads/wooden_table.png) en fond de la
+        // Collection à la place du simple bg-ink-950 : le livre a l'air posé dessus. Voile sombre
+        // en dégradé superposé (pas l'image seule) pour garder assez de contraste avec le livre
+        // clair — sans lui, le bois moyen-clair réduisait la lisibilité des bords du livre.
+        <div
+            className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10"
+            style={{
+                backgroundImage: [
+                    'linear-gradient(rgba(10,8,6,0.55), rgba(10,8,6,0.55))',
+                    'url(/textures/collection/wooden-table.png)',
+                ].join(', '),
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: '#0e0f10',
+            }}
+        >
             {/* Bouton Menu : coin haut-droite de la PAGE (fixed, pas juste à côté du ruban) —
                 indépendant du centrage du titre/du livre plus bas. AssetButton pose déjà
                 "relative" dans ses classes de base, qui l'emporterait sur "fixed" passé en
@@ -423,31 +424,6 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                 </div>
             </div>
 
-            {/* Plus de panneau latéral : recherche en haut-gauche, tri en haut-droite (une
-                rangée à la largeur du livre, juste au-dessus), mana en rangée horizontale sous le
-                livre (voir plus bas) — désactivés (pas retirés, pour ne pas faire varier la
-                disposition) hors de l'onglet Cards. */}
-            <div className={`flex w-[1160px] items-center justify-between
-                ${tab !== 'cards' ? 'pointer-events-none opacity-30' : ''}`}
-            >
-                <input
-                    type="text"
-                    value={search}
-                    onChange={e => updateSearch(e.target.value)}
-                    placeholder="Search a name or an effect…"
-                    className="travelbook-slot w-64 bg-transparent px-3 py-2 font-serif text-xs text-ink-text
-                        placeholder:text-ink-muted/60 outline-none"
-                />
-                <div className="flex gap-2">
-                    <AssetButton onClick={() => selectSort('cost')} className="h-9 w-24 text-xs">
-                        ◆ Cost {sortBy === 'cost' && (sortDir === 'asc' ? '↑' : '↓')}
-                    </AssetButton>
-                    <AssetButton onClick={() => selectSort('name')} className="h-9 w-24 text-xs">
-                        A–Z {sortBy === 'name' && (sortDir === 'asc' ? '↑' : '↓')}
-                    </AssetButton>
-                </div>
-            </div>
-
             {/* Flèches en dehors du livre : plus de bouton (fond/cadre) — juste l'icône
                 "Arrow01a" animée, quasi invisible sauf quand la souris s'approche du bord du
                 livre (zone de survol large, PageArrow). Taille fixe du livre (largeur ET
@@ -460,17 +436,22 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                     (.travelbook-page/.travelbook-page-right) est maintenant une image de carnet
                     autonome (bord extérieur + reliure spirale + remplissage crème inclus), donc
                     cette boîte n'est qu'un conteneur de mise en page à taille fixe. */}
-                <div className="flex h-[900px] w-[1160px] flex-col">
-                    {/* Onglets Cards/Card Backs, à cheval sur le bord du livre — case fermée au
-                        repos, se lève puis se rabaisse au clic (voir MarkerButton). Décalés vers
-                        la droite (pl-6 au lieu de px-2) pour ne pas coller au bord du livre. */}
-                    <div className="relative z-10 -mb-8 flex gap-2 pl-6 pr-2">
-                        <MarkerButton onClick={() => setTab('cards')} className={tab === 'cards' ? 'h-12 w-14' : 'h-10 w-14 self-end opacity-80'}>
-                            <Image src="/textures/collection/icon-cards.png" alt="Cards" width={16} height={16} unoptimized style={{ imageRendering: 'pixelated' }} />
-                        </MarkerButton>
-                        <MarkerButton onClick={() => setTab('backs')} className={tab === 'backs' ? 'h-12 w-14' : 'h-10 w-14 self-end opacity-80'}>
-                            <Image src="/textures/collection/icon-backs.png" alt="Card backs" width={18} height={18} unoptimized style={{ imageRendering: 'pixelated' }} />
-                        </MarkerButton>
+                <div className="relative flex h-[900px] w-[1160px] flex-col">
+                    {/* Onglets Cards/Card Backs sur le bord GAUCHE du livre (comme la preview du
+                        pack) : pile verticale qui dépasse du bord, posée PAR-DESSUS la page (pas
+                        cachée derrière la couverture) — z-index au-dessus de tout le reste du
+                        livre, y compris la flèche de tournage de page (z-30, PageArrow). Léger
+                        chevauchement (28px) pour rester bien collée au bord. */}
+                    <div
+                        className="absolute left-0 top-20 z-40 flex flex-col items-end gap-3"
+                        style={{ transform: 'translateX(calc(-100% + 44px))' }}
+                    >
+                        <SideTab active={tab === 'cards'} onClick={() => setTab('cards')}>
+                            <Image src="/textures/collection/icon-cards.png" alt="Cards" width={28} height={28} unoptimized style={{ imageRendering: 'pixelated' }} />
+                        </SideTab>
+                        <SideTab active={tab === 'backs'} onClick={() => setTab('backs')}>
+                            <Image src="/textures/collection/icon-backs.png" alt="Card backs" width={32} height={32} unoptimized style={{ imageRendering: 'pixelated' }} />
+                        </SideTab>
                     </div>
 
                     {/* Double page — remplit tout le fond du livre (plus de "grid-rows-2" qui
@@ -482,31 +463,79 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         (grille des cartes + numéro), plus juste une grille brute. */}
                     <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
                         <div className="travelbook-page relative flex flex-1 flex-col p-3">
+                            {/* Recherche en haut de la page gauche, dans l'espace resté vide
+                                au-dessus des cartes (à la place du mana, déplacé sur la page
+                                droite — voir plus bas). */}
+                            <div className={`flex h-9 items-center justify-center
+                                ${tab !== 'cards' ? 'pointer-events-none opacity-30' : ''}`}
+                            >
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={e => updateSearch(e.target.value)}
+                                    placeholder="Search a name or an effect…"
+                                    className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif text-xs text-ink-text
+                                        placeholder:text-ink-muted/60 outline-none"
+                                />
+                            </div>
                             <div className="grid flex-1 content-center grid-cols-2 gap-x-4 gap-y-5">
                                 {leftItems.map(renderSlot)}
                             </div>
-                            {/* Tout en bas à GAUCHE, dans le coin de la page (absolute, pas dans
-                                le flux) — plus grand qu'avant, comme le folio extérieur d'un vrai
-                                livre. */}
-                            <p className="absolute bottom-1 left-2 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
+                            {/* Tout en bas à GAUCHE, encore plus dans le coin qu'avant
+                                (bottom-1/left-2 → bottom-0/left-1). */}
+                            <p className="absolute bottom-0 left-1 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
                                 {page * 2 + 1}
                             </p>
                         </div>
                         <div className="travelbook-page travelbook-page-right relative flex flex-1 flex-col p-3">
                             {/* Nombre de cartes, sur le livre lui-même (pas sous la bannière du
-                                titre) — dans le coin haut-droit de la page droite, à l'intérieur
-                                de sa marge (pas collé au bord du livre comme un premier essai qui
-                                finissait à moitié caché sous la reliure/le cadre). */}
-                            <p className="absolute right-2 top-1 font-serif text-xs italic text-ink-muted">
+                                titre) — de retour dans le coin haut-DROIT de la page droite (pas
+                                haut-gauche comme le dernier essai), mais poussé plus dans le coin
+                                qu'avant (top-1/right-2 → top-0/right-1). Pour l'onglet Cards :
+                                cartes possédées / total de cartes existantes dans le jeu (pas le
+                                nombre filtré par la recherche). */}
+                            <p className="absolute right-1 top-0 font-serif text-xs italic text-ink-muted">
                                 {tab === 'cards'
-                                    ? `${filteredCards.length} card${filteredCards.length !== 1 ? 's' : ''}`
+                                    ? `${cards.length} / ${totalCardCount} cards`
                                     : `${unlocked.size} / ${CARD_BACK_COUNT} unlocked`}
                             </p>
+                            {/* Mana en haut de la page droite, dans l'espace resté vide au-dessus
+                                des cartes (à la place des boutons de tri, retirés) — 7 éclairs
+                                ("IconEnergy" du bouquin) qui se remplissent de 1 à 7 (plus
+                                d'étoile pour le coût 0 : le premier éclair filtre aussi les
+                                cartes à 0 mana, voir filteredCards). Cliquer sur N allume les
+                                éclairs 1 à N, CELUI CLIQUÉ INCLUS (value <= costFilter, pas <).
+                                Même hauteur fixe (h-9) que la recherche sur la page gauche, pour
+                                que les deux grilles de cartes démarrent à la même hauteur. */}
+                            <div className={`flex h-9 items-center justify-center gap-2
+                                ${tab !== 'cards' ? 'pointer-events-none opacity-30' : ''}`}
+                            >
+                                {COST_FILTERS.map(value => {
+                                    const filled = costFilter !== null && value <= costFilter
+                                    const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.png`
+                                    return (
+                                        <button
+                                            key={value}
+                                            onClick={() => toggleCostFilter(value)}
+                                            aria-pressed={costFilter === value}
+                                            className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
+                                        >
+                                            <Image
+                                                src={icon}
+                                                alt={`Cost ${value}`}
+                                                width={12} height={14} unoptimized
+                                                className="h-6 w-auto"
+                                                style={{ imageRendering: 'pixelated' }}
+                                            />
+                                        </button>
+                                    )
+                                })}
+                            </div>
                             <div className="grid flex-1 content-center grid-cols-2 gap-x-4 gap-y-5">
                                 {rightItems.map(renderSlot)}
                             </div>
                             {/* Tout en bas à DROITE, symétrique de la page gauche. */}
-                            <p className="absolute bottom-1 right-2 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
+                            <p className="absolute bottom-0 right-1 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
                                 {page * 2 + 2}
                             </p>
                         </div>
@@ -514,32 +543,6 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                 </div>
 
                 <PageArrow direction="next" onClick={goNext} disabled={page >= totalPages - 1} />
-            </div>
-
-            {/* Mana en rangée horizontale sous le livre — des éclairs ("IconEnergy" du bouquin,
-                pas d'icône équivalente dans le carnet) qui se remplissent de 0 à 7. Boutons
-                simples, pas de marqueur animé (cette animation reste réservée aux onglets
-                Cards/Card Backs). */}
-            <div className={`flex items-center gap-2 ${tab !== 'cards' ? 'pointer-events-none opacity-30' : ''}`}>
-                {COST_FILTERS.map(value => {
-                    const filled = costFilter !== null && value < costFilter
-                    return (
-                        <button
-                            key={value}
-                            onClick={() => toggleCostFilter(value)}
-                            aria-pressed={costFilter === value}
-                            className="flex h-10 w-8 items-center justify-center transition-transform active:scale-90"
-                        >
-                            <Image
-                                src={`/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.png`}
-                                alt={`Cost ${value}`}
-                                width={12} height={14} unoptimized
-                                className="h-7 w-auto"
-                                style={{ imageRendering: 'pixelated' }}
-                            />
-                        </button>
-                    )
-                })}
             </div>
 
             <CardZoom card={zoomedCard} onClose={() => setZoomedCard(null)} />

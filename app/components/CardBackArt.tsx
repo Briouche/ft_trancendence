@@ -1,21 +1,22 @@
-import { CARD_BACK_COLUMNS, CARD_BACK_ROWS } from '@/lib/cardBacks'
+import Image from 'next/image'
 
-// Recadrage en pourcentages (pas de largeur en px comme PackArt) : ce composant est toujours
-// utilisé à l'intérieur d'un conteneur qui contrôle déjà sa taille (aspect-[3/4] w-full de
-// CardFace, cellule de grille du sélecteur...), donc il se contente de remplir son parent.
+// Un fichier par dos de carte (public/textures/cards/backs/{index}.png, découpés depuis
+// l'ancienne spritesheet 4×5) plutôt qu'un recadrage CSS background-position/-size sur une
+// spritesheet partagée : ce dernier calculait juste, mais `image-rendering: pixelated` combiné à
+// des tailles de conteneur non entières faisait parfois déborder un pixel de la case voisine sur
+// les bords, et le ratio de la case (104×138) ne correspondant pas toujours à celui du
+// conteneur laissait une marge visible (object-fit: contain gère nativement ce recadrage, sans
+// ce genre d'artefact).
 export default function CardBackArt({ index, className = '' }: { index: number; className?: string }) {
-    const col = index % CARD_BACK_COLUMNS
-    const row = Math.floor(index / CARD_BACK_COLUMNS) % CARD_BACK_ROWS
-
     return (
-        <div
-            className={className}
-            style={{
-                backgroundImage: 'url(/textures/cards/card-backs.png)',
-                backgroundPosition: `${(col / (CARD_BACK_COLUMNS - 1)) * 100}% ${(row / (CARD_BACK_ROWS - 1)) * 100}%`,
-                backgroundSize: `${CARD_BACK_COLUMNS * 100}% ${CARD_BACK_ROWS * 100}%`,
-                imageRendering: 'pixelated',
-            }}
-        />
+        <div className={`relative overflow-hidden ${className}`}>
+            <Image
+                src={`/textures/cards/backs/${index}.png`}
+                alt=""
+                fill
+                unoptimized
+                style={{ objectFit: 'contain', imageRendering: 'pixelated' }}
+            />
+        </div>
     )
 }

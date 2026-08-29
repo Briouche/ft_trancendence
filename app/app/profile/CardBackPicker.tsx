@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import CardBackArt from '@/components/CardBackArt'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
@@ -41,7 +42,9 @@ export default function CardBackPicker({ initialCardBack, unlockedCardBacks }: {
                             className={`h-full w-full rounded-sm ${!isUnlocked ? 'grayscale brightness-50' : ''}`}
                         />
                         {!isUnlocked && (
-                            <span className="absolute inset-0 flex items-center justify-center text-2xl">🔒</span>
+                            <span className="absolute inset-0 flex items-center justify-center">
+                                <Image src="/textures/collection/icon-locked.png" alt="Locked" width={28} height={40} unoptimized style={{ imageRendering: 'pixelated' }} />
+                            </span>
                         )}
                     </button>
                 )
