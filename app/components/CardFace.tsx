@@ -21,12 +21,22 @@ const RARITY_STYLE: Record<string, { border: string; glow: string }> = {
 }
 
 // Cadres dessinés à la main (sources .ase dans Documents/, exportés en PNG via un script maison —
-// pas de licence à créditer, ce sont les assets du projet) : pour l'instant seulement Commune et
-// Légendaire. Rare/Épique retombent sur l'ancien design CSS en attendant leurs propres cadres.
+// pas de licence à créditer, ce sont les assets du projet) : Commune, Épique et Légendaire pour
+// les créatures (mêmes zones ATK/DEF), Rare pour les sorts (tous les sorts ont été reclassés en
+// rareté Rare — ce tier est donc exclusivement des sorts, d'où son cadre sans épées/goutte de
+// sang, voir SPELL_RARITIES plus bas).
 const CARD_ART: Partial<Record<string, string>> = {
     'Commune': '/textures/cards/frame-commune.png',
+    'Rare': '/textures/cards/frame-rare.png',
+    'Épique': '/textures/cards/frame-epique.png',
     'Légendaire': '/textures/cards/frame-legendaire.png',
 }
+
+// Le cadre "Rare" (sorts) n'a ni épées ni goutte de sang : sa case de texte du bas est mesurée
+// plus haute (récupère l'espace qu'occuperaient ATK/DEF sur les autres cadres) et sa gemme est
+// positionnée légèrement différemment — chaque cadre est mesuré au pixel près individuellement
+// sur son propre visuel plutôt que de réutiliser des pourcentages partagés.
+const SPELL_RARITIES = new Set(['Rare'])
 
 // CardFace est toujours rendu (avant tout transform:scale() de ScaledCardFace/DeskRoom) à cette
 // largeur de référence — donc c'est aussi la largeur à laquelle le cadre dessiné (130px de large
@@ -73,8 +83,14 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
     const segments = splitKeywordSegments(card.desc, card.keywords)
 
     if (art) {
+        const isSpell = SPELL_RARITIES.has(card.rarity)
         return (
-            <div className="relative aspect-[130/191] w-full drop-shadow-lg">
+            // shadow-lg (box-shadow), pas drop-shadow-lg (filter) : cette div est justement celle
+            // qu'un ancêtre réduit via transform:scale() (ScaledCardFace/DeskRoom) — Safari a un
+            // bug connu où un filter sur un élément mis à l'échelle par un parent peut rogner le
+            // rendu au lieu de simplement peindre l'ombre (repéré sur un emoji tronqué/décalé,
+            // invisible en Chromium). box-shadow n'a pas ce problème.
+            <div className="relative aspect-[130/191] w-full shadow-lg">
                 {ownedQty !== undefined && ownedQty > 1 && (
                     <span
                         className="absolute -left-1 -top-1 z-10 rounded bg-ink-950/85 px-1.5 py-0.5 font-card font-bold text-parchment-100"
@@ -84,8 +100,9 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                     </span>
                 )}
 
-                {/* Cadre dessiné (bordure, gemme, épées, goutte de sang) — les zones ci-dessous
-                    sont positionnées en % par-dessus, mesurées sur ce visuel. */}
+                {/* Cadre dessiné (bordure, gemme, épées, goutte de sang — sauf le cadre "sort",
+                    qui n'a ni épées ni goutte) — les zones ci-dessous sont positionnées en %
+                    par-dessus, mesurées sur ce visuel. */}
                 <div
                     className="absolute inset-0"
                     style={{ backgroundImage: `url(${art})`, backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
@@ -94,7 +111,9 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 {/* Nom, dans la case blanche en haut à gauche */}
                 <div
                     className="absolute flex items-center justify-center overflow-hidden px-1"
-                    style={{ left: '5.4%', top: '4.2%', width: '70%', height: '7.9%' }}
+                    style={isSpell
+                        ? { left: '5.4%', top: '4.2%', width: '70.8%', height: '8.4%' }
+                        : { left: '5.4%', top: '4.2%', width: '70%', height: '7.9%' }}
                 >
                     <p
                         className="truncate text-center font-card font-bold text-ink-900"
@@ -107,23 +126,20 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 {/* Coût de mana, au milieu de la gemme en haut à droite */}
                 <div
                     className="absolute flex items-center justify-center"
-                    style={{ left: '78.3%', top: '4.5%', width: '18%', height: '11%' }}
+                    style={isSpell
+                        ? { left: '79.2%', top: '3.1%', width: '16.2%', height: '12.6%' }
+                        : { left: '78.3%', top: '4.5%', width: '18%', height: '11%' }}
                 >
                     <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.cost}</span>
                 </div>
 
-                {/* Emoji, dans le vide (transparent) au milieu du cadre */}
-                <div
-                    className="absolute flex items-center justify-center bg-white"
-                    style={{ left: '5.4%', top: '14.1%', width: '89.2%', height: '40.8%' }}
-                >
-                    <span className="text-7xl drop-shadow-sm">{card.emoji}</span>
-                </div>
-
-                {/* Texte de la carte, dans la case blanche du bas — mots-clés en gras */}
+                {/* Texte de la carte, dans la case blanche du bas — mots-clés en gras. Plus haute
+                    sur le cadre "sort" : elle récupère l'espace qu'occuperaient ATK/DEF ailleurs. */}
                 <div
                     className="absolute flex flex-col items-center justify-center overflow-hidden px-1.5 py-1"
-                    style={{ left: '5.4%', top: '57.1%', width: '88.5%', height: '32%' }}
+                    style={isSpell
+                        ? { left: '5.4%', top: '57.1%', width: '89.2%', height: '38.7%' }
+                        : { left: '5.4%', top: '57.1%', width: '88.5%', height: '32%' }}
                 >
                     <p
                         className="whitespace-pre-line text-center font-card leading-snug text-ink-800"
@@ -136,22 +152,26 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                     </p>
                 </div>
 
-                {/* Attaque, à l'intersection des deux lames (pas plus bas, sur la garde noire —
-                    un chiffre noir y disparaîtrait complètement) */}
-                <div
-                    className="absolute flex items-center justify-center"
-                    style={{ left: '4.5%', top: '86%', width: '18%', height: '11%' }}
-                >
-                    <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.atk}</span>
-                </div>
+                {!isSpell && (
+                    <>
+                        {/* Attaque, à l'intersection des deux lames (pas plus bas, sur la garde
+                            noire — un chiffre noir y disparaîtrait complètement) */}
+                        <div
+                            className="absolute flex items-center justify-center"
+                            style={{ left: '4.5%', top: '86%', width: '18%', height: '11%' }}
+                        >
+                            <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.atk}</span>
+                        </div>
 
-                {/* Points de vie, au milieu de la goutte de sang en bas à droite */}
-                <div
-                    className="absolute flex items-center justify-center"
-                    style={{ left: '80%', top: '86%', width: '18%', height: '11%' }}
-                >
-                    <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.def}</span>
-                </div>
+                        {/* Points de vie, au milieu de la goutte de sang en bas à droite */}
+                        <div
+                            className="absolute flex items-center justify-center"
+                            style={{ left: '80%', top: '86%', width: '18%', height: '11%' }}
+                        >
+                            <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.def}</span>
+                        </div>
+                    </>
+                )}
             </div>
         )
     }
@@ -181,7 +201,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
             {/* Illustration (emoji en attendant de vrais artworks) — taille inchangée, seul le
                 texte grandit. */}
             <div className="mx-2 mt-1 flex flex-1 items-center justify-center rounded border border-leather-800/30 bg-[#d9c49b]/70">
-                <span className="text-7xl drop-shadow-sm">{card.emoji}</span>
+                <span className="text-7xl">{card.emoji}</span>
             </div>
 
             {/* Description, mots-clés en gras dans le texte */}

@@ -26,7 +26,7 @@ export default function ScaledCardFace({ card, ownedQty }: { card: CardFaceData;
     }, [])
 
     return (
-        <div ref={outerRef} className="aspect-[3/4] w-full overflow-hidden">
+        <div ref={outerRef} className="aspect-[130/191] w-full overflow-hidden">
             <div style={{ width: NATURAL_WIDTH, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
                 <CardFace card={card} ownedQty={ownedQty} />
             </div>

@@ -4,19 +4,21 @@
   "cards": [
     {
       "id": "mpzqp0u9",
-      "name": "Le menetrel",
+      "name": "Le menestrel",
       "type": "",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
       "atk": "1",
       "def": "4",
-      "desc": "les creatures adverses ont -1 ATK",
+      "desc": "-1",
       "qty": 2,
       "emoji": "🎸",
       "color": "#D3D1C7",
       "legendId": "",
-      "keywords": []
+      "keywords": [
+        "Cri de guerre"
+      ]
     },
     {
       "id": "mpzqq8bs",
@@ -303,7 +305,7 @@
     {
       "id": "mqi2jqa4",
       "name": "Reborn (Archi card)",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -319,7 +321,7 @@
     {
       "id": "mqi2k9ir",
       "name": "Neo (archi card)",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -337,7 +339,7 @@
     {
       "id": "mqi2kthv",
       "name": "Ribgy (Archi card)",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -355,7 +357,7 @@
     {
       "id": "mqi2mtc3",
       "name": "Archimed la maudite",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Légendaire",
       "cost": "7",
       "costNum": 7,
@@ -371,7 +373,7 @@
     {
       "id": "mqi2nq42",
       "name": "Force de la nature",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "7",
       "costNum": 7,
@@ -387,8 +389,8 @@
     {
       "id": "mqi2odxf",
       "name": "TIG",
-      "type": "sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "1",
       "costNum": 1,
       "atk": "",
@@ -405,8 +407,8 @@
     {
       "id": "mqi2pdbm",
       "name": "blackhole",
-      "type": "sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "4",
       "costNum": 0,
       "atk": "",
@@ -421,7 +423,7 @@
     {
       "id": "mqi2qm6a",
       "name": "allie peureux",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -440,7 +442,7 @@
     {
       "id": "mqi2rye2",
       "name": "mere pondeuse",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -458,7 +460,7 @@
     {
       "id": "mqi2u1aa",
       "name": "Freddy, le fossoyeur de tombe",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Légendaire",
       "cost": "6",
       "costNum": 6,
@@ -474,8 +476,8 @@
     {
       "id": "mqi2v3qx",
       "name": "tramblement",
-      "type": "sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "4",
       "costNum": 4,
       "atk": "",
@@ -490,7 +492,7 @@
     {
       "id": "mqi2w8de",
       "name": "Goblinmikaze",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -509,7 +511,7 @@
     {
       "id": "mqi2xdmh",
       "name": "champion de l'arene",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "5",
       "costNum": 5,
@@ -525,7 +527,7 @@
     {
       "id": "mqi2ylzl",
       "name": "un gros sandwich",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -543,8 +545,8 @@
     {
       "id": "mqi2zdq0",
       "name": "une haleine vraument...",
-      "type": "sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "2",
       "costNum": 2,
       "atk": "",
@@ -559,8 +561,8 @@
     {
       "id": "mqi313ey",
       "name": "soulevement de tombes",
-      "type": "sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "2",
       "costNum": 2,
       "atk": "",
@@ -577,7 +579,7 @@
     {
       "id": "mqi31p8w",
       "name": "Po (archi card)",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "5",
       "costNum": 5,
@@ -595,7 +597,7 @@
     {
       "id": "mqi33jfs",
       "name": "Le Phoenix",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "6",
       "costNum": 6,
@@ -614,7 +616,7 @@
     {
       "id": "mqi3516p",
       "name": "conseiller de l'ombre",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -630,7 +632,7 @@
     {
       "id": "mqi35y1s",
       "name": "slime degoutant",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -648,7 +650,7 @@
     {
       "id": "mqi36l6i",
       "name": "podophile",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -664,7 +666,7 @@
     {
       "id": "mqi387qn",
       "name": "une maman aimante",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -680,8 +682,8 @@
     {
       "id": "mqi38sx6",
       "name": "cri du phoenix",
-      "type": "sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "4",
       "costNum": 4,
       "atk": "",
@@ -696,7 +698,7 @@
     {
       "id": "mqi39fwn",
       "name": "le croupier",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -714,7 +716,7 @@
     {
       "id": "mqi6l6i0",
       "name": "Gertrude",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Légendaire",
       "cost": "3",
       "costNum": 3,
@@ -730,7 +732,7 @@
     {
       "id": "mqi6orw9",
       "name": "Bertrand",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -748,7 +750,7 @@
     {
       "id": "mqi6qse2",
       "name": "Jumeaux Goblin",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -764,8 +766,8 @@
     {
       "id": "mqi6rw7n",
       "name": "Lecture de textes Anciencs",
-      "type": "Sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "3",
       "costNum": 3,
       "atk": "",
@@ -780,7 +782,7 @@
     {
       "id": "mqi6xr8i",
       "name": "Banquier Renart le goblin",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "5",
       "costNum": 5,
@@ -796,7 +798,7 @@
     {
       "id": "mqi70rba",
       "name": "Feeder goblin",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -812,7 +814,7 @@
     {
       "id": "mqi730al",
       "name": "Pecheur repenti",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -844,7 +846,7 @@
     {
       "id": "mqi76hth",
       "name": "Cavalier furieux",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -860,7 +862,7 @@
     {
       "id": "mqi77t7b",
       "name": "Slime orthophoniste",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -894,7 +896,7 @@
     {
       "id": "mqi7d3bu",
       "name": "Spiritueux slave",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -910,8 +912,8 @@
     {
       "id": "mqi7hah3",
       "name": "Entartrage",
-      "type": "Sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "1",
       "costNum": 1,
       "atk": "",
@@ -926,7 +928,7 @@
     {
       "id": "mqi7ivjj",
       "name": "Opika",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -942,8 +944,8 @@
     {
       "id": "mqi7ktmr",
       "name": "Bombe H",
-      "type": "Sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "7",
       "costNum": 7,
       "atk": "",
@@ -958,7 +960,7 @@
     {
       "id": "mqi7lqzb",
       "name": "CRS",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -976,7 +978,7 @@
     {
       "id": "mqi7molw",
       "name": "Poulet mécontent",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -992,7 +994,7 @@
     {
       "id": "mqi7p9nf",
       "name": "Joël el Jeffe (aka marcel au 1000 épices)",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Légendaire",
       "cost": "3",
       "costNum": 3,
@@ -1008,7 +1010,7 @@
     {
       "id": "mqi7qihp",
       "name": "Diablotin du piment",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -1024,8 +1026,8 @@
     {
       "id": "mqi7rd3e",
       "name": "Mixeur",
-      "type": "Sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "3",
       "costNum": 3,
       "atk": "",
@@ -1040,7 +1042,7 @@
     {
       "id": "mqi7t2uf",
       "name": "Critique culinaire",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -1056,7 +1058,7 @@
     {
       "id": "mqi7uqkt",
       "name": "Cactus dos Pimentos",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -1074,7 +1076,7 @@
     {
       "id": "mqi7wg1q",
       "name": "Client Mécontent",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -1090,7 +1092,7 @@
     {
       "id": "mqi7xr37",
       "name": "Second Braillaird",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -1106,7 +1108,7 @@
     {
       "id": "mqi7zc17",
       "name": "Buffet à volonté",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -1122,7 +1124,7 @@
     {
       "id": "mqi810rs",
       "name": "Lanceur de couteaux",
-      "type": "créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -1138,7 +1140,7 @@
     {
       "id": "mqi829kv",
       "name": "Bondisseur enjoué",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -1156,7 +1158,7 @@
     {
       "id": "mqi83gcw",
       "name": "Flambeur de Dancefloor",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -1174,8 +1176,8 @@
     {
       "id": "mqi85ep9",
       "name": "Sauce TomAAAAAAte",
-      "type": "Sort",
-      "rarity": "Commune",
+      "type": "Spell",
+      "rarity": "Rare",
       "cost": "3",
       "costNum": 3,
       "atk": "",
@@ -1190,7 +1192,7 @@
     {
       "id": "mqi87m6k",
       "name": "Bibliothequaire",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -1208,7 +1210,7 @@
     {
       "id": "mqi8b2r3",
       "name": "Voxotron exterminateur",
-      "type": "Créature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "7",
       "costNum": 7,
@@ -1240,7 +1242,7 @@
     {
       "id": "mqib6m3f",
       "name": "Haku (archi card)",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -1256,7 +1258,7 @@
     {
       "id": "mqibfh9p",
       "name": "Zurg (archi card)",
-      "type": "creature",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "7",
       "costNum": 7,
