@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { type CardFaceData } from '@/components/CardFace'
@@ -11,17 +11,31 @@ import CardZoom from './CardZoom'
 
 // Boucle sur `count` frames toutes les `intervalMs`, tant que `playing` est vrai (retombe sur la
 // frame 1 sinon) — utilisé pour toutes les animations "Sprites Animated" du carnet (sélection,
-// flèches) qui doivent boucler en continu plutôt que jouer une fois.
+// flèches) qui doivent boucler en continu plutôt que jouer une fois. requestAnimationFrame (temps
+// écoulé réel) plutôt que setInterval : un minuteur qui tourne hors du rythme d'affichage force
+// des rendus qui tombent au milieu d'une frame déjà peinte (perdus) ou s'accumulent, alors que
+// rAF ne travaille qu'une fois par frame réellement affichée — plus fluide ET moins de travail.
 function useLoopFrame(count: number, intervalMs: number, playing: boolean): number {
     const [frame, setFrame] = useState(1)
+    const frameRef = useRef(1)
     useEffect(() => {
         if (!playing) return
-        const id = setInterval(() => setFrame(f => (f % count) + 1), intervalMs)
+        let rafId: number
+        let last = performance.now()
+        function tick(now: number) {
+            if (now - last >= intervalMs) {
+                last = now
+                frameRef.current = (frameRef.current % count) + 1
+                setFrame(frameRef.current)
+            }
+            rafId = requestAnimationFrame(tick)
+        }
+        rafId = requestAnimationFrame(tick)
         // Le reset à la frame 1 se fait dans le cleanup (pas dans le corps de l'effet) : appeler
         // setState directement dans le corps déclenche des rendus en cascade (règle
         // react-hooks/set-state-in-effect) — le cleanup s'exécute déjà à chaque fois que
         // `playing` repasse à false ou que le composant démonte, donc c'est équivalent.
-        return () => { clearInterval(id); setFrame(1) }
+        return () => { cancelAnimationFrame(rafId); frameRef.current = 1; setFrame(1) }
     }, [playing, count, intervalMs])
     return frame
 }
@@ -161,8 +175,14 @@ function AssetButton({ active, onClick, disabled, className = '', children }: {
 // même refermé — sans ce recadrage un vide transparent restait visible entre l'onglet et le
 // livre). Largeur différente par état (le carré source recadré n'a pas la même largeur ouvert/
 // fermé), hauteur commune — la pile est alignée à droite (items-end) pour que le bord attaché
-// reste bien flush contre le livre quelle que soit la largeur.
-const SIDE_TAB_OPEN_WIDTH = 120
+// reste bien flush contre le livre quelle que soit la largeur. Actif = frame "open-3" (pas la
+// plus grande, open-6) : passé un certain point le liseré noir du marqueur s'estompe en beige
+// vers son bord attaché (dégradé voulu par l'asset), donc plus on ouvre, plus il y a de beige
+// entre le noir du marqueur et celui de la page — impossible de les faire vraiment se toucher
+// perpendiculairement avec une frame trop ouverte. open-3 garde un vrai bord noir jusqu'à
+// quelques pixels du bord, assez pour rejoindre le liseré de la page une fois le recouvrement
+// ajusté (voir l'appelant).
+const SIDE_TAB_OPEN_WIDTH = 88
 const SIDE_TAB_CLOSED_WIDTH = 56
 const SIDE_TAB_HEIGHT = 88
 
@@ -184,7 +204,7 @@ function SideTab({ active, onClick, className = '', children }: {
                 // deux images, juste la largeur de la boîte qui les entoure).
                 width: active ? SIDE_TAB_OPEN_WIDTH : SIDE_TAB_CLOSED_WIDTH,
                 height: SIDE_TAB_HEIGHT,
-                backgroundImage: `url(/textures/notebook/marker-side/${active ? 'open-6' : 'open-1'}.png)`,
+                backgroundImage: `url(/textures/notebook/marker-side/${active ? 'open-3' : 'open-1'}.png)`,
                 backgroundSize: '100% 100%',
                 imageRendering: 'pixelated',
             }}
@@ -256,6 +276,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
     const router = useRouter()
     const [tab, setTab] = useState<Tab>('cards')
     const [search, setSearch] = useState('')
+    const [debouncedSearch, setDebouncedSearch] = useState('')
     const [costFilter, setCostFilter] = useState<number | null>(null)
     const [cardsPage, setCardsPage] = useState(0)
     const [backsPage, setBacksPage] = useState(0)
@@ -263,10 +284,19 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
     const [cardBack, setCardBack] = useState(initialCardBack)
     const [savingBack, setSavingBack] = useState<number | null>(null)
 
+    // Retape sur chaque frappe re-render toute la grille de cartes (8× ScaledCardFace/CardFace) —
+    // mesuré à 10-23ms de travail synchrone par touche (au-delà du budget d'une frame à 60fps),
+    // ressenti comme un input qui traîne. Le champ lui-même reste instantané (`search`, non
+    // débouncé), seul le FILTRAGE (donc le re-rendu de la grille) attend une pause de 150ms.
+    useEffect(() => {
+        const id = setTimeout(() => setDebouncedSearch(search), 150)
+        return () => clearTimeout(id)
+    }, [search])
+
     const unlocked = useMemo(() => new Set(unlockedCardBacks), [unlockedCardBacks])
 
     const filteredCards = useMemo(() => {
-        const query = normalize(search.trim())
+        const query = normalize(debouncedSearch.trim())
         let matches = query === ''
             ? cards
             : cards.filter(c => normalize(c.name).includes(query)
@@ -284,7 +314,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
         // Plus de boutons de tri dans l'UI (retirés au profit du mana sur la page droite) :
         // tri fixé sur son réglage par défaut (coût croissant).
         return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))
-    }, [cards, search, costFilter])
+    }, [cards, debouncedSearch, costFilter])
 
     const cardsTotalPages = Math.max(1, Math.ceil(filteredCards.length / SLOTS_PER_PAGE))
     const currentCardsPage = Math.min(cardsPage, cardsTotalPages - 1)
@@ -444,7 +474,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         chevauchement (28px) pour rester bien collée au bord. */}
                     <div
                         className="absolute left-0 top-20 z-40 flex flex-col items-end gap-3"
-                        style={{ transform: 'translateX(calc(-100% + 44px))' }}
+                        style={{ transform: 'translateX(calc(-100% + 54px))' }}
                     >
                         <SideTab active={tab === 'cards'} onClick={() => setTab('cards')}>
                             <Image src="/textures/collection/icon-cards.png" alt="Cards" width={28} height={28} unoptimized style={{ imageRendering: 'pixelated' }} />
