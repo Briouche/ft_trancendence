@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { type CardFaceData } from '@/components/CardFace'
@@ -267,6 +267,35 @@ function PageArrow({ direction, onClick, disabled }: {
     )
 }
 
+// Champ de recherche isolé dans son propre composant, avec son propre état LOCAL : tape à
+// l'écran immédiatement (pas de latence perçue), mais ne remonte la valeur au parent (qui
+// déclenche le filtrage + le re-rendu de toute la grille de cartes) que 150ms après la dernière
+// frappe. Sans cette isolation, chaque caractère re-rendrait tout CollectionBook (grille comprise)
+// même avec un filtrage débouncé côté parent — c'est le composant qui change à chaque frappe qui
+// doit rester petit, pas seulement le calcul.
+function SearchInput({ onChange, disabled, className = '' }: {
+    onChange: (value: string) => void
+    disabled?: boolean
+    className?: string
+}) {
+    const [value, setValue] = useState('')
+    useEffect(() => {
+        const id = setTimeout(() => onChange(value), 150)
+        return () => clearTimeout(id)
+    }, [value, onChange])
+
+    return (
+        <input
+            type="text"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            disabled={disabled}
+            placeholder="Search a name or an effect…"
+            className={className}
+        />
+    )
+}
+
 export default function CollectionBook({ cards, initialCardBack, unlockedCardBacks, totalCardCount }: {
     cards: Card[]
     initialCardBack: number
@@ -275,8 +304,13 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
 }) {
     const router = useRouter()
     const [tab, setTab] = useState<Tab>('cards')
+    // Débouncé par construction : ne vient QUE de SearchInput (voir plus haut), qui ne le
+    // remonte que 150ms après la dernière frappe — donc CollectionBook (et sa grosse grille de
+    // 8× ScaledCardFace/CardFace) ne se re-rend pas à chaque caractère tapé, seulement une fois
+    // la frappe terminée. Champ isolé dans son propre composant avec un état LOCAL pour rester
+    // instantané à l'écran pendant ce délai (mesuré à 10-23ms de re-rendu complet par touche
+    // sinon — au-delà du budget d'une frame à 60fps, d'où l'input qui traînait).
     const [search, setSearch] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
     const [costFilter, setCostFilter] = useState<number | null>(null)
     const [cardsPage, setCardsPage] = useState(0)
     const [backsPage, setBacksPage] = useState(0)
@@ -284,19 +318,10 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
     const [cardBack, setCardBack] = useState(initialCardBack)
     const [savingBack, setSavingBack] = useState<number | null>(null)
 
-    // Retape sur chaque frappe re-render toute la grille de cartes (8× ScaledCardFace/CardFace) —
-    // mesuré à 10-23ms de travail synchrone par touche (au-delà du budget d'une frame à 60fps),
-    // ressenti comme un input qui traîne. Le champ lui-même reste instantané (`search`, non
-    // débouncé), seul le FILTRAGE (donc le re-rendu de la grille) attend une pause de 150ms.
-    useEffect(() => {
-        const id = setTimeout(() => setDebouncedSearch(search), 150)
-        return () => clearTimeout(id)
-    }, [search])
-
     const unlocked = useMemo(() => new Set(unlockedCardBacks), [unlockedCardBacks])
 
     const filteredCards = useMemo(() => {
-        const query = normalize(debouncedSearch.trim())
+        const query = normalize(search.trim())
         let matches = query === ''
             ? cards
             : cards.filter(c => normalize(c.name).includes(query)
@@ -314,7 +339,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
         // Plus de boutons de tri dans l'UI (retirés au profit du mana sur la page droite) :
         // tri fixé sur son réglage par défaut (coût croissant).
         return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))
-    }, [cards, debouncedSearch, costFilter])
+    }, [cards, search, costFilter])
 
     const cardsTotalPages = Math.max(1, Math.ceil(filteredCards.length / SLOTS_PER_PAGE))
     const currentCardsPage = Math.min(cardsPage, cardsTotalPages - 1)
@@ -337,10 +362,13 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
         else setBacksPage(p => Math.min(backsTotalPages - 1, p + 1))
     }
 
-    function updateSearch(value: string) {
+    // useCallback (identité stable) : passée à SearchInput comme dépendance de son effet de
+    // debounce — une fonction recréée à chaque rendu de CollectionBook y relancerait le délai à
+    // chaque frappe du parent (aucune ici, mais par principe).
+    const updateSearch = useCallback((value: string) => {
         setSearch(value)
         setCardsPage(0)
-    }
+    }, [])
 
     function toggleCostFilter(value: number) {
         setCostFilter(f => f === value ? null : value)
@@ -499,11 +527,8 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                             <div className={`flex h-9 items-center justify-center
                                 ${tab !== 'cards' ? 'pointer-events-none opacity-30' : ''}`}
                             >
-                                <input
-                                    type="text"
-                                    value={search}
-                                    onChange={e => updateSearch(e.target.value)}
-                                    placeholder="Search a name or an effect…"
+                                <SearchInput
+                                    onChange={updateSearch}
                                     className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif text-xs text-ink-text
                                         placeholder:text-ink-muted/60 outline-none"
                                 />
