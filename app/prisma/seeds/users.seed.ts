@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import * as argon2 from "argon2";
+import { hash } from "@node-rs/argon2";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -19,9 +19,7 @@ export async function seedUsers(prisma: PrismaClient) {
   for (const user of data.users) {
     const email = user.email.toLowerCase();
     const username = user.username.toLowerCase();
-    const password = await argon2.hash(user.password, {
-      type: argon2.argon2id,
-    });
+    const password = await hash(user.password);
 
     await prisma.user.upsert({
       where: { email },

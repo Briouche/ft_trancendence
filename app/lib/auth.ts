@@ -1,133 +1,152 @@
-import { cache } from "react";
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
-import type { Prisma } from "@prisma/client";
+"use server";
+
+import { redirect } from "next/navigation";
+
+import { hash, verify } from "@node-rs/argon2"
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { createSession, deleteSession } from "@/lib/session";
+import { ROUTES } from "@/config/routes";
 
-const COOKIE_NAME = "token";
-const COOKIE_LIFE = 7;
+/** Matches the same argon2id parameters used to build {@link DUMMY_HASH}. */
+const ARGON2_OPTIONS = {
+  memoryCost: 19456,
+  timeCost: 2,
+  parallelism: 1,
+};
 
-interface JwtPayload {
-  userId: number;
-  tokenVersion: number;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// At least 8 characters, one uppercase, one lowercase, one digit.
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+const USERNAME_MIN_LENGTH = 3;
+const USERNAME_MAX_LENGTH = 30;
+// Upper bound only - argon2 cost scales with input size, so an unbounded
+// password lets someone send a multi-MB string and burn CPU/memory on every
+// hash/verify call. 128 is generous for any real passphrase.
+const PASSWORD_MAX_LENGTH = 128;
+const EMAIL_MAX_LENGTH = 254; // RFC 5321 max mailbox length
+
+const DUMMY_HASH =
+  "$argon2id$v=19$m=19456,t=2,p=1$c29tZXJhbmRvbXNhbHQ$2rXwn8YSrN3W5uJmYh1IhrJfw5PZqPFqUJvXWkG1SVI";
+
+function getStringField(formData: FormData, key: string): string | null {
+  const value = formData.get(key);
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
-// Helper function to safely fetch and encode the secret ONLY at runtime
-function getSecret(): Uint8Array {
-  const rawSecret = process.env.JWT_SECRET;
-  if (!rawSecret) {
-    throw new Error(
-      "Critical Error: JWT_SECRET environment variable is not set at runtime.",
-    );
+export async function checkCredentials(formData: FormData) {
+  const usernameRaw = getStringField(formData, "username");
+  const passwordRaw = formData.get("password");
+
+  if (
+    !usernameRaw ||
+    usernameRaw.length > USERNAME_MAX_LENGTH ||
+    typeof passwordRaw !== "string" ||
+    passwordRaw.length === 0 ||
+    passwordRaw.length > PASSWORD_MAX_LENGTH
+  ) {
+    return { error: "Invalid username or password." };
   }
-  return new TextEncoder().encode(rawSecret);
-}
 
-export async function signAuthToken(payload: JwtPayload) {
-  const secret = getSecret(); // Fetched at runtime
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${COOKIE_LIFE}d`)
-    .sign(secret);
-}
+  const username = usernameRaw.toLocaleLowerCase();
+  const password = passwordRaw;
 
-async function verifyAuthToken(token: string): Promise<JwtPayload | null> {
-  try {
-    const secret = getSecret(); // Fetched at runtime
-    const { payload } = await jwtVerify(token, secret);
-    if (
-      typeof payload.userId !== "number" ||
-      typeof payload.tokenVersion !== "number"
-    ) {
-      return null;
-    }
-    return payload as unknown as JwtPayload;
-  } catch {
-    return null; // expired or tampered
-  }
-}
-
-export async function setAuthCookie(token: string) {
-  (await cookies()).set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * COOKIE_LIFE,
-  });
-}
-
-export async function clearAuthCookie() {
-  (await cookies()).delete(COOKIE_NAME);
-}
-
-/**
- * Shared core for every "who is the current user" lookup.
- *
- * Centralizing this guarantees the tokenVersion check (logout-everywhere /
- * password-change / suspected-compromise invalidation) can never be
- * accidentally skipped by a future function the way `getUserDetails` used
- * to. `tokenVersion` is always fetched internally for that check, in
- * addition to whatever fields the caller asks for via `select` — callers
- * should strip it before forwarding the result to a Client Component,
- * since it's an internal implementation detail with no UI purpose.
- */
-export async function getAuthenticatedUser<T extends Prisma.UserSelect>(
-  select: T,
-): Promise<Prisma.UserGetPayload<{ select: T }> | null> {
-  const token = (await cookies()).get(COOKIE_NAME)?.value;
-  if (!token) return null;
-
-  const payload = await verifyAuthToken(token);
-  if (!payload) return null;
-
-  // Cast here: Prisma's `Exact<>` check on `select` can't unify a generic T
-  // with its own intersection type (TS2719). This is a Prisma+generics
-  // limitation, not a runtime risk — `tokenVersion: true` is always merged
-  // in below, so it's guaranteed present on `user`.
   const user = await prisma.user.findUnique({
-    where: { id: payload.userId },
-    select: { ...select, tokenVersion: true } as Prisma.UserSelect,
+    where: { username },
   });
 
-  if (!user) return null;
+  if (!user || !user.password) {
+    // Run a dummy verify so this path costs roughly the same as the
+    // "user found, wrong password" path below.
+    // Note that with remote authentication, there is no password
+    try {
+      await verify(DUMMY_HASH, password);
+    } catch {
+      // ignore - dummy hash mismatch is expected
+    }
+    return { error: "Invalid username or password." };
+  }
 
-  // Same reasoning: assert the shape we know is true at runtime instead of
-  // fighting the generic inference through GetFindResult.
-  const typedUser = user as { tokenVersion: number } & Record<string, unknown>;
+  try {
+    const isValid = await verify(user.password, password);
 
-  if (typedUser.tokenVersion !== payload.tokenVersion) return null;
+    if (!isValid) {
+      return { error: "Invalid username or password." };
+    }
+  } catch {
+    return { error: "Invalid username or password." };
+  }
 
-  const { tokenVersion: _tokenVersion, ...sanitizedUser } = typedUser;
+  // JWT/session cookie
+  await createSession(user.id, user.username, user.tokenVersion);
 
-  return sanitizedUser as unknown as Prisma.UserGetPayload<{ select: T }>;
+  return { error: null };
 }
 
-// Wrapped in React's cache() so multiple Server Components rendered in
-// the same request (e.g. a layout and a page both calling this) share
-// one result instead of each re-verifying the JWT and re-querying the
-// DB. The cache is scoped per request, so this is safe across users.
-export const verifyUserCookie = cache(() =>
-  getAuthenticatedUser({
-    id: true,
-    email: true,
-    emailVerified: true,
-    twoFactorEnabled: true,
-  }),
-);
+export async function registerUser(formData: FormData) {
+  const username = getStringField(formData, "username");
+  const email = getStringField(formData, "email")?.toLocaleLowerCase() ?? null;
+  const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
 
-// Fuller field set for screens like "edit profile" that need to display
-// and let the user change their own details.
-export const getUserDetails = cache(() =>
-  getAuthenticatedUser({
-    id: true,
-    username: true,
-    email: true,
-    avatar: true,
-    status: true,
-    emailVerified: true,
-    twoFactorEnabled: true,
-    createdAt: true,
-  }),
-);
+  if (
+    !username ||
+    username.length < USERNAME_MIN_LENGTH ||
+    username.length > USERNAME_MAX_LENGTH ||
+    !USERNAME_REGEX.test(username)
+  ) {
+    return { error: "Username must be 3-30 characters and contain only letters, numbers, and underscores." };
+  }
+
+  if (!email || email.length > EMAIL_MAX_LENGTH || !EMAIL_REGEX.test(email)) {
+    return { error: "Please provide a valid email address." };
+  }
+
+  if (typeof password !== "string" || password.length > PASSWORD_MAX_LENGTH || !PASSWORD_REGEX.test(password)) {
+    return {
+      error:
+        "Password must be 8-128 characters long and include an uppercase letter, a lowercase letter, and a number.",
+    };
+  }
+
+  if (typeof confirmPassword !== "string" || password !== confirmPassword) {
+    return { error: "Passwords do not match." };
+  }
+
+  const passwordHash = await hash(password, ARGON2_OPTIONS);
+
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        username: username.toLocaleLowerCase(),
+        email,
+        password: passwordHash,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const target = err.meta?.target as string[] | undefined;
+      if (target?.includes("email")) {
+        return { error: "Cound not create account." };
+      }
+      return { error: "Cound not create account." };
+    }
+
+    console.error("registerUser: unexpected error creating user", err);
+    return { error: "Cound not create account." };
+  }
+
+  await createSession(user.id, user.username, user.tokenVersion);
+
+  return { error: null };
+}
+
+export async function logoutUser() {
+  await deleteSession();
+  redirect(ROUTES.home);
+}

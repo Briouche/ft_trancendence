@@ -2,7 +2,7 @@ services:
   proxy:
     image: nginx:stable-alpine
     ports:
-      - "80:80"
+      - "8080:8080"
     volumes:
       - ./proxy/dev.conf:/etc/nginx/nginx.conf:ro
 

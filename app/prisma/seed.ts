@@ -19,6 +19,8 @@ async function main() {
 	
 	// Run sub-seeds in order
 	await seedCards(prisma)
+
+	// Run sub-seeds in order
 	await seedUsers(prisma)
 
 	console.log('🏁 Database seeding completed successfully!')
