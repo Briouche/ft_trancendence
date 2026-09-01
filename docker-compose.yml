@@ -23,6 +23,22 @@ services:
       - frontend
       - backend
 
+  game_engine:
+    container_name: game_engine
+    build:
+      context: ./app
+      dockerfile: gameEngine/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      MCTS_SIMULATIONS: ${MCTS_SIMULATIONS}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+
   db:
     container_name: postgres_db
     image: postgres:16-alpine

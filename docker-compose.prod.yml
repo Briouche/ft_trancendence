@@ -24,6 +24,9 @@ services:
       - next_public:/app/public
     restart: always
 
+  game_engine:
+    restart: always
+
   db:
     restart: always
 
