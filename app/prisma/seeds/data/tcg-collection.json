@@ -4,30 +4,23 @@
     {
       "id": "mpzqp0u9",
       "name": "Le menestrel",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
       "atk": "1",
       "def": "4",
-      "desc": "battlecry: donne -1 ATK au créatures adverses",
+      "desc": "battlecry: donne -1 ATK au creatures adverses",
       "qty": 2,
       "emoji": "🎸",
       "color": "#D3D1C7",
       "legendId": "",
-      "battlecry": {
-        "kind": "buff",
-        "atk": -1,
-        "health": 0,
-        "resolver": {
-          "kind": "allEnemyMinions"
-        }
-      }
+      "battlecry": { "kind": "buff", "atk": -1, "health": 0, "resolver": { "kind": "allEnemyMinions" } }
     },
     {
       "id": "mpzsx3l7",
       "name": "Timmy, the planetsucker",
-      "type": "",
+      "type": "creature",
       "rarity": "Légendaire",
       "cost": "5",
       "costNum": 0,
@@ -38,17 +31,12 @@
       "emoji": "🐙",
       "color": "#B5D4F4",
       "legendId": "timmy",
-      "battlecry": {
-        "kind": "timmy",
-        "resolver": {
-          "kind": "anyCharacter"
-        }
-      }
+      "battlecry": { "kind": "timmy", "resolver": { "kind": "anyCharacter" } }
     },
     {
       "id": "mpzsyfvk",
       "name": "golem endormi",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 0,
@@ -83,7 +71,7 @@
     {
       "id": "mpzqq8bs",
       "name": "Pyroblin",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -94,19 +82,13 @@
       "emoji": "🎇",
       "color": "#D3D1C7",
       "legendId": "",
-      "battlecry": {
-        "kind": "damage",
-        "amount": 3,
-        "resolver": {
-          "kind": "anyCharacter"
-        }
-      }
+      "battlecry": { "kind": "damage", "amount": 3, "resolver": { "kind": "anyCharacter" } }
     },
     {
       "id": "mqi2jqa4",
       "name": "Reborn (Archi card)",
       "type": "creature",
-      "rarity": "Epique",
+      "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
       "atk": "2",
@@ -117,20 +99,13 @@
       "color": "#C0DD97",
       "legendId": "",
       "archi": true,
-      "battlecry": {
-        "kind": "buff",
-        "atk": 1,
-        "health": 1,
-        "resolver": {
-          "kind": "anyMinion"
-        }
-      }
+      "battlecry": { "kind": "buff", "atk": 1, "health": 1, "resolver": { "kind": "anyMinion" } }
     },
     {
       "id": "mqi2k9ir",
       "name": "Neo (archi card)",
       "type": "creature",
-      "rarity": "Epique",
+      "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
       "atk": "4",
@@ -147,7 +122,7 @@
       "id": "mqib6m3f",
       "name": "Haku (archi card)",
       "type": "creature",
-      "rarity": "Epique",
+      "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
       "atk": "1",
@@ -158,16 +133,13 @@
       "color": "#C0DD97",
       "legendId": "",
       "archi": true,
-      "battlecry": {
-        "kind": "draw",
-        "amount": 1
-      }
+      "battlecry": { "kind": "draw", "amount": 1 }
     },
     {
       "id": "mqibfh9p",
       "name": "Zurg (archi card)",
       "type": "creature",
-      "rarity": "Epique",
+      "rarity": "Commune",
       "cost": "7",
       "costNum": 7,
       "atk": "7",
@@ -182,24 +154,8 @@
         "kind": "summon",
         "amount": 2,
         "tokens": [
-          {
-            "id": "mqibfh9p_alien1",
-            "name": "Alien",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "",
-            "emoji": "👽"
-          },
-          {
-            "id": "mqibfh9p_alien2",
-            "name": "Alien",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "",
-            "emoji": "👽"
-          }
+          { "id": "mqibfh9p_alien1", "name": "Alien", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "👽" },
+          { "id": "mqibfh9p_alien2", "name": "Alien", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "👽" }
         ]
       }
     },
@@ -207,7 +163,7 @@
       "id": "mqi2kthv",
       "name": "Ribgy (Archi card)",
       "type": "creature",
-      "rarity": "Epique",
+      "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
       "atk": "3",
@@ -218,16 +174,13 @@
       "color": "#C0DD97",
       "legendId": "",
       "archi": true,
-      "battlecry": {
-        "kind": "heal",
-        "amount": 3
-      }
+      "battlecry": { "kind": "heal", "amount": 3, "resolver": { "kind": "anyCharacter" } }
     },
     {
       "id": "mqi31p8w",
       "name": "Po (archi card)",
       "type": "creature",
-      "rarity": "Epique",
+      "rarity": "Commune",
       "cost": "5",
       "costNum": 5,
       "atk": "5",
@@ -255,17 +208,12 @@
       "color": "#C0DD97",
       "legendId": "archimede",
       "archi": true,
-      "battlecry": {
-        "kind": "archi",
-        "resolver": {
-          "kind": "enemyHero"
-        }
-      }
+      "battlecry": { "kind": "archi", "resolver": { "kind": "enemyHero" } }
     },
     {
       "id": "mqi87m6k",
       "name": "Bibliothequaire",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -276,39 +224,28 @@
       "emoji": "📚",
       "color": "#D3D1C7",
       "legendId": "",
-      "battlecry": {
-        "kind": "silence",
-        "resolver": {
-          "kind": "anyMinion"
-        }
-      }
+      "battlecry": { "kind": "silence", "resolver": { "kind": "anyMinion" } }
     },
     {
       "id": "mqi7p9nf",
       "name": "Joël el Jeffe (aka marcel au 1000 épices)",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Légendaire",
       "cost": "3",
       "costNum": 3,
       "atk": "2",
       "def": "5",
-      "desc": "passif:  créatures bléssées ont +1 d'ATQ - battlecry: inflige 1 point de dégats a ses voisins",
+      "desc": "passif:  creatures bléssées ont +1 d'ATQ - battlecry: inflige 1 point de dégats a ses voisins", 
       "qty": 1,
       "emoji": "🍳",
       "color": "#F4C0D1",
       "legendId": "jeffe",
-      "battlecry": {
-        "kind": "damage",
-        "amount": 1,
-        "resolver": {
-          "kind": "neighboringMinions"
-        }
-      }
+      "battlecry": { "kind": "damage", "amount": 1, "resolver": { "kind": "neighboringMinions" } }
     },
     {
       "id": "mqi7qihp",
       "name": "Diablotin du piment",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
@@ -368,10 +305,7 @@
       "emoji": "🛠️",
       "color": "#FAC775",
       "legendId": "",
-      "spellEffect": {  "kind": "combined", "effects": [
-        {"kind": "equalHealth" },
-        { "kind": "draw", "amount": 1 }]
-      }
+      "spellEffect": { "kind": "equalHealth" }
     },
     {
       "id": "mpzr0j1j",
@@ -613,7 +547,7 @@
     {
       "id": "mqi7lqzb",
       "name": "CRS",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -629,30 +563,23 @@
     {
       "id": "mqi7molw",
       "name": "Poulet mécontent",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
       "atk": "2",
-      "def": "3",
+      "def": "2",
       "desc": "quand il subit des dégats, gagne 3 d'atk",
       "qty": 2,
       "emoji": "🐓",
       "color": "#D3D1C7",
       "legendId": "",
-      "onDamage": {
-        "kind": "buff",
-        "atk": 3,
-        "health": 0,
-        "resolver": {
-          "kind": "source"
-        }
-      }
+      "onDamage": { "kind": "buff", "atk": 3, "health": 0, "resolver": { "kind": "source" } }
     },
     {
       "id": "mqi7wg1q",
       "name": "Client Mécontent",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -663,19 +590,12 @@
       "emoji": "🙋🏻",
       "color": "#F4C0D1",
       "legendId": "mqi7p9nf",
-      "onDamage": {
-        "kind": "buff",
-        "atk": 1,
-        "health": 0,
-        "resolver": {
-          "kind": "source"
-        }
-      }
+      "onDamage": { "kind": "buff", "atk": 1, "health": 0, "resolver": { "kind": "source" } }
     },
     {
       "id": "mqi7xr37",
       "name": "Second Braillaird",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -686,18 +606,12 @@
       "emoji": "✌",
       "color": "#F4C0D1",
       "legendId": "mqi7p9nf",
-      "battlecry": {
-        "kind": "damage",
-        "amount": 1,
-        "resolver": {
-          "kind": "allMinions"
-        }
-      }
+      "battlecry": { "kind": "damage", "amount": 1, "resolver": { "kind": "allMinions" } }
     },
     {
       "id": "mqi7t2uf",
       "name": "Critique culinaire",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -708,18 +622,12 @@
       "emoji": "🧐",
       "color": "#F4C0D1",
       "legendId": "mqi7p9nf",
-      "startOfTurn": {
-        "kind": "damage",
-        "amount": 3,
-        "resolver": {
-          "kind": "bothHeroes"
-        }
-      }
+      "startOfTurnEffect": { "kind": "damage", "amount": 3, "resolver": { "kind": "bothHeroes" } }
     },
     {
       "id": "mqi730al",
       "name": "Pecheur repenti",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
@@ -730,16 +638,13 @@
       "emoji": "🎣",
       "color": "#D3D1C7",
       "legendId": "",
-      "battlecry": {
-        "kind": "draw",
-        "amount": 1
-      }
+      "battlecry": { "kind": "draw", "amount": 1 }
     },
     {
       "id": "mqi6rw7n",
       "name": "Lecture de textes Anciencs",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Peu commune",
       "cost": "3",
       "costNum": 3,
       "atk": "",
@@ -749,15 +654,12 @@
       "emoji": "🃏",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "draw",
-        "amount": 2
-      }
+      "spellEffect": { "kind": "draw", "amount": 2 }
     },
     {
       "id": "mqi6orw9",
       "name": "Bertrand",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Épique",
       "cost": "3",
       "costNum": 3,
@@ -773,7 +675,7 @@
     {
       "id": "mqi6qse2",
       "name": "Jumeau Goblin",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 3,
@@ -788,15 +690,7 @@
         "kind": "summon",
         "amount": 1,
         "tokens": [
-          {
-            "id": "mqi6qse2_token1",
-            "name": "Goblin jumeau",
-            "cost": "2",
-            "atk": "2",
-            "def": "2",
-            "desc": "",
-            "emoji": "👽"
-          }
+          { "id": "mqi6qse2_token1", "name": "Goblin jumeau", "cost": "2", "atk": "2", "def": "2", "desc": "", "emoji": "👽" }
         ]
       }
     },
@@ -814,34 +708,23 @@
       "emoji": "🤱",
       "color": "#D3D1C7",
       "legendId": "",
-      "battlecry": {
-        "kind": "buff",
-        "atk": 1,
-        "health": 0,
-        "resolver": "neighboringMinions"
-      }
+      "battlecry": { "kind": "buff", "atk": 1, "health": 0, "resolver": { "kind": "neighboringMinions" } }
     },
     {
       "id": "mqi38sx6",
       "name": "cri du phoenix",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
       "atk": "",
       "def": "",
-      "desc": "inflige 5 dmg",
+      "desc": "inflige 6 dmg",
       "qty": 2,
       "emoji": "🔥",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "damage",
-        "amount": 5,
-        "resolver": {
-          "kind": "anyCharacter"
-        }
-      }
+      "spellEffect": { "kind": "damage", "amount": 6, "resolver": { "kind": "anyCharacter" } }
     },
     {
       "id": "mqi39fwn",
@@ -857,10 +740,7 @@
       "emoji": "🤵‍♂",
       "color": "#D3D1C7",
       "legendId": "",
-      "deathrattle": {
-        "kind": "draw",
-        "amount": 1
-      }
+      "deathrattle": { "kind": "draw", "amount": 1 }
     },
     {
       "id": "mqi35y1s",
@@ -876,13 +756,7 @@
       "emoji": "🦠",
       "color": "#D3D1C7",
       "legendId": "",
-      "deathrattle": {
-        "kind": "damage",
-        "amount": 2,
-        "resolver": {
-          "kind": "enemyHero"
-        }
-      }
+      "deathrattle": { "kind": "damage", "amount": 2, "resolver": { "kind": "enemyHero" } }
     },
     {
       "id": "mqi3516p",
@@ -898,12 +772,7 @@
       "emoji": "🕵",
       "color": "#CECBF6",
       "legendId": "mqi2u1aa",
-      "battlecry": {
-        "kind": "triggerDeathrattle",
-        "resolver": {
-          "kind": "anyMinion"
-        }
-      }
+      "battlecry": { "kind": "triggerDeathrattle", "resolver": { "kind": "anyMinion" } }
     },
     {
       "id": "mqi7a046",
@@ -919,33 +788,23 @@
       "emoji": "📌",
       "color": "#D3D1C7",
       "legendId": "",
-      "onDamage": {
-        "kind": "draw",
-        "amount": 1
-      }
+      "onDamage": { "kind": "draw", "amount": 1 }
     },
     {
       "id": "mqi810rs",
       "name": "Lanceur de couteaux",
-      "type": "créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
       "atk": "3",
       "def": "4",
-      "desc": "quand cette créature subit des dégats, envoie deux couteaux infligeant 1 dégat au hasard",
+      "desc": "quand cette creature subit des dégats, envoie deux couteaux infligeant 1 dégat au hasard",
       "qty": 2,
       "emoji": "🔪",
       "color": "#F4C0D1",
       "legendId": "mqi7p9nf",
-      "onDamage": {
-        "kind": "randomMissile",
-        "amount": 2,
-        "damage": 1,
-        "resolver": {
-          "kind": "randomEnemy"
-        }
-      }
+      "onDamage": { "kind": "randomMissile" , "amount": 2, "damage": 1, "resolver": { "kind": "randomEnemy" } }
     },
     {
       "id": "mqi2nq42",
@@ -966,7 +825,7 @@
       "id": "mqi2pdbm",
       "name": "blackhole",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "4",
       "costNum": 0,
       "atk": "",
@@ -976,13 +835,7 @@
       "emoji": "🕳️",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "damage",
-        "amount": 99,
-        "resolver": {
-          "kind": "anyMinion"
-        }
-      }
+      "spellEffect": { "kind": "damage", "amount": 99, "resolver": { "kind": "anyMinion" } }
     },
     {
       "id": "mqi2qm6a",
@@ -1001,22 +854,8 @@
       "battlecry": {
         "kind": "combined",
         "effects": [
-          {
-            "kind": "buff",
-            "atk": 1,
-            "health": 1,
-            "resolver": {
-              "kind": "neighboringMinions"
-            }
-          },
-          {
-            "kind": "addKeyword",
-            "value": true,
-            "keywordType": "taunt",
-            "resolver": {
-              "kind": "neighboringMinions"
-            }
-          }
+          { "kind": "buff", "atk": 1, "health": 1, "resolver": { "kind": "neighboringMinions" } },
+          { "kind": "addKeyword", "value": true, "keywordType": "taunt", "resolver": { "kind": "neighboringMinions" } }
         ]
       }
     },
@@ -1038,33 +877,9 @@
         "kind": "summon",
         "amount": 3,
         "tokens": [
-          {
-            "id": "mqi2rye2_spider1",
-            "name": "Araignée",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "",
-            "emoji": "🕷️"
-          },
-          {
-            "id": "mqi2rye2_spider2",
-            "name": "Araignée",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "",
-            "emoji": "🕷️"
-          },
-          {
-            "id": "mqi2rye2_spider3",
-            "name": "Araignée",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "",
-            "emoji": "🕷️"
-          }
+          { "id": "mqi2rye2_spider1", "name": "Araignée", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "🕷️" },
+          { "id": "mqi2rye2_spider2", "name": "Araignée", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "🕷️" },
+          { "id": "mqi2rye2_spider3", "name": "Araignée", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "🕷️" }
         ]
       }
     },
@@ -1072,7 +887,7 @@
       "id": "mqi2odxf",
       "name": "TIG",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "1",
       "costNum": 1,
       "atk": "",
@@ -1082,12 +897,7 @@
       "emoji": "🔇",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "silence",
-        "resolver": {
-          "kind": "anyCharacter"
-        }
-      }
+      "spellEffect": { "kind": "silence", "resolver": { "kind": "anyCharacter" } }
     },
     {
       "id": "mqi2ylzl",
@@ -1109,7 +919,7 @@
       "id": "mqi2zdq0",
       "name": "une haleine vreument...",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
       "atk": "",
@@ -1119,13 +929,7 @@
       "emoji": "🗣️",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "damage",
-        "amount": 3,
-        "resolver": {
-          "kind": "enemyCharacter"
-        }
-      }
+      "spellEffect": { "kind": "damage", "amount": 3, "resolver": { "kind": "enemyCharacter" } }
     },
     {
       "id": "mqi2w8de",
@@ -1142,14 +946,7 @@
       "color": "#CECBF6",
       "legendId": "mqi2u1aa",
       "rush": true,
-      "deathrattle": {
-        "kind": "randomMissile",
-        "amount": 2,
-        "damage": 2,
-        "resolver": {
-          "kind": "randomEnemy"
-        }
-      }
+      "deathrattle": { "kind": "randomMissile", "amount": 2, "damage": 2, "resolver": { "kind": "randomEnemy" } }
     },
     {
       "id": "mqi2xdmh",
@@ -1165,20 +962,13 @@
       "emoji": "🏆",
       "color": "#D3D1C7",
       "legendId": "",
-      "battlecry": {
-        "kind": "buff",
-        "atk": 1,
-        "health": 1,
-        "resolver": {
-          "kind": "alliedMinions"
-        }
-      }
+      "battlecry": { "kind": "buff", "atk": 1, "health": 1, "resolver": { "kind": "alliedMinions" } }
     },
     {
       "id": "mqi313ey",
       "name": "soulevement de tombes",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
       "atk": "",
@@ -1193,52 +983,18 @@
         "amount": 2,
         "tokens": [
           {
-            "id": "mqi313ey_zombie1",
-            "name": "Zombie",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "Rale d'agonie : invoque un zombie 1-1",
-            "emoji": "🧟",
-            "deathrattle": {
-              "kind": "summon",
-              "amount": 1,
-              "tokens": [
-                {
-                  "id": "mqi313ey_zombie1b",
-                  "name": "Zombie",
-                  "cost": "1",
-                  "atk": "1",
-                  "def": "1",
-                  "desc": "",
-                  "emoji": "🧟"
-                }
-              ]
-            }
+            "id": "mqi313ey_zombie1", "name": "Zombie", "cost": "1", "atk": "1", "def": "1",
+            "desc": "Rale d'agonie : invoque un zombie 1-1", "emoji": "🧟",
+            "deathrattle": { "kind": "summon", "amount": 1, "tokens": [
+              { "id": "mqi313ey_zombie1b", "name": "Zombie", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "🧟" }
+            ] }
           },
           {
-            "id": "mqi313ey_zombie2",
-            "name": "Zombie",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "Rale d'agonie : invoque un zombie 1-1",
-            "emoji": "🧟",
-            "deathrattle": {
-              "kind": "summon",
-              "amount": 1,
-              "tokens": [
-                {
-                  "id": "mqi313ey_zombie2b",
-                  "name": "Zombie",
-                  "cost": "1",
-                  "atk": "1",
-                  "def": "1",
-                  "desc": "",
-                  "emoji": "🧟"
-                }
-              ]
-            }
+            "id": "mqi313ey_zombie2", "name": "Zombie", "cost": "1", "atk": "1", "def": "1",
+            "desc": "Rale d'agonie : invoque un zombie 1-1", "emoji": "🧟",
+            "deathrattle": { "kind": "summon", "amount": 1, "tokens": [
+              { "id": "mqi313ey_zombie2b", "name": "Zombie", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "🧟" }
+            ] }
           }
         ]
       }
@@ -1247,7 +1003,7 @@
       "id": "mpzqt44t",
       "name": "cannibalisme",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
       "atk": "",
@@ -1257,25 +1013,9 @@
       "emoji": "🥩",
       "color": "#B5D4F4",
       "legendId": "",
-      "spellEffect": {
-        "kind": "combined",
-        "effects": [
-          {
-            "kind": "damage",
-            "amount": 3,
-            "resolver": {
-              "kind": "anyCharacter"
-            }
-          },
-          {
-            "kind": "heal",
-            "amount": 3,
-            "resolver": {
-              "kind": "playerHero"
-            }
-          }
-        ]
-      }
+      "spellEffect": { "kind": "combined", "effects":
+                  [{ "kind": "damage", "amount": 3, "resolver": { "kind": "anyCharacter" } },
+                  { "kind": "heal", "amount": 3, "resolver": { "kind": "playerHero" } } ]}
     },
     {
       "id": "mpzr3mcy",
@@ -1296,15 +1036,7 @@
         "kind": "summon",
         "amount": 1,
         "tokens": [
-          {
-            "id": "mpzr3mcy_token1",
-            "name": "Hyperactive little cousin",
-            "cost": "1",
-            "atk": "1",
-            "def": "1",
-            "desc": "",
-            "emoji": "⚡️"
-          }
+          { "id": "mpzr3mcy_token1", "name": "Hyperactive little cousin", "cost": "1", "atk": "1", "def": "1", "desc": "", "emoji": "⚡️" }
         ]
       }
     },
@@ -1323,18 +1055,12 @@
       "color": "#B5D4F4",
       "legendId": "",
       "taunt": true,
-      "battlecry": {
-        "kind": "heal",
-        "amount": 3,
-        "resolver": {
-          "kind": "anyCharacter"
-        }
-      }
+      "battlecry": { "kind":"heal", "amount": 3, "resolver": { "kind":"anyCharacter" } }
     },
     {
       "id": "mpzs8u1h",
       "name": "bloodsucker",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
       "costNum": 0,
@@ -1351,7 +1077,7 @@
     {
       "id": "mqi7ivjj",
       "name": "Opika",
-      "type": "Créature",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
       "costNum": 2,
@@ -1362,13 +1088,7 @@
       "emoji": "🐹",
       "color": "#D3D1C7",
       "legendId": "",
-      "endOfTurn": {
-        "kind": "damage",
-        "amount": 2,
-        "resolver": {
-          "kind": "randomEnemy"
-        }
-      }
+      "endOfTurnEffect": { "kind": "damage", "amount": 2, "resolver": { "kind": "randomEnemy" } }
     },
     {
       "id": "mpzqyecf",
@@ -1390,7 +1110,7 @@
       "id": "mqi7ktmr",
       "name": "Bombe H",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "7",
       "costNum": 7,
       "atk": "",
@@ -1400,13 +1120,7 @@
       "emoji": "☢️",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "damage",
-        "amount": 99,
-        "resolver": {
-          "kind": "allMinions"
-        }
-      }
+      "spellEffect": { "kind": "damage", "amount": 99, "resolver": { "kind": "allMinions" } }
     },
     {
       "id": "mqi2u1aa",
@@ -1417,7 +1131,8 @@
       "costNum": 6,
       "atk": "4",
       "def": "6",
-      "desc": "Leg Passiv : toute les 4 creatures qui meurt, invoque un zombie 1-1\n\nLes rales d'agonie se declenche 2x",
+      "desc": "Cri de guerre : declenche les rales d'agonie de tous vos serviteurs\n\nLeg Passiv : toute les 4 creatures qui meurt, invoque un zombie 1-1\n\nLes rales d'agonie se declenche 2x",
+      "battlecry": { "kind": "triggerDeathrattle", "resolver": { "kind": "alliedMinions" } },
       "qty": 1,
       "emoji": "🪦",
       "color": "#CECBF6",
@@ -1427,7 +1142,7 @@
       "id": "mqi2v3qx",
       "name": "tremblement",
       "type": "sort",
-      "rarity": "Rare",
+      "rarity": "Commune",
       "cost": "4",
       "costNum": 4,
       "atk": "",
@@ -1437,18 +1152,12 @@
       "emoji": "♒︎",
       "color": "#D3D1C7",
       "legendId": "",
-      "spellEffect": {
-        "kind": "damage",
-        "amount": 2,
-        "resolver": {
-          "kind": "allEnemies"
-        }
-      }
+      "spellEffect": { "kind": "damage", "amount": 2, "resolver": { "kind": "allEnemies" } }  
     },
     {
       "id": "mpzsjywa",
       "name": "Rat des champs",
-      "type": "",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "1",
       "costNum": 0,

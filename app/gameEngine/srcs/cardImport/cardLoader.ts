@@ -6,6 +6,7 @@ import { Deck } from '../deck'
 import { legendary } from '../legendary'
 import { lifestealEffect } from '../effect'
 import { ARCHIMEDE_ID, BATTLECRY_OVERRIDES, DEATHRATTLE_OVERRIDES, SPELL_EFFECT_OVERRIDES, NoOpEffect } from './keywordEffects'
+import { buildEffect, EffectSpec } from './effectFactory'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000 })
 const adapter = new PrismaPg(pool)
@@ -65,20 +66,22 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
 
 function rawToCard(raw: RawCard, playerPrefix = ""): Card
 {
-    if (raw.type === "Spell")
+    if (raw.type === "sort")
     {
         const name = raw.emoji ? `${raw.emoji} ${raw.name}` : raw.name
         return new SpellCard(
             `${playerPrefix}${raw.id}`,
             name,
-            safeNumber(raw.cost),
+            +raw.cost,
             raw.desc,
-            SPELL_EFFECT_OVERRIDES[raw.id]?.() ?? new NoOpEffect(),
+            buildEffect(raw.spellEffect as EffectSpec | null)!,
             resolveLegendaryPassive(raw.legendId),
+            raw.assetKey
         )
     }
 
-    return rawToMinionCard(raw, playerPrefix)
+        else
+        return rawToMinionCard(raw, playerPrefix)
 }
 
 export async function loadAllCards(): Promise<RawCard[]>
