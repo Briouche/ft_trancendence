@@ -3,8 +3,9 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { MinionCard, SpellCard, Card } from '../card'
 import { Deck } from '../deck'
-import { buildEffect, EffectSpec } from './effectFactory'
 import { legendary } from '../legendary'
+import { lifestealEffect } from '../effect'
+import { ARCHIMEDE_ID, BATTLECRY_OVERRIDES, DEATHRATTLE_OVERRIDES, SPELL_EFFECT_OVERRIDES, NoOpEffect } from './keywordEffects'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000 })
 const adapter = new PrismaPg(pool)
@@ -15,24 +16,37 @@ export type RawCard = DbCard
 const LEGENDARY_PASSIVES: legendary[] = ["jeffe", "timmy", "archimede", "freddy", "roidesrats", "gertrude"]
 
 // legendId doubles as the legendaryPassive slot for a legendary card itself (e.g. "timmy"),
-// while on non-legendary cards it's a family-grouping reference to another card's id —
+// while on non-legendary cards it's a family-grouping reference to another card's id (e.g. the
+// "(archi card)" creatures point at Archimed's own id, see ARCHIMEDE_ID in keywordEffects.ts) —
 // only recognize it as a passive when it's one of the implemented legendary types.
 function resolveLegendaryPassive(legendId: string): legendary | undefined
 {
     return LEGENDARY_PASSIVES.find(l => l === legendId)
 }
 
+// cost/atk/def sont des String en base (voir schema.prisma) — normalement numériques, sauf pour
+// les rares cartes à coût/stats variables ("X", pas encore scriptées ici). Number("") vaut déjà
+// 0 (pas NaN), donc les champs vides des sorts (pas d'atk/def) passent tels quels ; seul "X" a
+// besoin de ce filet, sinon NaN se propage dans tout le moteur (mana >= NaN est toujours faux :
+// carte injouable en silence plutôt qu'une vraie erreur).
+function safeNumber(value: string): number
+{
+    const n = Number(value)
+    return Number.isNaN(n) ? 0 : n
+}
+
 export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
 {
     const name = raw.emoji ? `${raw.emoji} ${raw.name}` : raw.name
+    const keywords = raw.keywords ?? []
 
     return new MinionCard(
         `${playerPrefix}${raw.id}`,
         name,
-        +raw.cost,
+        safeNumber(raw.cost),
         raw.desc,
-        +raw.atk,
-        +raw.def,
+        safeNumber(raw.atk),
+        safeNumber(raw.def),
         {
             taunt: raw.taunt ?? undefined,
             rush: raw.rush ?? undefined,
@@ -46,28 +60,25 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
             endOfTurnEffect:    buildEffect(raw.endOfTurnEffect as EffectSpec | null)
         },
         resolveLegendaryPassive(raw.legendId),
-        raw.assetKey
     )
 }
 
 function rawToCard(raw: RawCard, playerPrefix = ""): Card
 {
-    if (raw.type === "sort")
+    if (raw.type === "Spell")
     {
         const name = raw.emoji ? `${raw.emoji} ${raw.name}` : raw.name
         return new SpellCard(
             `${playerPrefix}${raw.id}`,
             name,
-            +raw.cost,
+            safeNumber(raw.cost),
             raw.desc,
-            buildEffect(raw.spellEffect as EffectSpec | null)!,
+            SPELL_EFFECT_OVERRIDES[raw.id]?.() ?? new NoOpEffect(),
             resolveLegendaryPassive(raw.legendId),
-            raw.assetKey
         )
     }
 
-	else
-    	return rawToMinionCard(raw, playerPrefix)
+    return rawToMinionCard(raw, playerPrefix)
 }
 
 export async function loadAllCards(): Promise<RawCard[]>

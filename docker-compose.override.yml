@@ -17,6 +17,15 @@ services:
       - /app/.next
     command: npm run start:dev
 
+  game_engine:
+    build:
+      target: development
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./app/gameEngine:/app
+      - /app/node_modules
+
   db:
     ports:
      - "5432:5432"

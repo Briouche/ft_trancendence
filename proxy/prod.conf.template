@@ -8,6 +8,10 @@ upstream nextjs_upstream {
     server app:3000;
 }
 
+upstream game_engine_upstream {
+    server game_engine:4000;
+}
+
 # 2. HTTP to HTTPS Redirect
 server {
     listen 80;
@@ -68,9 +72,10 @@ server {
         try_files /public$uri @nextjs;
     }
 
-    # WebSocket connections
+    # WebSocket connections — the game server (gameEngine/, its own Node process, not the
+    # Next.js app) speaks socket.io on its own port; proxied here under the same origin.
     location /socket.io/ {
-        proxy_pass http://nextjs_upstream;
+        proxy_pass http://game_engine_upstream;
         proxy_http_version 1.1;
         proxy_set_header Upgrade    $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
