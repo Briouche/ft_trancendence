@@ -12,7 +12,7 @@ const prisma = new PrismaClient({ adapter })
 
 export type RawCard = DbCard
 
-const LEGENDARY_PASSIVES: legendary[] = ["jeffe", "timmy", "archimede", "freddy"]
+const LEGENDARY_PASSIVES: legendary[] = ["jeffe", "timmy", "archimede", "freddy", "roidesrats", "gertrude"]
 
 // legendId doubles as the legendaryPassive slot for a legendary card itself (e.g. "timmy"),
 // while on non-legendary cards it's a family-grouping reference to another card's id —
@@ -37,6 +37,7 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
             taunt: raw.taunt ?? undefined,
             rush: raw.rush ?? undefined,
             archi: raw.archi ?? undefined,
+            spellpower: raw.spellpower ?? undefined,
             battlecry:          buildEffect(raw.battlecry as EffectSpec | null),
             deathrattle:        buildEffect(raw.deathrattle as EffectSpec | null),
             onAttack:           buildEffect(raw.onAttack as EffectSpec | null),

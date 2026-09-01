@@ -30,13 +30,17 @@ const HEALTH_TEXT_DEPTH = 10;
 
 const COUNTER_COLOR = 0x2b2b3a;
 const COUNTER_STROKE_COLOR = 0x55aaff;
+const COUNTER_GLOW_COLOR = 0xffe066;
+const COUNTER_GLOW_DURATION_MS = 550;
 const COUNTER_GAP = 2;
 const HOVER_DELAY_MS = 2000;
 const TOOLTIP_PADDING = 6;
 
-const COUNTER_INFO: Record<"freddy" | "archi", { divisor: number; description: string }> = {
+const COUNTER_INFO: Record<"freddy" | "archi" | "roiDesRats" | "gertrude", { divisor: number; description: string }> = {
     freddy: { divisor: 4, description: "Every 4 minions that die,\nfreddy summons a 1/1 skeleton." },
     archi: { divisor: 6, description: "Once you have played\nall 6 bocal memebrs,\nplay Archimede to win the game." },
+    roiDesRats: { divisor: 3, description: "Every 3 end of turns,\nyour end-of-turn effects\ntrigger one extra time." },
+    gertrude: { divisor: 4, description: "Every 4th spell you cast\ngoes back to your hand." },
 };
 
 export interface HeroData
@@ -47,6 +51,8 @@ export interface HeroData
     maxHealth?: number;
     archi?: number;
     freddy?: number;
+    roiDesRats?: number;
+    gertrude?: number;
 }
 
 export class Hero extends Phaser.GameObjects.Container
@@ -59,12 +65,14 @@ export class Hero extends Phaser.GameObjects.Container
     private size: number;
     private isOpponent: boolean;
 
-    private counterType?: "freddy" | "archi";
+    private counterType?: "freddy" | "archi" | "roiDesRats" | "gertrude";
     private counterCircle?: Phaser.GameObjects.Arc;
     private counterText?: Phaser.GameObjects.Text;
     private tooltipBg?: Phaser.GameObjects.Rectangle;
     private tooltipText?: Phaser.GameObjects.Text;
     private hoverTimer?: Phaser.Time.TimerEvent;
+    private counterRawValues: Partial<Record<"freddy" | "archi" | "roiDesRats" | "gertrude", number>> = {};
+    private glowRings: Phaser.GameObjects.Arc[] = [];
 
     constructor(scene: Phaser.Scene, heroData: HeroData, size: number = DEFAULT_SIZE, isOpponent: boolean = false)
     {
@@ -152,11 +160,69 @@ export class Hero extends Phaser.GameObjects.Container
 
     setHeroData(heroData: HeroData)
     {
+        this.checkCounterTrigger("freddy", heroData.freddy);
+        this.checkCounterTrigger("archi", heroData.archi);
+        this.checkCounterTrigger("roiDesRats", heroData.roiDesRats);
+        this.checkCounterTrigger("gertrude", heroData.gertrude);
+
         this.heroData.archi = heroData.archi;
         if (heroData.freddy !== undefined)
             this.heroData.freddy = heroData.freddy % 4;
+        if (heroData.roiDesRats !== undefined)
+            this.heroData.roiDesRats = heroData.roiDesRats % 3;
+        if (heroData.gertrude !== undefined)
+            this.heroData.gertrude = heroData.gertrude % 4;
         this.setHealth(heroData.health);
         this.updateCounter();
+    }
+
+    private checkCounterTrigger(type: "freddy" | "archi" | "roiDesRats" | "gertrude", newValue: number | undefined): void
+    {
+        if (newValue === undefined)
+            return;
+
+        const oldValue = this.counterRawValues[type];
+        this.counterRawValues[type] = newValue;
+        if (oldValue === undefined)
+            return;
+
+        const divisor = COUNTER_INFO[type].divisor;
+        if (Math.floor(newValue / divisor) > Math.floor(oldValue / divisor))
+            this.playCounterGlow();
+    }
+
+    private playCounterGlow(): void
+    {
+        if (!this.counterCircle)
+            return;
+
+        this.scene.tweens.add({
+            targets: this.counterCircle,
+            scale: { from: 1, to: 1.2 },
+            duration: 180,
+            yoyo: true,
+            ease: "Sine.easeOut"
+        });
+
+        const radius = this.counterCircle.radius;
+        const ring = this.scene.add.circle(this.counterCircle.x, this.counterCircle.y, radius, COUNTER_GLOW_COLOR, 0.5)
+            .setStrokeStyle(2, COUNTER_GLOW_COLOR);
+        this.add(ring);
+        this.sort("depth");
+        this.glowRings.push(ring);
+
+        this.scene.tweens.add({
+            targets: ring,
+            scale: { from: 1, to: 1.9 },
+            alpha: { from: 0.55, to: 0 },
+            duration: COUNTER_GLOW_DURATION_MS,
+            ease: "Cubic.easeOut",
+            onComplete: () =>
+            {
+                ring.destroy();
+                this.glowRings = this.glowRings.filter(r => r !== ring);
+            }
+        });
     }
 
     private updateCounter(): void
@@ -167,6 +233,10 @@ export class Hero extends Phaser.GameObjects.Container
                 this.createCounter("freddy");
             else if (this.heroData.archi !== undefined)
                 this.createCounter("archi");
+            else if (this.heroData.roiDesRats !== undefined)
+                this.createCounter("roiDesRats");
+            else if (this.heroData.gertrude !== undefined)
+                this.createCounter("gertrude");
             return;
         }
 
@@ -175,7 +245,7 @@ export class Hero extends Phaser.GameObjects.Container
             this.counterText.setText(`${value}/${COUNTER_INFO[this.counterType].divisor}`);
     }
 
-    private createCounter(type: "freddy" | "archi"): void
+    private createCounter(type: "freddy" | "archi" | "roiDesRats" | "gertrude"): void
     {
         this.counterType = type;
         const value = this.heroData[type];
@@ -245,6 +315,9 @@ export class Hero extends Phaser.GameObjects.Container
     destroy(fromScene?: boolean): void
     {
         this.hoverTimer?.remove();
+        for (const ring of this.glowRings)
+            ring.destroy();
+        this.glowRings = [];
         super.destroy(fromScene);
     }
 

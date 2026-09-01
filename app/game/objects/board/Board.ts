@@ -260,6 +260,19 @@ export class Board
     {
         return this.playerRow.findById(id) ?? this.opponentRow.findById(id);
     }
+
+    materializeMinion(side: 0 | 1, data: CardData, boardIndex?: number): Card
+    {
+        const row = side === 0 ? this.playerRow : this.opponentRow;
+        const existing = row.findById(data.id);
+        if (existing)
+            return existing;
+
+        const card = new Card(this.scene, data);
+        row.insert(card, boardIndex ?? row.all.length, this.yourTurn);
+        this.layout();
+        return card;
+    }
     
     getDeckPosition(side: 0 | 1): { x: number; y: number }
     {

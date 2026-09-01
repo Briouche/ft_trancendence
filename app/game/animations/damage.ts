@@ -1,10 +1,10 @@
 import Phaser from "phaser";
+import { MAX_MAGNITUDE, NEGATIVE_COLOR, spawnFloatingNumber } from "./shared";
 
 const MIN_SHAKE = 8;
 const SHAKE_PER_DAMAGE = 2.5;
 const MIN_SCALE_DIP = 0.05;
 const SCALE_DIP_PER_DAMAGE = 0.01;
-const MAX_MAGNITUDE = 40;
 
 export function damageAnimation(scene: Phaser.Scene, target: Phaser.GameObjects.Container, damage: number): Promise<void>
 {
@@ -34,25 +34,5 @@ export function damageAnimation(scene: Phaser.Scene, target: Phaser.GameObjects.
 
 function spawnDamageNumber(scene: Phaser.Scene, x: number, y: number, damage: number, magnitude: number)
 {
-    const fontSize = 20 + magnitude * 2.5;
-
-    const text = scene.add.text(x, y, `-${damage}`,
-    {
-        fontSize: `${Math.round(fontSize)}px`,
-        color: "#ff4d4d",
-        fontStyle: "bold",
-        stroke: "#000000",
-        strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(2000);
-
-    scene.tweens.add(
-    {
-        targets: text,
-        y: y - 60 - magnitude * 2,
-        alpha: 0,
-        scale: 1.3,
-        duration: 700,
-        ease: "Cubic.Out",
-        onComplete: () => text.destroy(),
-    });
+    spawnFloatingNumber(scene, x, y, `-${damage}`, NEGATIVE_COLOR, magnitude);
 }

@@ -7,7 +7,7 @@ import { Effect } from "./effect";
 import { Hero } from "./hero";
 import { SummonMinionEffect } from "./effect";
 
-export type legendary = "jeffe" | "timmy" | "archimede" | "freddy";
+export type legendary = "jeffe" | "timmy" | "archimede" | "freddy" | "roidesrats" | "gertrude";
 
 export function jeffePassive(minion: MinionCard)
 {

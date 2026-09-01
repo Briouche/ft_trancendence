@@ -7,23 +7,18 @@ import { Effect } from "./effect";
 import { Hero } from "./hero";
 import { freddyPassive, jeffePassive, timmyPassive } from "./legendary";
 
-export interface DamageRecord
-{
-    target: Targetable;
-    amount: number;
-}
-
-export interface effectTrigger
-{
-    sourceId: string;
-    trigger: "passive" | "battlecry" | "deathrattle";
-}
+export type AnimationEvent =
+    | { kind: "summon"; minion: MinionCard; playerIndex: 0 | 1 }
+    | { kind: "damage"; target: Targetable; amount: number }
+    | { kind: "heal"; target: Targetable; amount: number }
+    | { kind: "buff"; target: Targetable; attackDelta: number; healthDelta: number }
+    | { kind: "effect"; sourceId: string; trigger: "passive" | "battlecry" | "deathrattle" }
+    | { kind: "death"; minionId: string; playerIndex: 0 | 1 };
 
 export interface ActionResult
 {
     succes: boolean;
-    damageEvents: DamageRecord[];
-    effectEvents: effectTrigger[];
+    animationEvents: AnimationEvent[];
 }
 
 export type Action =
@@ -37,8 +32,7 @@ export class GameEngine
     public readonly players: [Player, Player];
     public board: Board;
     public currentTurn: 0 | 1;
-    private damageEvents: DamageRecord[] = [];
-    private effectEvents: effectTrigger[] = [];
+    private animationChain: AnimationEvent[] = [];
 
     constructor(players: [Player, Player])
     {
@@ -57,6 +51,8 @@ export class GameEngine
             
             this.players[i].deck.shuffle();
             for (let j = 0; j < 3; j++)
+                this.players[i].drawCard();
+            if (i === 1)
                 this.players[i].drawCard();
         }
         this.startTurn();
@@ -77,43 +73,55 @@ export class GameEngine
             if (minion.effects.startOfTurnEffect !== undefined)
             {
                 let context: GameContext = { engine: this, owner: this.activePlayer(), source: minion, target: undefined };
+                this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "passive" });
                 minion.effects.startOfTurnEffect.execute(context);
-                this.effectEvents.push({ sourceId: minion.id, trigger: "passive" });
                 this.processDeaths();
             }
         }
-        return {succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents};
+        return { succes: true, animationEvents: this.animationChain };
     }
 
-    endTurn(): ActionResult
+    triggerEndOfTurnEffects(playerIndex: 0 | 1): void
     {
-        this.damageEvents = [];
-        this.effectEvents = [];
-        const minions: MinionCard[] = this.board.getMinions(this.currentTurn);
+        const minions: MinionCard[] = this.board.getMinions(playerIndex);
         for (const minion of minions)
         {
             if (minion.effects.endOfTurnEffect !== undefined)
             {
-                let context: GameContext = { engine: this, owner: this.activePlayer(), source: minion, target: undefined };
+                let context: GameContext = { engine: this, owner: this.players[playerIndex], source: minion, target: undefined };
+                this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "passive" });
                 minion.effects.endOfTurnEffect.execute(context);
-                this.effectEvents.push({ sourceId: minion.id, trigger: "passive" });
                 this.processDeaths();
             }
         }
+    }
+
+    endTurn(): ActionResult
+    {
+        this.animationChain = [];
+        const player: Player = this.players[this.currentTurn];
+
+        this.triggerEndOfTurnEffects(this.currentTurn);
+        if (player.legPassive === "roidesrats")
+        {
+            player.roiDesRatsCount++;
+            if (player.roiDesRatsCount % 3 === 0)
+                this.triggerEndOfTurnEffects(this.currentTurn);
+        }
+
         this.currentTurn = this.currentTurn === 0 ? 1 : 0;
         this.startTurn(); // effects and events caused by start turn are ignored right now
-        return {succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents};
+        return { succes: true, animationEvents: this.animationChain };
     }
 
     playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): ActionResult
     {
-        this.damageEvents = [];
-        this.effectEvents = [];
+        this.animationChain = [];
         const player = this.activePlayer();
         const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
-            return { succes: false, damageEvents: [], effectEvents: [] };
+            return { succes: false, animationEvents: [] };
 
         player.hand.play(cardIndex);
         player.spendMana(card.manaCost);
@@ -124,43 +132,52 @@ export class GameEngine
                 this.board.playMinion(this.currentTurn, card, boardIndex);
             else
                 this.board.playMinion(this.currentTurn, card);
+            this.recordAnimationChain({ kind: "summon", minion: card, playerIndex: this.currentTurn });
             if (card.effects.archi)
                 this.players[this.currentTurn].archimedeCount++;
             if (card.effects.battlecry)
             {
                 let context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
+                this.recordAnimationChain({ kind: "effect", sourceId: card.id, trigger: "battlecry" });
                 card.effects.battlecry.execute(context);
-                this.effectEvents.push({ sourceId: card.id, trigger: "battlecry" });
             }
             else if (card.effects.rush)
                 card.canAttack = true;
         }
         else if (card instanceof SpellCard)
         {
-            let context: GameContext = {engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined};
+            const spellpower = this.board.getMinions(this.currentTurn)
+                .reduce((sum, m) => sum + (m.effects.spellpower ?? 0), 0);
+            let context: GameContext = {engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined, bonusDamage: spellpower};
             card.effect.execute(context);
+
+            if (player.legPassive === "gertrude")
+            {
+                player.gertrudeCount++;
+                if (player.gertrudeCount % 4 === 0)
+                    player.hand.add(card);
+            }
         }
         this.processDeaths();
-        return { succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents };
+        return { succes: true, animationEvents: this.animationChain };
     }
 
     attackWithMinion(attackerIndex: number, target: Targetable): ActionResult
     {
-        this.effectEvents = [];
-        this.damageEvents = [];
+        this.animationChain = [];
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
         const attacker: MinionCard = this.board.getMinions(this.currentTurn)[attackerIndex];
 
         if (!attacker || !attacker.canAttack)
-            return { succes: false, damageEvents: [], effectEvents: [] };
+            return { succes: false, animationEvents: [] };
 
         attacker.canAttack = false;
 
         if (attacker.effects.onAttack && (!attacker.effects.onAttack.resolver || !attacker.effects.onAttack.resolver.requiresInput))
         {
-            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker };
+            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker, target: target };
+            this.recordAnimationChain({ kind: "effect", sourceId: attacker.id, trigger: "passive" });
             attacker.effects.onAttack.execute(context);
-            this.effectEvents.push({ sourceId: attacker.id, trigger: "passive" });
         }
         if (target instanceof Hero)
         {
@@ -179,7 +196,7 @@ export class GameEngine
 
         this.processDeaths();
         this.checkWinCondition();
-        return { succes: true, damageEvents: this.damageEvents, effectEvents: this.effectEvents };
+        return { succes: true, animationEvents: this.animationChain };
     }
 
     activePlayer(): Player
@@ -231,13 +248,15 @@ export class GameEngine
                 if (minion.effects.deathrattle)
                 {
                     const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
+                    this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "deathrattle" });
+                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: this.currentTurn });
                     minion.effects.deathrattle.execute(context);
-                    this.effectEvents.push({ sourceId: minion.id, trigger: "deathrattle" });
                 }
+                else
+                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: this.currentTurn });
                 if (this.players[this.currentTurn].legPassive === "freddy")
                 {
                     this.players[this.currentTurn].freddyCount++;
-                    //console.log("minion died: " + minion.name + ": freddycount = " + this.players[this.currentTurn].freddyCount);
                     if (this.players[this.currentTurn].freddyCount % 4 === 0)
                     {
                         const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
@@ -250,9 +269,12 @@ export class GameEngine
                 if (minion.effects.deathrattle)
                 {
                     const ctx: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };
+                    this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "deathrattle" });
+                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: opponentIndex });
                     minion.effects.deathrattle.execute(ctx);
-                    this.effectEvents.push({ sourceId: minion.id, trigger: "deathrattle" });
                 }
+                else
+                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: opponentIndex });
                 if (this.players[opponentIndex].legPassive === "freddy")
                 {
                     this.players[opponentIndex].freddyCount++;
@@ -267,18 +289,33 @@ export class GameEngine
         }
     }
 
+    recordAnimationChain(event: AnimationEvent): void
+    {
+        this.animationChain.push(event);
+    }
+
     recordDamage(target: Targetable, amount: number, owner: Player | undefined)
     {
-        this.damageEvents.push({ target, amount });
+        this.recordAnimationChain({ kind: "damage", target, amount });
 
         if (target instanceof MinionCard && target.effects.onDamage && owner !== undefined)
         {
             const context: GameContext = { engine: this, owner: owner, source: target };
+            this.recordAnimationChain({ kind: "effect", sourceId: target.id, trigger: "passive" });
             target.effects.onDamage.execute(context);
-            this.effectEvents.push({ sourceId: target.id, trigger: "passive" })
         }
         if (owner !== undefined && owner.legPassive === "jeffe" && target instanceof MinionCard)
             jeffePassive(target);
+    }
+
+    recordHeal(target: Targetable, amount: number): void
+    {
+        this.recordAnimationChain({ kind: "heal", target, amount });
+    }
+
+    recordBuff(target: Targetable, attackDelta: number, healthDelta: number): void
+    {
+        this.recordAnimationChain({ kind: "buff", target, attackDelta, healthDelta });
     }
 
     toString(): string

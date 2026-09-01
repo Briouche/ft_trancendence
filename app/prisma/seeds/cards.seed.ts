@@ -23,6 +23,7 @@ interface RawCard
 	taunt?: boolean
 	rush?:  boolean
 	archi?: boolean
+	spellpower?: number
 
 	battlecry?:         EffectSpec
 	deathrattle?:       EffectSpec
@@ -83,6 +84,7 @@ export async function seedCards(prisma: PrismaClient)
 			taunt: card.taunt,
 			rush:  card.rush,
 			archi: card.archi,
+			spellpower: card.spellpower,
 
 			battlecry:         card.battlecry,
 			deathrattle:       card.deathrattle,

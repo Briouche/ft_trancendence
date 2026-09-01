@@ -20,6 +20,8 @@ export interface ClientCard
     attack?: number;
     health?: number;
     maxHealth?: number;
+    baseAttack?: number;
+    baseHealth?: number;
     canAttack?: boolean;
     description: string;
     requiresTarget: boolean;
@@ -34,6 +36,8 @@ export interface ClientHero
     maxHealth?: number;
     archi?: number;
     freddy?: number;
+    roiDesRats?: number;
+    gertrude?: number;
 }
 
 export interface ClientGameState 
@@ -54,7 +58,10 @@ export interface ClientGameState
 
 export type GameEvent = { type: "attack"; attackerId: string; targetId: string; playerIndex: 0 | 1; }
     | { type: "damage"; targetId: string; amount: number; targetDied: boolean }
+    | { type: "heal"; targetId: string; amount: number }
+    | { type: "buff"; targetId: string; attackDelta: number; healthDelta: number }
     | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number; card: ClientCard }
+    | { type: "summon"; minionId: string; playerIndex: 0 | 1; boardIndex?: number; card: ClientCard }
     | { type: "minionDied"; minionId: string; playerIndex: 0 | 1 }
     | { type: "effect"; minionId: string; playerIndex: 0 | 1; trigger: "passive" | "battlecry" | "deathrattle" }
     | { type: "turnEnded"; nextPlayerIndex: 0 | 1 }

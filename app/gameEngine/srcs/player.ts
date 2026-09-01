@@ -19,6 +19,8 @@ export class Player
     public legPassive: legendary | undefined;
     public freddyCount: number = 0;
     public archimedeCount: number = 0;
+    public roiDesRatsCount: number = 0;
+    public gertrudeCount: number = 0;
 
     constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1)
     {
@@ -92,6 +94,11 @@ export class Player
         copy.currentMana = this.currentMana;
         copy.maxMana     = this.maxMana;
         copy.fatigue     = this.fatigue;
+        copy.legPassive       = this.legPassive;
+        copy.freddyCount      = this.freddyCount;
+        copy.archimedeCount   = this.archimedeCount;
+        copy.roiDesRatsCount  = this.roiDesRatsCount;
+        copy.gertrudeCount    = this.gertrudeCount;
         return copy;
     }
 }

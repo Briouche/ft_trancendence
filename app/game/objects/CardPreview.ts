@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import { Card, CardData } from "./Card";
+import { Card, CardData, withStartingStats } from "./Card";
 import { clientEffect } from "../shared/protocol";
 import { ensureCardAsset } from "./CardAssetLoader";
 
-const PREVIEW_DEPTH = 3200; // above GameOverOverlay (3000)
+const PREVIEW_DEPTH = 3200;
 const PREVIEW_HEIGHT_RATIO = 1 / 2.5;
 const CARD_ASPECT_RATIO = 1.4;
 const LEFT_MARGIN_RATIO = 0.07;
@@ -33,6 +33,7 @@ class CardPreview extends Phaser.GameObjects.Container
     {
         super(scene, 0, 0);
 
+        cardData = withStartingStats(cardData);
         const { height: canvasHeight } = scene.scale;
         const previewHeight = canvasHeight * PREVIEW_HEIGHT_RATIO;
         const previewWidth = previewHeight / CARD_ASPECT_RATIO;
