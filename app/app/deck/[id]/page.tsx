@@ -13,7 +13,7 @@ export default async function EditDeckPage({
   const session = await getSession()
   if (!session) redirect(ROUTES.home)
 
-    const [deck, owned, decks] = await Promise.all([
+    const [deck, owned, decks, totalCopies] = await Promise.all([
         prisma.deck.findUnique({
             where:   { id: Number(id) },
             include: { cards: { include: { card: true } } }
@@ -25,9 +25,10 @@ export default async function EditDeckPage({
         }),
         prisma.deck.findMany({
             where:   { userId: session.userId },
-            include: { cards: true },
+            include: { cards: { include: { card: true } } },
             orderBy: { createdAt: 'desc' },
         }),
+        prisma.card.aggregate({ _sum: { qty: true } }),
     ])
 
     // Un deck d'un autre joueur (ou inexistant) ne doit ni s'afficher ni fuiter son contenu.
@@ -45,6 +46,7 @@ export default async function EditDeckPage({
         <DeckBuilder
             cards={cards}
             decks={decks}
+            totalCardCount={totalCopies._sum.qty ?? 0}
             deckId={deck.id}
             initialName={deck.name}
             initialDeck={initialDeck}

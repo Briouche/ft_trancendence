@@ -10,7 +10,7 @@ export default async function DeckPage() {
     const session = await getSession()
     if (!session) redirect(ROUTES.home)
 
-    const [owned, decks] = await Promise.all([
+    const [owned, decks, totalCopies] = await Promise.all([
         prisma.userCard.findMany({
             where:   { userId: session.userId },
             include: { card: true },
@@ -18,13 +18,14 @@ export default async function DeckPage() {
         }),
         prisma.deck.findMany({
             where:   { userId: session.userId },
-            include: { cards: true },
+            include: { cards: { include: { card: true } } },
             orderBy: { createdAt: 'desc' },
         }),
+        prisma.card.aggregate({ _sum: { qty: true } }),
     ])
 
     // qty ici = nombre d'exemplaires possédés par le joueur (utilisé comme plafond dans DeckBuilder)
     const cards = owned.map(({ card, qty }) => ({ ...card, qty }))
 
-    return <DeckBuilder cards={cards} decks={decks} />
+    return <DeckBuilder cards={cards} decks={decks} totalCardCount={totalCopies._sum.qty ?? 0} />
 }

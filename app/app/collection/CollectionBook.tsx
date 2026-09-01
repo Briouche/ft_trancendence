@@ -84,6 +84,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
     // sinon — au-delà du budget d'une frame à 60fps, d'où l'input qui traînait).
     const [search, setSearch] = useState('')
     const [costFilter, setCostFilter] = useState<number | null>(null)
+    const [legendaryOnly, setLegendaryOnly] = useState(false)
     const [cardsPage, setCardsPage] = useState(0)
     const [backsPage, setBacksPage] = useState(0)
     const [zoomedCard, setZoomedCard] = useState<Card | null>(null)
@@ -108,10 +109,14 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                 : matches.filter(c => parseCost(c.cost) === costFilter)
         }
 
+        if (legendaryOnly) {
+            matches = matches.filter(c => c.rarity === 'Légendaire')
+        }
+
         // Plus de boutons de tri dans l'UI (retirés au profit du mana sur la page droite) :
         // tri fixé sur son réglage par défaut (coût croissant).
         return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))
-    }, [cards, search, costFilter])
+    }, [cards, search, costFilter, legendaryOnly])
 
     const cardsTotalPages = Math.max(1, Math.ceil(filteredCards.length / SLOTS_PER_PAGE))
     const currentCardsPage = Math.min(cardsPage, cardsTotalPages - 1)
@@ -144,6 +149,11 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
 
     function toggleCostFilter(value: number) {
         setCostFilter(f => f === value ? null : value)
+        setCardsPage(0)
+    }
+
+    function toggleLegendaryOnly() {
+        setLegendaryOnly(v => !v)
         setCardsPage(0)
     }
 
@@ -200,21 +210,27 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
             style={woodenTableBackground}
         >
             <HomeButton onClick={() => router.push('/')} />
-            <TitleBanner>CARD COLLECTION</TitleBanner>
+            {/* fixed (pas dans le flux) : le parent est en `justify-center` sur tout le contenu,
+                une marge négative se ferait réabsorber par le recentrage plutôt que de remonter
+                la bannière — fixed l'aligne indépendamment sur top-6, comme HomeButton (voir
+                DeckBuilder.tsx pour le même traitement). */}
+            <TitleBanner className="fixed left-1/2 top-6 z-20 -translate-x-1/2">CARD COLLECTION</TitleBanner>
 
             {/* Flèches en dehors du livre : plus de bouton (fond/cadre) — juste l'icône
                 "Arrow01a" animée, quasi invisible sauf quand la souris s'approche du bord du
                 livre (zone de survol large, PageArrow). Taille fixe du livre (largeur ET
                 hauteur, pas de max-w responsive) : il ne doit jamais changer de dimensions en
-                changeant d'onglet ou de page — agrandie d'un cran (820×1060 → 900×1160). */}
-            <div className="flex h-[900px] items-stretch gap-1">
+                changeant d'onglet ou de page — agrandie de 900×1160 à 990×1280. z-10 : la
+                bannière du titre est en `fixed` (voir plus haut) et pourrait sinon passer
+                au-dessus du haut du livre. */}
+            <div className="relative z-10 flex h-[990px] items-stretch gap-1">
                 <PageArrow direction="prev" onClick={goPrev} disabled={page === 0} />
 
                 {/* Plus de cadre rouge séparé (.travelbook-cover) : chaque moitié
                     (.travelbook-page/.travelbook-page-right) est maintenant une image de carnet
                     autonome (bord extérieur + reliure spirale + remplissage crème inclus), donc
                     cette boîte n'est qu'un conteneur de mise en page à taille fixe. */}
-                <div className="relative flex h-[900px] w-[1160px] flex-col">
+                <div className="relative flex h-[990px] w-[1280px] flex-col">
                     {/* Onglets Cards/Card Backs sur le bord GAUCHE du livre (comme la preview du
                         pack) : pile verticale qui dépasse du bord, posée PAR-DESSUS la page (pas
                         cachée derrière la couverture) — z-index au-dessus de tout le reste du
@@ -264,27 +280,40 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         </div>
                         <div className="travelbook-page travelbook-page-right relative flex flex-1 flex-col p-3">
                             {/* Nombre de cartes, sur le livre lui-même (pas sous la bannière du
-                                titre) — de retour dans le coin haut-DROIT de la page droite (pas
-                                haut-gauche comme le dernier essai), mais poussé plus dans le coin
-                                qu'avant (top-1/right-2 → top-0/right-1). Pour l'onglet Cards :
-                                cartes possédées / total de cartes existantes dans le jeu (pas le
-                                nombre filtré par la recherche). */}
+                                titre) — coin haut-droit de la page droite. Compte les doublons des
+                                deux côtés (somme des ownedQty possédés / somme des qty de toutes
+                                les cartes du jeu), pas juste le nombre de cartes uniques. Pour
+                                l'onglet Cards : cartes possédées / total de cartes existantes dans
+                                le jeu (pas le nombre filtré par la recherche). */}
                             <p className="absolute right-1 top-0 font-serif text-xs italic text-ink-muted">
                                 {tab === 'cards'
-                                    ? `${cards.length} / ${totalCardCount} cards`
+                                    ? `${cards.reduce((sum, c) => sum + c.ownedQty, 0)} / ${totalCardCount} cards`
                                     : `${unlocked.size} / ${CARD_BACK_COUNT} unlocked`}
                             </p>
                             {/* Mana en haut de la page droite, dans l'espace resté vide au-dessus
-                                des cartes (à la place des boutons de tri, retirés) — 7 éclairs
-                                ("IconEnergy" du bouquin) qui se remplissent de 1 à 7 (plus
-                                d'étoile pour le coût 0 : le premier éclair filtre aussi les
-                                cartes à 0 mana, voir filteredCards). Cliquer sur N allume les
+                                des cartes (à la place des boutons de tri, retirés) — une étoile
+                                (filtre légendaire uniquement) suivie de 7 éclairs ("IconEnergy" du
+                                bouquin) qui se remplissent de 1 à 7 (le premier éclair filtre aussi
+                                les cartes à 0 mana, voir filteredCards). Cliquer sur N allume les
                                 éclairs 1 à N, CELUI CLIQUÉ INCLUS (value <= costFilter, pas <).
                                 Même hauteur fixe (h-9) que la recherche sur la page gauche, pour
                                 que les deux grilles de cartes démarrent à la même hauteur. */}
                             <div className={`flex h-9 items-center justify-center gap-2
                                 ${tab !== 'cards' ? 'pointer-events-none opacity-30' : ''}`}
                             >
+                                <button
+                                    onClick={toggleLegendaryOnly}
+                                    aria-pressed={legendaryOnly}
+                                    className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
+                                >
+                                    <Image
+                                        src={`/textures/collection/icon-star-${legendaryOnly ? 'full' : 'empty'}.png`}
+                                        alt="Legendary only"
+                                        width={16} height={16} unoptimized
+                                        className="h-6 w-auto"
+                                        style={{ imageRendering: 'pixelated' }}
+                                    />
+                                </button>
                                 {COST_FILTERS.map(value => {
                                     const filled = costFilter !== null && value <= costFilter
                                     const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.png`

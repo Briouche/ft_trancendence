@@ -35,3 +35,22 @@ export async function PUT(
 
   return NextResponse.json(deck);
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+
+  // Même vérification d'appartenance que PUT — évite qu'un joueur supprime le deck d'un autre.
+  const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await prisma.deckCard.deleteMany({ where: { deckId: Number(id) } });
+  await prisma.deck.delete({ where: { id: Number(id) } });
+
+  return NextResponse.json({ ok: true });
+}

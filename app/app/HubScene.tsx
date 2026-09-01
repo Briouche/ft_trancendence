@@ -527,7 +527,6 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
     onArrive: (item: MenuItem) => void
 }) {
     const locked = !item.available
-    const groupRef = useRef<THREE.Group>(null)
     const [x, z] = polar(layout.angleDeg, layout.radius)
     const facingRotationY = -(layout.angleDeg * Math.PI) / 180
     // La zone de clic ne doit pas se limiter au maillage visible (souvent fin/petit) : un
@@ -536,15 +535,8 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
     const hitHeight = LABEL_Y + 0.4
     const hitRadius = 0.85
 
-    useFrame((state, delta) => {
-        if (!groupRef.current) return
-        const targetScale = hovered && !locked ? 1.05 : 1
-        groupRef.current.scale.setScalar(THREE.MathUtils.damp(groupRef.current.scale.x, targetScale, 7, delta))
-    })
-
     return (
         <group
-            ref={groupRef}
             position={[x, 0, z]}
             rotation={[0, facingRotationY, 0]}
             onPointerOver={e => { e.stopPropagation(); onHoverChange(item.href) }}

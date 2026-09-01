@@ -56,7 +56,9 @@ export default function CardZoom({ card, onClose }: { card: Card | null; onClose
                     transform: `perspective(900px) rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 12}deg) scale(1.04)`,
                 }}
             >
-                <ScaledCardFace card={card} ownedQty={card.ownedQty} />
+                {/* stackQty=1 : le zoom montre toujours une seule carte (avec son badge xN), pas
+                    l'effet de pile à deux calques utilisé dans la grille de la Collection. */}
+                <ScaledCardFace card={card} ownedQty={card.ownedQty} stackQty={1} />
             </div>
         </div>
     )

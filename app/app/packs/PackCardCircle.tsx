@@ -104,7 +104,7 @@ export default function PackCardCircle({
                                     de l'image et donnait l'impression qu'elle ne remplissait pas la carte. */}
                                 <CardBackArt
                                     index={cardBack}
-                                    className="absolute inset-0 rounded-lg shadow-lg [backface-visibility:hidden]"
+                                    className="h-full w-full rounded-lg shadow-lg [backface-visibility:hidden]"
                                 />
                                 {/* Éclat doré ponctuel à la révélation, en plus du contour de
                                     CardFace lui-même — le pull d'une légendaire doit se sentir. */}
