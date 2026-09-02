@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 
 // Pièces d'UI partagées par toutes les "pages de carnet" du site (Collection, Deck Builder...) —
@@ -84,13 +84,118 @@ export const boldNumberStyle = {
     textShadow: '1px 0 0 currentColor, -1px 0 0 currentColor, 0 1px 0 currentColor, 0 -1px 0 currentColor',
 }
 
+// Même principe que le liseré noir du titre (TitleBanner) — blanc + contour noir 4 directions,
+// juste plus fin (1px au lieu de 2px) pour rester lisible à la taille d'un bouton plutôt que
+// d'un titre géant.
+export const outlinedWhiteTextStyle = {
+    textShadow: [
+        '-1px -1px 0 #000', '1px -1px 0 #000', '-1px 1px 0 #000', '1px 1px 0 #000',
+        '-1px 0 0 #000', '1px 0 0 #000', '0 -1px 0 #000', '0 1px 0 #000',
+    ].join(', '),
+}
+
+// Barre de défilement custom ("Bar01a" tourné à la verticale + "BarHandle02a") — les navigateurs
+// récents rendent les scrollbars en mode "overlay" par défaut, qui ignore le stylage par image de
+// ::-webkit-scrollbar (testé : aucun rendu). La scrollbar native reste donc masquée
+// (.notebook-scroll-hidden, voir globals.css) et remplacée par cette poignée pilotée en JS —
+// position dérivée de scrollTop/scrollHeight, drag inclus.
+// Poignée carrée à taille fixe (pas étirée selon la proportion visible/totale comme une vraie
+// scrollbar) — "BarHandle02a" est une icône carrée, l'étirer en hauteur pour représenter le ratio
+// de scroll la déformait en long rectangle. Elle se contente de se déplacer le long de la piste.
+const THUMB_SIZE_PX = 30
+
+export function NotebookScrollArea({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const [thumb, setThumb] = useState<{ top: number } | null>(null)
+    const dragRef = useRef<{ startY: number; startScrollTop: number } | null>(null)
+
+    const updateThumb = useCallback(() => {
+        const el = scrollRef.current
+        if (!el) return
+        const { scrollTop, scrollHeight, clientHeight } = el
+        if (scrollHeight <= clientHeight + 1) { setThumb(null); return }
+        const maxTop = Math.max(0, clientHeight - THUMB_SIZE_PX)
+        const top = maxTop === 0 ? 0 : (scrollTop / (scrollHeight - clientHeight)) * maxTop
+        setThumb({ top })
+    }, [])
+
+    // Le contenu (nombre de decks/cartes) change la hauteur de scroll sans forcément déclencher
+    // un scroll event — ResizeObserver recalcule la poignée dans ce cas (ex: suppression d'un deck).
+    useEffect(() => {
+        const el = scrollRef.current
+        if (!el) return
+        updateThumb()
+        const observer = new ResizeObserver(updateThumb)
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [updateThumb, children])
+
+    // Delta calculé depuis la position de départ (clientY - startY) plutôt que event.movementY :
+    // movementY reste à 0 pour des mousemove synthétiques (tests automatisés, certains
+    // navigateurs), alors qu'un delta absolu fonctionne quelle que soit la source de l'event.
+    function onThumbPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+        const el = scrollRef.current
+        if (!el) return
+        dragRef.current = { startY: e.clientY, startScrollTop: el.scrollTop }
+        e.currentTarget.setPointerCapture(e.pointerId)
+    }
+    function onThumbPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+        const el = scrollRef.current
+        const drag = dragRef.current
+        if (!el || !drag) return
+        const maxTop = Math.max(1, el.clientHeight - THUMB_SIZE_PX)
+        const deltaY = e.clientY - drag.startY
+        el.scrollTop = drag.startScrollTop + (deltaY / maxTop) * (el.scrollHeight - el.clientHeight)
+    }
+    function onThumbPointerUp() { dragRef.current = null }
+
+    return (
+        <div className={`relative min-h-0 ${className}`}>
+            <div ref={scrollRef} onScroll={updateThumb} className="notebook-scroll-hidden h-full overflow-y-auto pr-3">
+                {children}
+            </div>
+            {thumb && (
+                <>
+                    <div
+                        className="pointer-events-none absolute right-0 top-0 h-full w-4"
+                        style={{
+                            backgroundImage: 'url(/textures/notebook/scrollbar-track.png)',
+                            backgroundSize: '100% 100%',
+                            imageRendering: 'pixelated',
+                        }}
+                    />
+                    <div
+                        onPointerDown={onThumbPointerDown}
+                        onPointerMove={onThumbPointerMove}
+                        onPointerUp={onThumbPointerUp}
+                        className="absolute right-0 w-4 cursor-grab touch-none active:cursor-grabbing"
+                        style={{
+                            top: `${thumb.top}px`,
+                            height: `${THUMB_SIZE_PX}px`,
+                            backgroundImage: 'url(/textures/notebook/scrollbar-thumb.png)',
+                            backgroundSize: '100% 100%',
+                            imageRendering: 'pixelated',
+                        }}
+                    />
+                </>
+            )}
+        </div>
+    )
+}
+
 // Emplacement d'une feuille : surligné avec l'asset "select" du bouquin au survol (pas de clic
 // nécessaire pour voir l'état sélectionné). null = case vide (garde la grille 3×2 toujours
 // pleinement occupée visuellement, même en fin de liste) — le livre ne doit jamais changer de
 // taille selon le nombre de cartes affichées sur la page.
-export function Slot({ children, onClick, highlighted, disabled }: {
+// `onContextMenu` (clic droit, Deck Builder : retire une carte) reste actif même quand `disabled`
+// est vrai (on ne peut plus EN AJOUTER, mais on doit toujours pouvoir en retirer) — donc seul
+// `empty` désactive le bouton nativement ; `disabled` ne fait plus que bloquer le clic gauche et
+// changer le curseur. Le grisé de la pile entière a été retiré d'ici : chaque carte (Deck Builder)
+// grise maintenant ses propres calques (devant/derrière) individuellement, voir ScaledCardFace.
+export function Slot({ children, onClick, onContextMenu, highlighted, disabled }: {
     children?: React.ReactNode
     onClick?: () => void
+    onContextMenu?: () => void
     highlighted?: boolean
     disabled?: boolean
 }) {
@@ -102,15 +207,16 @@ export function Slot({ children, onClick, highlighted, disabled }: {
             onMouseEnter={() => !empty && setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             onClick={empty || disabled ? undefined : onClick}
-            disabled={empty || disabled}
-            className="relative block aspect-[130/191] w-full text-left disabled:cursor-not-allowed"
+            onContextMenu={empty || !onContextMenu ? undefined : e => { e.preventDefault(); onContextMenu() }}
+            disabled={empty}
+            className={`relative block aspect-[130/191] w-full text-left ${disabled ? 'cursor-not-allowed' : ''}`}
         >
             {empty ? (
                 <div className="h-full w-full rounded-sm border-2 border-dashed border-ink-900/15" />
             ) : (
                 <>
                     {(hovered || highlighted) && <SelectHighlight className="-inset-2 z-10" animate={false} />}
-                    <div className={`relative h-full ${disabled ? 'opacity-40 grayscale' : ''}`}>{children}</div>
+                    <div className="relative h-full">{children}</div>
                 </>
             )}
         </button>
@@ -123,15 +229,21 @@ export function Slot({ children, onClick, highlighted, disabled }: {
 const BUTTON_FRAME_MS = 35
 const BUTTON_FRAMES = 4
 
-export function AssetButton({ active, onClick, disabled, className = '', children }: {
+// `variant` choisit la texture (Sprites Animated) sous le bouton : "square" (Button01a, l'orange
+// du bouton Home, pensé pour une icône carrée) reste le défaut, "bar" (Button03a) est réservé aux
+// boutons pleine largeur à texte (Create/Save deck) pour ne pas réutiliser exactement le bouton du
+// Home — son texte passe alors en blanc à liseré noir (outlinedWhiteTextStyle), comme le titre.
+export function AssetButton({ active, onClick, disabled, variant = 'square', className = '', children }: {
     active?: boolean
     onClick?: () => void
     disabled?: boolean
+    variant?: 'square' | 'bar'
     className?: string
     children: React.ReactNode
 }) {
     const [frame, setFrame] = useState(1)
     const [hovered, setHovered] = useState(false)
+    const texturePath = variant === 'bar' ? '/textures/notebook/button-bar' : '/textures/notebook/button'
 
     function handleClick() {
         if (disabled) return
@@ -150,16 +262,16 @@ export function AssetButton({ active, onClick, disabled, className = '', childre
             disabled={disabled}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className={`relative flex items-center justify-center font-display font-bold text-ink-text
-                transition-opacity disabled:opacity-30 ${className}`}
+            className={`relative flex items-center justify-center font-display font-bold
+                transition-opacity disabled:opacity-30 ${variant === 'bar' ? 'text-white' : 'text-ink-text'} ${className}`}
             style={{
-                backgroundImage: `url(/textures/notebook/button/frame-${frame}.png)`,
+                backgroundImage: `url(${texturePath}/frame-${frame}.png)`,
                 backgroundSize: '100% 100%',
                 imageRendering: 'pixelated',
             }}
         >
             {active && <SelectHighlight className="-inset-1" animate={hovered} />}
-            <span className="relative">{children}</span>
+            <span className="relative" style={variant === 'bar' ? outlinedWhiteTextStyle : undefined}>{children}</span>
         </button>
     )
 }
@@ -279,11 +391,13 @@ export function HomeButton({ onClick }: { onClick: () => void }) {
     )
 }
 
-// Bannière-ruban du titre ("Banner01a"), centrée par rapport au livre en dessous.
-export function TitleBanner({ children }: { children: React.ReactNode }) {
+// Bannière-ruban du titre ("Banner01a"), centrée par rapport au livre en dessous. `width` (classe
+// Tailwind arbitraire) et `className` (marges, ex. décalage vertical) permettent à une page de
+// l'ajuster sans changer les autres usages.
+export function TitleBanner({ children, width = 'w-[1060px]', className = '' }: { children: React.ReactNode; width?: string; className?: string }) {
     return (
-        <div className="flex w-[1060px] flex-col items-center gap-1">
-            <div className="travelbook-title-banner flex items-center justify-center px-12 py-6">
+        <div className={`flex ${width} flex-col items-center gap-1 ${className}`}>
+            <div className="travelbook-title-banner flex w-full items-center justify-center px-12 py-6">
                 {/* Blanc + liseré noir (text-shadow 4 directions, comme les chiffres des cartes)
                     plutôt que le brun ink-text : illisible en trop grand sur le fond crème/orangé
                     du ruban. translateY(-25px) : le bandeau plat du ruban (où le texte doit

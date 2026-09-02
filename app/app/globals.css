@@ -193,6 +193,19 @@ body {
   image-rendering: pixelated;
 }
 
+/* Panneau du parchemin de création de deck ("Frame04a" du sheetinfo) : cadre simple, plus léger
+   que .travelbook-side-panel (Frame08a) — utilisé à la place des pages du livre (.travelbook-page)
+   pour ce panneau qui n'est pas une page du carnet mais un encart à part. */
+.travelbook-frame4-panel {
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: url("/textures/notebook/frame04.png");
+  border-image-slice: 12 fill;
+  border-image-width: 12px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
 /* Plus de .travelbook-tab ("Frame05a") : les onglets (MarkerButton dans CollectionBook.tsx)
    utilisent uniquement le sprite "Marker01a_Open"/"Close" (Sprites Animated), y compris au repos
    (frame 1) — aucun "Frame" statique ne reste sur ces boutons. */
@@ -212,9 +225,44 @@ body {
   image-rendering: pixelated;
 }
 
+/* Boutons "Create deck"/"Save deck" ("Slot03a") : pas de Sprites Animated pour les slots (pas de
+   frames pressé/relâché comme les Button0Na), donc le clic n'anime que via active:scale-95 en
+   Tailwind plutôt qu'un cycle d'images. */
+.travelbook-slot03a {
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url("/textures/notebook/slot03a.png");
+  border-image-slice: 12 fill;
+  border-image-width: 8px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Cadre autour de chaque deck dans "My decks" — même sprite que les champs texte (Slot01a). */
+.travelbook-deck-frame {
+  border-style: solid;
+  border-width: 4px;
+  border-image-source: url("/textures/notebook/slot.png");
+  border-image-slice: 12 fill;
+  border-image-width: 4px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
 /* Pas de .travelbook-select statique : le cadre de surbrillance boucle maintenant sur les 4
    frames animées "Select01a" (Sprites Animated) — voir le composant SelectHighlight dans
    CollectionBook.tsx (border-image en style inline, frame par frame en boucle). */
+
+/* Scrollbar native masquée — remplacée par la poignée custom pilotée en JS (voir
+   NotebookScrollArea dans NotebookUI.tsx). Les scrollbars "overlay" des navigateurs récents
+   ignorent le stylage par image de ::-webkit-scrollbar, d'où le composant JS plutôt que du CSS
+   seul. */
+.notebook-scroll-hidden {
+  scrollbar-width: none;
+}
+.notebook-scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
 
 @theme {
   --animate-legendary-glow: legendary-glow 1.8s ease-in-out infinite;

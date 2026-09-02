@@ -92,9 +92,12 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
             // invisible en Chromium). box-shadow n'a pas ce problème.
             <div className="relative aspect-[130/191] w-full shadow-lg">
                 {ownedQty !== undefined && ownedQty > 1 && (
+                    // left-0/top-0 (pas d'offset négatif) : CardFaceLayer (ScaledCardFace) enveloppe
+                    // ce rendu dans un conteneur overflow-hidden pour la mise à l'échelle — un badge
+                    // qui dépasse des bords s'y ferait rogner.
                     <span
-                        className="absolute -left-1 -top-1 z-10 rounded bg-ink-950/85 px-1.5 py-0.5 font-card font-bold text-parchment-100"
-                        style={{ fontSize: 3 * PX }}
+                        className="absolute left-0 top-0 z-10 font-card font-bold text-white"
+                        style={{ ...iconNumberStyle, fontSize: 13 * PX }}
                     >
                         x{ownedQty}
                     </span>
@@ -185,7 +188,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 bg-[#e8dcc0] shadow-lg shadow-black/50`}
         >
             {ownedQty !== undefined && ownedQty > 1 && (
-                <span className="absolute left-1 top-1 rounded bg-ink-950/85 px-2 py-0.5 font-card text-xl font-bold text-parchment-100">
+                <span className="absolute left-0 top-0 font-card text-5xl font-bold text-white" style={{ textShadow: iconNumberStyle.textShadow }}>
                     x{ownedQty}
                 </span>
             )}

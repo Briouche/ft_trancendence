@@ -6,13 +6,13 @@ import Image from 'next/image'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 import {
-    Slot, AssetButton, PageArrow, SearchInput,
-    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground, HomeButton, TitleBanner,
+    Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
+    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton, TitleBanner,
 } from '@/components/notebook/NotebookUI'
 
 type Card = CardFaceData & { qty: number }
 type DeckEntry = { card: Card; qty: number }
-type SavedDeck = { id: number; name: string; cards: { qty: number }[] }
+type SavedDeck = { id: number; name: string; cards: { qty: number; card: { rarity: string; legendId: string } }[] }
 
 const MAX_LEGENDARY = 1
 const MAX_COMMONS = 20
@@ -21,12 +21,13 @@ const COST_FILTERS = [1, 2, 3, 4, 5, 6, 7]
 type Props = {
     cards: Card[]
     decks: SavedDeck[]
+    totalCardCount: number
     deckId?: number
     initialName?: string
     initialDeck?: Record<string, DeckEntry>
 }
 
-export default function DeckBuilder({ cards, decks, deckId, initialName = '', initialDeck = {} }: Props) {
+export default function DeckBuilder({ cards, decks, totalCardCount, deckId, initialName = '', initialDeck = {} }: Props) {
     const router = useRouter()
     const [deck, setDeck]             = useState<Record<string, DeckEntry>>(initialDeck)
     const [deckName, setDeckName]     = useState(initialName)
@@ -34,7 +35,12 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
     const [message, setMessage]       = useState('')
     const [search, setSearch]         = useState('')
     const [costFilter, setCostFilter] = useState<number | null>(null)
+    const [legendaryOnly, setLegendaryOnly] = useState(false)
     const [page, setPage]             = useState(0)
+    const [creating, setCreating]     = useState(!!deckId)
+    const [deletingDeckId, setDeletingDeckId] = useState<number | null>(null)
+    const [hoveredDeckId, setHoveredDeckId] = useState<number | null>(null)
+    const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
 
     const filteredCards = useMemo(() => {
         const query = normalize(search.trim())
@@ -50,8 +56,12 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
                 : matches.filter(c => parseCost(c.cost) === costFilter)
         }
 
+        if (legendaryOnly) {
+            matches = matches.filter(c => c.rarity === 'Légendaire')
+        }
+
         return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))
-    }, [cards, search, costFilter])
+    }, [cards, search, costFilter, legendaryOnly])
 
     const totalPages = Math.max(1, Math.ceil(filteredCards.length / SLOTS_PER_PAGE))
     const currentPage = Math.min(page, totalPages - 1)
@@ -73,6 +83,21 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
         setPage(0)
     }
 
+    function toggleLegendaryOnly() {
+        setLegendaryOnly(v => !v)
+        setPage(0)
+    }
+
+    const sortedDeckEntries = useMemo(
+        () => Object.values(deck).sort((a, b) => {
+            const aLegendary = a.card.rarity === 'Légendaire'
+            const bLegendary = b.card.rarity === 'Légendaire'
+            if (aLegendary !== bLegendary) return aLegendary ? -1 : 1
+            return parseCost(a.card.cost) - parseCost(b.card.cost)
+        }),
+        [deck],
+    )
+
     const legendaryCount = Object.values(deck)
         .filter(e => e.card.rarity === 'Légendaire')
         .reduce((sum, e) => sum + e.qty, 0)
@@ -90,7 +115,24 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
 
     function addCard(card: Card) {
         if (!canAdd(card)) return
+        // Choisir une carte avant d'avoir cliqué "Create deck" démarre la création à la volée —
+        // sinon la carte s'ajoutait silencieusement à un deck que le panneau "My decks" ne
+        // montrait pas encore, donnant l'impression que le clic ne faisait rien.
+        if (!creating) setCreating(true)
         setDeck(prev => ({ ...prev, [card.id]: { card, qty: (prev[card.id]?.qty ?? 0) + 1 } }))
+    }
+
+    function removeCard(card: Card) {
+        setDeck(prev => {
+            const entry = prev[card.id]
+            if (!entry) return prev
+            if (entry.qty <= 1) {
+                const next = { ...prev }
+                delete next[card.id]
+                return next
+            }
+            return { ...prev, [card.id]: { ...entry, qty: entry.qty - 1 } }
+        })
     }
 
     async function saveDeck() {
@@ -122,19 +164,36 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
         }
     }
 
+    async function deleteDeck(id: number) {
+        setDeletingDeckId(id)
+        const res = await fetch(`/api/decks/${id}`, { method: 'DELETE' })
+        setDeletingDeckId(null)
+        // Le deck édité peut être celui qu'on vient de supprimer — retour à "My decks" plutôt que
+        // de laisser un formulaire d'édition pointer vers un deck qui n'existe plus.
+        if (res.ok && deckId === id) router.push('/deck/new')
+        else router.refresh()
+    }
+
     function renderSlot(card: Card | null, slotIndex: number) {
         if (card === null) return <Slot key={`empty-${slotIndex}`} />
         const inDeck = deck[card.id]?.qty ?? 0
+        // Bloquée pour une autre raison que "plus d'exemplaires possédés" (ex : plafond légendaire
+        // atteint) : la pile entière grise quand même, même si aucun exemplaire de CETTE carte
+        // n'est encore dans le deck — sinon elle aurait l'air disponible alors qu'elle ne l'est pas.
+        const blocked = !canAdd(card)
         return (
-            <Slot key={card.id} onClick={() => addCard(card)} disabled={!canAdd(card)}>
-                {inDeck > 0 && (
-                    <span className="absolute -left-2 -top-2 z-20 flex h-7 w-7 items-center justify-center
-                        rounded-full border-2 border-parchment-50 bg-gold-500 font-display text-xs
-                        font-bold text-ink-950 shadow">
-                        {inDeck}
-                    </span>
-                )}
-                <ScaledCardFace card={card} />
+            <Slot
+                key={card.id}
+                onClick={() => addCard(card)}
+                onContextMenu={inDeck > 0 ? () => removeCard(card) : undefined}
+                disabled={blocked}
+            >
+                <ScaledCardFace
+                    card={card}
+                    stackQty={card.qty}
+                    dimBack={inDeck >= 1 || blocked}
+                    dimFront={inDeck >= 2 || blocked}
+                />
             </Slot>
         )
     }
@@ -145,73 +204,13 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
             style={woodenTableBackground}
         >
             <HomeButton onClick={() => router.push('/')} />
-            <TitleBanner>DECK BUILDER</TitleBanner>
+            {/* fixed (pas -mt) : le parent est en `justify-center` sur tout le contenu, donc une
+                marge négative se faisait réabsorber par le recentrage plutôt que de remonter la
+                bannière — fixed la sort du flux et l'aligne indépendamment sur top-6, comme
+                HomeButton. */}
+            <TitleBanner width="w-[1250px]" className="fixed left-1/2 top-6 z-20 -translate-x-1/2">DECK BUILDER</TitleBanner>
 
             <div className="flex h-[900px] items-stretch gap-4">
-                {/* Parchemin : le deck en cours d'édition (nom, stats, sauvegarde) en haut, la
-                    liste de tous les decks du joueur en dessous — même papier que les pages du
-                    livre (.travelbook-page), pour rester dans le même carnet plutôt qu'un panneau
-                    à part. */}
-                <div className="travelbook-page relative flex w-72 flex-col p-5">
-                    <p className="mb-3 text-center font-display text-lg font-bold text-ink-text">
-                        {deckId ? 'Edit deck' : 'New deck'}
-                    </p>
-
-                    <input
-                        type="text"
-                        placeholder="Deck name…"
-                        value={deckName}
-                        onChange={e => setDeckName(e.target.value)}
-                        className="travelbook-slot mb-3 w-full bg-transparent px-3 py-2 text-center font-serif text-xs
-                            text-ink-text placeholder:text-ink-muted/60 outline-none"
-                    />
-
-                    <p className="mb-1 text-center font-serif text-xs text-ink-muted">
-                        {legendaryCount}/{MAX_LEGENDARY} legendary · {commonCount}/{MAX_COMMONS} common
-                    </p>
-                    <p className="mb-3 text-center font-serif text-xs text-ink-muted">
-                        {totalCards} / {MAX_LEGENDARY + MAX_COMMONS} cards
-                    </p>
-
-                    {message && (
-                        <p className="mb-3 text-center font-serif text-xs italic text-ink-text">{message}</p>
-                    )}
-
-                    <AssetButton onClick={saveDeck} disabled={saving || totalCards === 0} className="mb-5 h-11 w-full">
-                        {saving ? 'Saving…' : 'Save deck'}
-                    </AssetButton>
-
-                    <div className="mb-2 h-px bg-ink-900/15" />
-                    <p className="mb-2 text-center font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
-                        My decks
-                    </p>
-
-                    <div className="flex-1 overflow-y-auto">
-                        {decks.length === 0 && (
-                            <p className="mt-6 text-center font-serif text-xs text-ink-muted/70">No decks yet</p>
-                        )}
-                        {decks.map(d => {
-                            const count = d.cards.reduce((sum, c) => sum + c.qty, 0)
-                            const active = d.id === deckId
-                            return (
-                                <button
-                                    key={d.id}
-                                    onClick={() => router.push(`/deck/${d.id}`)}
-                                    className={`mb-1.5 block w-full rounded-sm px-2 py-1.5 text-left transition-colors
-                                        ${active ? 'bg-ink-900/10' : 'hover:bg-ink-900/5'}`}
-                                >
-                                    <p className="truncate font-serif text-sm text-ink-text">{d.name}</p>
-                                    <p className="font-serif text-xs text-ink-muted">{count} cards</p>
-                                </button>
-                            )
-                        })}
-                    </div>
-
-                    <AssetButton onClick={() => router.push('/deck/new')} className="mt-3 h-10 w-full">
-                        + Create deck
-                    </AssetButton>
-                </div>
-
                 <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
                 {/* Livre : mêmes pages/cases que la Collection (voir NotebookUI), mais cliquer une
@@ -236,9 +235,22 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
                         </div>
                         <div className="travelbook-page travelbook-page-right relative flex flex-1 flex-col p-3">
                             <p className="absolute right-1 top-0 font-serif text-xs italic text-ink-muted">
-                                {cards.length} cards owned
+                                {cards.reduce((sum, c) => sum + c.qty, 0)} / {totalCardCount} cards
                             </p>
                             <div className="flex h-9 items-center justify-center gap-2">
+                                <button
+                                    onClick={toggleLegendaryOnly}
+                                    aria-pressed={legendaryOnly}
+                                    className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
+                                >
+                                    <Image
+                                        src={`/textures/collection/icon-star-${legendaryOnly ? 'full' : 'empty'}.png`}
+                                        alt="Legendary only"
+                                        width={16} height={16} unoptimized
+                                        className="h-6 w-auto"
+                                        style={{ imageRendering: 'pixelated' }}
+                                    />
+                                </button>
                                 {COST_FILTERS.map(value => {
                                     const filled = costFilter !== null && value <= costFilter
                                     const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.png`
@@ -271,7 +283,222 @@ export default function DeckBuilder({ cards, decks, deckId, initialName = '', in
                 </div>
 
                 <PageArrow direction="next" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1} />
+
+                {/* Parchemin : le deck en cours d'édition (nom, stats, sauvegarde) en haut, la
+                    liste de tous les decks du joueur en dessous — cadre "Frame04a" à part (pas les
+                    pages du livre), plus grand que la rangée du livre pour déborder visiblement en
+                    haut et en bas (-my-10 compense le surplus de hauteur, pas de scroll ajouté). */}
+                <div className="travelbook-frame4-panel relative z-30 -my-10 flex h-[980px] w-96 flex-col p-5">
+                    {creating ? (
+                        <>
+                            <div className="relative mb-3 flex items-center justify-center">
+                                <button
+                                    onClick={() => {
+                                        if (deckId) { router.push('/deck/new'); return }
+                                        setDeck({})
+                                        setCreating(false)
+                                    }}
+                                    className="absolute left-0 shrink-0 transition-opacity hover:opacity-70"
+                                >
+                                    <Image
+                                        src="/textures/notebook/arrow/Arrow2.png"
+                                        alt="Back"
+                                        width={10} height={6} unoptimized
+                                        className="h-8 w-auto"
+                                        style={{ imageRendering: 'pixelated' }}
+                                    />
+                                </button>
+
+                                <p className="text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
+                                    {deckId ? 'Edit deck' : 'New deck'}
+                                </p>
+                            </div>
+
+                            <input
+                                type="text"
+                                placeholder="Deck name…"
+                                value={deckName}
+                                onChange={e => setDeckName(e.target.value)}
+                                className="travelbook-slot mb-3 w-full bg-transparent px-3 py-2 text-center font-serif text-base
+                                    text-ink-text placeholder:text-ink-muted/60 outline-none"
+                            />
+
+                            <p className="mb-1 text-center font-serif text-xs text-ink-muted">
+                                {legendaryCount}/{MAX_LEGENDARY} legendary · {commonCount}/{MAX_COMMONS} normal cards
+                            </p>
+                            <p className="mb-3 text-center font-serif text-xs text-ink-muted">
+                                {totalCards} / {MAX_LEGENDARY + MAX_COMMONS} cards
+                            </p>
+
+                            {message && (
+                                <p className="mb-3 text-center font-serif text-xs italic text-ink-text">{message}</p>
+                            )}
+
+                            <button
+                                onClick={saveDeck}
+                                disabled={saving || totalCards === 0}
+                                className="travelbook-slot03a mb-5 h-11 w-full font-display font-bold text-white
+                                    transition-transform active:scale-95 disabled:opacity-30"
+                                style={outlinedWhiteTextStyle}
+                            >
+                                {saving ? 'Saving…' : 'Save deck'}
+                            </button>
+
+                            <div className="mb-2 h-px bg-ink-900/15" />
+                            <p className="mb-2 text-center font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
+                                Cards in deck
+                            </p>
+
+                            <NotebookScrollArea className="-mr-6 flex-1">
+                                {totalCards === 0 && (
+                                    <p className="mt-6 text-center font-serif text-xs text-ink-muted/70">No cards added yet</p>
+                                )}
+                                {sortedDeckEntries.map(entry => (
+                                    <div
+                                        key={entry.card.id}
+                                        className="mb-1.5 flex items-center rounded-sm px-2 py-1.5"
+                                    >
+                                        <button
+                                            onClick={() => removeCard(entry.card)}
+                                            className="flex min-w-0 items-center gap-2.5 text-left"
+                                        >
+                                            <span className="shrink-0 font-serif text-xs text-ink-muted">×{entry.qty}</span>
+                                            <span className="flex shrink-0 items-center gap-1.5">
+                                                <Image
+                                                    src="/textures/collection/icon-energy-full.png"
+                                                    alt=""
+                                                    width={12} height={14} unoptimized
+                                                    className="h-4 w-auto"
+                                                    style={{ imageRendering: 'pixelated' }}
+                                                />
+                                                <span className="font-serif text-base text-ink-text">
+                                                    {entry.card.cost}
+                                                </span>
+                                            </span>
+                                            <p className="truncate font-serif text-lg text-ink-text">{entry.card.name}</p>
+                                            {entry.card.rarity === 'Légendaire' && (
+                                                <Image
+                                                    src="/textures/collection/icon-star-full.png"
+                                                    alt="Legendary"
+                                                    width={16} height={16} unoptimized
+                                                    className="h-4 w-auto shrink-0"
+                                                    style={{ imageRendering: 'pixelated' }}
+                                                />
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
+                            </NotebookScrollArea>
+                        </>
+                    ) : (
+                        <>
+                            <p className="mb-3 text-center font-display text-4xl font-bold text-white" style={outlinedWhiteTextStyle}>
+                                My decks
+                            </p>
+
+                            <NotebookScrollArea className="-mr-6 flex-1">
+                                {decks.length === 0 && (
+                                    <p className="mt-6 text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>No decks yet</p>
+                                )}
+                                {decks.map(d => {
+                                    const legendaryCards = d.cards.filter(c => c.card.rarity === 'Légendaire')
+                                    return (
+                                        <div
+                                            key={d.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => router.push(`/deck/${d.id}`)}
+                                            onKeyDown={e => { if (e.key === 'Enter') router.push(`/deck/${d.id}`) }}
+                                            onMouseEnter={() => setHoveredDeckId(d.id)}
+                                            onMouseLeave={() => setHoveredDeckId(null)}
+                                            className="travelbook-deck-frame relative mb-2 flex w-full cursor-pointer items-center gap-2 px-2 py-2"
+                                        >
+                                            {hoveredDeckId === d.id && <SelectHighlight className="inset-0 z-10" animate={false} />}
+                                            {legendaryCards.length > 0 && (
+                                                <span className="travelbook-slot ml-4 flex h-12 w-12 shrink-0 items-center justify-center">
+                                                    {legendaryCards.map((c, i) => (
+                                                        <Image
+                                                            key={i}
+                                                            src={`/textures/collection/icon-leg-${c.card.legendId}.png`}
+                                                            alt="Legendary"
+                                                            width={32} height={34} unoptimized
+                                                            className="h-9 w-auto"
+                                                            style={{ imageRendering: 'pixelated' }}
+                                                        />
+                                                    ))}
+                                                </span>
+                                            )}
+                                            <p className="min-w-0 flex-1 truncate text-center font-serif text-lg text-ink-text">
+                                                {d.name}
+                                            </p>
+                                            <button
+                                                onClick={e => { e.stopPropagation(); setPendingDelete({ id: d.id, name: d.name }) }}
+                                                disabled={deletingDeckId === d.id}
+                                                className="relative z-20 mr-4 shrink-0 transition-opacity hover:opacity-70 disabled:opacity-30"
+                                            >
+                                                <Image
+                                                    src="/textures/notebook/icon-cross.png"
+                                                    alt="Delete deck"
+                                                    width={15} height={15} unoptimized
+                                                    className="h-4 w-auto"
+                                                    style={{ imageRendering: 'pixelated' }}
+                                                />
+                                            </button>
+                                        </div>
+                                    )
+                                })}
+                            </NotebookScrollArea>
+
+                            <button
+                                onClick={() => setCreating(true)}
+                                className="travelbook-slot03a mt-3 h-10 w-full font-display font-bold text-white
+                                    transition-transform active:scale-95"
+                                style={outlinedWhiteTextStyle}
+                            >
+                                Create deck
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
+
+            {pendingDelete && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 backdrop-blur-sm"
+                    onClick={() => setPendingDelete(null)}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        className="travelbook-deck-frame flex w-[30rem] flex-col items-center gap-6 p-10"
+                    >
+                        <p className="text-center font-display text-3xl font-bold text-ink-text">
+                            Delete deck?
+                        </p>
+                        <p className="text-center font-serif text-lg text-ink-muted">
+                            “{pendingDelete.name}” will be permanently deleted.
+                        </p>
+                        <div className="flex w-full gap-4">
+                            <button
+                                onClick={() => setPendingDelete(null)}
+                                className="travelbook-slot03a h-14 flex-1 font-display text-lg font-bold text-ink-text transition-transform active:scale-95"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const { id } = pendingDelete
+                                    setPendingDelete(null)
+                                    deleteDeck(id)
+                                }}
+                                className="travelbook-slot03a h-14 flex-1 font-display text-lg font-bold text-white transition-transform active:scale-95"
+                                style={outlinedWhiteTextStyle}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
