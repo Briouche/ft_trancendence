@@ -65,13 +65,10 @@ model Card {
   type     String     @default("")
   rarity   String
   cost     String
-  costNum  Int        @default(0)
   atk      String
   def      String
   desc     String
   qty      Int        @default(1)
-  emoji    String     @default("")
-  color    String     @default("")
   legendId String     @default("")
   decks    DeckCard[]
 

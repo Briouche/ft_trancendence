@@ -69,8 +69,9 @@ export function normalize(value: string): string {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
-// Le champ costNum en base n'est pas fiable (souvent à 0 même quand cost ne l'est pas) :
-// on trie donc sur le vrai coût affiché sur la carte. "X" (coût variable) est trié en dernier.
+// L'ancien champ costNum en base n'était jamais fiable (toujours à 0, jamais écrit par le seed —
+// supprimé du schéma) : on trie donc sur le vrai coût affiché sur la carte. "X" (coût variable)
+// est trié en dernier.
 export function parseCost(cost: string): number {
     const n = Number(cost)
     return Number.isNaN(n) ? Infinity : n

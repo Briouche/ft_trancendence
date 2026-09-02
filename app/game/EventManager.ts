@@ -37,15 +37,15 @@ socket.on("message", (msg: ServerMessage) =>
         EventManager.emit("server:event", msg.event);
 });
 
-EventManager.on("client:readySolo", (difficulty: Difficulty) =>
+EventManager.on("client:readySolo", (source: { difficulty: Difficulty; deckId: number }) =>
 {
-    const msg: ClientMessage = { type: "readySolo", difficulty };
+    const msg: ClientMessage = { type: "readySolo", difficulty: source.difficulty, deckId: source.deckId };
     socket.emit("message", msg);
 });
 
-EventManager.on("client:ready", () =>
+EventManager.on("client:ready", (deckId: number) =>
 {
-    const msg: ClientMessage = { type: "ready" };
+    const msg: ClientMessage = { type: "ready", deckId };
     socket.emit("message", msg);
 });
 

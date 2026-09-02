@@ -32,6 +32,7 @@ export function toClientCard(card: Card): ClientCard
         id: card.id,
         name: card.name,
         assetKey: card.assetKey,
+        rarity: card.rarity,
         cost: card.manaCost,
         description: card.description,
         requiresTarget : requiresTarget(card),

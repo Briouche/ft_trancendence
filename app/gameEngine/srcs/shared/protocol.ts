@@ -16,6 +16,7 @@ export interface ClientCard
     id: string;
     name: string;
     assetKey: string;
+    rarity: string;
     cost: number;
     attack?: number;
     health?: number;
@@ -79,8 +80,8 @@ export interface TargetPrompt
     options: TargetOption[];
 }
 
-export type ClientMessage = { type: "ready" }
-    | { type: "readySolo"; difficulty: Difficulty }
+export type ClientMessage = { type: "ready"; deckId: number }
+    | { type: "readySolo"; difficulty: Difficulty; deckId: number }
     | { type: "playCard"; cardId: string; boardIndex?: number; }
     | { type: "attack"; attackerId: string; targetId: string; }
     | { type: "targetChoice"; targetId: string | null }

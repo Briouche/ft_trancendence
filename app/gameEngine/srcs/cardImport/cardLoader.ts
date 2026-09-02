@@ -38,12 +38,11 @@ function safeNumber(value: string): number
 
 export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
 {
-    const name = raw.emoji ? `${raw.emoji} ${raw.name}` : raw.name
     const keywords = raw.keywords ?? []
 
     return new MinionCard(
         `${playerPrefix}${raw.id}`,
-        name,
+        raw.name,
         safeNumber(raw.cost),
         raw.desc,
         safeNumber(raw.atk),
@@ -61,6 +60,9 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
             endOfTurnEffect:    buildEffect(raw.endOfTurnEffect as EffectSpec | null)
         },
         resolveLegendaryPassive(raw.legendId),
+        raw.assetKey,
+        undefined, undefined,
+        raw.rarity,
     )
 }
 
@@ -68,15 +70,15 @@ function rawToCard(raw: RawCard, playerPrefix = ""): Card
 {
     if (raw.type === "sort")
     {
-        const name = raw.emoji ? `${raw.emoji} ${raw.name}` : raw.name
         return new SpellCard(
             `${playerPrefix}${raw.id}`,
-            name,
+            raw.name,
             +raw.cost,
             raw.desc,
             buildEffect(raw.spellEffect as EffectSpec | null)!,
             resolveLegendaryPassive(raw.legendId),
-            raw.assetKey
+            raw.assetKey,
+            raw.rarity
         )
     }
 
@@ -123,6 +125,25 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
     }
 
     return new Deck(gameCards)
+}
+
+// Build a deck from a player's saved Deck (deck builder) — DeckCard only stores one row per
+// card id with a qty, so a card added twice needs to appear twice in the flat id list handed to
+// makeDeckFromIds (which draws one game Card per id occurrence). Returns null for a deck that
+// doesn't exist (deleted between selection and match start) or was saved empty, so the caller
+// can reject the match instead of silently starting one with zero cards.
+export async function makeDeckFromDeckId(deckId: number, playerPrefix = ""): Promise<Deck | null>
+{
+    const deckCards = await prisma.deckCard.findMany({ where: { deckId } })
+    if (deckCards.length === 0)
+        return null
+
+    const cardIds: string[] = []
+    for (const dc of deckCards)
+        for (let i = 0; i < dc.qty; i++)
+            cardIds.push(dc.cardId)
+
+    return makeDeckFromIds(cardIds, playerPrefix)
 }
 
 function pickRandom<T>(arr: T[]): T

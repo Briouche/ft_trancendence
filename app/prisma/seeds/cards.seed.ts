@@ -11,13 +11,10 @@ interface RawCard
 	type:     string
 	rarity:   string
 	cost:     string
-	costNum:  number
 	atk:      string
 	def:      string
 	desc:     string
 	qty:      number
-	emoji:    string
-	color:    string
 	legendId: string
 
 	taunt?: boolean
@@ -76,8 +73,6 @@ export async function seedCards(prisma: PrismaClient)
 			def:       card.def,
 			desc:      card.desc,
 			qty:       card.qty    ?? 1,
-			emoji:     card.emoji  ?? '',
-			color:     card.color  ?? '',
 			legendId:  card.legendId ?? '',
 			assetKey:  card.assetKey,
 

@@ -6,16 +6,18 @@ export class BootScene extends Phaser.Scene
 {
     private mode!: GameMode;
     private difficulty!: Difficulty;
+    private deckId!: number;
 
     constructor()
     {
         super("BootScene");
     }
 
-    init(data: { mode: GameMode; difficulty: Difficulty })
+    init(data: { mode: GameMode; difficulty: Difficulty; deckId: number })
     {
         this.mode = data.mode;
         this.difficulty = data.difficulty;
+        this.deckId = data.deckId;
     }
 
     preload() {
@@ -30,10 +32,14 @@ export class BootScene extends Phaser.Scene
         this.load.image("fullEnergy", "/gameAssets/UI_TravelBook_IconEnergy02a.png");
         this.load.image("heroFrame", "/gameAssets/hero.png");
         this.load.image("opponentHeroFrame", "/gameAssets/opponentHero.png")
+        this.load.image("frame_commune", "/textures/cards/frame-commune.png");
+        this.load.image("frame_rare", "/textures/cards/frame-rare.png");
+        this.load.image("frame_epique", "/textures/cards/frame-epique.png");
+        this.load.image("frame_legendaire", "/textures/cards/frame-legendaire.png");
     }
 
     create()
     {
-        this.scene.start("GameScene", { mode: this.mode, difficulty: this.difficulty });
+        this.scene.start("GameScene", { mode: this.mode, difficulty: this.difficulty, deckId: this.deckId });
     }
 }

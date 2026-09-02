@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { Card, CardData, withStartingStats } from "./Card";
 import { clientEffect } from "../shared/protocol";
-import { ensureCardAsset } from "./CardAssetLoader";
+import { ensureCardAsset, resolveInitialCardTexture } from "./CardAssetLoader";
 
 const PREVIEW_DEPTH = 3200;
 const PREVIEW_HEIGHT_RATIO = 1 / 2.5;
@@ -38,10 +38,10 @@ class CardPreview extends Phaser.GameObjects.Container
         const previewHeight = canvasHeight * PREVIEW_HEIGHT_RATIO;
         const previewWidth = previewHeight / CARD_ASPECT_RATIO;
 
-        const initialKey = scene.textures.exists(cardData.assetKey) ? cardData.assetKey : "placeholder_card";
+        const { key: initialKey, needsAsyncLoad } = resolveInitialCardTexture(scene, cardData.assetKey, cardData.rarity);
         const image = scene.add.image(0, 0, initialKey);
         image.setDisplaySize(previewWidth, previewHeight);
-        if (initialKey !== cardData.assetKey)
+        if (needsAsyncLoad)
         {
             ensureCardAsset(scene, cardData.assetKey, (key) =>
             {

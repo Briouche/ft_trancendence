@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { clientEffect } from "../shared/protocol";
-import { ensureCardAsset } from "./CardAssetLoader";
+import { ensureCardAsset, resolveInitialCardTexture } from "./CardAssetLoader";
 
 const DEFAULT_WIDTH = 120;
 const DEFAULT_HEIGHT = 168;
@@ -16,6 +16,7 @@ export interface CardData
     index?: number;
     name: string;
     assetKey: string;
+    rarity: string;
     cost: number;
     attack?: number;
     health?: number;
@@ -74,7 +75,7 @@ export class Card extends Phaser.GameObjects.Container
         super(scene, 0, 0);
         this.cardData = cardData;
         this.cardHeight = height;
-        const initialKey = scene.textures.exists(cardData.assetKey) ? cardData.assetKey : "placeholder_card";
+        const { key: initialKey, needsAsyncLoad } = resolveInitialCardTexture(scene, cardData.assetKey, cardData.rarity);
         this.object = scene.add.image(0, 0, initialKey);
         this.object.setDisplaySize(width, height);
 
@@ -108,7 +109,7 @@ export class Card extends Phaser.GameObjects.Container
 
         this.setInteractive({ draggable: true, useHandCursor: true });
 
-        if (initialKey !== cardData.assetKey)
+        if (needsAsyncLoad)
         {
             ensureCardAsset(scene, cardData.assetKey, (key) => {
                 if (this.hasValidScene())
