@@ -18,12 +18,14 @@ export class Hero
         this.currentHealth -= amount;
     }
 
-    heal(amount: number): void
+    heal(amount: number): number
     {
+        const before = this.currentHealth;
         if (this.currentHealth + amount > this.maxHealth)
             this.currentHealth = this.maxHealth;
         else
             this.currentHealth += amount;
+        return this.currentHealth - before;
     }
 
     isAlive(): boolean

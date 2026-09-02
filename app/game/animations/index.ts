@@ -5,6 +5,8 @@ export * from "./turnBanner";
 export * from "./hover";
 export * from "./draw";
 export * from "./damage";
+export * from "./heal";
+export * from "./buff";
 export * from "./battlecry";
 export * from "./deathrattle";
 export * from "./passive";

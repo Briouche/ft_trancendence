@@ -9,6 +9,7 @@ const OVERLAP_RATIO = 0.55;
 const MAX_HAND_SPAN_RATIO = 0.5;
 const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
+const FIRST_CARD_DEPTH = 200;
 
 
 export class Hand
@@ -83,8 +84,9 @@ export class Hand
             const dip = Math.pow(norm, 2) * heightCanvas * ARC_DIP_RATIO;
             const y = handY + dip;
             const rotation = Phaser.Math.DegToRad(norm * MAX_FAN_ANGLE_DEG);
+            const depth = FIRST_CARD_DEPTH + (this.cards.length - 1 - i);
             card.resize(cardWidth, cardHeight);
-            card.setTransform(x, y, rotation, i);
+            card.setTransform(x, y, rotation, depth);
             if (!card.isDragging && !card.isHovering)
                 card.returnToBase();
         }

@@ -1,13 +1,11 @@
-import { ActionResult, effectTrigger, GameEngine } from "../gameEngine";
+import { ActionResult, AnimationEvent, GameEngine } from "../gameEngine";
 import { Socket } from "socket.io";
 import { Player } from "../player";
-import { Hero }       from "../hero";
 import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent } from "../shared/protocol";
 import { toClientState, toClientCard } from "./toClientState";
 import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
-import { DamageRecord } from "../gameEngine";
 import { getBestAction } from "../ai/mcts";
 import { Action } from "../ai/types";
 import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
@@ -160,8 +158,12 @@ export class GameSession
 
             if (validTargets.length === 0)
             {
-                this.reject(playerIndex, "no valid targets");
-                return;
+                if (card instanceof SpellCard)
+                {
+                    this.reject(playerIndex, "no valid targets");
+                    return;
+                }
+                continue;
             }
 
             this.beginTargeting(playerIndex, card, effect, validTargets, boardIndex);
@@ -181,13 +183,7 @@ export class GameSession
             return;
         }
         this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, boardIndex, card: toClientCard(card) });
-        this.broadcastEffectEvents(result.effectEvents);
-        this.broadcastDamageEvents(result.damageEvents);
-        for (let i = 0; i < result.damageEvents.length; i++)
-        {
-            if (!result.damageEvents[i].target.isAlive() && result.damageEvents[i].target instanceof MinionCard)
-                this.broadcastEvent({type: "minionDied", minionId: result.damageEvents[i].target.id, playerIndex: playerIndex});
-        }
+        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();
     }
@@ -227,23 +223,6 @@ export class GameSession
             return;
         }
 
-        if (targetId === null)
-        {
-            this.pending = null;
-
-            this.reject(playerIndex, "target selection cancelled");
-            return;
-        }
-
-        const target: Targetable | undefined = pending.optionsById.get(targetId);
-
-        if (target === undefined)
-        {
-            this.pending = null;
-            this.reject(playerIndex, "illegal target");
-            return;
-        }
-
         const player: Player = this.engine.players[playerIndex];
 
         const cardIndex: number = player.hand.getCards().findIndex((c: Card) => c.id === pending.id);
@@ -256,15 +235,40 @@ export class GameSession
         }
 
         const card: Card = player.hand.getCards()[cardIndex];
-        const context = { engine: this.engine, owner: player, source: card };
-        const currentValidTargets: Targetable[] = pending.effect.resolver!.resolve(context);
-        const stillLegal: boolean = currentValidTargets.includes(target);
 
-        if (!stillLegal)
+        let target: Targetable | undefined = undefined;
+
+        if (targetId === null)
         {
-            this.pending = null;
-            this.reject(playerIndex, "target is no longer legal");
-            return;
+            if (card instanceof SpellCard)
+            {
+                this.pending = null;
+                this.reject(playerIndex, "target selection cancelled");
+                return;
+            }
+            // minion battlecry: proceed without a target, the battlecry will no-op
+        }
+        else
+        {
+            target = pending.optionsById.get(targetId);
+
+            if (target === undefined)
+            {
+                this.pending = null;
+                this.reject(playerIndex, "illegal target");
+                return;
+            }
+
+            const context = { engine: this.engine, owner: player, source: card };
+            const currentValidTargets: Targetable[] = pending.effect.resolver!.resolve(context);
+            const stillLegal: boolean = currentValidTargets.includes(target);
+
+            if (!stillLegal)
+            {
+                this.pending = null;
+                this.reject(playerIndex, "target is no longer legal");
+                return;
+            }
         }
 
         const targets: Map<Effect, Targetable | null> = new Map();
@@ -272,7 +276,7 @@ export class GameSession
         for (const effect of this.getOnPlayEffects(card))
         {
             if (effect === pending.effect)
-                targets.set(effect, target);
+                targets.set(effect, target ?? null);
             else
                 targets.set(effect, null);
         }
@@ -286,13 +290,7 @@ export class GameSession
             return;
         }
         this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
-        this.broadcastEffectEvents(result.effectEvents);
-        this.broadcastDamageEvents(result.damageEvents);
-        for (let i = 0; i < result.damageEvents.length; i++)
-        {
-            if (!result.damageEvents[i].target.isAlive() && result.damageEvents[i].target instanceof MinionCard)
-                this.broadcastEvent({type: "minionDied", minionId: result.damageEvents[i].target.id, playerIndex: playerIndex});
-        }
+        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();
     }
@@ -339,16 +337,8 @@ export class GameSession
             this.reject(playerIndex, "unsuccesful attack");
             return;
         }
-        const damage = attacker.attack;
-        const targetDied = !this.isTargetAlive(target);
-
         this.broadcastEvent({ type: "attack", attackerId, targetId, playerIndex });
-        this.broadcastEffectEvents(result.effectEvents);
-        this.broadcastDamageEvents(result.damageEvents);
-        if (targetDied && target instanceof MinionCard)
-            this.broadcastEvent({ type: "minionDied", minionId: target.id, playerIndex: playerIndex });
-        if (!attacker.isAlive())
-            this.broadcastEvent({ type: "minionDied", minionId: attackerId, playerIndex: playerIndex });
+        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();
     }
@@ -384,19 +374,13 @@ export class GameSession
     handleEndTurn()
     {
         let result: ActionResult;
-        let playerIndex : 0 | 1 = this.engine.currentTurn as 0 | 1;
 
         result = this.engine.endTurn();
         this.pending = null;
-        this.broadcastEffectEvents(result.effectEvents);
-        this.broadcastDamageEvents(result.damageEvents);
-        for (let i = 0; i < result.damageEvents.length; i++)
-        {
-            if (!result.damageEvents[i].target.isAlive() && result.damageEvents[i].target instanceof MinionCard)
-                this.broadcastEvent({type: "minionDied", minionId: result.damageEvents[i].target.id, playerIndex: playerIndex});
-        }
+        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
         this.broadcastState();
+        this.checkGameOver();
         this.runAiTurnLoop();
     }
 
@@ -477,35 +461,32 @@ export class GameSession
         return { id: heroId, type: "hero" };
     }
 
-    private isTargetAlive(target: Targetable): boolean
+    private broadcastAnimationEvents(events: AnimationEvent[]): void
     {
-        if (target instanceof MinionCard)
-            return (target as any).isAlive ? (target as any).isAlive() : (target as any).health > 0;
-        return (target as Hero).isAlive();
-    }
-
-    private broadcastDamageEvents(damageEvents: DamageRecord[]): void
-    {
-        for (const record of damageEvents)
+        for (const event of events)
         {
-            const option = this.targetToOption(record.target);
-            const alive = record.target.isAlive();
-
-            this.broadcastEvent({ type: "damage", targetId: option.id, amount: record.amount, targetDied: !alive });
-
-            if (!alive && record.target instanceof MinionCard)
+            switch (event.kind)
             {
-                const ownerIndex = this.findOwnerIndex(record.target.id);
-                if (ownerIndex !== undefined)
-                    this.broadcastEvent({ type: "minionDied", minionId: record.target.id, playerIndex: ownerIndex });
+                case "summon":
+                    this.broadcastEvent({ type: "summon", minionId: event.minion.id, playerIndex: event.playerIndex, card: toClientCard(event.minion) });
+                    break;
+                case "damage":
+                    this.broadcastEvent({ type: "damage", targetId: this.targetToOption(event.target).id, amount: event.amount, targetDied: !event.target.isAlive() });
+                    break;
+                case "heal":
+                    this.broadcastEvent({ type: "heal", targetId: this.targetToOption(event.target).id, amount: event.amount });
+                    break;
+                case "buff":
+                    this.broadcastEvent({ type: "buff", targetId: this.targetToOption(event.target).id, attackDelta: event.attackDelta, healthDelta: event.healthDelta });
+                    break;
+                case "effect":
+                    this.broadcastEvent({ type: "effect", minionId: event.sourceId, playerIndex: this.findOwnerIndex(event.sourceId), trigger: event.trigger });
+                    break;
+                case "death":
+                    this.broadcastEvent({ type: "minionDied", minionId: event.minionId, playerIndex: event.playerIndex });
+                    break;
             }
         }
-    }
-
-    private broadcastEffectEvents(effectEvents: effectTrigger[])
-    {
-        for (const record of effectEvents)
-            this.broadcastEvent({ type: "effect", minionId: record.sourceId, playerIndex: this.findOwnerIndex(record.sourceId), trigger: record.trigger });
     }
 
     private findOwnerIndex(targetId: string): 0 | 1

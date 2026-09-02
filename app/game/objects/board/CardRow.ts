@@ -104,6 +104,8 @@ export class CardRow
 
     private applyInteractivity(card: Card): void
     {
+        card.off("pointerover");
+        card.off("pointerout");
         if (this.side === 1)
             card.setInteractive(); // hover only — attack/target still goes through Target.ts's own zones, not the card object
         else

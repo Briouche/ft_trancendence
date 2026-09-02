@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
+import ScaleToFit from '@/components/ScaleToFit'
 import {
     Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton, TitleBanner,
@@ -204,14 +205,18 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
             style={woodenTableBackground}
         >
             <HomeButton onClick={() => router.push('/')} />
-            {/* fixed (pas -mt) : le parent est en `justify-center` sur tout le contenu, donc une
-                marge négative se faisait réabsorber par le recentrage plutôt que de remonter la
-                bannière — fixed la sort du flux et l'aligne indépendamment sur top-6, comme
-                HomeButton. */}
-            <TitleBanner width="w-[1250px]" className="fixed left-1/2 top-6 z-20 -translate-x-1/2">DECK BUILDER</TitleBanner>
 
-            <div className="flex h-[900px] items-stretch gap-4">
-                <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
+            {/* Même traitement que CollectionBook.tsx : bannière + livre + panneau deck dans un
+                seul bloc à taille de conception fixe, que ScaleToFit ramène à la taille de la
+                fenêtre (portrait 1080×1920 compris) via un seul transform scale. La bannière
+                n'est donc plus `fixed` sur la fenêtre : elle doit rétrécir avec le reste plutôt
+                que garder sa taille desktop pendant que le livre rapetisse. */}
+            <ScaleToFit>
+                <div className="flex flex-col items-center gap-1">
+                    <TitleBanner width="w-[1250px]" className="z-20">DECK BUILDER</TitleBanner>
+
+                    <div className="flex h-[900px] items-stretch gap-4">
+                        <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
                 {/* Livre : mêmes pages/cases que la Collection (voir NotebookUI), mais cliquer une
                     carte l'ajoute au deck au lieu d'ouvrir un zoom — pas d'onglet Cards/Card Backs
@@ -459,8 +464,10 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                             </button>
                         </>
                     )}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </ScaleToFit>
 
             {pendingDelete && (
                 <div

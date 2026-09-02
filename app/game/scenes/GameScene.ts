@@ -157,9 +157,12 @@ export class GameScene extends Phaser.Scene
         this.flow.awaitingTarget = false;
         this.input_.clearWaitingState();
 
-        const text = winner === "you" ? "YOU WIN!!" : "YOU LOSE :(";
-        const color = winner === "you" ? "#03c844" : "#760606";
-        new GameOverOverlay(this, text, color);
+        this.animationQueue.runAfterDrain(() =>
+        {
+            const text = winner === "you" ? "YOU WIN!!" : "YOU LOSE :(";
+            const color = winner === "you" ? "#03c844" : "#760606";
+            new GameOverOverlay(this, text, color);
+        });
     }
 
     private onServerEvent(event: GameEvent): void

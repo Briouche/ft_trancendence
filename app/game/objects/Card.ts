@@ -20,9 +20,19 @@ export interface CardData
     attack?: number;
     health?: number;
     maxHealth?: number;
+    baseAttack?: number;
+    baseHealth?: number;
     canAttack?: boolean;
     requiresTarget: boolean;
     effects: clientEffect;
+}
+
+
+export function withStartingStats(data: CardData): CardData
+{
+    if (data.baseAttack === undefined && data.baseHealth === undefined)
+        return data;
+    return { ...data, attack: data.baseAttack ?? data.attack, health: data.baseHealth ?? data.health, maxHealth: data.baseHealth ?? data.maxHealth };
 }
 
 export class Card extends Phaser.GameObjects.Container
@@ -202,10 +212,10 @@ export class Card extends Phaser.GameObjects.Container
             else
                 this.attackText.setColor(MAX_STAT_COLOR);
 
-            if (health > this.startingHealth)
-                this.healthText.setColor(BUFFED_STAT_COLOR);
-            else if (health < this.cardData.maxHealth)
+            if (health < this.cardData.maxHealth)
                 this.healthText.setColor(STAT_COLOR);
+            else if (health > this.startingHealth)
+                this.healthText.setColor(BUFFED_STAT_COLOR);
             else
                 this.healthText.setColor(MAX_STAT_COLOR);
         }

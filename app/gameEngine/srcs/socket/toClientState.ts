@@ -43,6 +43,8 @@ export function toClientCard(card: Card): ClientCard
         clientCard.attack = card.attack;
         clientCard.health = card.currentHealth;
         clientCard.maxHealth = card.maxHealth;
+        clientCard.baseAttack = card.baseAttack;
+        clientCard.baseHealth = card.baseMaxHealth;
         clientCard.canAttack = card.canAttack;
         if (card.effects.taunt)
             clientCard.effects.taunt = true;
@@ -75,6 +77,10 @@ function toClientHero(player: Player): ClientHero
         data.archi = player.archimedeCount;
     else if (player.legPassive == "freddy")
         data.freddy = player.freddyCount;
+    else if (player.legPassive == "roidesrats")
+        data.roiDesRats = player.roiDesRatsCount;
+    else if (player.legPassive == "gertrude")
+        data.gertrude = player.gertrudeCount;
     return data;
 }
 

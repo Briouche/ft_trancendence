@@ -11,6 +11,7 @@ import {
     Slot, PageArrow, SearchInput,
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground, HomeButton, TitleBanner,
 } from '@/components/notebook/NotebookUI'
+import ScaleToFit from '@/components/ScaleToFit'
 import CardZoom from './CardZoom'
 
 type Card = CardFaceData & { ownedQty: number }
@@ -210,21 +211,23 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
             style={woodenTableBackground}
         >
             <HomeButton onClick={() => router.push('/')} />
-            {/* fixed (pas dans le flux) : le parent est en `justify-center` sur tout le contenu,
-                une marge négative se ferait réabsorber par le recentrage plutôt que de remonter
-                la bannière — fixed l'aligne indépendamment sur top-6, comme HomeButton (voir
-                DeckBuilder.tsx pour le même traitement). */}
-            <TitleBanner className="fixed left-1/2 top-6 z-20 -translate-x-1/2">CARD COLLECTION</TitleBanner>
 
-            {/* Flèches en dehors du livre : plus de bouton (fond/cadre) — juste l'icône
-                "Arrow01a" animée, quasi invisible sauf quand la souris s'approche du bord du
-                livre (zone de survol large, PageArrow). Taille fixe du livre (largeur ET
-                hauteur, pas de max-w responsive) : il ne doit jamais changer de dimensions en
-                changeant d'onglet ou de page — agrandie de 900×1160 à 990×1280. z-10 : la
-                bannière du titre est en `fixed` (voir plus haut) et pourrait sinon passer
-                au-dessus du haut du livre. */}
-            <div className="relative z-10 flex h-[990px] items-stretch gap-1">
-                <PageArrow direction="prev" onClick={goPrev} disabled={page === 0} />
+            {/* Bannière + livre dans un seul bloc à taille de conception fixe (comportement
+                inchangé : dimensions internes en pixels, jamais retouchées selon l'onglet/page),
+                que ScaleToFit ramène en un seul transform à la taille de la fenêtre — portrait
+                1080×1920 compris. La bannière n'est donc plus `fixed` sur la fenêtre : elle doit
+                rétrécir avec le livre, pas rester à sa taille desktop pendant qu'il rapetisse. */}
+            <ScaleToFit>
+                <div className="flex flex-col items-center gap-1">
+                    <TitleBanner className="z-20">CARD COLLECTION</TitleBanner>
+
+                    {/* Flèches en dehors du livre : plus de bouton (fond/cadre) — juste l'icône
+                        "Arrow01a" animée, quasi invisible sauf quand la souris s'approche du bord
+                        du livre (zone de survol large, PageArrow). Taille fixe du livre (largeur
+                        ET hauteur, pas de responsive) : il ne doit jamais changer de dimensions en
+                        changeant d'onglet ou de page — agrandie de 900×1160 à 990×1280. */}
+                    <div className="relative z-10 flex h-[990px] items-stretch gap-1">
+                        <PageArrow direction="prev" onClick={goPrev} disabled={page === 0} />
 
                 {/* Plus de cadre rouge séparé (.travelbook-cover) : chaque moitié
                     (.travelbook-page/.travelbook-page-right) est maintenant une image de carnet
@@ -240,10 +243,10 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         className="absolute left-0 top-20 z-40 flex flex-col items-end gap-3"
                         style={{ transform: 'translateX(calc(-100% + 54px))' }}
                     >
-                        <SideTab active={tab === 'cards'} onClick={() => setTab('cards')}>
+                        <SideTab active={tab === 'cards'} onClick={() => { setTab('cards'); setZoomedCard(null) }}>
                             <Image src="/textures/collection/icon-cards.png" alt="Cards" width={28} height={28} unoptimized style={{ imageRendering: 'pixelated' }} />
                         </SideTab>
-                        <SideTab active={tab === 'backs'} onClick={() => setTab('backs')}>
+                        <SideTab active={tab === 'backs'} onClick={() => { setTab('backs'); setZoomedCard(null) }}>
                             <Image src="/textures/collection/icon-backs.png" alt="Card backs" width={32} height={32} unoptimized style={{ imageRendering: 'pixelated' }} />
                         </SideTab>
                     </div>
@@ -346,8 +349,10 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                     </div>
                 </div>
 
-                <PageArrow direction="next" onClick={goNext} disabled={page >= totalPages - 1} />
-            </div>
+                        <PageArrow direction="next" onClick={goNext} disabled={page >= totalPages - 1} />
+                    </div>
+                </div>
+            </ScaleToFit>
 
             <CardZoom card={zoomedCard} onClose={() => setZoomedCard(null)} />
         </div>

@@ -78,6 +78,7 @@ model Card {
   taunt     Boolean?
   rush      Boolean?
   archi     Boolean?
+  spellpower Int?
 
   battlecry         Json?
   deathrattle       Json?
