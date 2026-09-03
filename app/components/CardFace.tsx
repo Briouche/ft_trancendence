@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { splitKeywordSegments } from '@/lib/keywords'
 import {
-    CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_DESC_BOX, CARD_DESC_BOX_SPELL,
+    CARD_ART_BOX, CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_DESC_BOX, CARD_DESC_BOX_SPELL,
     CARD_HEALTH_BOX, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, CardBox, isSpellRarity,
 } from '@/lib/cardLayout'
 
@@ -15,13 +15,14 @@ export type CardFaceData = {
     desc: string
     keywords: string[]
     legendId: string
+    assetKey: string
 }
 
-// Ces 7 légendaires ont un portrait dessiné (sources .ase dans collection/icon leg/, exportées en
-// PNG dans public/textures/collection/icon-leg-*.png) — les cartes de famille, qui partagent le
-// legendId brut (id de leur légendaire) plutôt qu'un slug lisible, n'en ont pas : afficher l'image
-// pour elles casserait (image manquante) plutôt que de simplement rester vide comme avant.
-const LEGEND_PORTRAITS = new Set(['timmy', 'archimede', 'freddy', 'jeffe', 'gertrude', 'leon', 'roidesrats'])
+// "placeholder_card" (défaut en base, voir prisma/schema.prisma) = pas d'illustration dessinée
+// pour cette carte — même sentinelle que hasCardArt() côté rendu Phaser (CardAssetLoader.ts).
+function hasCardArt(assetKey: string): boolean {
+    return !!assetKey && assetKey !== 'placeholder_card'
+}
 
 // Cadres dessinés à la main (sources .ase dans Documents/, exportés en PNG via un script maison —
 // pas de licence à créditer, ce sont les assets du projet) : Commune, Épique et Légendaire pour
@@ -116,16 +117,15 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                     style={{ backgroundImage: `url(${art})`, backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
                 />
 
-                {/* Portrait du légendaire, dans la grande zone restée vide entre la case du nom
-                    (bas ~12.1%) et celle du texte (haut 57.1%) — un seul badge centré (pas étiré
-                    pour remplir toute la zone), à sa propre proportion, pas la même pour les 4
-                    portraits actuels. */}
-                {card.rarity === 'Légendaire' && LEGEND_PORTRAITS.has(card.legendId) && (
+                {/* Illustration de la carte, dans le vrai trou découpé du cadre (CARD_ART_BOX,
+                    identique au rendu Phaser en jeu — voir cardLayout.ts) — rien pour les cartes
+                    qui n'ont pas encore d'illustration dessinée (assetKey par défaut). */}
+                {hasCardArt(card.assetKey) && (
                     <div
                         className="absolute"
                         style={{
-                            left: '25%', top: '16%', width: '50%', height: '36%',
-                            backgroundImage: `url(/textures/collection/icon-leg-${card.legendId}.png)`,
+                            ...boxStyle(CARD_ART_BOX),
+                            backgroundImage: `url(/textures/cards/images/${card.assetKey}.webp)`,
                             backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
                             imageRendering: 'pixelated',
                         }}
