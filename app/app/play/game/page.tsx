@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import PhaserLoader from "@/components/game/PhaserLoader";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
@@ -15,9 +17,18 @@ export default async function PlayGamePage({ searchParams }: { searchParams: Pro
   if (!Number.isInteger(deckId) || deckId <= 0)
     redirect("/play");
 
+  // Dos de carte cosmétique équipé par le joueur (Collection/profil, voir lib/cardBacks.ts) —
+  // 0 (le premier, offert d'office à tout le monde) si la session est introuvable, plutôt que de
+  // bloquer cette page qui n'a jamais fait de vérif de session jusqu'ici.
+  const session = await getSession();
+  const user = session
+    ? await prisma.user.findUnique({ where: { id: session.userId }, select: { cardBack: true } })
+    : null;
+  const cardBack = user?.cardBack ?? 0;
+
   return (
     <div>
-      <PhaserLoader mode={mode} difficulty={difficulty} deckId={deckId} />
+      <PhaserLoader mode={mode} difficulty={difficulty} deckId={deckId} cardBack={cardBack} />
     </div>
   );
 }

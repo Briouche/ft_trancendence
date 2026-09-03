@@ -43,7 +43,7 @@ export class StateSyncController
         {
             const hand = new Hand(this.scene);
             const board = new Board(this.scene, 6, state.playerHero, state.opponentHero);
-            const opponentHand = new OpponentHand(this.scene);
+            const opponentHand = new OpponentHand(this.scene, state.opponentHero.cardBack);
 
             this.table = { hand, board, opponentHand };
             this.onTableCreated(this.table);

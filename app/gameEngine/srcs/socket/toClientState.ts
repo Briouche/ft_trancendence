@@ -73,7 +73,7 @@ export function toClientCard(card: Card): ClientCard
 function toClientHero(player: Player): ClientHero
 {
     // Use the hero's own id and name so the client receives full hero identity emitted by the engine
-    let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth };
+    let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth, cardBack: player.cardBack };
     if (player.legPassive == "archimede")
         data.archi = player.archimedeCount;
     else if (player.legPassive == "freddy")

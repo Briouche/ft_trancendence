@@ -4,11 +4,11 @@ export class OpponentCard extends Phaser.GameObjects.Container
 {
     private back: Phaser.GameObjects.Image;
 
-    constructor(scene: Phaser.Scene, width: number, height: number)
+    constructor(scene: Phaser.Scene, width: number, height: number, cardBackKey = "cardBack_0")
     {
         super(scene, 0, 0);
 
-        this.back = scene.add.image(0, 0, "cardBack");
+        this.back = scene.add.image(0, 0, cardBackKey);
         this.back.setOrigin(0.5, 0.5);
         this.add(this.back);
 

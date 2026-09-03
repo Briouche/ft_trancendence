@@ -21,13 +21,18 @@ export class Player
     public archimedeCount: number = 0;
     public roiDesRatsCount: number = 0;
     public gertrudeCount: number = 0;
+    // Dos de carte cosmétique (catalogue partagé avec la Collection/le profil côté Next.js, voir
+    // app/lib/cardBacks.ts) — envoyé par le client pour un humain, tiré au sort pour l'IA (voir
+    // serverSocket.ts). Purement visuel, ne pèse jamais sur les règles du jeu.
+    public cardBack: number;
 
-    constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1)
+    constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1, cardBack: number = 0)
     {
         this.hero = hero;
         this.deck = deck;
         this.id = id;
         this.index = index;
+        this.cardBack = cardBack;
         this.hand = new Hand();
         this.currentMana = 0;
         this.maxMana = 0;
@@ -89,7 +94,7 @@ export class Player
 
     clone(): Player
     {
-        const copy = new Player(this.hero.clone(), this.deck.clone(), this.id, this.index);
+        const copy = new Player(this.hero.clone(), this.deck.clone(), this.id, this.index, this.cardBack);
         copy.hand        = this.hand.clone();
         copy.currentMana = this.currentMana;
         copy.maxMana     = this.maxMana;

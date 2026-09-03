@@ -78,8 +78,8 @@ export class Board
 
         this.endTurn = new EndTurn(scene, 10, 10);
         this.playerManaBar = new Manabar(scene, 0, 0, 250, 30);
-        this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
-        this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
+        this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO, `cardBack_${playerHeroData.cardBack}`);
+        this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO, `cardBack_${opponentHeroData.cardBack}`);
     }
 
     layout(width = this.scene.scale.width, height = this.scene.scale.height): void

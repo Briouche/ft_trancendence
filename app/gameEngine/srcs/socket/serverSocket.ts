@@ -8,7 +8,21 @@ import { GameSession, Seat } from "./gameSession";
 import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId } from "../cardImport/cardLoader";
 
-type WaitingPlayer = { socket: Socket; deckId: number };
+// Garde en phase avec app/lib/cardBacks.ts (Next.js) — même duplication volontaire que le reste
+// de shared/protocol.ts, ce process n'a pas accès à cet alias.
+const CARD_BACK_COUNT = 8;
+
+function clampCardBack(value: number): number
+{
+    return Number.isInteger(value) && value >= 0 && value < CARD_BACK_COUNT ? value : 0;
+}
+
+function randomCardBack(): number
+{
+    return Math.floor(Math.random() * CARD_BACK_COUNT);
+}
+
+type WaitingPlayer = { socket: Socket; deckId: number; cardBack: number };
 
 export function createGameServer(port: number): void
 {
@@ -69,8 +83,8 @@ export function createGameServer(port: number): void
                     return;
                 }
 
-                const player0: Player = new Player(new Hero("Player 1"), playerDeck, "hero-0", 0);
-                const player1: Player = new Player(new Hero("AI"), makeBasicDeck("hola", 2), "hero-1", 1);
+                const player0: Player = new Player(new Hero("Player 1"), playerDeck, "hero-0", 0, clampCardBack(msg.cardBack));
+                const player1: Player = new Player(new Hero("AI"), makeBasicDeck("hola", 2), "hero-1", 1, randomCardBack());
 
                 const humanSeat: Seat = { kind: "human", socket };
                 const aiSeat: Seat = { kind: "ai" };
@@ -91,7 +105,7 @@ export function createGameServer(port: number): void
             if (waiting.some(w => w.socket === socket))
                 return;
 
-            waiting.push({ socket, deckId: msg.deckId });
+            waiting.push({ socket, deckId: msg.deckId, cardBack: clampCardBack(msg.cardBack) });
 
             if (waiting.length >= 2)
             {
@@ -113,8 +127,8 @@ export function createGameServer(port: number): void
                     return;
                 }
 
-                const player0: Player = new Player(new Hero("Jimmy", "hero-0"), deck0, "hero-0", 0);
-                const player1: Player = new Player(new Hero("Franky", "hero-1"), deck1, "hero-1", 1);
+                const player0: Player = new Player(new Hero("Jimmy", "hero-0"), deck0, "hero-0", 0, w0.cardBack);
+                const player1: Player = new Player(new Hero("Franky", "hero-1"), deck1, "hero-1", 1, w1.cardBack);
 
                 const seat0: Seat = { kind: "human", socket: w0.socket };
                 const seat1: Seat = { kind: "human", socket: w1.socket };

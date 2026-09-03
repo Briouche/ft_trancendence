@@ -39,6 +39,7 @@ export interface ClientHero
     freddy?: number;
     roiDesRats?: number;
     gertrude?: number;
+    cardBack: number;
 }
 
 export interface ClientGameState 
@@ -79,8 +80,8 @@ export interface TargetPrompt
 
 export type Difficulty = "facile" | "moyen" | "difficile";
 
-export type ClientMessage = { type: "ready"; deckId: number }
-                            | { type: "readySolo"; difficulty: Difficulty; deckId: number }
+export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
+                            | { type: "readySolo"; difficulty: Difficulty; deckId: number; cardBack: number }
                             | { type: "playCard"; cardId: string; boardIndex?: number; }
                             | { type: "attack"; attackerId: string; targetId: string; }
                             | { type: "targetChoice"; targetId: string | null }

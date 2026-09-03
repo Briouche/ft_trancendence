@@ -6,7 +6,7 @@ import type { Difficulty } from "@/game/shared/protocol";
 
 const GameLauncher = dynamic(() => import("@/components/game/GameLauncher"), { ssr: false });
 
-export default function PhaserLoader({ mode, difficulty, deckId }: { mode: GameMode; difficulty: Difficulty; deckId: number })
+export default function PhaserLoader({ mode, difficulty, deckId, cardBack }: { mode: GameMode; difficulty: Difficulty; deckId: number; cardBack: number })
 {
-  return <GameLauncher mode={mode} difficulty={difficulty} deckId={deckId} />;
+  return <GameLauncher mode={mode} difficulty={difficulty} deckId={deckId} cardBack={cardBack} />;
 }

@@ -54,6 +54,7 @@ export interface HeroData
     freddy?: number;
     roiDesRats?: number;
     gertrude?: number;
+    cardBack: number;
 }
 
 export class Hero extends Phaser.GameObjects.Container

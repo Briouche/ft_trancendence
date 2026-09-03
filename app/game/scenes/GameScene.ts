@@ -40,17 +40,19 @@ export class GameScene extends Phaser.Scene
     private mode!: GameMode;
     private difficulty!: Difficulty;
     private deckId!: number;
+    private cardBack!: number;
 
     constructor()
     {
         super("GameScene");
     }
 
-    init(data: { mode: GameMode; difficulty: Difficulty; deckId: number })
+    init(data: { mode: GameMode; difficulty: Difficulty; deckId: number; cardBack: number })
     {
         this.mode = data.mode;
         this.difficulty = data.difficulty;
         this.deckId = data.deckId;
+        this.cardBack = data.cardBack;
     }
 
     create()
@@ -76,9 +78,9 @@ export class GameScene extends Phaser.Scene
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         if (this.mode === "solo")
-            EventManager.emit("client:readySolo", { difficulty: this.difficulty, deckId: this.deckId });
+            EventManager.emit("client:readySolo", { difficulty: this.difficulty, deckId: this.deckId, cardBack: this.cardBack });
         else
-            EventManager.emit("client:ready", this.deckId);
+            EventManager.emit("client:ready", { deckId: this.deckId, cardBack: this.cardBack });
     }
 
     private layoutBackground()

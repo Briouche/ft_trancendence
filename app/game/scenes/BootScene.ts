@@ -3,23 +3,26 @@ import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 import { ensureCardFontLoaded } from "@/game/objects/gameFonts";
 import { GAME_FONT_FAMILY_KEY } from "@/game/objects/gameFontRegistry";
+import { CARD_BACK_COUNT } from "@/lib/cardBacks";
 
 export class BootScene extends Phaser.Scene
 {
     private mode!: GameMode;
     private difficulty!: Difficulty;
     private deckId!: number;
+    private cardBack!: number;
 
     constructor()
     {
         super("BootScene");
     }
 
-    init(data: { mode: GameMode; difficulty: Difficulty; deckId: number })
+    init(data: { mode: GameMode; difficulty: Difficulty; deckId: number; cardBack: number })
     {
         this.mode = data.mode;
         this.difficulty = data.difficulty;
         this.deckId = data.deckId;
+        this.cardBack = data.cardBack;
     }
 
     preload() {
@@ -28,7 +31,6 @@ export class BootScene extends Phaser.Scene
         this.load.image("shield_taunt", "/gameAssets/shield_taunt.png");
         this.load.image("effect_lightning", "/gameAssets/lightning_bolt.png");
         this.load.image("wooden_table", "/gameAssets/wooden_table.webp");
-        this.load.image("cardBack", "/gameAssets/cardBack.webp");
         this.load.image("banner", "/gameAssets/UI_NoteBook_Banner04a.png");
         this.load.image("emptyEnergy", "/gameAssets/UI_TravelBook_IconEnergy01g.png");
         this.load.image("fullEnergy", "/gameAssets/UI_TravelBook_IconEnergy02a.png");
@@ -38,12 +40,19 @@ export class BootScene extends Phaser.Scene
         this.load.image("frame_rare", "/textures/cards/frame-rare.png");
         this.load.image("frame_epique", "/textures/cards/frame-epique.png");
         this.load.image("frame_legendaire", "/textures/cards/frame-legendaire.png");
+
+        // Les 8 dos de carte cosmétiques (catalogue partagé avec la Collection/le profil, voir
+        // lib/cardBacks.ts) — un seul par joueur/adversaire, donc autant les précharger tous ici
+        // (petites images) plutôt que de reprendre le chargement asynchrone à la volée utilisé
+        // pour les illustrations de carte (CardAssetLoader.ts, catalogue bien plus grand, lui).
+        for (let i = 0; i < CARD_BACK_COUNT; i++)
+            this.load.image(`cardBack_${i}`, `/textures/cards/backs/${i}.png`);
     }
 
     async create()
     {
         const fontFamily = await ensureCardFontLoaded();
         this.game.registry.set(GAME_FONT_FAMILY_KEY, fontFamily);
-        this.scene.start("GameScene", { mode: this.mode, difficulty: this.difficulty, deckId: this.deckId });
+        this.scene.start("GameScene", { mode: this.mode, difficulty: this.difficulty, deckId: this.deckId, cardBack: this.cardBack });
     }
 }
