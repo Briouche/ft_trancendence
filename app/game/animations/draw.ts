@@ -1,4 +1,4 @@
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 import { OpponentCard } from "../objects/OpponentCard";
 
 export function drawCardAnimation(scene: Phaser.Scene, card: Card, fromX: number, fromY: number): Promise<void>

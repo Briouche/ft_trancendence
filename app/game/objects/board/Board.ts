@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../Card";
+import { Card, CardData } from "../card/Card";
 import { Hero, HeroData } from "../Hero";
 import { Target } from "../Target";
 import { EndTurn } from "../EndTurn";
@@ -120,8 +120,8 @@ export class Board
         {
             const playerTarget = this.targets.at(i * 2);
             const opponentTarget = this.targets.at(i * 2 + 1);
-            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight, 0.9);
-            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight, 0.9);
+            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight, 1);
+            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight, 1);
         }
 
         const heroSize = height * HERO_SIZE_RATIO;

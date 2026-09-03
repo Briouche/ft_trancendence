@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { EventManager } from "../EventManager";
+import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
 const BUTTON_COLOR = 0x2b4a2b;
 const BUTTON_HOVER_COLOR = 0x3a663a;
@@ -15,9 +16,10 @@ export class EndTurn extends Phaser.GameObjects.Container
     {
         super(scene, 0, 0);
 
+        const fontFamily = scene.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
         this.background = scene.add.rectangle(0, 0, width, height, BUTTON_COLOR).setStrokeStyle(2, BUTTON_STROKE);
         this.label = scene.add.text(0, 0, "End Turn",
-            { fontSize: `${Math.round(height * 0.35)}px`, color: LABEL_COLOR }).setOrigin(0.5);
+            { fontFamily, fontSize: `${Math.round(height * 0.4)}px`, color: LABEL_COLOR }).setOrigin(0.5);
 
         this.add([this.background, this.label]);
         this.setSize(width, height);
@@ -32,7 +34,7 @@ export class EndTurn extends Phaser.GameObjects.Container
     resize(width: number, height: number)
     {
         this.background.setSize(width, height);
-        this.label.setFontSize(Math.round(height * 0.35));
+        this.label.setFontSize(Math.round(height * 0.4));
         this.setSize(width, height);
         this.setDepth(500);
 

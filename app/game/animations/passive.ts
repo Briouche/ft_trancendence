@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 
 const GLOW_COLOR = 0xfff066;
 const PULSE_DURATION = 220;

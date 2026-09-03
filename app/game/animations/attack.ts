@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 
 export function attackAnimation(scene: Phaser.Scene, attacker: Card, targetX: number, targetY: number): Promise<void>
 {

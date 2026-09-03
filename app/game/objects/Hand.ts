@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../objects/Card";
+import { Card, CardData } from "./card/Card";
 import { attachCardHover } from "../animations";
 
 const HAND_Y_RATIO = 0.14;
-const CARD_HEIGHT_RATIO = 0.28;
+const CARD_HEIGHT_RATIO = 0.26;
 const CARD_ASPECT_RATIO = 1.4;
 const OVERLAP_RATIO = 0.55;
 const MAX_HAND_SPAN_RATIO = 0.5;

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "@/game/objects/Card";
+import { Card } from "@/game/objects/card/Card";
 import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 
 const GROW_SCALE = 4.2;
 const DURATION = 700;

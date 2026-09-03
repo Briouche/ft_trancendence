@@ -36,12 +36,12 @@ function safeNumber(value: string): number
     return Number.isNaN(n) ? 0 : n
 }
 
-export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
+export function rawToMinionCard(raw: RawCard, playerPrefix = "", suffix = ""): MinionCard
 {
     const keywords = raw.keywords ?? []
 
     return new MinionCard(
-        `${playerPrefix}${raw.id}`,
+        `${playerPrefix}${raw.id}${suffix}`,
         raw.name,
         safeNumber(raw.cost),
         raw.desc,
@@ -66,12 +66,12 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = ""): MinionCard
     )
 }
 
-function rawToCard(raw: RawCard, playerPrefix = ""): Card
+function rawToCard(raw: RawCard, playerPrefix = "", suffix = ""): Card
 {
     if (raw.type === "sort")
     {
         return new SpellCard(
-            `${playerPrefix}${raw.id}`,
+            `${playerPrefix}${raw.id}${suffix}`,
             raw.name,
             +raw.cost,
             raw.desc,
@@ -83,7 +83,7 @@ function rawToCard(raw: RawCard, playerPrefix = ""): Card
     }
 
         else
-        return rawToMinionCard(raw, playerPrefix)
+        return rawToMinionCard(raw, playerPrefix, suffix)
 }
 
 export async function loadAllCards(): Promise<RawCard[]>
@@ -102,9 +102,14 @@ export async function makeCollectionDeck(playerPrefix = ""): Promise<Deck>
     const legend = pickRandom(legendaries)
     const picked = shuffle(commons).slice(0, 20)
 
+    // Every card built for a player's deck gets a unique, incrementing postfix on top of the
+    // player prefix — otherwise two copies of the same card (or, here, an unlucky reshuffle)
+    // would collide on id, since rawToCard/rawToMinionCard build it deterministically from
+    // playerPrefix + raw.id alone.
+    let counter = 0
     const gameCards: Card[] = [
-        rawToCard(legend, playerPrefix),
-        ...picked.map(c => rawToCard(c, playerPrefix)),
+        rawToCard(legend, playerPrefix, `_${counter++}`),
+        ...picked.map(c => rawToCard(c, playerPrefix, `_${counter++}`)),
     ]
 
     return new Deck(gameCards)
@@ -116,12 +121,17 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
     const rows = await prisma.card.findMany({ where: { id: { in: cardIds } } })
     const byId = new Map(rows.map(c => [c.id, c]))
 
+    // Duplicate copies of the same card share the same `id` occurrence here, so a plain
+    // playerPrefix isn't enough to keep them distinct within one deck (findIndex/Map lookups by
+    // card id would then silently collide) — the per-card counter guarantees uniqueness even
+    // when the same card appears more than once.
     const gameCards: Card[] = []
+    let counter = 0
     for (const id of cardIds)
     {
         const raw = byId.get(id)
         if (raw)
-            gameCards.push(rawToCard(raw, playerPrefix))
+            gameCards.push(rawToCard(raw, playerPrefix, `_${counter++}`))
     }
 
     return new Deck(gameCards)

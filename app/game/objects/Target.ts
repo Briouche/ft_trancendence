@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "./Card";
+import { Card } from "./card/Card";
 import { Hero } from "./Hero";
 
 export type ResolvedTarget = { kind: "hero"; hero: Hero; id: string } | { kind: "minion"; card: Card; id: string };

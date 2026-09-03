@@ -1,8 +1,9 @@
 import Phaser from "phaser";
+import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
 const DEFAULT_SIZE = 90;
 const BUFFED_HEALTH_COLOR = "#03c844";
-const MAX_HEALTH_COLOR = "#000000";
+const MAX_HEALTH_COLOR = "#ffffff";
 const HEALTH_COLOR = "#760606";
 const PORTRAIT_COLOR = 0x3a2b2b;
 const STROKE_COLOR = 0xff5555;
@@ -22,9 +23,9 @@ const FRAME_OFFSET_Y_RATIO = 0.13;
 const OPPONENT_FRAME_OFFSET_X_RATIO = -0.17;
 const OPPONENT_FRAME_OFFSET_Y_RATIO = -0.12;
 
-const HEALTH_TEXT_OFFSET_X_RATIO = -0.58;
+const HEALTH_TEXT_OFFSET_X_RATIO = -0.62;
 const HEALTH_TEXT_OFFSET_Y_RATIO = 0.3;
-const OPPONENT_HEALTH_TEXT_OFFSET_X_RATIO = 0.58;
+const OPPONENT_HEALTH_TEXT_OFFSET_X_RATIO = 0.60;
 const OPPONENT_HEALTH_TEXT_OFFSET_Y_RATIO = -0.3;
 const HEALTH_TEXT_DEPTH = 10;
 
@@ -64,6 +65,7 @@ export class Hero extends Phaser.GameObjects.Container
     private healthText: Phaser.GameObjects.Text;
     private size: number;
     private isOpponent: boolean;
+    private fontFamily: string | undefined;
 
     private counterType?: "freddy" | "archi" | "roiDesRats" | "gertrude";
     private counterCircle?: Phaser.GameObjects.Arc;
@@ -80,12 +82,13 @@ export class Hero extends Phaser.GameObjects.Container
         this.heroData = heroData;
         this.size = size;
         this.isOpponent = isOpponent;
+        this.fontFamily = scene.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
 
         this.portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
         this.nameText = scene.add.text(0, -size * 0.2, heroData.name,
-            { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
+            { fontFamily: this.fontFamily, fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
         this.healthText = scene.add.text(0, 0, `${heroData.health}`,
-            { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR, stroke: "#ffffff", strokeThickness: 4  }).setDepth(HEALTH_TEXT_DEPTH);
+            { fontFamily: this.fontFamily, fontSize: `${Math.round(size * 0.34)}px`, color: MAX_HEALTH_COLOR, stroke: "#000000", strokeThickness: 4  }).setDepth(HEALTH_TEXT_DEPTH);
 
         const frameOffset = this.getFrameOffset(size);
         this.frame = scene.add.image(frameOffset.x, frameOffset.y, isOpponent ? "opponentHeroFrame" : "heroFrame");
@@ -107,7 +110,7 @@ export class Hero extends Phaser.GameObjects.Container
         this.portrait.setSize(size, size);
         this.nameText.setPosition(0, -size * 0.5);
         this.nameText.setFontSize(`${Math.round(size * 0.14)}px`);
-        this.healthText.setFontSize(`${Math.round(size * 0.3)}px`);
+        this.healthText.setFontSize(`${Math.round(size * 0.34)}px`);
         const frameOffset = this.getFrameOffset(size);
         this.frame.setPosition(frameOffset.x, frameOffset.y);
         this.frame.setDisplaySize(size * FRAME_SCALE, size * FRAME_SCALE);
@@ -253,7 +256,7 @@ export class Hero extends Phaser.GameObjects.Container
 
         this.counterCircle = this.scene.add.circle(0, 0, radius, COUNTER_COLOR).setStrokeStyle(2, COUNTER_STROKE_COLOR);
         this.counterText = this.scene.add.text(0, 0, `${value}/${COUNTER_INFO[type].divisor}`,
-            { fontSize: `${Math.round(radius * 0.9)}px`, color: "#fff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
+            { fontFamily: this.fontFamily, fontSize: `${Math.round(radius * 0.9)}px`, color: "#fff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 
         this.add([this.counterCircle, this.counterText]);
         this.sort("depth");
@@ -288,7 +291,7 @@ export class Hero extends Phaser.GameObjects.Container
         this.hideTooltip();
 
         this.tooltipText = this.scene.add.text(0, 0, description,
-            { fontSize: "12px", color: "#fff" }).setOrigin(0, 0);
+            { fontFamily: this.fontFamily, fontSize: "12px", color: "#fff" }).setOrigin(0, 0);
         const width = this.tooltipText.width + TOOLTIP_PADDING * 2;
         const height = this.tooltipText.height + TOOLTIP_PADDING * 2;
         const x = circle.x + circle.radius;
