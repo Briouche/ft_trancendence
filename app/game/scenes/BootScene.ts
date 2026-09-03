@@ -41,16 +41,22 @@ export class BootScene extends Phaser.Scene
         this.load.image("frame_epique", "/textures/cards/frame-epique.png");
         this.load.image("frame_legendaire", "/textures/cards/frame-legendaire.png");
 
-        // Les 8 dos de carte cosmétiques (catalogue partagé avec la Collection/le profil, voir
-        // lib/cardBacks.ts) — un seul par joueur/adversaire, donc autant les précharger tous ici
-        // (petites images) plutôt que de reprendre le chargement asynchrone à la volée utilisé
-        // pour les illustrations de carte (CardAssetLoader.ts, catalogue bien plus grand, lui).
+
         for (let i = 0; i < CARD_BACK_COUNT; i++)
             this.load.image(`cardBack_${i}`, `/textures/cards/backs/${i}.png`);
     }
 
+
+    private static readonly PIXELATED_TEXTURE_KEYS = [
+        "banner", "emptyEnergy", "fullEnergy", "heroFrame", "opponentHeroFrame",
+        ...Array.from({ length: CARD_BACK_COUNT }, (_, i) => `cardBack_${i}`),
+    ];
+
     async create()
     {
+        for (const key of BootScene.PIXELATED_TEXTURE_KEYS)
+            this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+
         const fontFamily = await ensureCardFontLoaded();
         this.game.registry.set(GAME_FONT_FAMILY_KEY, fontFamily);
         this.scene.start("GameScene", { mode: this.mode, difficulty: this.difficulty, deckId: this.deckId, cardBack: this.cardBack });

@@ -3,10 +3,10 @@ import { Player } from "../player";
 import { Hero } from "../hero";
 import { Deck } from "../deck";
 import { Hand } from "../hand";
-import { makeBasicDeck } from "../deck";
 import { GameSession, Seat } from "./gameSession";
 import { ClientMessage, ServerMessage } from "../shared/protocol";
-import { makeDeckFromDeckId } from "../cardImport/cardLoader";
+import { makeDeckFromDeckId, makeDeckFromNames } from "../cardImport/cardLoader";
+import { pickRandomAiDeck } from "../cardImport/aiDecks";
 
 // Garde en phase avec app/lib/cardBacks.ts (Next.js) — même duplication volontaire que le reste
 // de shared/protocol.ts, ce process n'a pas accès à cet alias.
@@ -73,9 +73,13 @@ export function createGameServer(port: number): void
                     return;
 
                 // Deck du joueur = celui choisi dans le menu (deck builder), plus de deck codé en
-                // dur ni pioché au hasard dans la collection — voir PlayModeSelector.tsx. L'IA
-                // n'a pas de deck sauvegardé, elle garde le deck de base existant.
-                const playerDeck: Deck | null = await makeDeckFromDeckId(msg.deckId, "hey");
+                // dur ni pioché au hasard dans la collection — voir PlayModeSelector.tsx. Deck de
+                // l'IA = un des 3 decks écrits à la main dans aiDecks.ts, tiré au sort — pas lié à
+                // un compte, donc joue des cartes même si le joueur humain ne les possède pas.
+                const [playerDeck, aiDeck]: [Deck | null, Deck] = await Promise.all([
+                    makeDeckFromDeckId(msg.deckId, "hey"),
+                    makeDeckFromNames(pickRandomAiDeck(), "hola"),
+                ]);
                 if (!playerDeck)
                 {
                     const rejection: ServerMessage = { type: "rejected", reason: "Deck introuvable ou vide." };
@@ -84,7 +88,7 @@ export function createGameServer(port: number): void
                 }
 
                 const player0: Player = new Player(new Hero("Player 1"), playerDeck, "hero-0", 0, clampCardBack(msg.cardBack));
-                const player1: Player = new Player(new Hero("AI"), makeBasicDeck("hola", 2), "hero-1", 1, randomCardBack());
+                const player1: Player = new Player(new Hero("AI"), aiDeck, "hero-1", 1, randomCardBack());
 
                 const humanSeat: Seat = { kind: "human", socket };
                 const aiSeat: Seat = { kind: "ai" };

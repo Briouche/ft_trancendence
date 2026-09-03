@@ -138,7 +138,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                     style={boxStyle(isSpell ? CARD_NAME_BOX_SPELL : CARD_NAME_BOX)}
                 >
                     <p
-                        className="truncate text-center font-card font-bold text-ink-900"
+                        className="truncate text-center font-card text-ink-900"
                         style={{ fontSize: nameFontSize(card.name) }}
                     >
                         {card.name}

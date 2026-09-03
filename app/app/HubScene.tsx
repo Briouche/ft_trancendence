@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { PerspectiveCamera, RoundedBox, Sparkles, Html } from '@react-three/drei'
+import { PerspectiveCamera, RoundedBox, Sparkles, Html, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import Lantern from '@/components/library/Lantern'
 import Candle from '@/components/library/Candle'
@@ -25,38 +25,39 @@ import AccountMenu from './AccountMenu'
 // GAME_DOOR_ANGLE occupe un de ces emplacements (les bibliothèques voisines débordent dedans,
 // donc pas de trou même si la porte elle-même est plus étroite).
 const RING_RADIUS = 5.6
-// La porte du sous-sol occupe un créneau proche du centre (13°), pas pile 0° — pour qu'elle
-// s'inscrive dans la même progression que les 3 autres plutôt que de lire comme "LE centre".
-// Deux créneaux (0° et 26°) sont laissés libres de part et d'autre pour lui donner de la place —
-// mais ça laissait un vrai trou visible (la porte ne touchait plus aucune bibliothèque). Les deux
-// angles ci-dessous rajoutent une bibliothèque calée juste contre chaque bord du cadre de la
-// porte, en plus de la grille régulière, pour refermer ce trou sans réduire l'espace de la porte.
-const GAME_DOOR_ANGLE = 13
-const SHELF_RING_ANGLES = [-78, -65, -52, -39, -26, -13, 39, 52, 65, 78]
-const DOOR_FLANK_ANGLES = [-7, 33]
+// La porte du sous-sol occupe maintenant le créneau plein centre (0°) — 5 emplacements dans le
+// hall (Collection/Deck/Porte/Bibliothécaire/Tuto), la porte au milieu du lot. Deux créneaux de
+// part et d'autre du centre sont laissés libres pour lui donner de la place — mais ça laissait un
+// vrai trou visible (la porte ne touchait plus aucune bibliothèque). Les deux angles ci-dessous
+// rajoutent une bibliothèque calée juste contre chaque bord du cadre de la porte, en plus de la
+// grille régulière, pour refermer ce trou sans réduire l'espace de la porte.
+const GAME_DOOR_ANGLE = 0
+const SHELF_RING_ANGLES = [-91, -78, -65, -52, -39, -26, 26, 39, 52, 65, 78, 91]
+const DOOR_FLANK_ANGLES = [-20, 20]
 // Torches murales, montées sur certaines de ces bibliothèques (pas toutes — juste assez pour
 // éclairer la pièce par endroits, sans recréer le lavage uniforme qu'on veut éviter).
 const TORCH_ANGLES = [-65, -26, 26, 65]
 const TORCH_HEIGHT = 2.15
 
-type Variant = 'books' | 'table' | 'librarian' | 'door'
+type Variant = 'books' | 'table' | 'librarian' | 'door' | 'tuto'
 type Layout = { angleDeg: number; radius: number; variant: Variant }
 
-// Rayons des 3 portes "posées au sol" bien inférieurs à RING_RADIUS : elles doivent rester
+// Rayons des 4 éléments "posés au sol" bien inférieurs à RING_RADIUS : ils doivent rester
 // devant le mur de bibliothèques, jamais le traverser. Ordre gauche→droite, espacement régulier
-// (~29-32°) : Collection, Deck, Sous-sol, Bibliothécaire — le sous-sol est le 3ème de la
-// séquence, pas un élément à part planté au centre de la pièce.
-// Même rayon pour les 3 éléments "posés dans la pièce" (les seuls qu'on peut vraiment
+// (30°) : Collection, Deck, Porte (Game room), Bibliothécaire, Tuto — la porte est maintenant
+// pile au centre de la rangée (0°), les 4 autres répartis symétriquement de part et d'autre.
+// Même rayon pour les 4 éléments "posés dans la pièce" (les seuls qu'on peut vraiment
 // repositionner — la porte reste encastrée dans le mur à RING_RADIUS) : ça les ramène tous à
 // la même distance de la caméra (donc même taille apparente) et bien à l'intérieur de l'anneau
 // de bibliothèques (5.0 dépassait dans le mur pour la table de la création de deck).
 const PROP_RADIUS = 4.2
 
 const LAYOUT: Record<string, Layout> = {
-    '/collection': { angleDeg: -48, radius: PROP_RADIUS, variant: 'books' },
-    '/deck': { angleDeg: -16, radius: PROP_RADIUS, variant: 'table' },
-    '/packs': { angleDeg: 42, radius: PROP_RADIUS, variant: 'librarian' },
+    '/collection': { angleDeg: -56, radius: PROP_RADIUS, variant: 'books' },
+    '/deck': { angleDeg: -28, radius: PROP_RADIUS, variant: 'table' },
     '/play': { angleDeg: GAME_DOOR_ANGLE, radius: RING_RADIUS, variant: 'door' },
+    '/packs': { angleDeg: 28, radius: PROP_RADIUS, variant: 'librarian' },
+    '/manual': { angleDeg: 56, radius: PROP_RADIUS, variant: 'tuto' },
 }
 
 // Même hauteur pour les 4 noms (au lieu d'une hauteur par variante) : plus lisible d'un coup
@@ -588,6 +589,91 @@ function CellarDoor() {
     )
 }
 
+// Une "affiche" pinglée sur le tableau : un plan texturé (asset du carnet/travel book — portrait
+// de légendaire, cadre de carte, bannière...), légèrement de travers, avec une punaise de couleur
+// en haut. `w`/`h` sont fixes par note plutôt que dérivés de la texture (chaque source a son
+// propre ratio natif, plus simple à caler à la main pour 7 assets que de le lire dynamiquement).
+type TutoNote = { tex: string; x: number; y: number; w: number; h: number; rot: number; pin: string }
+
+// Disposition en longueur : une bannière fine tout en haut, une seule rangée des 6 autres
+// affiches en dessous — pensée pour un panneau large et bas, pas la colonne portrait d'origine.
+const TUTO_NOTES: TutoNote[] = [
+    { tex: '/textures/notebook/banner01.png', x: 0, y: 0.42, w: 1.3, h: 0.22, rot: -0.02, pin: '#c0392b' },
+    { tex: '/textures/collection/icon-leg-timmy.png', x: -1.05, y: -0.06, w: 0.36, h: 0.38, rot: 0.08, pin: '#2980b9' },
+    { tex: '/textures/collection/icon-leg-freddy.png', x: -0.63, y: -0.06, w: 0.36, h: 0.38, rot: -0.06, pin: '#27ae60' },
+    { tex: '/textures/cards/frame-commune.png', x: -0.21, y: -0.06, w: 0.34, h: 0.5, rot: -0.09, pin: '#2980b9' },
+    { tex: '/textures/notebook/slot.png', x: 0.21, y: -0.06, w: 0.3, h: 0.3, rot: 0.08, pin: '#e0a72b' },
+    { tex: '/textures/collection/icon-leg-jeffe.png', x: 0.63, y: -0.06, w: 0.36, h: 0.38, rot: 0.05, pin: '#c0392b' },
+    { tex: '/textures/collection/icon-leg-gertrude.png', x: 1.05, y: -0.06, w: 0.36, h: 0.38, rot: -0.07, pin: '#27ae60' },
+]
+
+function TutoNoteMesh({ note, texture }: { note: TutoNote; texture: THREE.Texture }) {
+    return (
+        <group position={[note.x, note.y, 0.05]} rotation={[0, 0, note.rot]}>
+            <mesh castShadow>
+                <planeGeometry args={[note.w, note.h]} />
+                <meshStandardMaterial map={texture} roughness={0.85} transparent />
+            </mesh>
+            <mesh position={[0, note.h / 2 - 0.02, 0.01]}>
+                <circleGeometry args={[0.02, 12]} />
+                <meshStandardMaterial color={note.pin} roughness={0.4} metalness={0.3} />
+            </mesh>
+        </group>
+    )
+}
+
+// Le tableau du Tuto : un grand panneau (cadre + fond liège) monté sur un pied, couvert d'affiches
+// punaisées — portraits des légendaires, un cadre de carte, une bannière — comme un vrai tableau
+// de recherche plutôt qu'une simple pancarte. Le contenu détaillé (règles, glossaire) vit sur la
+// page /manual ; ce tableau n'est qu'un aperçu en 3D, pas le tutoriel lui-même.
+function TutoBoard() {
+    const textures = useTexture(TUTO_NOTES.map(n => n.tex))
+
+    useLayoutEffect(() => {
+        textures.forEach(t => {
+            t.magFilter = THREE.NearestFilter
+            t.minFilter = THREE.NearestFilter
+            t.needsUpdate = true
+        })
+    }, [textures])
+
+    return (
+        <group rotation={[-0.05, 0, 0]}>
+            {/* Pied : un socle bas + deux montants, raccourcis (0.6, contre 1.02 avant — sommet à
+                0.64 au lieu de 1.06) pour un support plus bas, moins imposant. */}
+            <RoundedBox args={[1.1, 0.08, 0.32]} radius={0.02} smoothness={1} position={[0, 0.04, -0.08]} castShadow receiveShadow>
+                <meshStandardMaterial color={PALETTE.leather900} roughness={0.8} />
+            </RoundedBox>
+            {[-0.42, 0.42].map(x => (
+                <mesh key={x} position={[x, 0.34, -0.08]} castShadow>
+                    <boxGeometry args={[0.07, 0.6, 0.07]} />
+                    <meshStandardMaterial color={PALETTE.leather800} roughness={0.75} />
+                </mesh>
+            ))}
+
+            {/* Cadre + fond liège du panneau : en longueur (2.8 x 1.3) et un peu rallongé vers le
+                bas (hauteur 1.5, +0.2) — le cadre et le liège sont décalés de -0.10 en y (leur
+                bord haut ne bouge pas, seul le bas descend) pendant que les notes ci-dessous
+                gardent leurs coordonnées d'origine, donc tout l'ajout de hauteur se voit sous
+                elles plutôt que de resserrer la marge du haut. Posé sur le sommet des montants
+                (1.065 = 0.64 + moitié de la nouvelle hauteur basse mise à l'échelle, 0.425). */}
+            <group position={[0, 1.065, 0]} scale={0.5}>
+                <RoundedBox args={[2.8, 1.5, 0.07]} radius={0.03} smoothness={1} position={[0, -0.1, 0]} castShadow receiveShadow>
+                    <meshStandardMaterial color={PALETTE.leather900} roughness={0.85} />
+                </RoundedBox>
+                <mesh position={[0, -0.1, 0.036]} receiveShadow>
+                    <planeGeometry args={[2.66, 1.36]} />
+                    <meshStandardMaterial color={PALETTE.gold500} roughness={0.95} />
+                </mesh>
+
+                {TUTO_NOTES.map((note, i) => (
+                    <TutoNoteMesh key={note.tex} note={note} texture={textures[i]} />
+                ))}
+            </group>
+        </group>
+    )
+}
+
 function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
     item: MenuItem
     layout: Layout
@@ -629,6 +715,7 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
             {layout.variant === 'books' && <CollectionProps />}
             {layout.variant === 'table' && <DeckTable />}
             {layout.variant === 'door' && <CellarDoor />}
+            {layout.variant === 'tuto' && <TutoBoard />}
 
             <Html position={[0, LABEL_Y, 0]} center className="pointer-events-none">
                 <div className="text-center whitespace-nowrap">
@@ -909,7 +996,12 @@ export default function HubScene({ username, cardCount, wins, active = true }: {
                     droit vers la rangée des 4 éléments (comme le croquis) plutôt que de chercher un
                     pitch qui équilibre un sol qui n'existe plus. */}
                 <PerspectiveCamera makeDefault position={[0, 1.75, 3.0]} fov={56} onUpdate={c => c.lookAt(0, 1.6, -2.4)} />
-                <HallScene hoveredHref={hoveredHref} onHoverChange={setHoveredHref} onArrive={handleArrive} />
+                {/* TutoBoard charge ses textures via useTexture (async, drei) : sans Suspense ici,
+                    ce chargement fait planter tout l'arbre R3F (pas de fallback pour l'attraper) —
+                    la scène entière se démonte, y compris les Html des autres hotspots. */}
+                <Suspense fallback={null}>
+                    <HallScene hoveredHref={hoveredHref} onHoverChange={setHoveredHref} onArrive={handleArrive} />
+                </Suspense>
             </Canvas>
 
             <div className="pointer-events-none absolute inset-x-0 top-8 z-50 flex justify-center">

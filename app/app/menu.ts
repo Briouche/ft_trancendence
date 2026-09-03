@@ -34,4 +34,11 @@ export const MENU_ITEMS: MenuItem[] = [
         emoji:       '⚔️',
         available:   true,
     },
+    {
+        href:        '/manual',
+        label:       'Tuto',
+        description: 'Learn how to play',
+        emoji:       '📋',
+        available:   true,
+    },
 ]

@@ -202,12 +202,12 @@ export class Card extends Phaser.GameObjects.Container
         this.descText.setPosition(descOffset.x, descOffset.y);
         maximizeWrappedTextToBox(this.descText, descBoxWidthPx, descBoxHeightPx, 8, Math.round(descBoxHeightPx * DESC_MAX_FONT_RATIO));
 
-        layoutBoxText(this.costText, costBox, width, height, 0.14);
+        layoutBoxText(this.costText, costBox, width, height, 0.19);
 
         if (this.attackText && this.healthText)
         {
-            layoutBoxText(this.attackText, CARD_ATTACK_BOX, width, height, 0.15);
-            layoutBoxText(this.healthText, CARD_HEALTH_BOX, width, height, 0.15);
+            layoutBoxText(this.attackText, CARD_ATTACK_BOX, width, height, 0.2);
+            layoutBoxText(this.healthText, CARD_HEALTH_BOX, width, height, 0.2);
         }
 
         this.drawEffects(width, height);
@@ -254,8 +254,8 @@ export class Card extends Phaser.GameObjects.Container
         {
             this.attackText.setText(`${attack}`);
             this.healthText.setText(`${health}`);
-            layoutBoxText(this.attackText, CARD_ATTACK_BOX, this.width, this.height, 0.12);
-            layoutBoxText(this.healthText, CARD_HEALTH_BOX, this.width, this.height, 0.12);
+            layoutBoxText(this.attackText, CARD_ATTACK_BOX, this.width, this.height, 0.16);
+            layoutBoxText(this.healthText, CARD_HEALTH_BOX, this.width, this.height, 0.16);
             if (attack > this.startingAttack)
                 this.attackText.setColor(BUFFED_STAT_COLOR);
             else if (attack < this.startingAttack)

@@ -137,6 +137,29 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
     return new Deck(gameCards)
 }
 
+// Build a deck from a flat list of card NAMES (aiDecks.ts) instead of ids — lets the AI's decks
+// live as plain, hand-editable text in code, with no Deck/DeckCard rows and no ownership check
+// (the human player doesn't need to own — or even have unlocked — any of these cards). A name
+// repeated twice in the list yields two copies, same convention as makeDeckFromIds below.
+export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""): Promise<Deck>
+{
+    const rows = await prisma.card.findMany({ where: { name: { in: cardNames } } })
+    const byName = new Map(rows.map(c => [c.name, c]))
+
+    const gameCards: Card[] = []
+    let counter = 0
+    for (const name of cardNames)
+    {
+        const raw = byName.get(name)
+        if (raw)
+            gameCards.push(rawToCard(raw, playerPrefix, `_${counter++}`))
+        else
+            console.warn(`makeDeckFromNames: no card named "${name}" (typo in aiDecks.ts?)`)
+    }
+
+    return new Deck(gameCards)
+}
+
 // Build a deck from a player's saved Deck (deck builder) — DeckCard only stores one row per
 // card id with a qty, so a card added twice needs to appear twice in the flat id list handed to
 // makeDeckFromIds (which draws one game Card per id occurrence). Returns null for a deck that
