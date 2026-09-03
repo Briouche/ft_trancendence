@@ -1,149 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
+  adapter  = "@prisma/adapter-pg"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// ─────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────
-enum FriendshipStatus {
-  PENDING
-  ACCEPTED
-  BLOCKED
-}
-
-enum UserStatus {
-  ONLINE
-  OFFLINE
-  IN_GAME
-}
-
-// ─────────────────────────────────────────────
-// User Management Models
-// ─────────────────────────────────────────────
 model User {
   id       Int    @id @default(autoincrement())
   // lower case all email addresses and usernames when using them
   email    String @unique
   username String @unique
 
-  // Store bcrypt/argon2 hash
   // Nullable because OAuth-only accounts never set one
   password String?
 
-  avatar String?
-  status UserStatus @default(OFFLINE)
+  // 42 intra user id — set once the account is linked via "Sign in with 42".
+  // Nullable/unique: most accounts won't have one, but no two can share the same.
+  fortyTwoId Int? @unique
 
   // Used to logout-everywhere, password change, or suspected compromise
   // A JWT is only accepted if its embedded tokenVersion matches this value
   tokenVersion Int @default(0)
 
-  // 2FA Security
-  twoFactorEnabled          Boolean  @default(false)
-  // Encrypt at the application layer before storing (not plaintext)
-  twoFactorSecret           String?
-  // Store hashes of the backup codes (like a password), never the raw codes
-  twoFactorBackupCodeHashes String[] @default([])
-
-  emailVerified Boolean @default(false)
-
-  // OAuth2.0
-  oauthAccounts OAuthAccount[]
-
-  // Relations
-  decks Deck[]
-
-  friendshipsSent     Friendship[] @relation("FriendshipRequester")
-  friendshipsReceived Friendship[] @relation("FriendshipAddressee")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  messagesSent     Message[] @relation("MessageSender")
-  messagesReceived Message[] @relation("MessageRecipient")
+  createdAt     DateTime   @default(now())
+  decks         Deck[]
+  cards         UserCard[]
+  unopenedPacks Int        @default(0)
+  pityCounter   Int        @default(0)
+  // Aucun mode de jeu live n'existe encore : reste à 0 pour tout le monde pour l'instant, prêt
+  // à être incrémenté une fois qu'une partie peut se terminer.
+  wins          Int        @default(0)
+  // Index (0-7) dans le catalogue de dos de carte cosmétiques — voir lib/cardBacks.ts.
+  cardBack      Int        @default(0)
+  // Designs de dos de carte débloqués (index 0 offert d'office à tout le monde) — les autres
+  // s'obtiennent en paquet, comme un drop rare (voir lib/packs.ts).
+  unlockedCardBacks Int[]  @default([0])
 }
 
-model OAuthAccount {
-  id                Int    @id @default(autoincrement())
-  provider          String
-  providerAccountId String // the user's ID on the provider's side
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-model Friendship {
-  id     Int              @id @default(autoincrement())
-  status FriendshipStatus @default(PENDING)
-
-  requesterId Int
-  requester   User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-
-  addresseeId Int
-  addressee   User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
-
-  // Note: Prisma doesn't support CHECK constraints in the schema yet.
-  // Enforce requesterId != addresseeId in application logic (no self-friending),
-  // and check for an existing reverse row (addresseeId, requesterId) before
-  // creating a new request, so A->B and B->A can't both exist as separate rows.
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([requesterId, addresseeId])
-  @@index([requesterId])
-  @@index([addresseeId])
-}
-
-model Message {
-  id      Int    @id @default(autoincrement())
-  // No length limit
-  content String
-
-  senderId Int
-  sender   User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-
-  recipientId Int
-  recipient   User @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-
-  readAt DateTime? // null until the recipient reads it
-
-  createdAt DateTime @default(now())
-
-  // Doesn't prevent a user from messaging itself
-  @@index([senderId])
-  @@index([recipientId])
-  // Speeds up "fetch conversation between A and B" queries
-  @@index([senderId, recipientId])
+enum Keyword {
+  RUEE
+  RALE_DAGONIE
+  CRI_DE_GUERRE
+  REGENERATION
+  AVENTURIER
+  TAUNT
+  SOIGNE
+  VOL_DE_VIE
+  SILENCE
 }
 
 // ─────────────────────────────────────────────
 // Game Component Models
 // ─────────────────────────────────────────────
+
 model Card {
   id       String     @id
+  assetKey String     @default("placeholder_card")
   name     String
   type     String     @default("")
   rarity   String
   cost     String
-  costNum  Int        @default(0)
   atk      String
   def      String
   desc     String
   qty      Int        @default(1)
-  emoji    String     @default("")
-  color    String     @default("")
   legendId String     @default("")
   decks    DeckCard[]
+
+  taunt     Boolean?
+  rush      Boolean?
+  archi     Boolean?
+  spellpower Int?
+
+  battlecry         Json?
+  deathrattle       Json?
+  onAttack          Json?
+  onDamage          Json?
+  startOfTurnEffect Json?
+  endOfTurnEffect   Json?
+  spellEffect       Json?
+  
+  keywords Keyword[] @default([])
+  owners   UserCard[]
 }
+
+// Carte(s) possédée(s) par un joueur. qty est plafonné par Card.qty
+// (le nombre maximum d'exemplaires qu'un joueur peut posséder de cette carte).
+model UserCard {
+  userId Int
+  cardId String
+  qty    Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id])
+  card   Card   @relation(fields: [cardId], references: [id])
+
+  @@id([userId, cardId])
+}
+
 
 model Deck {
   id        Int        @id @default(autoincrement())

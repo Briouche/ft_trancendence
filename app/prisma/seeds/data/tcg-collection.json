@@ -1,321 +1,232 @@
 {
-  "version": 3,
-  "exported": "2026-07-01T15:45:46.279Z",
+  "version": 4,
   "cards": [
     {
       "id": "mpzqp0u9",
-      "name": "Le menetrel",
-      "type": "",
+      "name": "Le menestrel",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
-      "costNum": 0,
       "atk": "1",
       "def": "4",
-      "desc": "les creatures adverses ont -1 ATK",
+      "desc": "battlecry: give -1 ATK to enemy creatures",
       "qty": 2,
-      "emoji": "🎸",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mpzqq8bs",
-      "name": "pyroblin",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 0,
-      "atk": "2",
-      "def": "2",
-      "desc": "deal 3 damage to a minion",
-      "qty": 2,
-      "emoji": "🎇",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mpzqt44t",
-      "name": "cannibalisme",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "deal 3 dmg if this kill, hero heal 3HP.",
-      "qty": 2,
-      "emoji": "🥩",
-      "color": "#B5D4F4",
-      "legendId": ""
-    },
-    {
-      "id": "mpzqyecf",
-      "name": "Investment Goblin",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "0",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "next x-cost cart triggers 1 more time",
-      "qty": 2,
-      "emoji": "🃏",
-      "color": "#FAC775",
-      "legendId": ""
-    },
-    {
-      "id": "mpzr0j1i",
-      "name": "Feed the troops",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "X",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "give one creature +1/+1 times pour ce tour",
-      "qty": 2,
-      "emoji": "🍽️",
-      "color": "#FAC775",
-      "legendId": ""
-    },
-    {
-      "id": "mpzr3mcy",
-      "name": "Hyperactive cousin",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 0,
-      "atk": "2",
-      "def": "1",
-      "desc": "Ruée\nRale d'agonie : invouque hyperactive little cousin 1-1",
-      "qty": 2,
-      "emoji": "⚡️",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mpzrno25",
-      "name": "Mafia boss",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 0,
-      "atk": "1",
-      "def": "2",
-      "desc": "gain X+X with X ally creature that you control",
-      "qty": 2,
-      "emoji": "🐀",
-      "color": "#FAC775",
-      "legendId": ""
-    },
-    {
-      "id": "mpzrpslo",
-      "name": "baby hyena",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 0,
-      "atk": "1",
-      "def": "1",
-      "desc": "+1/1 whenever another ally creature dies",
-      "qty": 2,
-      "emoji": "🐆",
-      "color": "#FAC775",
-      "legendId": "mpzt1pib"
-    },
-    {
-      "id": "mpzs4tyi",
-      "name": "equal opportiny",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "draw an amount of card equal to your opponents",
-      "qty": 2,
-      "emoji": "🛠️",
-      "color": "#FAC775",
-      "legendId": ""
-    },
-    {
-      "id": "mpzs81x0",
-      "name": "le (gros) thon poli",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 0,
-      "atk": "3",
-      "def": "5",
-      "desc": "taunt\nrestaure 2PV",
-      "qty": 2,
-      "emoji": "🐟",
-      "color": "#B5D4F4",
-      "legendId": ""
-    },
-    {
-      "id": "mpzs8u1h",
-      "name": "bloodsucker",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 0,
-      "atk": "3",
-      "def": "2",
-      "desc": "vol de vie\nruée",
-      "qty": 1,
-      "emoji": "🪱",
-      "color": "#B5D4F4",
-      "legendId": ""
-    },
-    {
-      "id": "mpzsdbs2",
-      "name": "cat pack",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "X",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "summon X 2/1 cats",
-      "qty": 2,
-      "emoji": "🐈",
-      "color": "#FAC775",
-      "legendId": ""
-    },
-    {
-      "id": "mpzsjywa",
-      "name": "Rat des champs",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 0,
-      "atk": "2",
-      "def": "1",
-      "desc": "ping 1",
-      "qty": 2,
-      "emoji": "🌾",
-      "color": "#FAC775",
-      "legendId": ""
-    },
-    {
-      "id": "mpzsr4vo",
-      "name": "deep water demon",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 0,
-      "atk": "2",
-      "def": "3",
-      "desc": "gain +1/+1 if this is the only minion on your side of the board",
-      "qty": 2,
-      "emoji": "🍤",
-      "color": "#B5D4F4",
-      "legendId": ""
-    },
-    {
-      "id": "mpzsugp1",
-      "name": "call the kraken",
-      "type": "",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "deal 3 dmg to all minions heal you 1 HP for each minons that dies",
-      "qty": 2,
-      "emoji": "🦑",
-      "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "battlecry": {
+        "kind": "buff",
+        "atk": -1,
+        "health": 0,
+        "resolver": {
+          "kind": "allEnemyMinions"
+        }
+      }
     },
     {
       "id": "mpzsx3l7",
       "name": "Timmy, the planetsucker",
-      "type": "",
+      "assetKey": "timmyPlanet",
+      "type": "creature",
       "rarity": "Légendaire",
       "cost": "5",
-      "costNum": 0,
       "atk": "5",
       "def": "5",
-      "desc": "LEG PASSIVE:\nyour can go above 20HP\n\nActive:\ndeal as much damage as you have extra HP",
+      "desc": "LEG PASSIVE:\nyou can go above 20HP\n\nActive:\ndeal as much damage as you have extra HP",
       "qty": 1,
-      "emoji": "🐙",
-      "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "timmy",
+      "battlecry": {
+        "kind": "timmy",
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
     },
     {
       "id": "mpzsyfvk",
       "name": "golem endormi",
-      "type": "",
+      "assetKey": "golemEndormi",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "2",
-      "costNum": 0,
       "atk": "2",
       "def": "4",
       "desc": "taunt\ncannot attack",
       "qty": 2,
-      "emoji": "🗿",
-      "color": "#B5D4F4",
-      "legendId": ""
+      "legendId": "",
+      "taunt": true
     },
     {
-      "id": "mpzt1pib",
-      "name": "Roi des rats",
-      "type": "",
-      "rarity": "Légendaire",
-      "cost": "4",
-      "costNum": 0,
+      "id": "mqi7d3bu",
+      "name": "Spiritueux slave",
+      "assetKey": "vodka",
+      "type": "Créature",
+      "rarity": "Commune",
+      "cost": "2",
       "atk": "3",
-      "def": "6",
-      "desc": "LEG PASSIVE: \nhalf your mana left over is carry to your next turn\nActive : \nYour X-card trigger once more.",
-      "qty": 1,
-      "emoji": "🐀",
-      "color": "#FAC775",
-      "legendId": ""
+      "def": "1",
+      "desc": "Battlecry : Deal 1 dmg and give + 2 ATK to a minion",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "combined",
+        "effects": [
+          {
+            "kind": "damage",
+            "amount": 1,
+            "resolver": {
+              "kind": "anyMinion"
+            }
+          },
+          {
+            "kind": "buff",
+            "atk": 2,
+            "health": 0,
+            "resolver": {
+              "kind": "anyMinion"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mpzqq8bs",
+      "name": "Pyroblin",
+      "assetKey": "pyroblin",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "2",
+      "desc": "battlecry: deal 3 damage",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "damage",
+        "amount": 3,
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
     },
     {
       "id": "mqi2jqa4",
       "name": "Reborn (Archi card)",
       "type": "creature",
-      "rarity": "Commune",
+      "rarity": "Épique",
       "cost": "2",
-      "costNum": 2,
       "atk": "2",
       "def": "2",
-      "desc": "donne +1/+1 a une autre creature",
+      "desc": "give +1/+1 to another creature",
       "qty": 1,
-      "emoji": "🦉",
-      "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "",
+      "archi": true,
+      "battlecry": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 1,
+        "resolver": {
+          "kind": "anyMinion"
+        }
+      }
     },
     {
       "id": "mqi2k9ir",
       "name": "Neo (archi card)",
       "type": "creature",
-      "rarity": "Commune",
+      "rarity": "Épique",
       "cost": "4",
-      "costNum": 4,
       "atk": "4",
       "def": "4",
-      "desc": "ruee",
+      "desc": "rush",
       "qty": 1,
-      "emoji": "🦉",
-      "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "",
+      "rush": true,
+      "archi": true
+    },
+    {
+      "id": "mqib6m3f",
+      "name": "Haku (archi card)",
+      "type": "creature",
+      "rarity": "Épique",
+      "cost": "1",
+      "atk": "1",
+      "def": "1",
+      "desc": "draw a card",
+      "qty": 1,
+      "legendId": "",
+      "archi": true,
+      "battlecry": {
+        "kind": "draw",
+        "amount": 1
+      }
+    },
+    {
+      "id": "mqibfh9p",
+      "name": "Zurg (archi card)",
+      "type": "creature",
+      "rarity": "Épique",
+      "cost": "6",
+      "atk": "6",
+      "def": "6",
+      "desc": "Deathrattle: summon 2 1/1 aliens",
+      "qty": 1,
+      "legendId": "",
+      "archi": true,
+      "deathrattle": {
+        "kind": "summon",
+        "amount": 2,
+        "tokens": [
+          {
+            "id": "mqibfh9p_alien1",
+            "name": "Alien",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": ""
+          },
+          {
+            "id": "mqibfh9p_alien2",
+            "name": "Alien",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": ""
+          }
+        ]
+      }
     },
     {
       "id": "mqi2kthv",
       "name": "Ribgy (Archi card)",
       "type": "creature",
-      "rarity": "Commune",
+      "rarity": "Épique",
       "cost": "3",
-      "costNum": 3,
       "atk": "3",
       "def": "3",
-      "desc": "soigne 3 PV",
+      "desc": "heal 3 HP",
       "qty": 1,
-      "emoji": "🦉",
-      "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "",
+      "archi": true,
+      "battlecry": {
+        "kind": "heal",
+        "amount": 3,
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
+    },
+    {
+      "id": "mqi31p8w",
+      "name": "Po (archi card)",
+      "type": "creature",
+      "rarity": "Épique",
+      "cost": "5",
+      "atk": "5",
+      "def": "5",
+      "desc": "taunt",
+      "qty": 1,
+      "legendId": "",
+      "taunt": true,
+      "archi": true
     },
     {
       "id": "mqi2mtc3",
@@ -323,764 +234,234 @@
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "7",
-      "costNum": 7,
       "atk": "7",
       "def": "7",
-      "desc": "LEG PASSIF : Place les 4 membres du bocal dans le deck\n\nRassembler les 4 autres membres du bocal dans la main pour gagner la partie",
+      "desc": "LEG PASSIVE: Place the 4 jar members in your deck\n\nPlay the 4 other jar members to win the game",
       "qty": 1,
-      "emoji": "🦉",
-      "color": "#C0DD97",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2nq42",
-      "name": "Force de la nature",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "7",
-      "costNum": 7,
-      "atk": "7",
-      "def": "7",
-      "desc": "",
-      "qty": 2,
-      "emoji": "🌳",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2odxf",
-      "name": "TIG",
-      "type": "sort",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "",
-      "def": "",
-      "desc": "Silence une creature",
-      "qty": 2,
-      "emoji": "🔇",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2pdbm",
-      "name": "blackhole",
-      "type": "sort",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 0,
-      "atk": "",
-      "def": "",
-      "desc": "detruit une creature",
-      "qty": 2,
-      "emoji": "🕳️",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2qm6a",
-      "name": "allie peureux",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "2",
-      "def": "2",
-      "desc": "CdG : donne +1/+1 et taunt aux creatures adjacente",
-      "qty": 2,
-      "emoji": "👶",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2rye2",
-      "name": "mere pondeuse",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "3",
-      "def": "3",
-      "desc": "Rale agonie : invoaue 3 araignee 1-1",
-      "qty": 2,
-      "emoji": "🕷️",
-      "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
-    },
-    {
-      "id": "mqi2u1aa",
-      "name": "Freddy, le fossoyeur de tombe",
-      "type": "creature",
-      "rarity": "Légendaire",
-      "cost": "6",
-      "costNum": 6,
-      "atk": "4",
-      "def": "6",
-      "desc": "Leg Passiv : toute les 4 creatures qui meurt, invoque un zombie 1-1\n\nLes rales d'agonie se declenche 2x",
-      "qty": 1,
-      "emoji": "🪦",
-      "color": "#CECBF6",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2v3qx",
-      "name": "tramblement",
-      "type": "sort",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "",
-      "def": "",
-      "desc": "inflige 2 dmg a tout les adversaires",
-      "qty": 2,
-      "emoji": "♒︎",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2w8de",
-      "name": "Goblinmikaze",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "4",
-      "def": "2",
-      "desc": "ruee\nrale d'agonie : inflige 2 dmg a 2 adversaire aleatoire",
-      "qty": 1,
-      "emoji": "🃏",
-      "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
-    },
-    {
-      "id": "mqi2xdmh",
-      "name": "champion de l'arene",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "5",
-      "costNum": 5,
-      "atk": "5",
-      "def": "5",
-      "desc": "+1/+1 aux creatures allies",
-      "qty": 2,
-      "emoji": "🏆",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2ylzl",
-      "name": "un gros sandwich",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "1",
-      "def": "3",
-      "desc": "taunt",
-      "qty": 2,
-      "emoji": "🥪",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi2zdq0",
-      "name": "une haleine vraument...",
-      "type": "sort",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "",
-      "def": "",
-      "desc": "inflige 3 dmg",
-      "qty": 2,
-      "emoji": "🗣️",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi313ey",
-      "name": "soulevement de tombes",
-      "type": "sort",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "",
-      "def": "",
-      "desc": "invoque 2 zombie 1-1 avec rale d'agonie : invoque un zombie 1-1",
-      "qty": 2,
-      "emoji": "🧟",
-      "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
-    },
-    {
-      "id": "mqi31p8w",
-      "name": "Po (archi card)",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "5",
-      "costNum": 5,
-      "atk": "5",
-      "def": "5",
-      "desc": "taunt",
-      "qty": 2,
-      "emoji": "🦉",
-      "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
-    },
-    {
-      "id": "mqi33jfs",
-      "name": "Le Phoenix",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "6",
-      "costNum": 6,
-      "atk": "4",
-      "def": "4",
-      "desc": "ruee\nrale d'agonie : invoque un phoenix avec des stats -1/-1",
-      "qty": 2,
-      "emoji": "𖤍",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi3516p",
-      "name": "conseiller de l'ombre",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "3",
-      "def": "2",
-      "desc": "declenche le rale d'agonie d'un allie",
-      "qty": 2,
-      "emoji": "🕵",
-      "color": "#CECBF6",
-      "legendId": "mqi2u1aa"
-    },
-    {
-      "id": "mqi35y1s",
-      "name": "slime degoutant",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "2",
-      "def": "1",
-      "desc": "rale d'agonie : inflige 2 dmg au hero adverse",
-      "qty": 2,
-      "emoji": "🦠",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi36l6i",
-      "name": "podophile",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "3",
-      "def": "3",
-      "desc": "rend 3 PV",
-      "qty": 2,
-      "emoji": "🦶🏻",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi387qn",
-      "name": "une maman aimante",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "2",
-      "def": "2",
-      "desc": "+1 ATK aux allies adjacent",
-      "qty": 2,
-      "emoji": "🤱",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi38sx6",
-      "name": "cri du phoenix",
-      "type": "sort",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "",
-      "def": "",
-      "desc": "inflige 6 dmg",
-      "qty": 2,
-      "emoji": "🔥",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi39fwn",
-      "name": "le croupier",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "2",
-      "def": "1",
-      "desc": "rale d'agonie : pioche une carte",
-      "qty": 2,
-      "emoji": "🤵‍♂",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi6l6i0",
-      "name": "Gertrude",
-      "type": "Créature",
-      "rarity": "Légendaire",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "1",
-      "def": "7",
-      "desc": "Passif : récompenses de quetes boostées\n\ntoujours compter le chiffre le plus élèvé pour les quetes",
-      "qty": 1,
-      "emoji": "🐸",
-      "color": "#9FE1CB",
-      "legendId": ""
-    },
-    {
-      "id": "mqi6orw9",
-      "name": "Bertrand",
-      "type": "Créature",
-      "rarity": "Épique",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "2",
-      "def": "4",
-      "desc": "Si Bertrand n'est pas mort a la fin du tour, récupére tous ses PV",
-      "qty": 1,
-      "emoji": "🪴",
-      "color": "#B5D4F4",
-      "legendId": ""
-    },
-    {
-      "id": "mqi6qse2",
-      "name": "Jumeaux Goblin",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "2",
-      "def": "2",
-      "desc": "Invoque une 2/2",
-      "qty": 2,
-      "emoji": "👽",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi6rw7n",
-      "name": "Lecture de textes Anciencs",
-      "type": "Sort",
-      "rarity": "Peu commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "",
-      "def": "",
-      "desc": "Pioche 2 cartes",
-      "qty": 2,
-      "emoji": "🃏",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi6xr8i",
-      "name": "Banquier Renart le goblin",
-      "type": "Créature",
-      "rarity": "Rare",
-      "cost": "5",
-      "costNum": 5,
-      "atk": "5",
-      "def": "5",
-      "desc": "Quand vous jouez une carte X, inflige X dégats au hasard au ennemis",
-      "qty": 2,
-      "emoji": "🏦",
-      "color": "#FAC775",
-      "legendId": "mpzt1pib"
-    },
-    {
-      "id": "mqi70rba",
-      "name": "Feeder goblin",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "3",
-      "def": "3",
-      "desc": "Donne +1/+1 a chaque creature invoquée",
-      "qty": 2,
-      "emoji": "🍗",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi730al",
-      "name": "Pecheur repenti",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "2",
-      "def": "4",
-      "desc": "pioche une carte",
-      "qty": 2,
-      "emoji": "🎣",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7477s",
-      "name": "Rat de Jade",
-      "type": "Creature",
-      "rarity": "Commune",
-      "cost": "X",
-      "costNum": 0,
-      "atk": "X",
-      "def": "X",
-      "desc": "",
-      "qty": 2,
-      "emoji": "🐭",
-      "color": "#FAC775",
-      "legendId": "mpzt1pib"
-    },
-    {
-      "id": "mqi76hth",
-      "name": "Cavalier furieux",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "5",
-      "def": "6",
-      "desc": "Choisis deux ennemis a attaquer, l'adversaire choisit qui le cavalier attaque",
-      "qty": 2,
-      "emoji": "🐴",
-      "color": "#9FE1CB",
-      "legendId": ""
-    },
-    {
-      "id": "mqi77t7b",
-      "name": "Slime orthophoniste",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "4",
-      "def": "5",
-      "desc": "Aventurier",
-      "qty": 2,
-      "emoji": "🫟",
-      "color": "#9FE1CB",
-      "legendId": "mqi6l6i0"
-    },
-    {
-      "id": "mqi7a046",
-      "name": "Commis de la souffrance",
-      "type": "Creature",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "0",
-      "def": "2",
-      "desc": "quand il prends des dégats, piochez une carte",
-      "qty": 2,
-      "emoji": "📌",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7d3bu",
-      "name": "Spiritueux slave",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "3",
-      "def": "1",
-      "desc": "Inflige 1 point de dégats et donne +2 atq a une créature pour ce tour",
-      "qty": 2,
-      "emoji": "🥃",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7hah3",
-      "name": "Entartrage",
-      "type": "Sort",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "",
-      "def": "",
-      "desc": "Endors une créature pour 1 tour",
-      "qty": 2,
-      "emoji": "🥧",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7ivjj",
-      "name": "Opika",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "2",
-      "def": "5",
-      "desc": "decharge electrique",
-      "qty": 2,
-      "emoji": "🐹",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7ktmr",
-      "name": "Bombe H",
-      "type": "Sort",
-      "rarity": "Commune",
-      "cost": "7",
-      "costNum": 7,
-      "atk": "",
-      "def": "",
-      "desc": "Detruit le board, chaque creature sur le board prends 2pv de dégats a la fin des 2 prochain tours",
-      "qty": 2,
-      "emoji": "☢️",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7lqzb",
-      "name": "CRS",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "3",
-      "def": "4",
-      "desc": "Taunt",
-      "qty": 2,
-      "emoji": "👮🏻",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7molw",
-      "name": "Poulet mécontent",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "2",
-      "def": "3",
-      "desc": "",
-      "qty": 2,
-      "emoji": "🐓",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7p9nf",
-      "name": "Joël el Jeffe (aka marcel au 1000 épices)",
-      "type": "Créature",
-      "rarity": "Légendaire",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "2",
-      "def": "5",
-      "desc": "passif:  créatures bléssées ont +1 d'ATQ",
-      "qty": 1,
-      "emoji": "🍳",
-      "color": "#F4C0D1",
-      "legendId": "mqi6l6i0"
-    },
-    {
-      "id": "mqi7qihp",
-      "name": "Diablotin du piment",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "3",
-      "def": "2",
-      "desc": "inflige 1 point de dégats a ses voisins",
-      "qty": 2,
-      "emoji": "🌶️",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi7rd3e",
-      "name": "Mixeur",
-      "type": "Sort",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "",
-      "def": "",
-      "desc": "Défausse ta main, pioche 3 cartes",
-      "qty": 2,
-      "emoji": "🥣",
-      "color": "#D3D1C7",
-      "legendId": ""
-    },
-    {
-      "id": "mqi7t2uf",
-      "name": "Critique culinaire",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "1",
-      "def": "3",
-      "desc": "Chaque joueur prends 3 points de dégats au début de sont tour",
-      "qty": 2,
-      "emoji": "🧐",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi7uqkt",
-      "name": "Cactus dos Pimentos",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "2",
-      "def": "4",
-      "desc": "Taunt\ngagne +1/+1 pour chaque serviteur allié blessé",
-      "qty": 2,
-      "emoji": "🌵",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi7wg1q",
-      "name": "Client Mécontent",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 0,
-      "atk": "2",
-      "def": "5",
-      "desc": "quand il prend un dégats, gagne 1 d'ATQ",
-      "qty": 2,
-      "emoji": "🙋🏻",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi7xr37",
-      "name": "Second Braillaird",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "2",
-      "def": "2",
-      "desc": "Inflige 1 point de dégats au board entier",
-      "qty": 2,
-      "emoji": "✌",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi7zc17",
-      "name": "Buffet à volonté",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "2",
-      "costNum": 2,
-      "atk": "0",
-      "def": "5",
-      "desc": "Quand cette carte subit des dégats, défausse une carte et pioche",
-      "qty": 2,
-      "emoji": "🛎️",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi810rs",
-      "name": "Lanceur de couteaux",
-      "type": "créature",
-      "rarity": "Commune",
-      "cost": "4",
-      "costNum": 4,
-      "atk": "3",
-      "def": "4",
-      "desc": "quand une créature alliée subit des dégats, envoie deux couteaux infligeant 1 dégat au hasard",
-      "qty": 2,
-      "emoji": "🔪",
-      "color": "#F4C0D1",
-      "legendId": "mqi7p9nf"
-    },
-    {
-      "id": "mqi829kv",
-      "name": "Bondisseur enjoué",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
-      "atk": "1",
-      "def": "3",
-      "desc": "Aventurier",
-      "qty": 2,
-      "emoji": "🤸‍♂",
-      "color": "#9FE1CB",
-      "legendId": "mqi6l6i0"
-    },
-    {
-      "id": "mqi83gcw",
-      "name": "Flambeur de Dancefloor",
-      "type": "Créature",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "3",
-      "def": "4",
-      "desc": "Aventurier",
-      "qty": 2,
-      "emoji": "💃",
-      "color": "#9FE1CB",
-      "legendId": "mqi6l6i0"
-    },
-    {
-      "id": "mqi85ep9",
-      "name": "Sauce TomAAAAAAte",
-      "type": "Sort",
-      "rarity": "Commune",
-      "cost": "3",
-      "costNum": 3,
-      "atk": "",
-      "def": "",
-      "desc": "inflige 1 dgts à tout le monde, pioche 1 pour chaque créature décédée",
-      "qty": 2,
-      "emoji": "🍅",
-      "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "archimede",
+      "archi": true,
+      "battlecry": {
+        "kind": "archi",
+        "resolver": {
+          "kind": "enemyHero"
+        }
+      }
     },
     {
       "id": "mqi87m6k",
       "name": "Bibliothequaire",
-      "type": "Créature",
+      "assetKey": "libraire",
+      "type": "creature",
       "rarity": "Commune",
       "cost": "3",
-      "costNum": 3,
       "atk": "3",
       "def": "1",
-      "desc": "Silence une creature",
+      "desc": "Silence a creature",
       "qty": 2,
-      "emoji": "📚",
-      "color": "#D3D1C7",
-      "legendId": ""
+      "legendId": "",
+      "battlecry": {
+        "kind": "silence",
+        "resolver": {
+          "kind": "anyMinion"
+        }
+      }
+    },
+    {
+      "id": "mqi7p9nf",
+      "name": "Joël el Jeffe (aka marcel au 1000 épices)",
+      "assetKey": "jeffe",
+      "type": "creature",
+      "rarity": "Légendaire",
+      "cost": "3",
+      "atk": "2",
+      "def": "5",
+      "desc": "passive: wounded creatures have +1 ATK - battlecry: deal 1 damage to its neighbors",
+      "qty": 1,
+      "legendId": "jeffe",
+      "battlecry": {
+        "kind": "damage",
+        "amount": 1,
+        "resolver": {
+          "kind": "neighboringMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi7qihp",
+      "name": "Diablotin du piment",
+      "assetKey": "diablotin",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "3",
+      "def": "2",
+      "desc": "deal 1 damage to its neighbors",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "damage",
+        "amount": 1,
+        "resolver": {
+          "kind": "neighboringMinions"
+        }
+      }
+    },
+    {
+      "id": "mpzrpslo",
+      "name": "Big mama hyena",
+      "type": "Creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "1",
+      "def": "3",
+      "desc": "at the end of your turn summon a 1-1 baby hyena",
+      "qty": 2,
+      "legendId": "",
+      "endOfTurnEffect": {
+        "kind": "summon",
+        "amount": 1,
+        "tokens": [
+          {
+            "id": "mpzrpslo_token",
+            "name": "baby Hyena",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": "Raaawr!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mpzr0j1i",
+      "name": "Arcane Missile",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "1",
+      "atk": "",
+      "def": "",
+      "desc": "Deal 1 dmg to 3 random enemies",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "randomMissile",
+        "amount": 3,
+        "damage": 1,
+        "resolver": {
+          "kind": "randomEnemy"
+        }
+      }
+    },
+    {
+      "id": "mpzs4tyi",
+      "name": "equal opportiny",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "2",
+      "atk": "",
+      "def": "",
+      "desc": "Equal both heros HP to the hero that has the higher HP. Each player draws 1 card",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "equalHealth"
+      }
+    },
+    {
+      "id": "mpzr0j1j",
+      "name": "Feed the troops",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "2",
+      "atk": "",
+      "def": "",
+      "desc": "Give all friendly minions +1 ATK",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 0,
+        "resolver": {
+          "kind": "alliedMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi85ep9",
+      "name": "Sauce TomAAAAAAte",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "2",
+      "atk": "",
+      "def": "",
+      "desc": "Deal 1 dmg to everyone draw a card",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "combined",
+        "effects": [
+          {
+            "kind": "damage",
+            "amount": 1,
+            "resolver": {
+              "kind": "allMinions"
+            }
+          },
+          {
+            "kind": "draw",
+            "amount": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "mqi7hah3",
+      "name": "Entartrage",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "1",
+      "atk": "-2 ATK to a creature",
+      "def": "",
+      "desc": "Give -2 ATK to a creature",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "buff",
+        "atk": -2,
+        "health": 0,
+        "resolver": {
+          "kind": "anyMinion"
+        }
+      }
+    },
+    {
+      "id": "mqi7rd3e",
+      "name": "Mixeur",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "3",
+      "atk": "",
+      "def": "",
+      "desc": "Deal 3 dmg to a minion and draw 1 card",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "combined",
+        "effects": [
+          {
+            "kind": "draw",
+            "amount": 1
+          },
+          {
+            "kind": "damage",
+            "amount": 3,
+            "resolver": {
+              "kind": "anyMinion"
+            }
+          }
+        ]
+      }
     },
     {
       "id": "mqi8b2r3",
@@ -1088,59 +469,1165 @@
       "type": "Créature",
       "rarity": "Commune",
       "cost": "7",
-      "costNum": 7,
       "atk": "9",
       "def": "6",
-      "desc": "Trample",
+      "desc": "lifesteal",
       "qty": 2,
-      "emoji": "🌪️",
-      "color": "#D3D1C7",
+      "legendId": "",
+      "onAttack": {
+        "kind": "lifesteal"
+      }
+    },
+    {
+      "id": "mpzsdbs2",
+      "name": "cat pack",
+      "assetKey": "fourCats",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "4",
+      "atk": "",
+      "def": "",
+      "desc": "summon 3 2/1 cats with rush",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "summon",
+        "amount": 3,
+        "tokens": [
+          {
+            "id": "mpzsdbs2_token1",
+            "name": "Cat",
+          
+            "cost": "1",
+            "atk": "2",
+            "def": "1",
+            "desc": "GRaaawr!",
+            "rush": true
+          },
+          {
+            "id": "mpzsdbs2_token2",
+            "name": "Cat",
+          
+            "cost": "1",
+            "atk": "2",
+            "def": "1",
+            "desc": "GRaaawr!",
+            "rush": true
+          },
+          {
+            "id": "mpzsdbs2_token3",
+            "name": "Cat",
+          
+            "cost": "1",
+            "atk": "2",
+            "def": "1",
+            "desc": "GRaaawr!",
+            "rush": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "mpzsugp1",
+      "name": "call the kraken",
+      "assetKey": "kraken",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "5",
+      "atk": "",
+      "def": "",
+      "desc": "deal 2 dmg to all minions lifesteal",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "combined",
+        "effects": [
+          {
+            "kind": "damage",
+            "amount": 2,
+            "resolver": {
+              "kind": "allMinions"
+            }
+          },
+          {
+            "kind": "lifesteal",
+            "amount": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "mqi7477s",
+      "name": "Rat de Jade",
+      "assetKey": "RatdeJade",
+      "type": "Creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "1",
+      "def": "2",
+      "desc": "End of turn: gain +1/+1",
+      "qty": 2,
+      "legendId": "",
+      "endOfTurnEffect": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 1,
+        "resolver": {
+          "kind": "source"
+        }
+      }
+    },
+    {
+      "id": "mqi6xr8i",
+      "name": "Banquier Renart le goblin",
+      "type": "Créature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "2",
+      "def": "3",
+      "desc": "Start of turn: draw a card",
+      "qty": 2,
+      "legendId": "",
+      "startOfTurnEffect": {
+        "kind": "draw",
+        "amount": 1
+      }
+    },
+    {
+      "id": "mqi36l6i",
+      "name": "podophile",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "2",
+      "desc": "Deathrattle: deal 1 dmg to all enemies",
+      "qty": 2,
+      "legendId": "",
+      "deathrattle": {
+        "kind": "damage",
+        "amount": 1,
+        "resolver": {
+          "kind": "allEnemies"
+        }
+      }
+    },
+    {
+      "id": "mqi33jfs",
+      "name": "Le Phoenix",
+    
+      "type": "creature",
+      "rarity": "Épique",
+      "cost": "6",
+      "atk": "4",
+      "def": "4",
+      "desc": "rush\ndeathrattle: summon a phoenix with -1/-1 stats",
+      "qty": 2,
+      "legendId": "",
+      "rush": true,
+      "deathrattle": {
+        "kind": "summon",
+        "amount": 1,
+        "tokens": [
+          {
+            "id": "mqi33jfs_token1",
+            "name": "Phoenix",
+          
+            "cost": "4",
+            "atk": "3",
+            "def": "3",
+            "desc": "",
+            "rush": true,
+            "deathrattle": {
+              "kind": "summon",
+              "amount": 1,
+              "tokens": [
+                {
+                  "id": "mqi33jfs_token1",
+                  "name": "Phoenix",
+                
+                  "cost": "3",
+                  "atk": "2",
+                  "def": "2",
+                  "desc": "",
+                  "rush": true,
+                  "deathrattle": {
+                    "kind": "summon",
+                    "amount": 1,
+                    "tokens": [
+                      {
+                        "id": "mqi33jfs_token1",
+                        "name": "Phoenix",
+                      
+                        "cost": "6",
+                        "atk": "1",
+                        "def": "1",
+                        "desc": "",
+                        "rush": true
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mqi7lqzb",
+      "name": "CRS",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "3",
+      "def": "4",
+      "desc": "Taunt",
+      "qty": 2,
+      "legendId": "",
+      "taunt": true
+    },
+    {
+      "id": "mqi7molw",
+      "name": "Poulet mécontent",
+      "assetKey": "poulet",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "2",
+      "def": "2",
+      "desc": "when it takes damage, gain 3 ATK",
+      "qty": 2,
+      "legendId": "",
+      "onDamage": {
+        "kind": "buff",
+        "atk": 3,
+        "health": 0,
+        "resolver": {
+          "kind": "source"
+        }
+      }
+    },
+    {
+      "id": "mqi7wg1q",
+      "name": "Client Mécontent",
+      "assetKey": "clientMécontent",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "5",
+      "desc": "when it takes damage, gain 1 ATK",
+      "qty": 2,
+      "legendId": "mqi7p9nf",
+      "onDamage": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 0,
+        "resolver": {
+          "kind": "source"
+        }
+      }
+    },
+    {
+      "id": "mqi7xr37",
+      "name": "Second Braillaird",
+      "assetKey": "ChefBraillard",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "2",
+      "def": "2",
+      "desc": "Deal 1 damage to the entire board",
+      "qty": 2,
+      "legendId": "mqi7p9nf",
+      "battlecry": {
+        "kind": "damage",
+        "amount": 1,
+        "resolver": {
+          "kind": "allMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi7t2uf",
+      "name": "Critique culinaire",
+      "assetKey": "critiqueCulinaire",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "1",
+      "def": "3",
+      "desc": "start of turn: each player takes 3 damage",
+      "qty": 2,
+      "legendId": "mqi7p9nf",
+      "startOfTurnEffect": {
+        "kind": "damage",
+        "amount": 3,
+        "resolver": {
+          "kind": "bothHeroes"
+        }
+      }
+    },
+    {
+      "id": "mqi730al",
+      "name": "Pecheur repenti",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "4",
+      "atk": "2",
+      "def": "4",
+      "desc": "draw a card",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "draw",
+        "amount": 1
+      }
+    },
+    {
+      "id": "mqi6rw7n",
+      "name": "Lecture de textes Anciencs",
+      "assetKey": "textesAnciens",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "3",
+      "atk": "",
+      "def": "",
+      "desc": "Draw 2 cards",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "draw",
+        "amount": 2
+      }
+    },
+    {
+      "id": "mqi6orw9",
+      "name": "Bertrand",
+      "type": "creature",
+      "rarity": "Épique",
+      "cost": "3",
+      "atk": "2",
+      "def": "4",
+      "desc": "If Bertrand is not dead at the end of the turn, restore all its HP",
+      "qty": 2,
+      "legendId": "",
+      "endOfTurnEffect": {
+        "kind": "regeneration"
+      }
+    },
+    {
+      "id": "mqi6qse2",
+      "name": "Jumeau Goblin",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "2",
+      "desc": "Summon a 2/2",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "summon",
+        "amount": 1,
+        "tokens": [
+          {
+            "id": "mqi6qse2_token1",
+            "name": "Goblin jumeau",
+            "cost": "2",
+            "atk": "2",
+            "def": "2",
+            "desc": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "mqi387qn",
+      "name": "une maman aimante",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "2",
+      "def": "2",
+      "desc": "battlecry: +1 ATK to adjacent allies",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 0,
+        "resolver": {
+          "kind": "neighboringMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi38sx6",
+      "name": "cri du phoenix",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "4",
+      "atk": "",
+      "def": "",
+      "desc": "deal 6 dmg",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "damage",
+        "amount": 6,
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
+    },
+    {
+      "id": "mqi39fwn",
+      "name": "le croupier",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "2",
+      "def": "1",
+      "desc": "deathrattle: draw a card",
+      "qty": 2,
+      "legendId": "",
+      "deathrattle": {
+        "kind": "draw",
+        "amount": 1
+      }
+    },
+    {
+      "id": "mqi35y1s",
+      "name": "slime degoutant",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "2",
+      "def": "1",
+      "desc": "deathrattle: deal 2 dmg to the enemy hero",
+      "qty": 2,
+      "legendId": "",
+      "deathrattle": {
+        "kind": "damage",
+        "amount": 2,
+        "resolver": {
+          "kind": "enemyHero"
+        }
+      }
+    },
+    {
+      "id": "mqi3516p",
+      "name": "conseiller de l'ombre",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "3",
+      "def": "2",
+      "desc": "triggers a deathrattle",
+      "qty": 2,
+      "legendId": "mqi2u1aa",
+      "battlecry": {
+        "kind": "triggerDeathrattle",
+        "resolver": {
+          "kind": "anyMinion"
+        }
+      }
+    },
+    {
+      "id": "mqi7a046",
+      "name": "Commis de la souffrance",
+      "type": "Creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "0",
+      "def": "2",
+      "desc": "when it takes damage, draw a card",
+      "qty": 2,
+      "legendId": "",
+      "onDamage": {
+        "kind": "draw",
+        "amount": 1
+      }
+    },
+    {
+      "id": "mqi810rs",
+      "name": "Lanceur de couteaux",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "4",
+      "atk": "3",
+      "def": "4",
+      "desc": "when this creature takes damage, throw two knives dealing 1 random damage each",
+      "qty": 2,
+      "legendId": "mqi7p9nf",
+      "onDamage": {
+        "kind": "randomMissile",
+        "amount": 2,
+        "damage": 1,
+        "resolver": {
+          "kind": "randomEnemy"
+        }
+      }
+    },
+    {
+      "id": "mqi2nq42",
+      "name": "Force de la nature",
+      "assetKey": "treant",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "7",
+      "atk": "7",
+      "def": "7",
+      "desc": "",
+      "qty": 2,
       "legendId": ""
+    },
+    {
+      "id": "mqi2pdbm",
+      "name": "blackhole",
+      "assetKey": "BlackHole",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "4",
+      "atk": "",
+      "def": "",
+      "desc": "destroy a creature",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "damage",
+        "amount": 99,
+        "resolver": {
+          "kind": "anyMinion"
+        }
+      }
+    },
+    {
+      "id": "mqi2qm6a",
+      "name": "allie peureux",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "2",
+      "desc": "Battlecry: give +1/+1 and taunt to adjacent creatures",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "combined",
+        "effects": [
+          {
+            "kind": "buff",
+            "atk": 1,
+            "health": 1,
+            "resolver": {
+              "kind": "neighboringMinions"
+            }
+          },
+          {
+            "kind": "addKeyword",
+            "value": true,
+            "keywordType": "taunt",
+            "resolver": {
+              "kind": "neighboringMinions"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mqi2rye2",
+      "name": "mere pondeuse",
+      "assetKey": "bigSpider",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "4",
+      "atk": "3",
+      "def": "3",
+      "desc": "Deathrattle: summon 3 1/1 spiders",
+      "qty": 2,
+      "legendId": "mqi2u1aa",
+      "deathrattle": {
+        "kind": "summon",
+        "amount": 3,
+        "tokens": [
+          {
+            "id": "mqi2rye2_spider1",
+            "name": "Araignée",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": ""
+          },
+          {
+            "id": "mqi2rye2_spider2",
+            "name": "Araignée",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": ""
+          },
+          {
+            "id": "mqi2rye2_spider3",
+            "name": "Araignée",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "mqi2odxf",
+      "name": "TIG",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "1",
+      "atk": "",
+      "def": "",
+      "desc": "Silence a creature",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "silence",
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
+    },
+    {
+      "id": "mqi2ylzl",
+      "name": "un gros sandwich",
+      "assetKey": "grosSandwich",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "1",
+      "def": "3",
+      "desc": "taunt",
+      "qty": 2,
+      "legendId": "",
+      "taunt": true
+    },
+    {
+      "id": "mqi2zdq0",
+      "name": "une haleine vreument...",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "2",
+      "atk": "",
+      "def": "",
+      "desc": "deal 3 dmg",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "damage",
+        "amount": 3,
+        "resolver": {
+          "kind": "enemyCharacter"
+        }
+      }
+    },
+    {
+      "id": "mqi2w8de",
+      "name": "Goblinmikaze",
+      "assetKey": "kamikaze",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "4",
+      "def": "2",
+      "desc": "rush\ndeathrattle: deal 2 dmg to 2 random enemies",
+      "qty": 2,
+      "legendId": "mqi2u1aa",
+      "rush": true,
+      "deathrattle": {
+        "kind": "randomMissile",
+        "amount": 2,
+        "damage": 2,
+        "resolver": {
+          "kind": "randomEnemy"
+        }
+      }
+    },
+    {
+      "id": "mqi2xdmh",
+      "name": "champion de l'arene",
+    
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "5",
+      "atk": "5",
+      "def": "5",
+      "desc": "battlecry: +1/+1 to allied creatures",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 1,
+        "resolver": {
+          "kind": "alliedMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi313ey",
+      "name": "soulevement de tombes",
+      "assetKey": "tomb",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "2",
+      "atk": "",
+      "def": "",
+      "desc": "summon 2 1/1 zombies with deathrattle: summon a 1/1 zombie",
+      "qty": 2,
+      "legendId": "mqi2u1aa",
+      "spellEffect": {
+        "kind": "summon",
+        "amount": 2,
+        "tokens": [
+          {
+            "id": "mqi313ey_zombie1",
+            "name": "Zombie",
+            "assetKey": "zombie",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": "Rale d'agonie : invoque un zombie 1-1",
+            "deathrattle": {
+              "kind": "summon",
+              "amount": 1,
+              "tokens": [
+                {
+                  "id": "mqi313ey_zombie1b",
+                  "name": "Zombie",
+                  "assetKey": "zombie",
+                  "cost": "1",
+                  "atk": "1",
+                  "def": "1",
+                  "desc": ""
+                }
+              ]
+            }
+          },
+          {
+            "id": "mqi313ey_zombie2",
+            "name": "Zombie",
+            "assetKey": "zombie",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": "Rale d'agonie : invoque un zombie 1-1",
+            "deathrattle": {
+              "kind": "summon",
+              "amount": 1,
+              "tokens": [
+                {
+                  "id": "mqi313ey_zombie2b",
+                  "name": "Zombie",
+                  "assetKey": "zombie",
+                  "cost": "1",
+                  "atk": "1",
+                  "def": "1",
+                  "desc": ""
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mpzqt44t",
+      "name": "cannibalisme",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "3",
+      "atk": "",
+      "def": "",
+      "desc": "deal 3 dmg, your hero heals 3HP.",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "combined",
+        "effects": [
+          {
+            "kind": "damage",
+            "amount": 3,
+            "resolver": {
+              "kind": "anyCharacter"
+            }
+          },
+          {
+            "kind": "heal",
+            "amount": 3,
+            "resolver": {
+              "kind": "playerHero"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mpzr3mcy",
+      "name": "Hyperactive cousin",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "2",
+      "def": "1",
+      "desc": "Rush\nDeathrattle: summon a 1/1 hyperactive little cousin",
+      "qty": 2,
+      "legendId": "",
+      "rush": true,
+      "deathrattle": {
+        "kind": "summon",
+        "amount": 1,
+        "tokens": [
+          {
+            "id": "mpzr3mcy_token1",
+            "name": "Hyperactive little cousin",
+            "cost": "1",
+            "atk": "1",
+            "def": "1",
+            "desc": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "mpzs81x0",
+      "name": "le (gros) thon poli",
+      "assetKey": "grosThon",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "4",
+      "atk": "3",
+      "def": "5",
+      "desc": "taunt\nrestore 3 HP",
+      "qty": 2,
+      "legendId": "",
+      "taunt": true,
+      "battlecry": {
+        "kind": "heal",
+        "amount": 3,
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
+    },
+    {
+      "id": "mpzs8u1h",
+      "name": "bloodsucker",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "3",
+      "def": "2",
+      "desc": "lifesteal\nrush",
+      "qty": 2,
+      "legendId": "",
+      "rush": true,
+      "onAttack": {
+        "kind": "lifesteal"
+      }
+    },
+    {
+      "id": "mqi7ivjj",
+      "name": "Opika",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "2",
+      "def": "3",
+      "desc": "electric shock",
+      "qty": 2,
+      "legendId": "",
+      "endOfTurnEffect": {
+        "kind": "damage",
+        "amount": 2,
+        "resolver": {
+          "kind": "randomEnemy"
+        }
+      }
+    },
+    {
+      "id": "mpzqyecf",
+      "name": "Investment Goblin",
+      "assetKey": "investmentGoblin",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "0",
+      "atk": "",
+      "def": "",
+      "desc": "All your end of turn effects trigger",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "triggerEndOfTurn",
+        "resolver": {
+          "kind": "alliedMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi7ktmr",
+      "name": "Bombe H",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "7",
+      "atk": "",
+      "def": "",
+      "desc": "Destroy the board",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "damage",
+        "amount": 99,
+        "resolver": {
+          "kind": "allMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi2u1aa",
+      "name": "Freddy, le fossoyeur de tombe",
+      "type": "creature",
+      "rarity": "Légendaire",
+      "cost": "6",
+      "atk": "4",
+      "def": "6",
+      "desc": "Battlecry: trigger the deathrattles of all your minions\n\nLeg Passive: every 4 creatures that die, summon a 1/1 zombie\n\nDeathrattles trigger twice",
+      "battlecry": {
+        "kind": "triggerDeathrattle",
+        "resolver": {
+          "kind": "alliedMinions"
+        }
+      },
+      "qty": 1,
+      "legendId": "freddy"
+    },
+    {
+      "id": "mqi2v3qx",
+      "name": "tremblement",
+      "type": "sort",
+      "rarity": "Rare",
+      "cost": "4",
+      "atk": "",
+      "def": "",
+      "desc": "deal 2 dmg to all enemies",
+      "qty": 2,
+      "legendId": "",
+      "spellEffect": {
+        "kind": "damage",
+        "amount": 2,
+        "resolver": {
+          "kind": "allEnemies"
+        }
+      }
+    },
+    {
+      "id": "mpzsjywa",
+      "name": "Rat des champs",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "2",
+      "def": "1",
+      "desc": "ping 1",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "damage",
+        "amount": 1,
+        "resolver": {
+          "kind": "anyCharacter"
+        }
+      }
+    },
+    {
+      "id": "mqi77t7b",
+      "name": "Slime orthophoniste",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "5",
+      "atk": "3",
+      "def": "5",
+      "desc": "Spellpower +2",
+      "qty": 2,
+      "legendId": "mqi6l6i0",
+      "spellpower": 2
+    },
+    {
+      "id": "mqi829kv",
+      "name": "Bondisseur enjoué",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "1",
+      "def": "2",
+      "desc": "Spellpower +1",
+      "qty": 2,
+      "legendId": "mqi6l6i0",
+      "spellpower": 1
+    },
+    {
+      "id": "mqi83gcw",
+      "name": "Flambeur de Dancefloor",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "2",
+      "desc": "Spellpower +1 deathrattle : draw a card",
+      "qty": 2,
+      "legendId": "mqi6l6i0",
+      "spellpower": 1,
+      "deathrattle": {
+        "kind": "draw",
+        "amount": 1
+      }
+    },
+    {
+      "id": "mpzrno25",
+      "name": "Mafia boss",
+      "type": "",
+      "rarity": "Commune",
+      "cost": "2",
+      "atk": "1",
+      "def": "2",
+      "desc": "gain +1/+1 for every other allied creature that you control",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "countBuff",
+        "atk": 1,
+        "health": 1,
+        "countResolver": {
+          "kind": "otherAlliedMinions"
+        },
+        "resolver": {
+          "kind": "source"
+        }
+      }
+    },
+    {
+      "id": "mqi7uqkt",
+      "name": "Cactus dos Pimentos",
+      "type": "creature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "2",
+      "def": "3",
+      "desc": "Taunt\ngain +1/+1 for each wounded allied minion",
+      "qty": 2,
+      "legendId": "mqi7p9nf",
+      "taunt": true,
+      "battlecry": {
+        "kind": "countBuff",
+        "atk": 1,
+        "health": 1,
+        "countResolver": {
+          "kind": "damagedAlliedMinions"
+        },
+        "resolver": {
+          "kind": "source"
+        }
+      }
+    },
+    {
+      "id": "mqi70rba",
+      "name": "Feeder goblin",
+      "type": "Créature",
+      "rarity": "Commune",
+      "cost": "3",
+      "atk": "3",
+      "def": "2",
+      "desc": "Battlecry : give regeneration to an ally",
+      "qty": 2,
+      "legendId": "",
+      "battlecry": {
+        "kind": "addKeyword",
+        "keywordType": "endOfTurnEffect",
+        "value": {
+          "kind": "regeneration"
+        },
+        "resolver": {
+          "kind": "allyMinion"
+        }
+      }
+    },
+    {
+      "id": "mqi76hth",
+      "name": "Cavalier furieux",
+      "type": "Créature",
+      "rarity": "Commune",
+      "cost": "4",
+      "atk": "3",
+      "def": "1",
+      "desc": "Cleave Rush",
+      "qty": 2,
+      "legendId": "",
+      "rush": true,
+      "onAttack": {
+        "kind": "cleave"
+      }
     },
     {
       "id": "mqiayjrm",
       "name": "Leon, le chien saucisse",
-      "type": "2",
+      "type": "Créature",
       "rarity": "Légendaire",
       "cost": "2",
-      "costNum": 2,
       "atk": "3",
       "def": "3",
-      "desc": "leg passif : inflige 5 PV a l'hero adverse",
+      "desc": "Battlecry : Deal 5 dmg to the ennemy hero",
       "qty": 1,
-      "emoji": "🌭",
-      "color": "#F0D878",
-      "legendId": ""
+      "legendId": "leon",
+      "battlecry": {
+        "kind": "damage",
+        "amount": 5,
+        "resolver": {
+          "kind": "enemyHero"
+        }
+      }
     },
     {
-      "id": "mqib6m3f",
-      "name": "Haku (archi card)",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "1",
-      "costNum": 1,
+      "id": "mpzt1pib",
+      "name": "Roi des rats",
+      "type": "",
+      "rarity": "Légendaire",
+      "cost": "4",
+      "atk": "3",
+      "def": "4",
+      "desc": "LEG PASSIVE:\nYour end of turn trigger one more time every 3 end of turn effects.\nActive: End of turn give your neighbouring ally +1/+1",
+      "qty": 1,
+      "legendId": "roidesrats",
+      "endOfTurnEffect": {
+        "kind": "buff",
+        "atk": 1,
+        "health": 1,
+        "resolver": {
+          "kind": "neighboringMinions"
+        }
+      }
+    },
+    {
+      "id": "mqi6l6i0",
+      "name": "Gertrude",
+      "type": "Créature",
+      "rarity": "Légendaire",
+      "cost": "2",
       "atk": "1",
-      "def": "1",
-      "desc": "pioche une carte",
+      "def": "4",
+      "desc": "Passive: Every 4 spells that you use, the spell goes back in your hand.\n\nSpell power +1",
       "qty": 1,
-      "emoji": "🃏",
-      "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
-    },
-    {
-      "id": "mqibfh9p",
-      "name": "Zurg (archi card)",
-      "type": "creature",
-      "rarity": "Commune",
-      "cost": "7",
-      "costNum": 7,
-      "atk": "7",
-      "def": "7",
-      "desc": "Rale d'agonie : invoque 2 alien 1-1",
-      "qty": 1,
-      "emoji": "👽",
-      "color": "#C0DD97",
-      "legendId": "mqi2mtc3"
+      "legendId": "gertrude",
+      "spellpower": 1
     }
   ],
   "decks": []

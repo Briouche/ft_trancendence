@@ -1,46 +1,411 @@
 @import "tailwindcss";
 
-@theme {
-  /* --------------------------
-  Text styles
-  -------------------------- */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-
-  /* --------------------------
-  Color palette
-  -------------------------- */
-  --color-primary: #000000;
-  --color-secondary: #666666;
-  --color-accent: #f59e0b;
-  --color-success: #16a34a;
-  --color-danger: #dc2626;
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
-
-  /* --------------------------
-  Spacing
-  -------------------------- */
-  --spacing-padding-x: 1.5rem;
-  --spacing-padding-y: 1rem;
-
-  /* --------------------------
-  Dimensions
-  -------------------------- */
-  --height-header: 4rem;
-  --height-footer: 4rem;
+:root {
+  --background: #0e0f10;
+  --foreground: #d4d6d3;
+  /* Site 100% sombre : dit au navigateur de peindre en noir par défaut (form controls,
+     scrollbars, et surtout le fond de la page avant même que ce fichier CSS arrive) au lieu
+     de son blanc habituel — c'est ce qui cause le flash blanc au tout premier paint. */
+  color-scheme: dark;
 }
 
-@layer components {
-  .top-button {
-    @apply w-20 h-11 flex items-center justify-center
-           border border-gray-300 rounded-2xl text-sm
-           bg-white transition;
+/* Toutes les classes text-* de Tailwind sont basées en rem : ce seul réglage augmente
+   proportionnellement la taille du texte sur tout le site, sans toucher chaque fichier. */
+html {
+  font-size: 120%;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* Police unique sur tout le front (Hub, cartes, deck builder, messages d'erreur...) : les
+     cinq alias pointent vers Pixel Game (1001fonts). */
+  --font-display: var(--font-pixel-game);
+  --font-serif: var(--font-pixel-game);
+  --font-sans: var(--font-pixel-game);
+  --font-engraved: var(--font-pixel-game);
+  --font-pixel: var(--font-pixel-game);
+
+  /* Police des cartes (CardFace) : la même que les titres/le reste du site (Pixel Game), plus
+     Merchant Copy dédiée. */
+  --font-card: var(--font-pixel-game);
+
+  --color-ink-950: #0b0c0d;
+  --color-ink-900: #15171a;
+  --color-ink-800: #1f2225;
+  --color-ink-700: #2b2f33;
+
+  --color-parchment-50: #e9eae8;
+  --color-parchment-100: #d4d6d3;
+  --color-parchment-200: #b7bab8;
+  --color-parchment-300: #9a9d9b;
+
+  --color-leather-700: #5a5e62;
+  --color-leather-800: #454850;
+  --color-leather-900: #33363a;
+
+  --color-gold-300: #cbb883;
+  --color-gold-400: #b3a06a;
+  --color-gold-500: #8f8058;
+  --color-gold-600: #726550;
+
+  /* Fond des cartes (Form, RoundedRectangle...) : papier ancien clair — presque opaque, une
+     vraie feuille posée devant le décor plutôt qu'une vitre teintée. La vignette + les taches
+     sépia de .paper-texture apportent le "vieilli" sans assombrir la couleur de base elle-même. */
+  --color-background-secondary: rgba(240, 231, 208, 0.97);
+
+  /* Couleurs de texte utilisées À L'INTÉRIEUR des cartes papyrus (contraste sur fond clair) —
+     à ne pas confondre avec --color-foreground, qui reste clair pour le reste du site (sombre). */
+  --color-ink-text: #3b2c18;
+  --color-ink-muted: #6d5a3e;
+
+  --radius-btn: 0.5rem;
+  --radius-card: 1rem;
+  --spacing-vertical: 1rem;
+  --spacing-section: 1.25rem;
+  --spacing-text-gap: 1rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Curseur natif masqué partout : CustomCursor.tsx le remplace par le sprite du kit "Book
+   Styles" (avec animation au clic), donc plus rien ne doit afficher la flèche du système. */
+* {
+  cursor: none !important;
+}
+
+/* Sprites du "Complete UI Book Styles Pack" (Crusenho, crusenho.itch.io — voir credits dans le
+   README) posés en 9-slice CSS, comme les parchemins avant eux : voir
+   https://developer.mozilla.org/docs/Web/CSS/border-image pour la mécanique. Ce sont des sprites
+   pixel-art minuscules (30 à 224px de large à la source) : image-rendering: pixelated empêche le
+   navigateur de les lisser en les agrandissant, pour garder le rendu "pixel net" du kit. */
+.book-panel {
+  border-style: solid;
+  border-width: 4px;
+  border-image-source: url("/textures/book/popup.png");
+  border-image-slice: 1 fill;
+  border-image-width: 4px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Bannière-ruban (Complete UI Essential Pack, thème Flat) — pour les bandeaux larges (Header,
+   Footer, titres de page), à la place de la couverture de livre rouge. Les extrémités du ruban
+   (repliées en biais) tiennent dans le slice gauche/droite, plus large que le haut/bas. */
+.book-cover-panel {
+  border-style: solid;
+  border-width: 16px 40px 4px 40px;
+  border-image-source: url("/textures/book/banner.png");
+  border-image-slice: 16 20 4 20 fill;
+  border-image-width: 16px 40px 4px 40px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Petite case (case d'inventaire) — pour les pastilles/boutons/cases (menu simple...) où le
+   cadre de .book-cover-panel dominerait un élément déjà petit. */
+.book-slot {
+  border-style: solid;
+  border-width: 6px;
+  border-image-source: url("/textures/book/slot.png");
+  border-image-slice: 2 fill;
+  border-image-width: 6px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Champ de texte (Complete UI Book Styles Pack, TravelBookLite — double liseré foncé/clair)
+   pour les <input> des formulaires (Sign In, Register...). */
+.book-input {
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url("/textures/book/input-field.png");
+  border-image-slice: 8 fill;
+  border-image-width: 8px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Refonte de la Collection, 2e itération : mêmes classes/structure qu'avant (pour ne pas
+   toucher CollectionBook.tsx), mais sourcées sur le "carnet" (03_NoteBook) du Complete UI Book
+   Styles Pack plutôt que sur le "bouquin 1" (01_TravelBook) — les noms de classes gardent le
+   préfixe "travelbook-" pour ne pas devoir tout renommer, mais pointent maintenant vers
+   /textures/notebook/. Slices mesurés au pixel près comme les autres 9-slice du site. */
+
+/* Chaque moitié de livre (BookCover01a_Left/Right) est une image AUTONOME qui inclut déjà son
+   bord extérieur ET son remplissage crème — contrairement à TravelBook (cadre rouge séparé +
+   page à l'intérieur), donc plus de .travelbook-cover wrapper avec son propre border-image : le
+   conteneur externe (voir CollectionBook.tsx) est juste une boîte de mise en page sans habillage.
+   border-image-repeat: round (pas stretch) sur les deux côtés : les dents déchirées du haut/bas
+   ET les anneaux de reliure spirale du bord intérieur sont des motifs répétitifs qui se
+   déformeraient en étirement à cette taille finale (le livre est bien plus haut que le sprite
+   source) — round retuile le motif au lieu de l'écraser. */
+.travelbook-page {
+  border-style: solid;
+  border-width: 64px;
+  border-image-source: url("/textures/notebook/cover-left.png");
+  border-image-slice: 64 fill;
+  border-image-width: 64px;
+  border-image-repeat: round;
+  image-rendering: pixelated;
+}
+
+.travelbook-page-right {
+  border-image-source: url("/textures/notebook/cover-right.png");
+}
+
+.travelbook-banner {
+  border-style: solid;
+  border-width: 16px;
+  border-image-source: url("/textures/notebook/banner-bg.png");
+  border-image-slice: 16 fill;
+  border-image-width: 16px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Bannière-ruban du titre ("Banner01a" du sheetinfo) : contrairement à .travelbook-banner
+   (Frame01a, un simple cadre rectangulaire), celle-ci a des extrémités repliées en biais —
+   border-image-slice plus large sur les côtés (48, où vivent les plis) pour ne pas les étirer en
+   biais informe, seul le centre plat s'étire pour accueillir le titre. */
+.travelbook-title-banner {
+  border-style: solid;
+  border-width: 24px 48px;
+  border-image-source: url("/textures/notebook/banner01.png");
+  border-image-slice: 24 48 fill;
+  border-image-width: 24px 48px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Panneau latéral des filtres ("Frame08a" du sheetinfo) : boîte verticale simple, coins
+   décoratifs mordus en haut-droite/bas-gauche (partie du sprite, pas un artefact). */
+.travelbook-side-panel {
+  border-style: solid;
+  border-width: 16px;
+  border-image-source: url("/textures/notebook/frame08.png");
+  border-image-slice: 16 fill;
+  border-image-width: 16px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Panneau du parchemin de création de deck ("Frame04a" du sheetinfo) : cadre simple, plus léger
+   que .travelbook-side-panel (Frame08a) — utilisé à la place des pages du livre (.travelbook-page)
+   pour ce panneau qui n'est pas une page du carnet mais un encart à part. */
+.travelbook-frame4-panel {
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: url("/textures/notebook/frame04.png");
+  border-image-slice: 12 fill;
+  border-image-width: 12px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Plus de .travelbook-tab ("Frame05a") : les onglets (MarkerButton dans CollectionBook.tsx)
+   utilisent uniquement le sprite "Marker01a_Open"/"Close" (Sprites Animated), y compris au repos
+   (frame 1) — aucun "Frame" statique ne reste sur ces boutons. */
+
+/* border-width/border-image-width (4px) ≠ border-image-slice (12) volontairement : le slice se
+   mesure en pixels de l'image source (upscalée 4x, donc 12px y correspond bien au bord natif de
+   ~3px), mais ces pastilles s'affichent minuscules (h-7/w-7 = 28px) — un border-width calqué sur
+   le slice (comme les autres 9-slice du fichier, où affichage ≈ taille source) les réduisait à un
+   simple anneau, sans place pour le chiffre au centre. */
+.travelbook-slot {
+  border-style: solid;
+  border-width: 4px;
+  border-image-source: url("/textures/notebook/slot.png");
+  border-image-slice: 12 fill;
+  border-image-width: 4px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Boutons "Create deck"/"Save deck" ("Slot03a") : pas de Sprites Animated pour les slots (pas de
+   frames pressé/relâché comme les Button0Na), donc le clic n'anime que via active:scale-95 en
+   Tailwind plutôt qu'un cycle d'images. */
+.travelbook-slot03a {
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url("/textures/notebook/slot03a.png");
+  border-image-slice: 12 fill;
+  border-image-width: 8px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Cadre autour de chaque deck dans "My decks" — même sprite que les champs texte (Slot01a). */
+.travelbook-deck-frame {
+  border-style: solid;
+  border-width: 4px;
+  border-image-source: url("/textures/notebook/slot.png");
+  border-image-slice: 12 fill;
+  border-image-width: 4px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+/* Pas de .travelbook-select statique : le cadre de surbrillance boucle maintenant sur les 4
+   frames animées "Select01a" (Sprites Animated) — voir le composant SelectHighlight dans
+   CollectionBook.tsx (border-image en style inline, frame par frame en boucle). */
+
+/* Scrollbar native masquée — remplacée par la poignée custom pilotée en JS (voir
+   NotebookScrollArea dans NotebookUI.tsx). Les scrollbars "overlay" des navigateurs récents
+   ignorent le stylage par image de ::-webkit-scrollbar, d'où le composant JS plutôt que du CSS
+   seul. */
+.notebook-scroll-hidden {
+  scrollbar-width: none;
+}
+.notebook-scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+@theme {
+  --animate-legendary-glow: legendary-glow 1.8s ease-in-out infinite;
+  --animate-card-pop: card-pop 0.4s ease-out backwards;
+  --animate-legendary-reveal: legendary-reveal 0.9s ease-out;
+  --animate-pack-shake: pack-shake 0.6s ease-in-out infinite;
+  --animate-pack-tear-flap: pack-tear-flap 0.45s ease-in forwards;
+  --animate-pack-tear-body: pack-tear-body 0.45s ease-in forwards;
+  --animate-pack-flash: pack-flash 0.45s ease-out forwards;
+}
+
+/* Ouverture de paquet (PackOpener) : le paquet choisi tremble pendant l'appel réseau, puis se
+   déchire en deux le long d'une diagonale (angle mesuré sur le sprite "cardRIPfx" — le coin
+   haut-droit part comme un rabat déchiré, le reste s'affaisse) pendant qu'un flash doré derrière
+   lui monte en intensité — remplace l'ancien coffre 3D animé en three.js. Chaque moitié est un
+   <PackArt> découpé au clip-path (pas les frames de l'asset : leurs tailles de canvas varient
+   d'une frame à l'autre sans métadonnées d'offset pour les recaler, donc on préfère découper
+   directement le vrai visuel du paquet choisi — aligné par construction, en pleine couleur). */
+@keyframes pack-shake {
+
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
   }
-  .top-button-accent {
-    @apply hover:bg-accent hover:text-white;
+
+  10% {
+    transform: translateX(-3px) rotate(-2deg);
   }
-  .top-button-muted {
-    @apply hover:bg-gray-100;
+
+  20% {
+    transform: translateX(4px) rotate(2deg);
+  }
+
+  30% {
+    transform: translateX(-4px) rotate(-2deg);
+  }
+
+  40% {
+    transform: translateX(4px) rotate(2deg);
+  }
+
+  50% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+
+  60% {
+    transform: translateX(3px) rotate(1deg);
+  }
+
+  70% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+
+  80% {
+    transform: translateX(2px) rotate(1deg);
+  }
+
+  90% {
+    transform: translateX(-1px) rotate(0deg);
+  }
+}
+
+@keyframes pack-tear-flap {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(46px, -78px) rotate(38deg);
+    opacity: 0;
+  }
+}
+
+@keyframes pack-tear-body {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  25% {
+    transform: translateY(3px) scale(1.02);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(34px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes pack-flash {
+
+  0%,
+  55% {
+    opacity: 0;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes legendary-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55);
+  }
+
+  50% {
+    box-shadow: 0 0 35px 10px rgba(212, 175, 55, 0.9);
+  }
+}
+
+/* Éclat doré ponctuel, une seule fois, au moment précis où une carte légendaire se retourne face
+   visible — le pulse continu de legendary-glow prend ensuite le relais une fois la carte posée. */
+@keyframes legendary-reveal {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+
+  35% {
+    box-shadow: 0 0 55px 18px rgba(212, 175, 55, 0.95);
+  }
+
+  100% {
+    box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.55);
+  }
+}
+
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

@@ -1,5 +1,7 @@
 # dependencies
 /node_modules
+/app/gameEngine/node_modules
+/gameEngine/node_modules
 
 # next.js
 /.next/
@@ -16,3 +18,6 @@
 
 # env files (can opt-in for committing if needed)
 .env*
+.env
+
+*.DS_Store

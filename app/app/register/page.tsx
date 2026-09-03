@@ -1,11 +1,13 @@
-import { redirect } from "next/navigation";
-import { getUserDetails } from "@/lib/auth";
-import Register from "@/components/Register";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import RegisterForm from "@/components/RegisterForm";
 
-export default async function RegisterPage() {
-  const user = await getUserDetails();
-  if (user) {
-    redirect("/");
-  }
-  return <Register />;
+export default function RegisterPage() {
+  return (
+    <>
+      <Header />
+      <RegisterForm />
+      <Footer />
+    </>
+  );
 }

@@ -32,3 +32,23 @@ docker-compose*.yml
 .DS_Store
 .vscode/
 .zed
+# Dependencies and local build outputs
+node_modules
+.next
+out
+
+# Logs and environment variables
+*.log
+npm-debug.log*
+.env*
+!.env.example
+
+# OS / Editor clutter
+.DS_Store
+.vscode
+
+# Git and Docker build context
+.git
+.gitignore
+.dockerignore
+Dockerfile*

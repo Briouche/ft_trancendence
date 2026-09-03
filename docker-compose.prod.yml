@@ -1,7 +1,8 @@
+
 services:
   proxy:
     build:
-      context: ./nginx
+      context: ./proxy
       args:
         DOMAIN_NAME: ${DOMAIN_NAME}
     ports:
@@ -10,13 +11,25 @@ services:
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
       - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+    volumes:
+      - next_static:/var/www/html/_next/static:ro
+      - next_public:/var/www/html/public:ro
     restart: always
 
   app:
     build:
       target: production
+    volumes:
+      - next_static:/app/.next/static
+      - next_public:/app/public
     restart: always
-    command: npm run start:prod
+
+  game_engine:
+    restart: always
 
   db:
     restart: always
+
+volumes:
+  next_static:
+  next_public:
