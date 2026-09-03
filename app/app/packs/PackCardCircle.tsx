@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 import CardBackArt from '@/components/CardBackArt'
+import { AssetButton } from '@/components/notebook/NotebookUI'
 
 // Tailles en fonction de vmin (1% de la plus petite dimension de la fenêtre) plutôt qu'en pixels
 // fixes : le cercle occupe alors toujours la même proportion de la page, quelle que soit sa
@@ -12,11 +13,6 @@ import CardBackArt from '@/components/CardBackArt'
 // la distance entre deux cartes voisines (corde du cercle) doit dépasser la hauteur d'une carte.
 const RADIUS_VMIN     = 36
 const CARD_WIDTH_VMIN = 15
-const TILT_DEGREES    = 7
-
-function clamp(v: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, v))
-}
 
 function useVmin() {
     const [vmin, setVmin] = useState(0)
@@ -30,54 +26,49 @@ function useVmin() {
 }
 
 // Les 10 cartes du paquet posées en cercle plutôt qu'en damier — chaque case reste cliquable
-// pour ouvrir la carte en grand (PackCardZoom). La bascule à la souris (parallaxe) est active
-// directement sur les 10, en continu, pas seulement une fois une carte agrandie.
+// pour ouvrir la carte en grand (PackCardZoom). Plus de parallaxe à la souris : les cartes
+// restent immobiles (dos comme révélées), seul le retournement au clic anime encore quelque chose.
 export default function PackCardCircle({
-    cards, revealedIndices, onSelect, cardBack,
+    cards, revealedIndices, onSelect, onBack, onViewCollection, cardBack,
 }: {
-    cards:           CardFaceData[]
-    revealedIndices: Set<number>
-    onSelect:        (index: number) => void
-    cardBack:        number
+    cards:            CardFaceData[]
+    revealedIndices:  Set<number>
+    onSelect:         (index: number) => void
+    onBack:           () => void
+    onViewCollection: () => void
+    cardBack:         number
 }) {
-    const containerRef = useRef<HTMLDivElement>(null)
-    const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null)
+    const allRevealed = cards.length > 0 && revealedIndices.size === cards.length
     const vmin = useVmin()
-
-    useEffect(() => {
-        function onMove(e: MouseEvent) {
-            setMouse({ x: e.clientX, y: e.clientY })
-        }
-        window.addEventListener('mousemove', onMove)
-        return () => window.removeEventListener('mousemove', onMove)
-    }, [])
 
     const radius     = vmin * RADIUS_VMIN
     const cardWidth  = vmin * CARD_WIDTH_VMIN
     const cardHeight = cardWidth * 4 / 3
     const n = cards.length
     const size = radius * 2 + cardHeight
-    const rect = containerRef.current?.getBoundingClientRect()
 
     return (
         // pointer-events-none : le centre du cercle (où trône le coffre) n'a aucune carte —
         // sans ça, ce conteneur (vide mais bien réel) intercepte les clics destinés à tout ce
         // qui est affiché par-dessus à cet endroit (le zoom d'une carte, centré au même point).
-        <div ref={containerRef} className="relative pointer-events-none" style={{ width: size, height: size }}>
+        <div className="relative pointer-events-none" style={{ width: size, height: size }}>
+            {/* Flèche de retour + raccourci Collection, au centre du cercle — seulement une fois
+                tout révélé (pas de sortie prématurée pendant qu'il reste des cartes face cachée).
+                Deux boutons 01_TravelBook (Sprites Animated) plutôt que le carré générique + icône
+                séparée : ButtonBack01a pour le retour, ButtonManual01a (icône livre) réutilisé
+                comme raccourci Collection — pas de sprite "cartes" dédié dans ce bouquin. */}
+            {allRevealed && (
+                <div className="pointer-events-auto absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 gap-3">
+                    <AssetButton onClick={onBack} variant="back" className="h-14 w-14 shrink-0" />
+                    <AssetButton onClick={onViewCollection} variant="manual" className="h-14 w-14 shrink-0" />
+                </div>
+            )}
+
             {cards.map((card, i) => {
                 const angle    = (i / n) * Math.PI * 2 - Math.PI / 2
                 const x        = Math.cos(angle) * radius
                 const y        = Math.sin(angle) * radius
                 const revealed = revealedIndices.has(i)
-
-                let tiltX = 0
-                let tiltY = 0
-                if (mouse && rect) {
-                    const cardCenterX = rect.left + rect.width / 2 + x
-                    const cardCenterY = rect.top + rect.height / 2 + y
-                    tiltX = clamp((mouse.x - cardCenterX) / (cardWidth * 2), -1, 1)
-                    tiltY = clamp((mouse.y - cardCenterY) / (cardHeight * 2), -1, 1)
-                }
 
                 return (
                     <button
@@ -88,7 +79,7 @@ export default function PackCardCircle({
                             left: `calc(50% + ${x}px)`,
                             top: `calc(50% + ${y}px)`,
                             width: cardWidth,
-                            transform: `translate(-50%, -50%) perspective(700px) rotateY(${tiltX * TILT_DEGREES}deg) rotateX(${-tiltY * TILT_DEGREES}deg)`,
+                            transform: 'translate(-50%, -50%)',
                         }}
                     >
                         {/* Le retournement se joue ici, sur place, à cette petite taille — plus

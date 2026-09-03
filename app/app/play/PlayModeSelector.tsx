@@ -18,9 +18,11 @@ type SavedDeck = {
   cards: { qty: number; card: { rarity: string; legendId: string } }[];
 };
 
-// Bouton de choix (mode/difficulté) : reste allumé (SelectHighlight figé, animate=false) tant
-// qu'il est le choix actif, pas seulement au survol — même principe que le dos de carte équipé
-// dans CollectionBook (Slot, highlighted=vrai) et pas un simple hover.
+// Choice button (mode/difficulty): the golden frame (SelectHighlight) only shows for the active
+// choice — otherwise it looked identical to a plain hover and you couldn't tell which one was
+// really selected. Always static (animate=false, no shimmer): it's a plain fixed outline marking
+// the selection, not an animation. A hovered but non-active button only gets a slight brightness
+// bump, so it can't be mistaken for the actual active choice.
 function ToggleButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -28,11 +30,13 @@ function ToggleButton({ active, onClick, children }: { active: boolean; onClick:
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="travelbook-slot03a relative h-14 w-full font-display text-lg font-bold text-white
-        transition-transform active:scale-95"
+      className={`travelbook-slot03a relative h-14 w-full font-display text-xl font-bold text-white
+        transition-transform active:scale-95 ${!active && hovered ? 'brightness-125' : ''}`}
       style={outlinedWhiteTextStyle}
     >
-      {(active || hovered) && <SelectHighlight className="-inset-1 z-10" animate={false} />}
+      {/* -inset-3.5 (14px) = the frame's width (borderWidth:14 in SelectHighlight): the frame is
+          drawn just outside the button instead of covering its text. */}
+      {active && <SelectHighlight className="-inset-3.5 z-10" animate={false} />}
       {children}
     </button>
   );
@@ -56,60 +60,59 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
 
       <ScaleToFit>
         <div className="flex flex-col items-center gap-4">
-          <TitleBanner width="w-[900px]">JOUER</TitleBanner>
+          <TitleBanner width="w-[900px]">PLAY</TitleBanner>
 
           <div className="flex h-[700px] items-stretch gap-6">
-            {/* Gauche : mode + difficulté. Frame04a (comme le panneau de droite) plutôt que la
-                texture de page du carnet (.travelbook-page) : ce n'est pas du contenu du livre à
-                feuilleter, juste un panneau de choix — même distinction que celle déjà faite pour
-                le panneau "My decks" dans DeckBuilder.tsx. */}
+            {/* Left: mode + difficulty. Frame04a (like the right-hand panel) rather than the
+                notebook's page texture (.travelbook-page): this isn't book content to leaf
+                through, just a choice panel — same distinction already made for the "My decks"
+                panel in DeckBuilder.tsx. */}
             <div className="travelbook-frame4-panel flex h-[700px] w-[480px] flex-col p-6">
               <p className="mb-4 text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
-                Mode de jeu
+                Game mode
               </p>
               <div className="flex flex-col gap-3">
-                <ToggleButton active={mode === "solo"} onClick={() => setMode("solo")}>Solo (vs IA)</ToggleButton>
-                <ToggleButton active={mode === "multiplayer"} onClick={() => setMode("multiplayer")}>Multijoueur</ToggleButton>
+                <ToggleButton active={mode === "multiplayer"} onClick={() => setMode("multiplayer")}>Multiplayer</ToggleButton>
+                <ToggleButton active={mode === "solo"} onClick={() => setMode("solo")}>Solo (vs AI)</ToggleButton>
               </div>
 
               {mode === "solo" && (
                 <>
                   <p className="mb-3 mt-6 text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
-                    Difficulté
+                    Difficulty
                   </p>
                   <div className="flex flex-col gap-3">
-                    <ToggleButton active={difficulty === "facile"} onClick={() => setDifficulty("facile")}>Facile</ToggleButton>
-                    <ToggleButton active={difficulty === "moyen"} onClick={() => setDifficulty("moyen")}>Moyen</ToggleButton>
-                    <ToggleButton active={difficulty === "difficile"} onClick={() => setDifficulty("difficile")}>Difficile</ToggleButton>
+                    <ToggleButton active={difficulty === "facile"} onClick={() => setDifficulty("facile")}>Easy</ToggleButton>
+                    <ToggleButton active={difficulty === "moyen"} onClick={() => setDifficulty("moyen")}>Medium</ToggleButton>
+                    <ToggleButton active={difficulty === "difficile"} onClick={() => setDifficulty("difficile")}>Hard</ToggleButton>
                   </div>
                 </>
               )}
-
-              <p className="mt-auto text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>
-                Choisis un deck à droite pour lancer la partie.
-              </p>
             </div>
 
-            {/* Droite : mêmes decks sauvegardés que DeckBuilder.tsx ("My decks"), sans "Create
-                deck" ni suppression — cliquer un deck lance directement la partie avec le mode
-                choisi à gauche. */}
+            {/* Right: same saved decks as DeckBuilder.tsx ("My decks"), without "Create deck" or
+                deletion — clicking a deck directly launches the game with the mode chosen on the
+                left. */}
             <div className="travelbook-frame4-panel flex h-[700px] w-96 flex-col p-5">
               <p className="mb-3 text-center font-display text-4xl font-bold text-white" style={outlinedWhiteTextStyle}>
                 My decks
+              </p>
+              <p className="mb-3 text-center font-serif text-xs text-white" style={outlinedWhiteTextStyle}>
+                Choose a deck to start the game.
               </p>
 
               <NotebookScrollArea className="-mr-6 flex-1">
                 {decks.length === 0 && (
                   <div className="mt-6 flex flex-col items-center gap-3">
                     <p className="text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>
-                      Tu n&apos;as pas encore de deck.
+                      You don&apos;t have a deck yet.
                     </p>
                     <Link
                       href="/deck/new"
                       className="travelbook-slot03a flex h-10 w-full items-center justify-center font-display font-bold text-white"
                       style={outlinedWhiteTextStyle}
                     >
-                      Créer un deck
+                      Create a deck
                     </Link>
                   </div>
                 )}
@@ -145,7 +148,7 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
                       <p className="min-w-0 flex-1 truncate text-center font-serif text-lg text-ink-text">
                         {d.name}
                       </p>
-                      <span className="mr-4 shrink-0 font-serif text-xs text-ink-muted">{cardCount} cartes</span>
+                      <span className="mr-4 shrink-0 font-serif text-xs text-ink-muted">{cardCount} cards</span>
                     </div>
                   );
                 })}

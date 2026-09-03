@@ -231,30 +231,71 @@ const BUTTON_FRAME_MS = 35
 const BUTTON_FRAMES = 4
 
 // `variant` choisit la texture (Sprites Animated) sous le bouton : "square" (Button01a, l'orange
-// du bouton Home, pensé pour une icône carrée) reste le défaut, "bar" (Button03a) est réservé aux
-// boutons pleine largeur à texte (Create/Save deck) pour ne pas réutiliser exactement le bouton du
-// Home — son texte passe alors en blanc à liseré noir (outlinedWhiteTextStyle), comme le titre.
+// du bouton Home générique, pensé pour une icône carrée séparée en enfant) reste le défaut, "bar"
+// (Button03a) est réservé aux boutons pleine largeur à texte (Create/Save deck) pour ne pas
+// réutiliser exactement le bouton du Home — son texte passe alors en blanc à liseré noir
+// (outlinedWhiteTextStyle), comme le titre. Les autres variants viennent du bouquin 01_TravelBook
+// (Sprites Animated ButtonHome01a/ButtonBack01a/ButtonManual01a/ButtonAbout01a/ButtonSetting01a/
+// ButtonAchievement01a) : contrairement à "square", l'icône est déjà peinte dans la texture
+// elle-même — pas d'enfant à leur passer.
+const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'settings', 'achievement'] as const
+type AssetButtonVariant = 'square' | 'bar' | (typeof SELF_CONTAINED_VARIANTS)[number]
+
+const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
+    square:      '/textures/notebook/button',
+    bar:         '/textures/notebook/button-bar',
+    home:        '/textures/notebook/button-home',
+    back:        '/textures/notebook/button-back',
+    manual:      '/textures/notebook/button-manual',
+    about:       '/textures/notebook/button-about',
+    settings:    '/textures/notebook/button-settings',
+    achievement: '/textures/notebook/button-achievement',
+}
+
 export function AssetButton({ active, onClick, disabled, variant = 'square', className = '', children }: {
     active?: boolean
     onClick?: () => void
     disabled?: boolean
-    variant?: 'square' | 'bar'
+    variant?: AssetButtonVariant
     className?: string
-    children: React.ReactNode
+    children?: React.ReactNode
 }) {
     const [frame, setFrame] = useState(1)
     const [hovered, setHovered] = useState(false)
-    const texturePath = variant === 'bar' ? '/textures/notebook/button-bar' : '/textures/notebook/button'
+    const texturePath = VARIANT_TEXTURE_PATH[variant]
 
+    // Précharge les 4 frames dès le montage : sans ça, la frame 2/3/4 jamais encore demandée au
+    // navigateur arrive en retard au tout premier clic (le temps du fetch réseau, un flash de
+    // fond vide/blanc) — les clics suivants sont fluides une fois les 4 images en cache. new
+    // window.Image() (pas le composant Image de next/image importé plus haut sous le même nom) :
+    // le constructeur DOM natif, juste pour déclencher le fetch, sans rien monter à l'écran.
+    useEffect(() => {
+        for (let i = 1; i <= BUTTON_FRAMES; i++) {
+            const img = new window.Image()
+            img.src = `${texturePath}/frame-${i}.png`
+        }
+    }, [texturePath])
+
+    // onClick se déclenche APRÈS le cycle d'animation (pas au moment du clic) : pour home/back/
+    // manual, l'action (navigation, retour à l'écran de choix) démonte ou fait disparaître le
+    // bouton immédiatement — appeler onClick tout de suite ne laissait donc jamais le temps aux
+    // frames 2/3/4 de s'afficher à l'écran.
+    // setTimeout rappelé récursivement plutôt que setInterval : un setInterval démarré depuis un
+    // gestionnaire de clic s'est avéré peu fiable ici (tick suivant jamais livré, observé de façon
+    // reproductible) — chaque setTimeout se reprogramme lui-même une fois son propre tick exécuté,
+    // pas de tick "en file d'attente" qui puisse se perdre.
     function handleClick() {
         if (disabled) return
-        onClick?.()
-        let i = 1
-        const interval = setInterval(() => {
-            i += 1
-            if (i > BUTTON_FRAMES) { clearInterval(interval); setFrame(1); return }
+        function tick(i: number) {
+            if (i > BUTTON_FRAMES) {
+                setFrame(1)
+                onClick?.()
+                return
+            }
             setFrame(i)
-        }, BUTTON_FRAME_MS)
+            setTimeout(() => tick(i + 1), BUTTON_FRAME_MS)
+        }
+        setTimeout(() => tick(2), BUTTON_FRAME_MS)
     }
 
     return (
@@ -373,21 +414,12 @@ export const woodenTableBackground: React.CSSProperties = {
 // plus bas. AssetButton pose déjà "relative" dans ses classes de base, qui l'emporterait sur
 // "fixed" passé en className (les classes de position générées par Tailwind ont un ordre interne
 // fixe, pas l'ordre du code source) : le positionnement se fait donc sur un wrapper autour du
-// bouton, pas sur le bouton lui-même.
+// bouton, pas sur le bouton lui-même. variant="home" (ButtonHome01a, 01_TravelBook) plutôt que le
+// carré générique + icône séparée d'avant : l'icône maison est déjà peinte dans la texture.
 export function HomeButton({ onClick }: { onClick: () => void }) {
     return (
         <div className="fixed right-6 top-6 z-40">
-            <AssetButton onClick={onClick} className="h-14 w-14 shrink-0">
-                {/* Décalée vers le haut : le bas du bouton (Button01a) a un liseré/relief 3D qui
-                    grignote la moitié basse, l'icône centrée "au pixel" par flex paraissait donc
-                    décentrée vers le bas. */}
-                <Image
-                    src="/textures/collection/button-home.png" alt="Menu"
-                    width={28} height={28} unoptimized
-                    className="-translate-y-1"
-                    style={{ imageRendering: 'pixelated' }}
-                />
-            </AssetButton>
+            <AssetButton onClick={onClick} variant="home" className="h-14 w-14 shrink-0" />
         </div>
     )
 }

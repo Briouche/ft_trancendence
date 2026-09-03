@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import PackCardCircle from './PackCardCircle'
 import PackCardZoom from './PackCardZoom'
 import PackChoice from './PackChoice'
@@ -9,7 +9,7 @@ import PackArt, { randomPackSkins, type PackSkin } from './PackArt'
 import CardBackArt from '@/components/CardBackArt'
 import type { CardFaceData } from '@/components/CardFace'
 import { useAudio } from '@/components/AudioProvider'
-import RoundedRectangle from '@/components/elements/RoundedRectangle'
+import { HomeButton, TitleBanner, outlinedWhiteTextStyle, woodenTableBackground } from '@/components/notebook/NotebookUI'
 
 type Phase = 'choosing' | 'opening' | 'revealing'
 
@@ -41,6 +41,7 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const [granting, setGranting]               = useState(false)
     const [clearing, setClearing]               = useState(false)
     const { playFlip }                          = useAudio()
+    const router                                = useRouter()
 
     useEffect(() => {
         // Tirage aléatoire volontairement différé après le montage (pas dans le lazy initializer
@@ -112,6 +113,21 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         }
     }
 
+    // Barre espace = équivalent clavier d'un clic sur la prochaine carte encore face cachée,
+    // une à la fois (comme un clic) plutôt que tout révéler d'un coup. preventDefault : sans ça
+    // Space fait aussi défiler la page dans la plupart des navigateurs.
+    useEffect(() => {
+        if (phase !== 'revealing') return
+        function onKeyDown(e: KeyboardEvent) {
+            if (e.code !== 'Space') return
+            e.preventDefault()
+            const nextIndex = cards.findIndex((_, i) => !revealedIndices.has(i))
+            if (nextIndex !== -1) revealCard(nextIndex)
+        }
+        window.addEventListener('keydown', onKeyDown)
+        return () => window.removeEventListener('keydown', onKeyDown)
+    }, [phase, cards, revealedIndices])
+
     // Retour à l'écran de choix (depuis "Back" ou après avoir tout révélé) : 3 nouveaux designs
     // tirés au sort — un choix est de nouveau requis avant la prochaine ouverture.
     function backToChoosing() {
@@ -144,30 +160,21 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const packsUntilLegendary = 5 - pityCounter
 
     return (
-        <div className="relative min-h-screen w-full bg-ink-950">
+        <div className="relative min-h-screen w-full" style={woodenTableBackground}>
+        <HomeButton onClick={() => router.push('/')} />
         {/* pointer-events-none sur le conteneur : le vide autour du texte doit laisser passer le
             clic jusqu'aux paquets/cartes affichés par-dessus — sinon ce conteneur (min-h-screen,
             donc plein écran même sans contenu visible partout) intercepte tout. */}
-        <div className="min-h-screen flex flex-col items-center p-6 md:p-10 gap-10 pointer-events-none">
-            <RoundedRectangle variant="book-cover-panel" className="w-full max-w-3xl flex items-center justify-between p-4 pointer-events-auto">
-                <div>
-                    <p className="font-serif text-xs uppercase tracking-[0.25em] text-ink-muted mb-1">The Vault</p>
-                    <h1 className="font-display text-3xl font-bold text-ink-text">Pack Opening</h1>
-                </div>
-                <Link
-                    href="/"
-                    className="rounded-lg border border-leather-700 bg-ink-900 px-4 py-2 font-display text-sm
-                        font-bold text-parchment-100 transition-colors hover:bg-ink-800"
-                >
-                    ⟵ Menu
-                </Link>
-            </RoundedRectangle>
+        <div className="min-h-screen flex flex-col items-center justify-start p-6 md:p-10 gap-6 pointer-events-none">
+            <div className="pointer-events-auto">
+                <TitleBanner width="w-[700px]">PACK OPENING</TitleBanner>
+            </div>
 
-            <div className="text-center pointer-events-auto">
-                <p className="font-serif text-parchment-300/70">
+            <div className="pointer-events-auto text-center">
+                <p className="font-serif text-sm text-white" style={outlinedWhiteTextStyle}>
                     {packsLeft} pack{packsLeft !== 1 ? 's' : ''} available
                     {' · '}
-                    <span className="text-gold-400">
+                    <span className="font-bold">
                         {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
                     </span>
                 </p>
@@ -193,18 +200,16 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                 </div>
 
                 {phase === 'choosing' && (
-                    <p className="mt-4 font-serif text-sm italic text-parchment-300/50">
-                        {packsLeft > 0 ? 'Choose a pack to open it' : 'No packs available'}
+                    <p className="mt-4 font-serif text-xs italic text-white/70" style={outlinedWhiteTextStyle}>
+                        {packsLeft > 0 ? 'Choose a pack to open it' : "No packs available — you'll still see what's on offer"}
                     </p>
                 )}
             </div>
 
             {error && <p className="pointer-events-auto font-serif text-red-400">{error}</p>}
 
-            {phase === 'choosing' && packsLeft > 0 && packChoices.length > 0 && (
-                <div className="flex flex-1 items-center justify-center">
-                    <PackChoice skins={packChoices} onChoose={openPack} />
-                </div>
+            {phase === 'choosing' && packChoices.length > 0 && (
+                <PackChoice skins={packChoices} locked={packsLeft <= 0} onChoose={openPack} />
             )}
         </div>
 
@@ -253,38 +258,9 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
             // endroit — chaque élément interactif repasse en pointer-events-auto.
             <div className="fixed inset-0 z-20 flex flex-col items-center justify-center gap-6
                 bg-ink-950/40 backdrop-blur-md pointer-events-none">
-                {/* Colonne de gauche : "Back" visible dès l'ouverture du paquet (pas besoin
-                    d'attendre d'avoir tout révélé pour revenir au choix), puis les deux autres
-                    boutons juste en dessous une fois tout révélé — plus un rang centré à part. */}
-                <div className="pointer-events-auto absolute left-6 top-6 flex flex-col gap-3">
-                    <button
-                        onClick={backToChoosing}
-                        className="rounded-lg border border-leather-700 bg-ink-900 px-4 py-2
-                            font-display text-sm font-bold text-parchment-100 transition-colors hover:bg-ink-800"
-                    >
-                        ⟵ Back
-                    </button>
-
-                    {allRevealed && packsLeft > 0 && (
-                        <button
-                            onClick={backToChoosing}
-                            className="rounded-lg border border-gold-500/50 bg-leather-800 px-4 py-2 font-display
-                                text-sm font-bold text-parchment-100 shadow transition-colors hover:bg-leather-700"
-                        >
-                            Open another pack
-                        </button>
-                    )}
-                    {allRevealed && (
-                        <Link
-                            href="/collection"
-                            className="rounded-lg border border-leather-700 bg-ink-900 px-4 py-2 font-display
-                                text-sm font-bold text-parchment-100 transition-colors hover:bg-ink-800"
-                        >
-                            View my collection
-                        </Link>
-                    )}
-                </div>
-
+                {/* Plus de bouton "Open another pack"/"Back" ici — les deux actions de fin de
+                    révélation (retour au choix, aller à la collection) vivent maintenant au
+                    centre du cercle (PackCardCircle), une fois tout révélé. */}
                 {!allRevealed && (
                     <p className="font-serif text-sm italic text-parchment-300/60">
                         Tap a card to reveal it
@@ -309,6 +285,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                     cards={cards}
                     revealedIndices={revealedIndices}
                     onSelect={selectCard}
+                    onBack={backToChoosing}
+                    onViewCollection={() => router.push('/collection')}
                     cardBack={cardBack}
                 />
             </div>
