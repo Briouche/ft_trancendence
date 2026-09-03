@@ -24,6 +24,7 @@
     {
       "id": "mpzsx3l7",
       "name": "Timmy, the planetsucker",
+      "assetKey": "timmyPlanet",
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "5",
@@ -42,6 +43,7 @@
     {
       "id": "mpzsyfvk",
       "name": "golem endormi",
+      "assetKey": "golemEndormi",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -55,6 +57,7 @@
     {
       "id": "mqi7d3bu",
       "name": "Spiritueux slave",
+      "assetKey": "vodka",
       "type": "Créature",
       "rarity": "Commune",
       "cost": "2",
@@ -87,6 +90,7 @@
     {
       "id": "mpzqq8bs",
       "name": "Pyroblin",
+      "assetKey": "pyroblin",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -246,6 +250,7 @@
     {
       "id": "mqi87m6k",
       "name": "Bibliothequaire",
+      "assetKey": "libraire",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -264,6 +269,7 @@
     {
       "id": "mqi7p9nf",
       "name": "Joël el Jeffe (aka marcel au 1000 épices)",
+      "assetKey": "jeffe",
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "3",
@@ -283,6 +289,7 @@
     {
       "id": "mqi7qihp",
       "name": "Diablotin du piment",
+      "assetKey": "diablotin",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -302,7 +309,7 @@
     {
       "id": "mpzrpslo",
       "name": "Big mama hyena",
-      "type": "",
+      "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
       "atk": "1",
@@ -474,6 +481,7 @@
     {
       "id": "mpzsdbs2",
       "name": "cat pack",
+      "assetKey": "fourCats",
       "type": "sort",
       "rarity": "Rare",
       "cost": "4",
@@ -489,6 +497,7 @@
           {
             "id": "mpzsdbs2_token1",
             "name": "Cat",
+          
             "cost": "1",
             "atk": "2",
             "def": "1",
@@ -498,6 +507,7 @@
           {
             "id": "mpzsdbs2_token2",
             "name": "Cat",
+          
             "cost": "1",
             "atk": "2",
             "def": "1",
@@ -507,6 +517,7 @@
           {
             "id": "mpzsdbs2_token3",
             "name": "Cat",
+          
             "cost": "1",
             "atk": "2",
             "def": "1",
@@ -519,6 +530,7 @@
     {
       "id": "mpzsugp1",
       "name": "call the kraken",
+      "assetKey": "kraken",
       "type": "sort",
       "rarity": "Rare",
       "cost": "5",
@@ -547,6 +559,7 @@
     {
       "id": "mqi7477s",
       "name": "Rat de Jade",
+      "assetKey": "RatdeJade",
       "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
@@ -602,6 +615,7 @@
     {
       "id": "mqi33jfs",
       "name": "Le Phoenix",
+    
       "type": "creature",
       "rarity": "Épique",
       "cost": "6",
@@ -618,6 +632,7 @@
           {
             "id": "mqi33jfs_token1",
             "name": "Phoenix",
+          
             "cost": "4",
             "atk": "3",
             "def": "3",
@@ -630,6 +645,7 @@
                 {
                   "id": "mqi33jfs_token1",
                   "name": "Phoenix",
+                
                   "cost": "3",
                   "atk": "2",
                   "def": "2",
@@ -642,6 +658,7 @@
                       {
                         "id": "mqi33jfs_token1",
                         "name": "Phoenix",
+                      
                         "cost": "6",
                         "atk": "1",
                         "def": "1",
@@ -673,6 +690,7 @@
     {
       "id": "mqi7molw",
       "name": "Poulet mécontent",
+      "assetKey": "poulet",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -693,6 +711,7 @@
     {
       "id": "mqi7wg1q",
       "name": "Client Mécontent",
+      "assetKey": "clientMécontent",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -713,6 +732,7 @@
     {
       "id": "mqi7xr37",
       "name": "Second Braillaird",
+      "assetKey": "ChefBraillard",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -732,6 +752,7 @@
     {
       "id": "mqi7t2uf",
       "name": "Critique culinaire",
+      "assetKey": "critiqueCulinaire",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -767,6 +788,7 @@
     {
       "id": "mqi6rw7n",
       "name": "Lecture de textes Anciencs",
+      "assetKey": "textesAnciens",
       "type": "sort",
       "rarity": "Rare",
       "cost": "3",
@@ -952,6 +974,7 @@
     {
       "id": "mqi2nq42",
       "name": "Force de la nature",
+      "assetKey": "treant",
       "type": "creature",
       "rarity": "Commune",
       "cost": "7",
@@ -964,6 +987,7 @@
     {
       "id": "mqi2pdbm",
       "name": "blackhole",
+      "assetKey": "BlackHole",
       "type": "sort",
       "rarity": "Rare",
       "cost": "4",
@@ -1016,6 +1040,7 @@
     {
       "id": "mqi2rye2",
       "name": "mere pondeuse",
+      "assetKey": "bigSpider",
       "type": "creature",
       "rarity": "Commune",
       "cost": "4",
@@ -1076,6 +1101,7 @@
     {
       "id": "mqi2ylzl",
       "name": "un gros sandwich",
+      "assetKey": "grosSandwich",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -1108,6 +1134,7 @@
     {
       "id": "mqi2w8de",
       "name": "Goblinmikaze",
+      "assetKey": "kamikaze",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -1129,6 +1156,7 @@
     {
       "id": "mqi2xdmh",
       "name": "champion de l'arene",
+    
       "type": "creature",
       "rarity": "Commune",
       "cost": "5",
@@ -1149,6 +1177,7 @@
     {
       "id": "mqi313ey",
       "name": "soulevement de tombes",
+      "assetKey": "tomb",
       "type": "sort",
       "rarity": "Rare",
       "cost": "2",
@@ -1164,6 +1193,7 @@
           {
             "id": "mqi313ey_zombie1",
             "name": "Zombie",
+            "assetKey": "zombie",
             "cost": "1",
             "atk": "1",
             "def": "1",
@@ -1175,6 +1205,7 @@
                 {
                   "id": "mqi313ey_zombie1b",
                   "name": "Zombie",
+                  "assetKey": "zombie",
                   "cost": "1",
                   "atk": "1",
                   "def": "1",
@@ -1186,6 +1217,7 @@
           {
             "id": "mqi313ey_zombie2",
             "name": "Zombie",
+            "assetKey": "zombie",
             "cost": "1",
             "atk": "1",
             "def": "1",
@@ -1197,6 +1229,7 @@
                 {
                   "id": "mqi313ey_zombie2b",
                   "name": "Zombie",
+                  "assetKey": "zombie",
                   "cost": "1",
                   "atk": "1",
                   "def": "1",
@@ -1269,6 +1302,7 @@
     {
       "id": "mpzs81x0",
       "name": "le (gros) thon poli",
+      "assetKey": "grosThon",
       "type": "creature",
       "rarity": "Commune",
       "cost": "4",
@@ -1324,6 +1358,7 @@
     {
       "id": "mpzqyecf",
       "name": "Investment Goblin",
+      "assetKey": "investmentGoblin",
       "type": "sort",
       "rarity": "Rare",
       "cost": "0",

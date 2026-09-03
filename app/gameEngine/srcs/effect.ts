@@ -303,7 +303,7 @@ export class SummonMinionEffect extends Effect
     {
         for (let i = 0; i < this._amount; i++)
         {
-            if (this._tokens[i])
+            if (this._tokens[i] && context.engine.board.getMinions(context.owner.index).length < 6)
             {
                 const summoned: MinionCard = this._tokens[i].clone();
                 context.engine.board.playMinion(context.owner.index, summoned);
@@ -383,7 +383,7 @@ export class triggerDeathrattleEffect extends Effect
             if (context.target && context.target instanceof MinionCard)
             {
                 if (context.target.effects.deathrattle)
-                    context.target.effects.deathrattle.execute(context);
+                    context.target.effects.deathrattle.execute({ ...context, source: context.target });
             }
         }
         else if (this.resolver && !this.resolver.requiresInput)
@@ -392,7 +392,7 @@ export class triggerDeathrattleEffect extends Effect
             for (let target of targets)
             {
                 if (target instanceof MinionCard && target.effects.deathrattle)
-                    target.effects.deathrattle.execute(context);
+                    target.effects.deathrattle.execute({ ...context, source: target });
             }
         }
     }
@@ -410,18 +410,15 @@ export class triggerEndOfTurnEffect extends Effect
         if (this.resolver && this.resolver.requiresInput)
         {
             if (context.target && context.target instanceof MinionCard)
-            {
-                if (context.target.effects.endOfTurnEffect)
-                    context.target.effects.endOfTurnEffect.execute(context);
-            }
+                context.engine.triggerMinionEndOfTurnEffect(context.owner.index, context.target);
         }
         else if (this.resolver && !this.resolver.requiresInput)
         {
             let targets = this.resolver.resolve(context);
             for (let target of targets)
             {
-                if (target instanceof MinionCard && target.effects.endOfTurnEffect)
-                    target.effects.endOfTurnEffect.execute(context);
+                if (target instanceof MinionCard)
+                    context.engine.triggerMinionEndOfTurnEffect(context.owner.index, target);
             }
         }
     }

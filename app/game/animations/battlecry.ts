@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 
 const BATTLECRY_COLOR = 0x33CCFF;
 const WAVE_COUNT = 2;

@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { Board } from "../../objects/board/Board";
 import { GameEvent } from "../../shared/protocol";
-import { Card, withStartingStats } from "@/game/objects/Card";
-import { showCardPreview } from "@/game/objects/CardPreview";
+import { Card, withStartingStats } from "@/game/objects/card/Card";
+import { showCardPreview } from "@/game/objects/card/CardPreview";
 import { attackAnimation, battlecryAnimation, damageAnimation, healAnimation, buffAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
 
 //handles the "GameEvent" signal
@@ -103,8 +103,10 @@ export class ServerEventPlayer
     private async playSummon(event: Extract<GameEvent, { type: "summon" }>): Promise<void>
     {
         const side: 0 | 1 = event.playerIndex === this.getPlayerIndex() ? 0 : 1;
+        const alreadyOnBoard = this.board.findCardById(event.card.id) !== undefined;
         const card = this.board.materializeMinion(side, withStartingStats(event.card), event.boardIndex);
-        await summonAnimation(this.scene, card);
+        if (!alreadyOnBoard)
+            await summonAnimation(this.scene, card);
     }
 
     private async playTurnEnded(event: Extract<GameEvent, { type: "turnEnded" }>): Promise<void>

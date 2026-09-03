@@ -1,4 +1,9 @@
+import type { CSSProperties } from 'react'
 import { splitKeywordSegments } from '@/lib/keywords'
+import {
+    CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_DESC_BOX, CARD_DESC_BOX_SPELL,
+    CARD_HEALTH_BOX, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, CardBox, isSpellRarity,
+} from '@/lib/cardLayout'
 
 export type CardFaceData = {
     id: string
@@ -30,11 +35,6 @@ const CARD_ART: Partial<Record<string, string>> = {
     'Légendaire': '/textures/cards/frame-legendaire.png',
 }
 
-// Le cadre "Rare" (sorts) n'a ni épées ni goutte de sang : sa case de texte du bas est mesurée
-// plus haute (récupère l'espace qu'occuperaient ATK/DEF sur les autres cadres) et sa gemme est
-// positionnée légèrement différemment — chaque cadre est mesuré au pixel près individuellement
-// sur son propre visuel plutôt que de réutiliser des pourcentages partagés.
-const SPELL_RARITIES = new Set(['Rare'])
 
 // CardFace est toujours rendu (avant tout transform:scale() de ScaledCardFace/DeskRoom) à cette
 // largeur de référence — donc c'est aussi la largeur à laquelle le cadre dessiné (130px de large
@@ -64,6 +64,12 @@ function descFontSize(desc: string) {
 }
 const ICON_NUMBER_FONT_SIZE = 23 * PX
 
+// Convertit une CardBox (cardLayout.ts, partagée avec le rendu Phaser en jeu) en style CSS
+// absolute/%, tel qu'utilisé ci-dessous pour chaque case de texte.
+function boxStyle(box: CardBox): CSSProperties {
+    return { left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%` }
+}
+
 // Numéros posés directement sur les icônes du cadre : blanc avec un liseré noir net (pas flouté),
 // 2px d'épaisseur (diagonales à 1px ET 2px, plus les 4 côtés à 2px) pour rester lisible quelle
 // que soit la couleur — claire ou sombre — de l'icône en dessous.
@@ -81,7 +87,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
     // qu'un filet de sécurité si une carte a une rareté mal orthographiée en base.
     const art = CARD_ART[card.rarity] ?? CARD_ART['Commune']!
     const segments = splitKeywordSegments(card.desc, card.keywords)
-    const isSpell = SPELL_RARITIES.has(card.rarity)
+    const isSpell = isSpellRarity(card.rarity)
 
     return (
             // shadow-lg (box-shadow), pas drop-shadow-lg (filter) : cette div est justement celle
@@ -129,9 +135,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 {/* Nom, dans la case blanche en haut à gauche */}
                 <div
                     className="absolute flex items-center justify-center overflow-hidden px-1"
-                    style={isSpell
-                        ? { left: '5.4%', top: '4.2%', width: '70.8%', height: '8.4%' }
-                        : { left: '5.4%', top: '4.2%', width: '70%', height: '7.9%' }}
+                    style={boxStyle(isSpell ? CARD_NAME_BOX_SPELL : CARD_NAME_BOX)}
                 >
                     <p
                         className="truncate text-center font-card font-bold text-ink-900"
@@ -144,9 +148,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                 {/* Coût de mana, au milieu de la gemme en haut à droite */}
                 <div
                     className="absolute flex items-center justify-center"
-                    style={isSpell
-                        ? { left: '79.2%', top: '3.1%', width: '16.2%', height: '12.6%' }
-                        : { left: '78.3%', top: '4.5%', width: '18%', height: '11%' }}
+                    style={boxStyle(isSpell ? CARD_COST_BOX_SPELL : CARD_COST_BOX)}
                 >
                     <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.cost}</span>
                 </div>
@@ -155,9 +157,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                     sur le cadre "sort" : elle récupère l'espace qu'occuperaient ATK/DEF ailleurs. */}
                 <div
                     className="absolute flex flex-col items-center justify-center overflow-hidden px-1.5 py-1"
-                    style={isSpell
-                        ? { left: '5.4%', top: '57.1%', width: '89.2%', height: '38.7%' }
-                        : { left: '5.4%', top: '57.1%', width: '88.5%', height: '32%' }}
+                    style={boxStyle(isSpell ? CARD_DESC_BOX_SPELL : CARD_DESC_BOX)}
                 >
                     <p
                         className="whitespace-pre-line text-center font-card leading-snug text-ink-800"
@@ -176,7 +176,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                             noire — un chiffre noir y disparaîtrait complètement) */}
                         <div
                             className="absolute flex items-center justify-center"
-                            style={{ left: '4.5%', top: '86%', width: '18%', height: '11%' }}
+                            style={boxStyle(CARD_ATTACK_BOX)}
                         >
                             <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.atk}</span>
                         </div>
@@ -184,7 +184,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                         {/* Points de vie, au milieu de la goutte de sang en bas à droite */}
                         <div
                             className="absolute flex items-center justify-center"
-                            style={{ left: '80%', top: '86%', width: '18%', height: '11%' }}
+                            style={boxStyle(CARD_HEALTH_BOX)}
                         >
                             <span className="font-card font-bold text-white" style={iconNumberStyle}>{card.def}</span>
                         </div>

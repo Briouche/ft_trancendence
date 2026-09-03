@@ -85,10 +85,29 @@ export class GameEngine
     {
         const minions: MinionCard[] = this.board.getMinions(playerIndex);
         for (const minion of minions)
+            this.triggerMinionEndOfTurnEffect(playerIndex, minion);
+    }
+
+    // fires one minion's end-of-turn effect, whether from the natural end-of-turn sweep or a
+    // card re-triggering it (e.g. Investment Goblin) — roidesrats' passive counts every such
+    // trigger and repeats every 3rd one, so it must live here rather than in endTurn().
+    triggerMinionEndOfTurnEffect(playerIndex: 0 | 1, minion: MinionCard): void
+    {
+        if (minion.effects.endOfTurnEffect === undefined)
+            return;
+
+        const player: Player = this.players[playerIndex];
+        const context: GameContext = { engine: this, owner: player, source: minion, target: undefined };
+
+        this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "passive" });
+        minion.effects.endOfTurnEffect.execute(context);
+        this.processDeaths();
+
+        if (player.legPassive === "roidesrats")
         {
-            if (minion.effects.endOfTurnEffect !== undefined)
+            player.roiDesRatsCount++;
+            if (player.roiDesRatsCount % 3 === 0)
             {
-                let context: GameContext = { engine: this, owner: this.players[playerIndex], source: minion, target: undefined };
                 this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "passive" });
                 minion.effects.endOfTurnEffect.execute(context);
                 this.processDeaths();
@@ -99,15 +118,8 @@ export class GameEngine
     endTurn(): ActionResult
     {
         this.animationChain = [];
-        const player: Player = this.players[this.currentTurn];
 
         this.triggerEndOfTurnEffects(this.currentTurn);
-        if (player.legPassive === "roidesrats")
-        {
-            player.roiDesRatsCount++;
-            if (player.roiDesRatsCount % 3 === 0)
-                this.triggerEndOfTurnEffects(this.currentTurn);
-        }
 
         this.currentTurn = this.currentTurn === 0 ? 1 : 0;
         this.startTurn(); // effects and events caused by start turn are ignored right now

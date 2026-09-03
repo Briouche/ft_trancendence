@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../Card";
-import { attachCardPreviewHover } from "../CardPreview";
+import { Card, CardData } from "../card/Card";
+import { attachCardPreviewHover } from "../card/CardPreview";
 import { computeXs } from "./BoardMath";
 
 const CARD_ASPECT_RATIO = 1.4;

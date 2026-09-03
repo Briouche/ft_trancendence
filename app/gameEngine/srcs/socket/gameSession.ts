@@ -23,15 +23,20 @@ interface PendingTarget
 
 export class GameSession
 {
+    private static readonly RECONNECT_GRACE_MS = 30000;
+
     private engine: GameEngine;
     private seats: [Seat, Seat];
     private pending: PendingTarget | null = null;
     private gameOver : boolean = false;
     private difficulty: Difficulty;
+    private readonly onGameEnd: () => void;
+    private disconnectTimers: [NodeJS.Timeout | null, NodeJS.Timeout | null] = [null, null];
 
-    constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen")
-    {   
+    constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen", onGameEnd: () => void = () => {})
+    {
         this.difficulty = difficulty;
+        this.onGameEnd = onGameEnd;
         this.seats = [seat0, seat1];
         console.log("Game Starting... with " + seat0.kind + " and " + seat1.kind);
         this.engine = new GameEngine([player0, player1]);
@@ -42,6 +47,48 @@ export class GameSession
         this.engine.startGame();
         this.broadcastState();
         this.runAiTurnLoop();
+    }
+
+    // True if `socketId` belongs to one of this session's human seats — used both to route a
+    // reconnecting socket back to its own game and to refuse spinning up a second game for a
+    // socket that's already live in one (see serverSocket.ts).
+    hasSocket(socketId: string): boolean
+    {
+        return this.seats.some(seat => seat.kind === "human" && seat.socket.id === socketId);
+    }
+
+    // Called when a socket carrying an id already known to this session reconnects (same
+    // Socket.IO connection-state-recovery id, new Socket object). Rebinds the seat to the new
+    // socket, re-attaches its message handler (the old socket's listener died with it), cancels
+    // any pending forfeit timer, and resends state so the client can rehydrate.
+    reconnect(socket: Socket): 0 | 1 | -1
+    {
+        const idx = this.seats.findIndex(seat => seat.kind === "human" && seat.socket.id === socket.id);
+
+        if (idx === -1)
+            return -1;
+
+        const playerIndex = idx as 0 | 1;
+
+        if (this.disconnectTimers[playerIndex])
+        {
+            clearTimeout(this.disconnectTimers[playerIndex]!);
+            this.disconnectTimers[playerIndex] = null;
+        }
+
+        this.seats[playerIndex] = { kind: "human", socket };
+        socket.on("message", (msg: ClientMessage) => this.handle(playerIndex, msg));
+
+        this.send(playerIndex, { type: "assigned", playerIndex });
+        this.send(playerIndex, { type: "state", state: toClientState(this.engine, playerIndex) });
+
+        if (this.pending && this.pending.playerIndex === playerIndex)
+        {
+            const options: TargetOption[] = [...this.pending.optionsById.values()].map((t: Targetable) => this.targetToOption(t));
+            this.send(playerIndex, { type: "prompt", prompt: { forCardId: this.pending.id, options } });
+        }
+
+        return playerIndex;
     }
 
     private bindHandlers(): void
@@ -93,9 +140,10 @@ export class GameSession
             return;
 
         this.gameOver = true;
-        const winnerIndex: number = alive[0] ? 0 : 1;                            
+        const winnerIndex: number = alive[0] ? 0 : 1;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(1 - winnerIndex, { type: "gameOver", winner: "opponent" });
+        this.onGameEnd();
         return ;
     }
 
@@ -356,19 +404,42 @@ export class GameSession
         return effects;
     }
 
+    // Doesn't end the game immediately — starts a grace period so the same player can rejoin
+    // (see reconnect()) after a transient drop. Only forfeits if they don't come back in time.
     handleDisconnect(socket: Socket): void
     {
+        if (this.gameOver)
+            return;
+
         const seatIndex: number = this.seats.findIndex(
-            (seat: Seat) => seat.kind === "human" && seat.socket === socket
+            (seat: Seat) => seat.kind === "human" && seat.socket.id === socket.id
         );
 
         if (seatIndex === -1)
             return;
 
-        const winnerSeat: Seat = this.seats[1 - seatIndex];
+        const playerIndex = seatIndex as 0 | 1;
 
-        if (winnerSeat.kind === "human")
-            winnerSeat.socket.emit("message", { type: "gameOver", winner: "you" });
+        if (this.disconnectTimers[playerIndex])
+            return;
+
+        this.disconnectTimers[playerIndex] = setTimeout(() =>
+        {
+            this.disconnectTimers[playerIndex] = null;
+            this.forfeit(playerIndex);
+        }, GameSession.RECONNECT_GRACE_MS);
+    }
+
+    private forfeit(loserIndex: 0 | 1): void
+    {
+        if (this.gameOver)
+            return;
+
+        this.gameOver = true;
+        const winnerIndex: 0 | 1 = loserIndex === 0 ? 1 : 0;
+        this.send(winnerIndex, { type: "gameOver", winner: "you" });
+        this.send(loserIndex, { type: "gameOver", winner: "opponent" });
+        this.onGameEnd();
     }
 
     handleEndTurn()
@@ -418,25 +489,28 @@ export class GameSession
 
     private applyAiAction(action: Action): void
     {
+        let result: ActionResult;
+
         switch (action.type)
         {
             case "playCard":
             {
                 const targets: Map<Effect, Targetable | null> = new Map();
-                this.engine.playCard(action.cardIndex, targets);
+                result = this.engine.playCard(action.cardIndex, targets);
                 break;
             }
             case "attack":
             {
                 const target: Targetable = this.resolveAiTarget(action.targetIndex);
-                this.engine.attackWithMinion(action.attackerIndex, target);
+                result = this.engine.attackWithMinion(action.attackerIndex, target);
                 break;
             }
             case "endTurn":
-                this.engine.endTurn();
+                result = this.engine.endTurn();
                 break;
         }
 
+        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();
     }

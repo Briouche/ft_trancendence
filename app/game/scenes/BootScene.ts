@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
+import { ensureCardFontLoaded } from "@/game/objects/gameFonts";
+import { GAME_FONT_FAMILY_KEY } from "@/game/objects/gameFontRegistry";
 
 export class BootScene extends Phaser.Scene
 {
@@ -25,8 +27,8 @@ export class BootScene extends Phaser.Scene
         this.load.image("placeholder_card", "/gameAssets/cards/placeholder_card.png");
         this.load.image("shield_taunt", "/gameAssets/shield_taunt.png");
         this.load.image("effect_lightning", "/gameAssets/lightning_bolt.png");
-        this.load.image("wooden_table", "/gameAssets/wooden_table.png");
-        this.load.image("cardBack", "/gameAssets/cardBack.png");
+        this.load.image("wooden_table", "/gameAssets/wooden_table.webp");
+        this.load.image("cardBack", "/gameAssets/cardBack.webp");
         this.load.image("banner", "/gameAssets/UI_NoteBook_Banner04a.png");
         this.load.image("emptyEnergy", "/gameAssets/UI_TravelBook_IconEnergy01g.png");
         this.load.image("fullEnergy", "/gameAssets/UI_TravelBook_IconEnergy02a.png");
@@ -38,8 +40,10 @@ export class BootScene extends Phaser.Scene
         this.load.image("frame_legendaire", "/textures/cards/frame-legendaire.png");
     }
 
-    create()
+    async create()
     {
+        const fontFamily = await ensureCardFontLoaded();
+        this.game.registry.set(GAME_FONT_FAMILY_KEY, fontFamily);
         this.scene.start("GameScene", { mode: this.mode, difficulty: this.difficulty, deckId: this.deckId });
     }
 }

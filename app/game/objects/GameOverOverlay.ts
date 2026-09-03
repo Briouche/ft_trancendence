@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { EventManager } from "../EventManager";
+import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
 const OVERLAY_DEPTH = 3000; // above turnBanner (2000) and EndTurn (500)
 const DIM_COLOR = 0x000000;
@@ -17,12 +18,13 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
         super(scene, 0, 0);
 
         const { width, height } = scene.scale;
+        const fontFamily = scene.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
 
         this.dim = scene.add.rectangle(width / 2, height / 2, width, height, DIM_COLOR, DIM_ALPHA);
         this.message = scene.add.text(width / 2, height / 2, text,
-            { fontSize: "64px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
+            { fontFamily, fontSize: "128px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
         this.hint = scene.add.text(width / 2, height / 2 + 60, "Click anywhere to continue",
-            { fontSize: "20px", color: "#ffffff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
+            { fontFamily, fontSize: "40px", color: "#ffffff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 
         this.add([this.dim, this.message, this.hint]);
         this.setDepth(OVERLAY_DEPTH);
