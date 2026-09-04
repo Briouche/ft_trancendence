@@ -63,6 +63,8 @@ export function toClientCard(card: Card): ClientCard
             clientCard.effects.battlecry = true;
         if (card.effects.rush)
             clientCard.effects.rush = true;
+        if (card.effects.cannotAttack)
+            clientCard.effects.cannotAttack = true;
         if (card.effects.archi)
             clientCard.effects.archi = true;
     }
@@ -99,6 +101,8 @@ export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGam
         opponentBoard: engine.board.getMinions(opponentIndex).map(toClientCard),
         mana: engine.players[playerIndex].currentMana,
         maxMana: engine.players[playerIndex].maxMana,
+        opponentMana: engine.players[opponentIndex].currentMana,
+        opponentMaxMana: engine.players[opponentIndex].maxMana,
         playerDeck: engine.players[playerIndex].deck.size(),
         opponentDeck: engine.players[opponentIndex].deck.size()
     };

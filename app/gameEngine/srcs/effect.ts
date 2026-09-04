@@ -263,7 +263,14 @@ export class silenceEffect extends Effect
             target.maxHealth = target.baseMaxHealth;
             target.currentHealth -= excess;
         }
+
+        // problem: if silenced on first turn plyed it can attack immidiatly
+        const wasCannotAttack = !!target.effects.cannotAttack;
+
         target.effects = {};
+
+        if (wasCannotAttack)
+            target.canAttack = true;
     }
 
     execute(context: GameContext): void
@@ -308,7 +315,7 @@ export class SummonMinionEffect extends Effect
                 const summoned: MinionCard = this._tokens[i].clone();
                 context.engine.board.playMinion(context.owner.index, summoned);
                 context.engine.recordAnimationChain({ kind: "summon", minion: summoned, playerIndex: context.owner.index });
-                if (summoned.effects.rush)
+                if (summoned.effects.rush && !summoned.effects.cannotAttack)
                     summoned.canAttack = true;
             }
         }

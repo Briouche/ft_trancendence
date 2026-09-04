@@ -19,6 +19,7 @@ interface RawCard
 
 	taunt?: boolean
 	rush?:  boolean
+	cannotAttack?: boolean
 	archi?: boolean
 	spellpower?: number
 
@@ -78,6 +79,7 @@ export async function seedCards(prisma: PrismaClient)
 
 			taunt: card.taunt,
 			rush:  card.rush,
+			cannotAttack: card.cannotAttack,
 			archi: card.archi,
 			spellpower: card.spellpower,
 

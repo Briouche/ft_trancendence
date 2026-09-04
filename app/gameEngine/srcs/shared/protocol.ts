@@ -8,6 +8,7 @@ export interface clientEffect
     onDamage?: boolean;
     battlecry?: boolean;
     rush?: boolean;
+    cannotAttack?: boolean;
     archi?: boolean;
 }
 
@@ -54,6 +55,8 @@ export interface ClientGameState
     pendingPrompt?: TargetPrompt;
     mana: number;
     maxMana: number;
+    opponentMana: number;
+    opponentMaxMana: number;
     playerDeck: number;
     opponentDeck: number;
 }

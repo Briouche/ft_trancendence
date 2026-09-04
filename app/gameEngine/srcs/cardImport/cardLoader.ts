@@ -50,6 +50,7 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = "", suffix = ""): M
         {
             taunt: raw.taunt ?? undefined,
             rush: raw.rush ?? undefined,
+            cannotAttack: raw.cannotAttack ?? undefined,
             archi: raw.archi ?? undefined,
             spellpower: raw.spellpower ?? undefined,
             battlecry:          buildEffect(raw.battlecry as EffectSpec | null),
@@ -177,6 +178,15 @@ export async function makeDeckFromDeckId(deckId: number, playerPrefix = ""): Pro
             cardIds.push(dc.cardId)
 
     return makeDeckFromIds(cardIds, playerPrefix)
+}
+
+// Resolves the real username behind a saved deck, so serverSocket.ts can name the hero after its
+// owner instead of a hardcoded placeholder — reuses the deckId already sent by the client, no
+// protocol change needed.
+export async function getUsernameForDeck(deckId: number): Promise<string | null>
+{
+    const deck = await prisma.deck.findUnique({ where: { id: deckId }, select: { user: { select: { username: true } } } })
+    return deck?.user.username ?? null
 }
 
 function pickRandom<T>(arr: T[]): T

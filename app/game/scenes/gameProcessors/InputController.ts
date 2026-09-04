@@ -47,13 +47,14 @@ export class InputController
                 return;
 
             obj.isDragging = true;
+            obj.isHovering = false;
             obj.setDepth(1000);
 
             if (this.board.containsCard(obj, 0) && obj.cardData.canAttack !== false)
             {
                 this.targetingCard = obj;
                 this.targetArrow = new TargetArrow(this.scene, obj.x, obj.y);
-                this.board.setTargetHighlights(this.board.getLegalAttackTargetIds());
+                this.board.setTargetHighlights(this.board.getLegalAttackTargetIds(obj));
                 return;
             }
 
@@ -199,7 +200,7 @@ export class InputController
         this.targetArrow = new TargetArrow(this.scene, card.x, card.y);
 
         if (mode === "attack")
-            this.board.setTargetHighlights(this.board.getLegalAttackTargetIds());
+            this.board.setTargetHighlights(this.board.getLegalAttackTargetIds(card));
         else
             this.board.setTargetHighlights(this.board.getLegalSpellTargetIds());
     }
@@ -208,6 +209,7 @@ export class InputController
     {
         this.clickMovingCard = card;
         card.isDragging = true;
+        card.isHovering = false;
         card.setDepth(1000);
     }
 

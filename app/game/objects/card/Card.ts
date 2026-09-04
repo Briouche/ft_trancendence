@@ -323,10 +323,11 @@ export class Card extends Phaser.GameObjects.Container
 
         const glowWidth = width;
         const glowHeight = height;
+        const glowColor = this.cardData.effects.rush ? 0x9b30ff : 0x00ff88; // purple while rush-restricted (can't attack hero yet), else green
         this.attackGlow.clear();
-        this.attackGlow.lineStyle(6, 0x00ff88, 0.25);
+        this.attackGlow.lineStyle(6, glowColor, 0.25);
         this.attackGlow.strokeRoundedRect(-glowWidth / 2 - 4, -glowHeight / 2 - 4, glowWidth + 8, glowHeight + 8, 8);
-        this.attackGlow.lineStyle(3, 0x00ff88, 0.7);
+        this.attackGlow.lineStyle(3, glowColor, 0.7);
         this.attackGlow.strokeRoundedRect(-glowWidth / 2 - 2, -glowHeight / 2 - 2, glowWidth + 4, glowHeight + 4, 8);
     }
 

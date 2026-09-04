@@ -67,7 +67,7 @@ export class GameEngine
         const minions: MinionCard[] = this.board.getMinions(this.currentTurn);
         for (const minion of minions)
         {
-            minion.canAttack = true;
+            minion.canAttack = !minion.effects.cannotAttack;
             if (minion.effects.rush && minion.effects.rush == true)
                 minion.effects.rush = false;
             if (minion.effects.startOfTurnEffect !== undefined)
@@ -153,7 +153,7 @@ export class GameEngine
                 this.recordAnimationChain({ kind: "effect", sourceId: card.id, trigger: "battlecry" });
                 card.effects.battlecry.execute(context);
             }
-            else if (card.effects.rush)
+            if (card.effects.rush && !card.effects.cannotAttack)
                 card.canAttack = true;
         }
         else if (card instanceof SpellCard)

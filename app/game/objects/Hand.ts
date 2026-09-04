@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Card, CardData } from "./card/Card";
 import { attachCardHover } from "../animations";
+import { detachCardPreviewHover } from "./card/CardPreview";
 
 const HAND_Y_RATIO = 0.14;
 const CARD_HEIGHT_RATIO = 0.26;
@@ -136,6 +137,11 @@ export class Hand
     {
         if (!this.cards.includes(card))
             this.cards.push(card);
+        card.setCardContext(false, false, true);
+        detachCardPreviewHover(card);
+        card.off("pointerover");
+        card.off("pointerout");
+        attachCardHover(card);
         this.layout();
     }
 }

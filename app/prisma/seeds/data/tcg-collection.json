@@ -52,7 +52,8 @@
       "desc": "taunt\ncannot attack",
       "qty": 2,
       "legendId": "",
-      "taunt": true
+      "taunt": true,
+      "cannotAttack": true
     },
     {
       "id": "mqi7d3bu",

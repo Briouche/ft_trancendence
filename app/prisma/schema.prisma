@@ -72,10 +72,11 @@ model Card {
   legendId String     @default("")
   decks    DeckCard[]
 
-  taunt     Boolean?
-  rush      Boolean?
-  archi     Boolean?
-  spellpower Int?
+  taunt        Boolean?
+  rush         Boolean?
+  cannotAttack Boolean?
+  archi        Boolean?
+  spellpower   Int?
 
   battlecry         Json?
   deathrattle       Json?

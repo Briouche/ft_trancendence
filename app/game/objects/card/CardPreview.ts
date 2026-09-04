@@ -147,8 +147,12 @@ class CardPreview extends Phaser.GameObjects.Container
     }
 }
 
+const previewCleanups = new WeakMap<Card, () => void>();
+
 export function attachCardPreviewHover(card: Card): void
 {
+    detachCardPreviewHover(card);
+
     let timer: Phaser.Time.TimerEvent | null = null;
     let preview: CardPreview | null = null;
 
@@ -169,6 +173,22 @@ export function attachCardPreviewHover(card: Card): void
     });
     card.on("pointerout", clear);
     card.once(Phaser.GameObjects.Events.DESTROY, clear);
+
+    previewCleanups.set(card, clear);
+}
+
+// Must be called before stripping/replacing a card's listeners (e.g. moving it
+// between hand and board) so a pending delayed preview can't fire after the
+// hover that requested it has already been torn down — that preview would
+// then have no pointerout/destroy handler left to clear it.
+export function detachCardPreviewHover(card: Card): void
+{
+    const clear = previewCleanups.get(card);
+    if (clear)
+    {
+        clear();
+        previewCleanups.delete(card);
+    }
 }
 
 export function showCardPreview(scene: Phaser.Scene, cardData: CardData, durationMs: number = PLAYED_DURATION_MS): void

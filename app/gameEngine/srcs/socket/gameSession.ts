@@ -495,8 +495,14 @@ export class GameSession
         {
             case "playCard":
             {
+                const playerIndex = this.engine.currentTurn;
+                const player: Player = this.engine.players[playerIndex];
+                const card: Card = player.hand.getCards()[action.cardIndex];
                 const targets: Map<Effect, Targetable | null> = new Map();
+
                 result = this.engine.playCard(action.cardIndex, targets);
+                if (result.succes)
+                    this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
                 break;
             }
             case "attack":

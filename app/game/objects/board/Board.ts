@@ -42,6 +42,7 @@ export class Board
     public playerHero: Hero;
     public opponentHero: Hero;
     private playerManaBar: Manabar;
+    private opponentManaBar: Manabar;
     private playerDeck: Deck;
     private opponentDeck: Deck;
 
@@ -78,6 +79,7 @@ export class Board
 
         this.endTurn = new EndTurn(scene, 10, 10);
         this.playerManaBar = new Manabar(scene, 0, 0, 250, 30);
+        this.opponentManaBar = new Manabar(scene, 0, 0, 250, 30);
         this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO, `cardBack_${playerHeroData.cardBack}`);
         this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO, `cardBack_${opponentHeroData.cardBack}`);
     }
@@ -152,6 +154,11 @@ export class Board
         this.playerManaBar.setPosition(manabarX, manabarY);
         this.playerManaBar.resize(height * 0.28, height * 0.05);
 
+        const opponentManabarX = width / 2 - height * 0.55;
+        const opponentManabarY = height * 0.2;
+        this.opponentManaBar.setPosition(opponentManabarX, opponentManabarY);
+        this.opponentManaBar.resize(height * 0.28, height * 0.05);
+
         const playerDeckX = width / 2 - height * 0.65;
         const playerDeckY = height * 0.63;
         this.playerDeck.setPosition(playerDeckX, playerDeckY, height * 0.03);
@@ -185,6 +192,7 @@ export class Board
         this.opponentDeck.update(state.opponentDeck);
         this.playerDeck.update(state.playerDeck);
         this.playerManaBar.update(state.mana, state.maxMana);
+        this.opponentManaBar.update(state.opponentMana, state.opponentMaxMana);
 
         this.layout();
     }
@@ -232,13 +240,14 @@ export class Board
         this.targets.setHighlights(legalIds);
     }
 
-    getLegalAttackTargetIds(): Set<string>
+    getLegalAttackTargetIds(attackerCard?: Card): Set<string>
     {
         const tauntMinions = this.opponentRow.all.filter((c) => c.cardData.effects?.taunt);
         const minions = tauntMinions.length > 0 ? tauntMinions : this.opponentRow.all;
 
         const ids = new Set(minions.map((c) => c.cardData.id));
-        if (tauntMinions.length === 0)
+        const isRushRestricted = !!attackerCard?.cardData.effects?.rush;
+        if (tauntMinions.length === 0 && !isRushRestricted)
             ids.add(this.opponentHero.heroData.id);
         return ids;
     }

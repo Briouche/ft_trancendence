@@ -5,7 +5,7 @@ import { Deck } from "../deck";
 import { Hand } from "../hand";
 import { GameSession, Seat } from "./gameSession";
 import { ClientMessage, ServerMessage } from "../shared/protocol";
-import { makeDeckFromDeckId, makeDeckFromNames } from "../cardImport/cardLoader";
+import { makeDeckFromDeckId, makeDeckFromNames, getUsernameForDeck } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 
 // Garde en phase avec app/lib/cardBacks.ts (Next.js) — même duplication volontaire que le reste
@@ -26,12 +26,6 @@ type WaitingPlayer = { socket: Socket; deckId: number; cardBack: number };
 
 export function createGameServer(port: number): void
 {
-    // connectionStateRecovery lets a socket that drops briefly (network blip, tab suspend) and
-    // reconnects keep the SAME socket.id (and gets socket.recovered === true) instead of a fresh
-    // random one — that stable id is what lets us find its live game below. It only covers a
-    // short window (Socket.IO default ~2min) and a genuinely new connection (full page reload
-    // without a persisted recovery key, a different tab) still gets a new id — there's no
-    // player-level auth/identity on this socket layer to reconnect those cases to their game.
     const io = new Server(port, { cors: { origin: "http://localhost:3000" }, connectionStateRecovery: {} });
 
     const waiting: WaitingPlayer[] = [];
@@ -48,8 +42,7 @@ export function createGameServer(port: number): void
     {
         console.log("client connected:", socket.id);
 
-        // Same socket id as an already-live game (a real reconnect, see connectionStateRecovery
-        // above) — rebind it to that game instead of ever touching matchmaking/ready.
+        // Same socket id as an already-live game
         const existingGame: GameSession | undefined = liveGames.find(g => g.hasSocket(socket.id));
         if (existingGame)
         {
@@ -76,9 +69,10 @@ export function createGameServer(port: number): void
                 // dur ni pioché au hasard dans la collection — voir PlayModeSelector.tsx. Deck de
                 // l'IA = un des 3 decks écrits à la main dans aiDecks.ts, tiré au sort — pas lié à
                 // un compte, donc joue des cartes même si le joueur humain ne les possède pas.
-                const [playerDeck, aiDeck]: [Deck | null, Deck] = await Promise.all([
+                const [playerDeck, aiDeck, username]: [Deck | null, Deck, string | null] = await Promise.all([
                     makeDeckFromDeckId(msg.deckId, "hey"),
                     makeDeckFromNames(pickRandomAiDeck(), "hola"),
+                    getUsernameForDeck(msg.deckId),
                 ]);
                 if (!playerDeck)
                 {
@@ -87,13 +81,19 @@ export function createGameServer(port: number): void
                     return;
                 }
 
-                const player0: Player = new Player(new Hero("Player 1"), playerDeck, "hero-0", 0, clampCardBack(msg.cardBack));
-                const player1: Player = new Player(new Hero("AI"), aiDeck, "hero-1", 1, randomCardBack());
+                // Coin flip: don't let the human always go first against the AI.
+                const humanIndex: 0 | 1 = Math.random() < 0.5 ? 0 : 1;
+                const aiIndex: 0 | 1 = humanIndex === 0 ? 1 : 0;
 
-                const humanSeat: Seat = { kind: "human", socket };
-                const aiSeat: Seat = { kind: "ai" };
+                const humanPlayer: Player = new Player(new Hero(username ?? "Player"), playerDeck, `hero-${humanIndex}`, humanIndex, clampCardBack(msg.cardBack));
+                const aiPlayer: Player = new Player(new Hero("AI"), aiDeck, `hero-${aiIndex}`, aiIndex, randomCardBack());
 
-                const session: GameSession = new GameSession(humanSeat, aiSeat, player0, player1, msg.difficulty, () => removeGame(session));
+                const players: [Player, Player] = humanIndex === 0 ? [humanPlayer, aiPlayer] : [aiPlayer, humanPlayer];
+                const seats: [Seat, Seat] = humanIndex === 0
+                    ? [{ kind: "human", socket }, { kind: "ai" }]
+                    : [{ kind: "ai" }, { kind: "human", socket }];
+
+                const session: GameSession = new GameSession(seats[0], seats[1], players[0], players[1], msg.difficulty, () => removeGame(session));
 
                 liveGames.push(session);
                 return;
@@ -102,7 +102,6 @@ export function createGameServer(port: number): void
             if (msg.type !== "ready")
                 return;
 
-            // Never spin up a second game for a socket that already has a live one.
             if (liveGames.some(g => g.hasSocket(socket.id)))
                 return;
 
@@ -116,26 +115,29 @@ export function createGameServer(port: number): void
                 const w0: WaitingPlayer = waiting.shift()!;
                 const w1: WaitingPlayer = waiting.shift()!;
 
-                // Deck de chaque joueur = celui qu'il a choisi dans le menu, plus de pioche
-                // aléatoire dans toute la collection globale — voir PlayModeSelector.tsx.
-                const [deck0, deck1] = await Promise.all([
-                    makeDeckFromDeckId(w0.deckId, "hero_0"),
-                    makeDeckFromDeckId(w1.deckId, "hero_1"),
+                // Coin flip: don't let whoever queued first always go first.
+                const [first, second]: [WaitingPlayer, WaitingPlayer] = Math.random() < 0.5 ? [w0, w1] : [w1, w0];
+
+                const [deck0, deck1, username0, username1] = await Promise.all([
+                    makeDeckFromDeckId(first.deckId, "hero_0"),
+                    makeDeckFromDeckId(second.deckId, "hero_1"),
+                    getUsernameForDeck(first.deckId),
+                    getUsernameForDeck(second.deckId),
                 ]);
 
                 if (!deck0 || !deck1)
                 {
                     const rejection: ServerMessage = { type: "rejected", reason: "Deck introuvable ou vide." };
-                    if (!deck0) w0.socket.emit("message", rejection);
-                    if (!deck1) w1.socket.emit("message", rejection);
+                    if (!deck0) first.socket.emit("message", rejection);
+                    if (!deck1) second.socket.emit("message", rejection);
                     return;
                 }
 
-                const player0: Player = new Player(new Hero("Jimmy", "hero-0"), deck0, "hero-0", 0, w0.cardBack);
-                const player1: Player = new Player(new Hero("Franky", "hero-1"), deck1, "hero-1", 1, w1.cardBack);
+                const player0: Player = new Player(new Hero(username0 ?? "Player 1", "hero-0"), deck0, "hero-0", 0, first.cardBack);
+                const player1: Player = new Player(new Hero(username1 ?? "Player 2", "hero-1"), deck1, "hero-1", 1, second.cardBack);
 
-                const seat0: Seat = { kind: "human", socket: w0.socket };
-                const seat1: Seat = { kind: "human", socket: w1.socket };
+                const seat0: Seat = { kind: "human", socket: first.socket };
+                const seat1: Seat = { kind: "human", socket: second.socket };
 
                 const session: GameSession = new GameSession(seat0, seat1, player0, player1, undefined, () => removeGame(session));
 

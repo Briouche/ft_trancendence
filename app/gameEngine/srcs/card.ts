@@ -46,6 +46,7 @@ interface Keywords
     deathrattle?: Effect;
     rush?: boolean;
     taunt?: boolean;
+    cannotAttack?: boolean;
     onAttack?: Effect;
     endOfTurnEffect?: Effect;
     startOfTurnEffect?: Effect;
