@@ -407,19 +407,9 @@ export class GameSession
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
             let action: Action;
-
-            //bug where getBestAction never comes back, added timeout to cardLoader so no infinite wait 
-            //isnt a real solution because it still fails, just end turn?
-            try
-            {
-                action = await getBestAction(this.engine, simulations, worlds);
-            }
-            catch (err)
-            {
-                console.error("AI turn failed, ending turn instead of hanging:", err);
-                action = { type: "endTurn" };
-            }
-
+            
+            action = await getBestAction(this.engine, simulations, worlds);
+            
             this.applyAiAction(action);
 
             if (action.type !== "endTurn")
