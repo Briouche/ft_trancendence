@@ -54,7 +54,8 @@ export class GameSession
         this.send(0, { type: "assigned", playerIndex: 0 });
         this.send(1, { type: "assigned", playerIndex: 1 });
         console.log("players assigned... game starting!");
-        this.engine.startGame();
+        const startResult = this.engine.startGame();
+        this.broadcastAnimationEvents(startResult.animationEvents);
         this.broadcastState();
         this.runAiTurnLoop();
     }
@@ -361,7 +362,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card), targetId: target ? this.targetToOption(target).id : undefined });
         this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();
@@ -469,12 +470,11 @@ export class GameSession
 
     handleEndTurn()
     {
-        let result: ActionResult;
-
-        result = this.engine.endTurn();
+        const { endOfTurn, startOfTurn } = this.engine.endTurn();
         this.pending = null;
-        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
+        this.broadcastAnimationEvents(endOfTurn.animationEvents);
+        this.broadcastAnimationEvents(startOfTurn.animationEvents);
         this.broadcastState();
         this.checkGameOver();
         this.runAiTurnLoop();
@@ -504,6 +504,17 @@ export class GameSession
 
     private applyAiAction(action: Action): void
     {
+        if (action.type === "endTurn")
+        {
+            const { endOfTurn, startOfTurn } = this.engine.endTurn();
+            this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
+            this.broadcastAnimationEvents(endOfTurn.animationEvents);
+            this.broadcastAnimationEvents(startOfTurn.animationEvents);
+            this.broadcastState();
+            this.checkGameOver();
+            return;
+        }
+
         let result: ActionResult;
 
         switch (action.type)
@@ -514,21 +525,31 @@ export class GameSession
                 const player: Player = this.engine.players[playerIndex];
                 const card: Card = player.hand.getCards()[action.cardIndex];
                 const targets: Map<Effect, Targetable | null> = new Map();
+                const effect = this.engine.getOnPlayEffect(card);
+                let target: Targetable | null = null;
+
+                if (effect)
+                {
+                    target = action.targetIndex !== undefined
+                        ? this.engine.getOnPlayTargets(card)[action.targetIndex] ?? null
+                        : null;
+                    targets.set(effect, target);
+                }
 
                 result = this.engine.playCard(action.cardIndex, targets);
                 if (result.succes)
-                    this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
+                    this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card), targetId: target ? this.targetToOption(target).id : undefined });
                 break;
             }
             case "attack":
             {
                 const target: Targetable = this.resolveAiTarget(action.targetIndex);
+                const attackerId = this.engine.board.getMinions(this.engine.currentTurn)[action.attackerIndex]?.id;
                 result = this.engine.attackWithMinion(action.attackerIndex, target);
+                if (result.succes && attackerId !== undefined)
+                    this.broadcastEvent({ type: "attack", attackerId, targetId: this.targetToOption(target).id, playerIndex: this.engine.currentTurn });
                 break;
             }
-            case "endTurn":
-                result = this.engine.endTurn();
-                break;
         }
 
         this.broadcastAnimationEvents(result.animationEvents);
