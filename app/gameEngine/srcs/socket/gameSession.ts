@@ -9,8 +9,18 @@ import { Targetable, EnemyCharacterResolver } from "../target";
 import { getBestAction } from "../ai/mcts";
 import { Action } from "../ai/types";
 import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
+import { recordWin, WinCategory } from "../cardImport/cardLoader";
 
-export type Seat = { kind: "human"; socket: Socket } | { kind: "ai" };
+export type Seat = { kind: "human"; socket: Socket; userId: number | null } | { kind: "ai" };
+
+// Quel compteur (User.winsVsAi{Easy,Medium,Hard}) créditer selon la difficulté de la partie —
+// utilisé uniquement quand le perdant est l'IA ; winsVsPlayer (vrai adversaire humain) est câblé
+// à part, voir recordResult.
+const DIFFICULTY_WIN_CATEGORY: Record<Difficulty, WinCategory> = {
+    facile:    "winsVsAiEasy",
+    moyen:     "winsVsAiMedium",
+    difficile: "winsVsAiHard",
+}
 
 interface PendingTarget
 {
@@ -69,6 +79,7 @@ export class GameSession
             return -1;
 
         const playerIndex = idx as 0 | 1;
+        const previousSeat = this.seats[playerIndex];
 
         if (this.disconnectTimers[playerIndex])
         {
@@ -76,7 +87,7 @@ export class GameSession
             this.disconnectTimers[playerIndex] = null;
         }
 
-        this.seats[playerIndex] = { kind: "human", socket };
+        this.seats[playerIndex] = { kind: "human", socket, userId: previousSeat.kind === "human" ? previousSeat.userId : null };
         socket.on("message", (msg: ClientMessage) => this.handle(playerIndex, msg));
 
         this.send(playerIndex, { type: "assigned", playerIndex });
@@ -140,11 +151,24 @@ export class GameSession
             return;
 
         this.gameOver = true;
-        const winnerIndex: number = alive[0] ? 0 : 1;
+        const winnerIndex: 0 | 1 = alive[0] ? 0 : 1;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(1 - winnerIndex, { type: "gameOver", winner: "opponent" });
+        this.recordResult(winnerIndex);
         this.onGameEnd();
         return ;
+    }
+
+    private recordResult(winnerIndex: 0 | 1): void
+    {
+        const winnerSeat = this.seats[winnerIndex];
+        const loserSeat = this.seats[1 - winnerIndex];
+
+        if (winnerSeat.kind !== "human" || winnerSeat.userId === null)
+            return;
+
+        const category: WinCategory = loserSeat.kind === "ai" ? DIFFICULTY_WIN_CATEGORY[this.difficulty] : "winsVsPlayer";
+        recordWin(winnerSeat.userId, category).catch(err => console.error("Failed to record win:", err));
     }
 
     private send(playerIndex: number, msg: ServerMessage): void
@@ -439,6 +463,7 @@ export class GameSession
         const winnerIndex: 0 | 1 = loserIndex === 0 ? 1 : 0;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(loserIndex, { type: "gameOver", winner: "opponent" });
+        this.recordResult(winnerIndex);
         this.onGameEnd();
     }
 

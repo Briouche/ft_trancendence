@@ -4,8 +4,12 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import SceneLoading from '@/components/library/SceneLoading'
+import type { WinsBreakdown, CardBacksSummary } from './AccountMenu'
 
 const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: SceneLoading })
+
+const EMPTY_WINS: WinsBreakdown = { vsAiEasy: 0, vsAiMedium: 0, vsAiHard: 0, vsPlayer: 0 }
+const EMPTY_CARD_BACKS: CardBacksSummary = { unlocked: 1, total: 1 }
 
 // Monté une seule fois dans le layout racine (jamais démonté entre deux pages — voir layout.tsx)
 // plutôt que recréé à chaque retour sur "/" : reconstruire le Canvas three-fiber à froid (contexte
@@ -19,7 +23,7 @@ const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: Scen
 export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'
-    const [stats, setStats] = useState({ cardCount: 0, wins: 0 })
+    const [stats, setStats] = useState({ cardCount: 0, wins: EMPTY_WINS, cardBacks: EMPTY_CARD_BACKS })
 
     useEffect(() => {
         if (!isHome) return
@@ -27,14 +31,14 @@ export default function HubBackground({ username }: { username: string }) {
 
         fetch('/api/user/summary')
             .then(res => res.ok ? res.json() : null)
-            .then(data => { if (data && !cancelled) setStats({ cardCount: data.cardCount, wins: data.wins }) })
+            .then(data => { if (data && !cancelled) setStats({ cardCount: data.cardCount, wins: data.wins, cardBacks: data.cardBacks }) })
 
         return () => { cancelled = true }
     }, [isHome])
 
     return (
         <div className={isHome ? '' : 'hidden'}>
-            <HubScene username={username} cardCount={stats.cardCount} wins={stats.wins} active={isHome} />
+            <HubScene username={username} cardCount={stats.cardCount} wins={stats.wins} cardBacks={stats.cardBacks} active={isHome} />
         </div>
     )
 }

@@ -1,5 +1,24 @@
 import Phaser from "phaser";
-import { CardBox } from "@/lib/cardLayout";
+import { CardBox, CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_HEALTH_BOX } from "@/lib/cardLayout";
+
+// Cases mana/ATK/DEF un peu plus grandes que celles partagées avec le rendu DOM (CardFace.tsx,
+// cardLayout.ts) — en jeu les cartes s'affichent souvent bien plus petites (main, plateau) qu'à
+// l'écran de collection, donc ces chiffres ont besoin de plus de place pour rester lisibles.
+// Recentrées sur le même point que la case d'origine, pour ne pas se décaler de l'icône.
+function growBox(box: CardBox, extraWidth: number, extraHeight: number): CardBox
+{
+    return {
+        left: box.left - extraWidth / 2,
+        top: box.top - extraHeight / 2,
+        width: box.width + extraWidth,
+        height: box.height + extraHeight,
+    };
+}
+
+export const GAME_COST_BOX = growBox(CARD_COST_BOX, 5, 5);
+export const GAME_COST_BOX_SPELL = growBox(CARD_COST_BOX_SPELL, 5, 5);
+export const GAME_ATTACK_BOX = growBox(CARD_ATTACK_BOX, 5, 5);
+export const GAME_HEALTH_BOX = growBox(CARD_HEALTH_BOX, 5, 5);
 
 export function boxCenterOffset(box: CardBox, width: number, height: number): { x: number; y: number }
 {

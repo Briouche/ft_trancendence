@@ -1,0 +1,1 @@
+ALTER TABLE "User" ALTER COLUMN "unlockedCardBacks" SET DEFAULT ARRAY[0, 1, 2]::INTEGER[];

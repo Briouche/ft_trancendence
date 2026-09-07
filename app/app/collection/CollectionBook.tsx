@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 import CardBackArt from '@/components/CardBackArt'
-import { CARD_BACK_COUNT } from '@/lib/cardBacks'
+import { CARD_BACK_COUNT, ACHIEVEMENT_CARD_BACK_HINTS } from '@/lib/cardBacks'
 import {
     Slot, PageArrow, SearchInput,
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground, HomeButton, TitleBanner,
@@ -182,6 +182,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
     function renderSlot(item: Card | number | null, slotIndex: number) {
         if (item === null) return <Slot key={`empty-${slotIndex}`} />
         if (typeof item === 'number') {
+            const hint = ACHIEVEMENT_CARD_BACK_HINTS[item]
             return (
                 <Slot key={item} onClick={() => chooseBack(item)} highlighted={item === cardBack}>
                     <CardBackArt
@@ -189,8 +190,23 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         className={`h-full w-full rounded-sm ${!unlocked.has(item) ? 'grayscale brightness-50' : ''}`}
                     />
                     {!unlocked.has(item) && (
-                        <span className="absolute inset-0 flex items-center justify-center">
-                            <Image src="/textures/collection/icon-locked.png" alt="Locked" width={28} height={40} unoptimized style={{ imageRendering: 'pixelated' }} />
+                        <span className="group absolute inset-0 flex items-center justify-center">
+                            <Image
+                                src="/textures/collection/icon-locked.png" alt="Locked" width={28} height={40} unoptimized
+                                style={{ imageRendering: 'pixelated' }}
+                                className="transition-opacity duration-150 group-hover:opacity-0"
+                            />
+                            {hint && (
+                                <span
+                                    className="pointer-events-none absolute inset-10 flex items-center justify-center rounded-md
+                                        border border-parchment-100/30 bg-ink-950/95 p-1.5 text-center opacity-0 shadow-lg
+                                        transition-opacity duration-150 group-hover:opacity-100"
+                                >
+                                    <span className="font-serif text-lg leading-snug text-parchment-100">
+                                        {hint}
+                                    </span>
+                                </span>
+                            )}
                         </span>
                     )}
                 </Slot>

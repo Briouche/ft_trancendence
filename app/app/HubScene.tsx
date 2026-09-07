@@ -9,7 +9,7 @@ import Lantern from '@/components/library/Lantern'
 import Candle from '@/components/library/Candle'
 import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
 import { MENU_ITEMS, type MenuItem } from './menu'
-import AccountMenu from './AccountMenu'
+import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './AccountMenu'
 
 // Le hall : une vraie salle en three-fiber, fermée par un anneau de bibliothèques. Pas de plan de
 // sol visible — juste le mobilier et les portes posés dans le noir/brouillard, comme une rangée
@@ -955,10 +955,11 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
     )
 }
 
-export default function HubScene({ username, cardCount, wins, active = true }: {
+export default function HubScene({ username, cardCount, wins, cardBacks, active = true }: {
     username:  string
     cardCount: number
-    wins:      number
+    wins:      WinsBreakdown
+    cardBacks: CardBacksSummary
     active?:   boolean
 }) {
     const router = useRouter()
@@ -1010,7 +1011,7 @@ export default function HubScene({ username, cardCount, wins, active = true }: {
                 </h1>
             </div>
 
-            <AccountMenu username={username} cardCount={cardCount} wins={wins} />
+            <AccountMenu username={username} cardCount={cardCount} wins={wins} cardBacks={cardBacks} />
         </div>
     )
 }

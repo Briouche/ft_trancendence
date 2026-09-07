@@ -2,10 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { getEffectiveVolume } from '@/lib/audioSettings'
 
 // Pièces d'UI partagées par toutes les "pages de carnet" du site (Collection, Deck Builder...) —
 // sourcées sur le carnet (03_NoteBook) du Complete UI Book Styles Pack. Extrait de
 // CollectionBook.tsx pour être réutilisé tel quel plutôt que dupliqué.
+
+// Instance module-level réutilisée à chaque tournage de page (PageArrow ci-dessous) plutôt qu'un
+// `new Audio()` par clic : évite de recréer/recharger le fichier à chaque appel. `currentTime = 0`
+// permet de relancer le son même si le clic précédent n'a pas fini de jouer (clics rapides). Le
+// volume est relu à chaque lecture (pas mis en cache) : reflète tout de suite un changement fait
+// dans Settings pendant que le livre est déjà ouvert, sans avoir besoin de se ré-abonner.
+let pageFlipAudio: HTMLAudioElement | null = null
+
+function playPageFlip(): void {
+    if (!pageFlipAudio)
+        pageFlipAudio = new Audio('/sounds/page-flip.m4a')
+    pageFlipAudio.volume = getEffectiveVolume('ambience')
+    pageFlipAudio.currentTime = 0
+    pageFlipAudio.play().catch(() => {})
+}
 
 // Boucle sur `count` frames toutes les `intervalMs`, tant que `playing` est vrai (retombe sur la
 // frame 1 sinon) — utilisé pour toutes les animations "Sprites Animated" du carnet (sélection,
@@ -238,7 +254,7 @@ const BUTTON_FRAMES = 4
 // (Sprites Animated ButtonHome01a/ButtonBack01a/ButtonManual01a/ButtonAbout01a/ButtonSetting01a/
 // ButtonAchievement01a) : contrairement à "square", l'icône est déjà peinte dans la texture
 // elle-même — pas d'enfant à leur passer.
-const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'settings', 'achievement'] as const
+const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'music', 'achievement'] as const
 type AssetButtonVariant = 'square' | 'bar' | (typeof SELF_CONTAINED_VARIANTS)[number]
 
 const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
@@ -248,7 +264,7 @@ const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
     back:        '/textures/notebook/button-back',
     manual:      '/textures/notebook/button-manual',
     about:       '/textures/notebook/button-about',
-    settings:    '/textures/notebook/button-settings',
+    music:       '/textures/notebook/button-music',
     achievement: '/textures/notebook/button-achievement',
 }
 
@@ -333,6 +349,11 @@ export function PageArrow({ direction, onClick, disabled }: {
     const [hovered, setHovered] = useState(false)
     const frame = useLoopFrame(4, 110, hovered && !disabled)
 
+    function handleClick() {
+        playPageFlip()
+        onClick()
+    }
+
     return (
         <div
             className="relative flex h-full shrink-0 items-stretch"
@@ -342,14 +363,14 @@ export function PageArrow({ direction, onClick, disabled }: {
             {/* Calque de détection étendu, invisible, mordant sur le bord de la page — ne
                 déplace pas l'icône, juste la zone qui déclenche le survol/clic. */}
             <button
-                onClick={disabled ? undefined : onClick}
+                onClick={disabled ? undefined : handleClick}
                 disabled={disabled}
                 aria-hidden="true"
                 tabIndex={-1}
                 className={`absolute top-0 z-30 h-full w-16 ${direction === 'prev' ? 'left-full' : 'right-full'}`}
             />
             <button
-                onClick={onClick}
+                onClick={handleClick}
                 disabled={disabled}
                 className="relative z-30 flex h-full w-20 shrink-0 items-center justify-center disabled:opacity-0"
             >

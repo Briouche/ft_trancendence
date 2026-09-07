@@ -5,7 +5,7 @@ import { Deck } from "../deck";
 import { Hand } from "../hand";
 import { GameSession, Seat } from "./gameSession";
 import { ClientMessage, ServerMessage } from "../shared/protocol";
-import { makeDeckFromDeckId, makeDeckFromNames, getUsernameForDeck } from "../cardImport/cardLoader";
+import { makeDeckFromDeckId, makeDeckFromNames, getUsernameForDeck, getUserIdForDeck } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 
 // Garde en phase avec app/lib/cardBacks.ts (Next.js) — même duplication volontaire que le reste
@@ -69,10 +69,11 @@ export function createGameServer(port: number): void
                 // dur ni pioché au hasard dans la collection — voir PlayModeSelector.tsx. Deck de
                 // l'IA = un des 3 decks écrits à la main dans aiDecks.ts, tiré au sort — pas lié à
                 // un compte, donc joue des cartes même si le joueur humain ne les possède pas.
-                const [playerDeck, aiDeck, username]: [Deck | null, Deck, string | null] = await Promise.all([
+                const [playerDeck, aiDeck, username, userId]: [Deck | null, Deck, string | null, number | null] = await Promise.all([
                     makeDeckFromDeckId(msg.deckId, "hey"),
                     makeDeckFromNames(pickRandomAiDeck(), "hola"),
                     getUsernameForDeck(msg.deckId),
+                    getUserIdForDeck(msg.deckId),
                 ]);
                 if (!playerDeck)
                 {
@@ -90,8 +91,8 @@ export function createGameServer(port: number): void
 
                 const players: [Player, Player] = humanIndex === 0 ? [humanPlayer, aiPlayer] : [aiPlayer, humanPlayer];
                 const seats: [Seat, Seat] = humanIndex === 0
-                    ? [{ kind: "human", socket }, { kind: "ai" }]
-                    : [{ kind: "ai" }, { kind: "human", socket }];
+                    ? [{ kind: "human", socket, userId }, { kind: "ai" }]
+                    : [{ kind: "ai" }, { kind: "human", socket, userId }];
 
                 const session: GameSession = new GameSession(seats[0], seats[1], players[0], players[1], msg.difficulty, () => removeGame(session));
 
@@ -118,11 +119,13 @@ export function createGameServer(port: number): void
                 // Coin flip: don't let whoever queued first always go first.
                 const [first, second]: [WaitingPlayer, WaitingPlayer] = Math.random() < 0.5 ? [w0, w1] : [w1, w0];
 
-                const [deck0, deck1, username0, username1] = await Promise.all([
+                const [deck0, deck1, username0, username1, userId0, userId1] = await Promise.all([
                     makeDeckFromDeckId(first.deckId, "hero_0"),
                     makeDeckFromDeckId(second.deckId, "hero_1"),
                     getUsernameForDeck(first.deckId),
                     getUsernameForDeck(second.deckId),
+                    getUserIdForDeck(first.deckId),
+                    getUserIdForDeck(second.deckId),
                 ]);
 
                 if (!deck0 || !deck1)
@@ -136,8 +139,8 @@ export function createGameServer(port: number): void
                 const player0: Player = new Player(new Hero(username0 ?? "Player 1", "hero-0"), deck0, "hero-0", 0, first.cardBack);
                 const player1: Player = new Player(new Hero(username1 ?? "Player 2", "hero-1"), deck1, "hero-1", 1, second.cardBack);
 
-                const seat0: Seat = { kind: "human", socket: first.socket };
-                const seat1: Seat = { kind: "human", socket: second.socket };
+                const seat0: Seat = { kind: "human", socket: first.socket, userId: userId0 };
+                const seat1: Seat = { kind: "human", socket: second.socket, userId: userId1 };
 
                 const session: GameSession = new GameSession(seat0, seat1, player0, player1, undefined, () => removeGame(session));
 

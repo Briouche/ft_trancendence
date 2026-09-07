@@ -14,6 +14,14 @@ import { AssetButton } from '@/components/notebook/NotebookUI'
 const RADIUS_VMIN     = 36
 const CARD_WIDTH_VMIN = 15
 
+// Aura au survol d'une carte pas encore retournée — un indice de rareté avant même de la
+// révéler. Pas d'entrée pour Commune : rien à teaser, donc pas d'aura du tout.
+const HOVER_RARITY_GLOW: Partial<Record<string, string>> = {
+    'Rare':        '#3b82f6',
+    'Épique':      '#a855f7',
+    'Légendaire':  '#facc15',
+}
+
 function useVmin() {
     const [vmin, setVmin] = useState(0)
     useEffect(() => {
@@ -69,12 +77,13 @@ export default function PackCardCircle({
                 const x        = Math.cos(angle) * radius
                 const y        = Math.sin(angle) * radius
                 const revealed = revealedIndices.has(i)
+                const hoverGlow = HOVER_RARITY_GLOW[card.rarity]
 
                 return (
                     <button
                         key={`${card.id}-${i}`}
                         onClick={() => onSelect(i)}
-                        className="pointer-events-auto absolute transition-transform duration-150 ease-out hover:z-10"
+                        className="group pointer-events-auto absolute transition-transform duration-150 ease-out hover:z-10"
                         style={{
                             left: `calc(50% + ${x}px)`,
                             top: `calc(50% + ${y}px)`,
@@ -83,8 +92,12 @@ export default function PackCardCircle({
                         }}
                     >
                         {/* Le retournement se joue ici, sur place, à cette petite taille — plus
-                            besoin de passer par le zoom pour la première révélation. */}
-                        <div className="[perspective:600px]">
+                            besoin de passer par le zoom pour la première révélation. Grossit
+                            légèrement au survol tant qu'elle n'est pas encore retournée (même
+                            portée que l'aura ci-dessous) — sur ce calque, pas celui qui tourne,
+                            pour ne pas se disputer la propriété transform avec le flip. */}
+                        <div className={`transition-transform duration-150 ease-out [perspective:600px]
+                            ${!revealed ? 'group-hover:scale-110' : ''}`}>
                             <div
                                 className={`relative aspect-[3/4] w-full transition-transform duration-500 [transform-style:preserve-3d]
                                     ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
@@ -97,6 +110,16 @@ export default function PackCardCircle({
                                     index={cardBack}
                                     className="h-full w-full rounded-lg shadow-lg [backface-visibility:hidden]"
                                 />
+                                {/* Aura au survol, tant que la carte est encore dos visible : un indice
+                                    de rareté avant la révélation — Commune n'a pas d'entrée dans
+                                    HOVER_RARITY_GLOW, donc rien ne s'affiche pour elle. */}
+                                {!revealed && hoverGlow && (
+                                    <div
+                                        className="pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity
+                                            duration-300 [backface-visibility:hidden] group-hover:opacity-100"
+                                        style={{ boxShadow: `0 0 40px 12px ${hoverGlow}` }}
+                                    />
+                                )}
                                 {/* Éclat doré ponctuel à la révélation, en plus du contour de
                                     CardFace lui-même — le pull d'une légendaire doit se sentir. */}
                                 <div className={`absolute inset-0 rounded-lg [backface-visibility:hidden] [transform:rotateY(180deg)]

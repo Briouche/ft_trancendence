@@ -55,7 +55,7 @@ export class StateSyncController
 
         board.syncBoardFromState(state.playerBoard, state.opponentBoard, state);
         opponentHand.setCount(state.opponentHandCount);
-        hand.syncHandFromState(state.playerHand);
+        hand.syncHandFromState(state.playerHand, state.yourTurn, state.mana);
 
         board.playerHero.setHeroData(state.playerHero);
         board.opponentHero.setHeroData(state.opponentHero);
