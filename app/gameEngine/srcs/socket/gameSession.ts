@@ -462,19 +462,9 @@ export class GameSession
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
             let action: Action;
-
-            //bug where getBestAction never comes back, added timeout to cardLoader so no infinite wait 
-            //isnt a real solution because it still fails, just end turn?
-            try
-            {
-                action = await getBestAction(this.engine, simulations, worlds);
-            }
-            catch (err)
-            {
-                console.error("AI turn failed, ending turn instead of hanging:", err);
-                action = { type: "endTurn" };
-            }
-
+            
+            action = await getBestAction(this.engine, simulations, worlds);
+            
             this.applyAiAction(action);
 
             if (action.type !== "endTurn")
@@ -509,11 +499,18 @@ export class GameSession
             {
                 const target: Targetable = this.resolveAiTarget(action.targetIndex);
                 result = this.engine.attackWithMinion(action.attackerIndex, target);
+                let attacker = this.engine.board.getMinions(this.engine.currentTurn)[action.attackerIndex].id;
+                if (result.succes)
+                    this.broadcastEvent({ type: "attack", attackerId: attacker, targetId: target.id, playerIndex: this.engine.currentTurn });
                 break;
             }
             case "endTurn":
+            {
                 result = this.engine.endTurn();
+                this.broadcastAnimationEvents(result.animationEvents);
+                this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
                 break;
+            }
         }
 
         this.broadcastAnimationEvents(result.animationEvents);
