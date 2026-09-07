@@ -7,6 +7,7 @@ interface RawCard
 {
 	id:       string
 	assetKey: string
+	artist?:  string
 	name:     string
 	type:     string
 	rarity:   string
@@ -76,6 +77,7 @@ export async function seedCards(prisma: PrismaClient)
 			qty:       card.qty    ?? 1,
 			legendId:  card.legendId ?? '',
 			assetKey:  card.assetKey,
+			artist:    card.artist,
 
 			taunt: card.taunt,
 			rush:  card.rush,

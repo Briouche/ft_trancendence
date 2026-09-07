@@ -8,7 +8,6 @@ import PackChoice from './PackChoice'
 import PackArt, { randomPackSkins, type PackSkin } from './PackArt'
 import CardBackArt from '@/components/CardBackArt'
 import type { CardFaceData } from '@/components/CardFace'
-import { useAudio } from '@/components/AudioProvider'
 import { HomeButton, TitleBanner, outlinedWhiteTextStyle, woodenTableBackground } from '@/components/notebook/NotebookUI'
 
 type Phase = 'choosing' | 'opening' | 'revealing'
@@ -41,7 +40,6 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const [granting, setGranting]               = useState(false)
     const [clearing, setClearing]               = useState(false)
     const [unlockingAll, setUnlockingAll]       = useState(false)
-    const { playFlip }                          = useAudio()
     const router                                = useRouter()
 
     useEffect(() => {
@@ -91,11 +89,7 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         setPhase('revealing')
     }
 
-    // playFlip() ici plutôt que dans le updater de setRevealedIndices : l'appelant (selectCard)
-    // garantit déjà que la carte n'est pas encore révélée avant d'appeler revealCard — un effet
-    // de bord dans un updater serait dupliqué par le double-appel du StrictMode en dev.
     function revealCard(index: number) {
-        playFlip()
         setRevealedIndices(prev => {
             const next = new Set(prev)
             next.add(index)

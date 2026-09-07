@@ -61,6 +61,7 @@ enum Keyword {
 model Card {
   id       String     @id
   assetKey String     @default("placeholder_card")
+  artist   String?
   name     String
   type     String     @default("")
   rarity   String

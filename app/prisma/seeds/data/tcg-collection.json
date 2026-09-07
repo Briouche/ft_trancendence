@@ -4,6 +4,7 @@
     {
       "id": "mpzqp0u9",
       "name": "Le menestrel",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -25,6 +26,7 @@
       "id": "mpzsx3l7",
       "name": "Timmy, the planetsucker",
       "assetKey": "timmyPlanet",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "5",
@@ -44,6 +46,7 @@
       "id": "mpzsyfvk",
       "name": "golem endormi",
       "assetKey": "golemEndormi",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -59,6 +62,7 @@
       "id": "mqi7d3bu",
       "name": "Spiritueux slave",
       "assetKey": "vodka",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Commune",
       "cost": "2",
@@ -92,6 +96,7 @@
       "id": "mpzqq8bs",
       "name": "Pyroblin",
       "assetKey": "pyroblin",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -111,6 +116,7 @@
     {
       "id": "mqi2jqa4",
       "name": "Reborn (Archi card)",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "2",
@@ -132,6 +138,7 @@
     {
       "id": "mqi2k9ir",
       "name": "Neo (archi card)",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "4",
@@ -147,6 +154,7 @@
       "id": "mqib6m3f",
       "name": "Haku (archi card)",
       "assetKey": "haku",
+      "artist": "Nalebrun",
       "type": "creature",
       "rarity": "Épique",
       "cost": "1",
@@ -164,6 +172,7 @@
     {
       "id": "mqibfh9p",
       "name": "Zurg (archi card)",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "6",
@@ -199,6 +208,7 @@
     {
       "id": "mqi2kthv",
       "name": "Ribgy (Archi card)",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "3",
@@ -219,6 +229,7 @@
     {
       "id": "mqi31p8w",
       "name": "Po (archi card)",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "5",
@@ -233,6 +244,7 @@
     {
       "id": "mqi2mtc3",
       "name": "Archimed la maudite",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "7",
@@ -253,6 +265,7 @@
       "id": "mqi87m6k",
       "name": "Bibliothequaire",
       "assetKey": "libraire",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -272,6 +285,7 @@
       "id": "mqi7p9nf",
       "name": "Joël el Jeffe (aka marcel au 1000 épices)",
       "assetKey": "jeffe",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "3",
@@ -292,6 +306,7 @@
       "id": "mqi7qihp",
       "name": "Diablotin du piment",
       "assetKey": "diablotin",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -311,6 +326,7 @@
     {
       "id": "mpzrpslo",
       "name": "Big mama hyena",
+      "artist": "Brieuc",
       "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
@@ -338,6 +354,7 @@
       "id": "mpzr0j1i",
       "name": "Arcane Missile",
       "assetKey": "arcaneMissile",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "1",
@@ -358,6 +375,7 @@
     {
       "id": "mpzs4tyi",
       "name": "equal opportiny",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "2",
@@ -373,6 +391,7 @@
     {
       "id": "mpzr0j1j",
       "name": "Feed the troops",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "2",
@@ -393,6 +412,7 @@
     {
       "id": "mqi85ep9",
       "name": "Sauce TomAAAAAAte",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "2",
@@ -421,6 +441,7 @@
     {
       "id": "mqi7hah3",
       "name": "Entartrage",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "1",
@@ -442,6 +463,7 @@
       "id": "mqi7rd3e",
       "name": "Mixeur",
       "assetKey": "mixeur",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "3",
@@ -470,6 +492,7 @@
     {
       "id": "mqi8b2r3",
       "name": "Voxotron exterminateur",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Commune",
       "cost": "7",
@@ -486,6 +509,7 @@
       "id": "mpzsdbs2",
       "name": "cat pack",
       "assetKey": "fourCats",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "4",
@@ -501,7 +525,6 @@
           {
             "id": "mpzsdbs2_token1",
             "name": "Cat",
-          
             "cost": "1",
             "atk": "2",
             "def": "1",
@@ -511,7 +534,6 @@
           {
             "id": "mpzsdbs2_token2",
             "name": "Cat",
-          
             "cost": "1",
             "atk": "2",
             "def": "1",
@@ -521,7 +543,6 @@
           {
             "id": "mpzsdbs2_token3",
             "name": "Cat",
-          
             "cost": "1",
             "atk": "2",
             "def": "1",
@@ -535,6 +556,7 @@
       "id": "mpzsugp1",
       "name": "call the kraken",
       "assetKey": "kraken",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "5",
@@ -564,6 +586,7 @@
       "id": "mqi7477s",
       "name": "Rat de Jade",
       "assetKey": "RatdeJade",
+      "artist": "Brieuc",
       "type": "Creature",
       "rarity": "Commune",
       "cost": "2",
@@ -584,6 +607,7 @@
     {
       "id": "mqi6xr8i",
       "name": "Banquier Renart le goblin",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Commune",
       "cost": "2",
@@ -600,6 +624,7 @@
     {
       "id": "mqi36l6i",
       "name": "podophile",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -619,7 +644,7 @@
     {
       "id": "mqi33jfs",
       "name": "Le Phoenix",
-    
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "6",
@@ -636,7 +661,6 @@
           {
             "id": "mqi33jfs_token1",
             "name": "Phoenix",
-          
             "cost": "4",
             "atk": "3",
             "def": "3",
@@ -649,7 +673,6 @@
                 {
                   "id": "mqi33jfs_token1",
                   "name": "Phoenix",
-                
                   "cost": "3",
                   "atk": "2",
                   "def": "2",
@@ -662,7 +685,6 @@
                       {
                         "id": "mqi33jfs_token1",
                         "name": "Phoenix",
-                      
                         "cost": "6",
                         "atk": "1",
                         "def": "1",
@@ -682,6 +704,7 @@
       "id": "mqi7lqzb",
       "name": "CRS",
       "assetKey": "crs",
+      "artist": "Hmesnard",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -696,6 +719,7 @@
       "id": "mqi7molw",
       "name": "Poulet mécontent",
       "assetKey": "poulet",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -717,6 +741,7 @@
       "id": "mqi7wg1q",
       "name": "Client Mécontent",
       "assetKey": "clientMécontent",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -738,6 +763,7 @@
       "id": "mqi7xr37",
       "name": "Second Braillaird",
       "assetKey": "ChefBraillard",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -758,6 +784,7 @@
       "id": "mqi7t2uf",
       "name": "Critique culinaire",
       "assetKey": "critiqueCulinaire",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -777,6 +804,7 @@
     {
       "id": "mqi730al",
       "name": "Pecheur repenti",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "4",
@@ -794,6 +822,7 @@
       "id": "mqi6rw7n",
       "name": "Lecture de textes Anciencs",
       "assetKey": "textesAnciens",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "3",
@@ -810,6 +839,7 @@
     {
       "id": "mqi6orw9",
       "name": "Bertrand",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "3",
@@ -825,6 +855,7 @@
     {
       "id": "mqi6qse2",
       "name": "Jumeau Goblin",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -851,6 +882,7 @@
     {
       "id": "mqi387qn",
       "name": "une maman aimante",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -871,6 +903,7 @@
     {
       "id": "mqi38sx6",
       "name": "cri du phoenix",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "4",
@@ -891,6 +924,7 @@
       "id": "mqi39fwn",
       "name": "le croupier",
       "assetKey": "croupier",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -907,6 +941,7 @@
     {
       "id": "mqi35y1s",
       "name": "slime degoutant",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -926,6 +961,7 @@
     {
       "id": "mqi3516p",
       "name": "conseiller de l'ombre",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -944,6 +980,7 @@
     {
       "id": "mqi7a046",
       "name": "Commis de la souffrance",
+      "artist": "Brieuc",
       "type": "Creature",
       "rarity": "Commune",
       "cost": "1",
@@ -960,6 +997,7 @@
     {
       "id": "mqi810rs",
       "name": "Lanceur de couteaux",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "4",
@@ -981,6 +1019,7 @@
       "id": "mqi2nq42",
       "name": "Force de la nature",
       "assetKey": "treant",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "7",
@@ -994,6 +1033,7 @@
       "id": "mqi2pdbm",
       "name": "blackhole",
       "assetKey": "BlackHole",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "4",
@@ -1013,6 +1053,7 @@
     {
       "id": "mqi2qm6a",
       "name": "allie peureux",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -1047,6 +1088,7 @@
       "id": "mqi2rye2",
       "name": "mere pondeuse",
       "assetKey": "bigSpider",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "4",
@@ -1089,6 +1131,7 @@
     {
       "id": "mqi2odxf",
       "name": "TIG",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "1",
@@ -1108,6 +1151,7 @@
       "id": "mqi2ylzl",
       "name": "un gros sandwich",
       "assetKey": "grosSandwich",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -1121,6 +1165,7 @@
     {
       "id": "mqi2zdq0",
       "name": "une haleine vreument...",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "2",
@@ -1141,6 +1186,7 @@
       "id": "mqi2w8de",
       "name": "Goblinmikaze",
       "assetKey": "kamikaze",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -1162,7 +1208,7 @@
     {
       "id": "mqi2xdmh",
       "name": "champion de l'arene",
-    
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "5",
@@ -1184,6 +1230,7 @@
       "id": "mqi313ey",
       "name": "soulevement de tombes",
       "assetKey": "tomb",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "2",
@@ -1250,6 +1297,7 @@
     {
       "id": "mpzqt44t",
       "name": "cannibalisme",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "3",
@@ -1281,6 +1329,7 @@
     {
       "id": "mpzr3mcy",
       "name": "Hyperactive cousin",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -1309,6 +1358,7 @@
       "id": "mpzs81x0",
       "name": "le (gros) thon poli",
       "assetKey": "grosThon",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "4",
@@ -1329,6 +1379,7 @@
     {
       "id": "mpzs8u1h",
       "name": "bloodsucker",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -1345,6 +1396,7 @@
     {
       "id": "mqi7ivjj",
       "name": "Opika",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "2",
@@ -1365,6 +1417,7 @@
       "id": "mpzqyecf",
       "name": "Investment Goblin",
       "assetKey": "investmentGoblin",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "0",
@@ -1383,6 +1436,7 @@
     {
       "id": "mqi7ktmr",
       "name": "Bombe H",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "7",
@@ -1402,6 +1456,7 @@
     {
       "id": "mqi2u1aa",
       "name": "Freddy, le fossoyeur de tombe",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Légendaire",
       "cost": "6",
@@ -1420,6 +1475,7 @@
     {
       "id": "mqi2v3qx",
       "name": "tremblement",
+      "artist": "Brieuc",
       "type": "sort",
       "rarity": "Rare",
       "cost": "4",
@@ -1439,6 +1495,7 @@
     {
       "id": "mpzsjywa",
       "name": "Rat des champs",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -1458,6 +1515,7 @@
     {
       "id": "mqi77t7b",
       "name": "Slime orthophoniste",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "5",
@@ -1471,6 +1529,7 @@
     {
       "id": "mqi829kv",
       "name": "Bondisseur enjoué",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
@@ -1484,6 +1543,7 @@
     {
       "id": "mqi83gcw",
       "name": "Flambeur de Dancefloor",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -1501,6 +1561,7 @@
     {
       "id": "mpzrno25",
       "name": "Mafia boss",
+      "artist": "Brieuc",
       "type": "",
       "rarity": "Commune",
       "cost": "2",
@@ -1524,6 +1585,7 @@
     {
       "id": "mqi7uqkt",
       "name": "Cactus dos Pimentos",
+      "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -1548,6 +1610,7 @@
     {
       "id": "mqi70rba",
       "name": "Feeder goblin",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Commune",
       "cost": "3",
@@ -1570,6 +1633,7 @@
     {
       "id": "mqi76hth",
       "name": "Cavalier furieux",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Commune",
       "cost": "4",
@@ -1586,6 +1650,7 @@
     {
       "id": "mqiayjrm",
       "name": "Leon, le chien saucisse",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Légendaire",
       "cost": "2",
@@ -1605,6 +1670,7 @@
     {
       "id": "mpzt1pib",
       "name": "Roi des rats",
+      "artist": "Brieuc",
       "type": "",
       "rarity": "Légendaire",
       "cost": "4",
@@ -1625,6 +1691,7 @@
     {
       "id": "mqi6l6i0",
       "name": "Gertrude",
+      "artist": "Brieuc",
       "type": "Créature",
       "rarity": "Légendaire",
       "cost": "2",
@@ -1634,6 +1701,27 @@
       "qty": 1,
       "legendId": "gertrude",
       "spellpower": 1
+    },
+    {
+      "id": "mpd6l6i0",
+      "name": "Donneur de pourboire",
+      "artist": "Brieuc",
+      "type": "Créature",
+      "rarity": "Commune",
+      "cost": "1",
+      "atk": "2",
+      "def": "1",
+      "desc": "End of turn : Give +1 to a random allied minion",
+      "qty": 2,
+      "legendId": "",
+      "endOfTurnEffect": {
+        "kind": "buff",
+        "atk": 0,
+        "health": 1,
+        "resolver": {
+          "kind": "allyMinion"
+        }
+      }
     }
   ],
   "decks": []

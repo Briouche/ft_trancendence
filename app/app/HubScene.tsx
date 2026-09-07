@@ -601,7 +601,7 @@ const TUTO_NOTES: TutoNote[] = [
     { tex: '/textures/notebook/banner01.png', x: 0, y: 0.42, w: 1.3, h: 0.22, rot: -0.02, pin: '#c0392b' },
     { tex: '/textures/collection/icon-leg-timmy.png', x: -1.05, y: -0.06, w: 0.36, h: 0.38, rot: 0.08, pin: '#2980b9' },
     { tex: '/textures/collection/icon-leg-freddy.png', x: -0.63, y: -0.06, w: 0.36, h: 0.38, rot: -0.06, pin: '#27ae60' },
-    { tex: '/textures/cards/frame-commune.png', x: -0.21, y: -0.06, w: 0.34, h: 0.5, rot: -0.09, pin: '#2980b9' },
+    { tex: '/textures/cards/frame/frame-commune.png', x: -0.21, y: -0.06, w: 0.34, h: 0.5, rot: -0.09, pin: '#2980b9' },
     { tex: '/textures/notebook/slot.png', x: 0.21, y: -0.06, w: 0.3, h: 0.3, rot: 0.08, pin: '#e0a72b' },
     { tex: '/textures/collection/icon-leg-jeffe.png', x: 0.63, y: -0.06, w: 0.36, h: 0.38, rot: 0.05, pin: '#c0392b' },
     { tex: '/textures/collection/icon-leg-gertrude.png', x: 1.05, y: -0.06, w: 0.36, h: 0.38, rot: -0.07, pin: '#27ae60' },

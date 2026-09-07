@@ -36,10 +36,10 @@ export class BootScene extends Phaser.Scene
         this.load.image("fullEnergy", "/gameAssets/UI_TravelBook_IconEnergy02a.png");
         this.load.image("heroFrame", "/gameAssets/hero.png");
         this.load.image("opponentHeroFrame", "/gameAssets/opponentHero.png")
-        this.load.image("frame_commune", "/textures/cards/frame-commune.png");
-        this.load.image("frame_rare", "/textures/cards/frame-rare.png");
-        this.load.image("frame_epique", "/textures/cards/frame-epique.png");
-        this.load.image("frame_legendaire", "/textures/cards/frame-legendaire.png");
+        this.load.image("frame_commune", "/textures/cards/frame/frame-commune.png");
+        this.load.image("frame_rare", "/textures/cards/frame/frame-rare.png");
+        this.load.image("frame_epique", "/textures/cards/frame/frame-epique.png");
+        this.load.image("frame_legendaire", "/textures/cards/frame/frame-legendaire.png");
 
 
         for (let i = 0; i < CARD_BACK_COUNT; i++)

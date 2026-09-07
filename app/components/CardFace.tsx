@@ -16,6 +16,7 @@ export type CardFaceData = {
     keywords: string[]
     legendId: string
     assetKey: string
+    artist: string | null
 }
 
 // "placeholder_card" (défaut en base, voir prisma/schema.prisma) = pas d'illustration dessinée
@@ -30,10 +31,10 @@ function hasCardArt(assetKey: string): boolean {
 // rareté Rare — ce tier est donc exclusivement des sorts, d'où son cadre sans épées/goutte de
 // sang, voir SPELL_RARITIES plus bas).
 const CARD_ART: Partial<Record<string, string>> = {
-    'Commune': '/textures/cards/frame-commune.png',
-    'Rare': '/textures/cards/frame-rare.png',
-    'Épique': '/textures/cards/frame-epique.png',
-    'Légendaire': '/textures/cards/frame-legendaire.png',
+    'Commune': '/textures/cards/frame/frame-commune.png',
+    'Rare': '/textures/cards/frame/frame-rare.png',
+    'Épique': '/textures/cards/frame/frame-epique.png',
+    'Légendaire': '/textures/cards/frame/frame-legendaire.png',
 }
 
 
@@ -96,7 +97,7 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
             // bug connu où un filter sur un élément mis à l'échelle par un parent peut rogner le
             // rendu au lieu de simplement peindre l'ombre (repéré sur un emoji tronqué/décalé,
             // invisible en Chromium). box-shadow n'a pas ce problème.
-            <div className="relative aspect-[130/191] w-full shadow-lg">
+            <div className="relative aspect-[130/191] w-full overflow-hidden shadow-lg">
                 {ownedQty !== undefined && ownedQty > 1 && (
                     // left-0/top-0 (pas d'offset négatif) : CardFaceLayer (ScaledCardFace) enveloppe
                     // ce rendu dans un conteneur overflow-hidden pour la mise à l'échelle — un badge
@@ -109,28 +110,33 @@ export default function CardFace({ card, ownedQty }: { card: CardFaceData; owned
                     </span>
                 )}
 
-                {/* Cadre dessiné (bordure, gemme, épées, goutte de sang — sauf le cadre "sort",
-                    qui n'a ni épées ni goutte) — les zones ci-dessous sont positionnées en %
-                    par-dessus, mesurées sur ce visuel. */}
-                <div
-                    className="absolute inset-0"
-                    style={{ backgroundImage: `url(${art})`, backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
-                />
-
                 {/* Illustration de la carte, dans le vrai trou découpé du cadre (CARD_ART_BOX,
                     identique au rendu Phaser en jeu — voir cardLayout.ts) — rien pour les cartes
-                    qui n'ont pas encore d'illustration dessinée (assetKey par défaut). */}
+                    qui n'ont pas encore d'illustration dessinée (assetKey par défaut). Rendue
+                    avant le cadre (donc en dessous) : le cadre masque toujours ce qui dépasse de
+                    la fenêtre découpée. `cover` (pas `contain`) : le ratio de chaque source varie
+                    légèrement (voir cardTextLayout.ts côté Phaser) — cover remplit toute la case
+                    quitte à rogner un peu les bords, plutôt que laisser une bande vide. */}
                 {hasCardArt(card.assetKey) && (
                     <div
                         className="absolute"
                         style={{
                             ...boxStyle(CARD_ART_BOX),
                             backgroundImage: `url(/textures/cards/images/${card.assetKey}.webp)`,
-                            backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
+                            backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
                             imageRendering: 'pixelated',
                         }}
                     />
                 )}
+
+                {/* Cadre dessiné (bordure, gemme, épées, goutte de sang — sauf le cadre "sort",
+                    qui n'a ni épées ni goutte) — par-dessus l'illustration, pour que son décor
+                    masque toujours ce qui dépasse de la fenêtre découpée. Les zones ci-dessous
+                    sont positionnées en % par-dessus, mesurées sur ce visuel. */}
+                <div
+                    className="absolute inset-0"
+                    style={{ backgroundImage: `url(${art})`, backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
+                />
 
                 {/* Nom, dans la case blanche en haut à gauche */}
                 <div

@@ -67,6 +67,12 @@ export default function PackCardZoom({
                 <ScaledCardFace card={card} />
             </div>
 
+            {/* Signature de l'illustrateur, sous la carte — absente tant que `artist` n'est pas
+                renseigné pour cette carte (voir tcg-collection.json). */}
+            {card.artist && (
+                <p className="font-serif text-2xl italic text-parchment-300/70">{card.artist}</p>
+            )}
+
             <p className="font-serif text-sm italic text-parchment-300/50">Click outside to close</p>
         </div>
     )

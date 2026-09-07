@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
-import AudioProvider from "@/components/AudioProvider";
 import CustomCursor from "@/components/CustomCursor";
 import { getSession } from "@/lib/session";
 import HubBackground from "./HubBackground";
@@ -46,16 +45,12 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-ink-950">
         <TransitionOverlay />
         <CustomCursor />
-        {/* AudioProvider vit dans le layout racine (jamais démonté entre deux pages, contrairement
-            au contenu de `children`) : la nappe ambiante ne redémarre pas à chaque navigation. */}
-        <AudioProvider>
-          {/* Même principe qu'AudioProvider : monté une seule fois ici (pas dans page.tsx, qui se
-              démonte à chaque navigation hors de "/") pour que le Canvas three-fiber du hub
-              (contexte WebGL, shaders, géométrie procédurale des bibliothèques) ne soit jamais
-              reconstruit à froid en revenant sur le hub — voir HubBackground.tsx. */}
-          {session && <HubBackground username={session.username} />}
-          {children}
-        </AudioProvider>
+        {/* Monté une seule fois ici (pas dans page.tsx, qui se démonte à chaque navigation hors
+            de "/") pour que le Canvas three-fiber du hub (contexte WebGL, shaders, géométrie
+            procédurale des bibliothèques) ne soit jamais reconstruit à froid en revenant sur le
+            hub — voir HubBackground.tsx. */}
+        {session && <HubBackground username={session.username} />}
+        {children}
       </body>
     </html>
   );
