@@ -146,6 +146,7 @@
     {
       "id": "mqib6m3f",
       "name": "Haku (archi card)",
+      "assetKey": "haku",
       "type": "creature",
       "rarity": "Épique",
       "cost": "1",
@@ -336,6 +337,7 @@
     {
       "id": "mpzr0j1i",
       "name": "Arcane Missile",
+      "assetKey": "arcaneMissile",
       "type": "sort",
       "rarity": "Rare",
       "cost": "1",
@@ -439,6 +441,7 @@
     {
       "id": "mqi7rd3e",
       "name": "Mixeur",
+      "assetKey": "mixeur",
       "type": "sort",
       "rarity": "Rare",
       "cost": "3",
@@ -678,6 +681,7 @@
     {
       "id": "mqi7lqzb",
       "name": "CRS",
+      "assetKey": "crs",
       "type": "creature",
       "rarity": "Commune",
       "cost": "3",
@@ -886,6 +890,7 @@
     {
       "id": "mqi39fwn",
       "name": "le croupier",
+      "assetKey": "croupier",
       "type": "creature",
       "rarity": "Commune",
       "cost": "1",
