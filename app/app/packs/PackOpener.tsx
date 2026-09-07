@@ -40,6 +40,7 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const [error, setError]                     = useState('')
     const [granting, setGranting]               = useState(false)
     const [clearing, setClearing]               = useState(false)
+    const [unlockingAll, setUnlockingAll]       = useState(false)
     const { playFlip }                          = useAudio()
     const router                                = useRouter()
 
@@ -156,6 +157,13 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         setClearing(false)
     }
 
+    async function unlockAllCards() {
+        setUnlockingAll(true)
+        await fetch('/api/collection/unlock-all', { method: 'POST' })
+        setUnlockingAll(false)
+        router.refresh()
+    }
+
     const allRevealed         = cards.length > 0 && revealedIndices.size === cards.length
     const packsUntilLegendary = 5 - pityCounter
 
@@ -179,7 +187,7 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                     </span>
                 </p>
                 {/* Boutons temporaires en attendant un vrai mode de jeu (gagner des paquets) et
-                    un vrai flux de test/reset (vider la collection) */}
+                    un vrai flux de test/reset (vider ou tout débloquer la collection) */}
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <button
                         onClick={grantFreePack}
@@ -196,6 +204,14 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                             text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
                     >
                         🗑 {clearing ? 'Clearing...' : 'Clear collection (temporary)'}
+                    </button>
+                    <button
+                        onClick={unlockAllCards}
+                        disabled={unlockingAll}
+                        className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
+                            text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
+                    >
+                        🔓 {unlockingAll ? 'Unlocking...' : 'Unlock all cards (temporary)'}
                     </button>
                 </div>
 
