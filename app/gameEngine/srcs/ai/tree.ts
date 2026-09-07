@@ -4,6 +4,7 @@ import { GameEngine } from "../gameEngine";
 import { Targetable } from "../target";
 import { Action } from "./types";
 import { MinionCard } from "../card";
+import { Effect } from "../effect";
 
 const UCB1_C = Math.SQRT2;
 
@@ -28,9 +29,21 @@ export function applyAction(engine: GameEngine, action: Action): GameEngine {
   const clone = engine.clone();
 
   switch (action.type) {
-    case "playCard":
-      clone.playCard(action.cardIndex, new Map());
+    case "playCard": {
+      const card = clone.activePlayer().hand.getCards()[action.cardIndex];
+      const targets = new Map<Effect, Targetable | null>();
+      const effect = clone.getOnPlayEffect(card);
+
+      if (effect) {
+        const target = action.targetIndex !== undefined
+          ? clone.getOnPlayTargets(card)[action.targetIndex] ?? null
+          : null;
+        targets.set(effect, target);
+      }
+
+      clone.playCard(action.cardIndex, targets);
       break;
+    }
     case "attack": {
       const opponentIdx: 0 | 1 = clone.currentTurn === 0 ? 1 : 0;
       const target: Targetable = action.targetIndex === -1

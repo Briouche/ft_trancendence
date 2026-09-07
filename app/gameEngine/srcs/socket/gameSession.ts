@@ -489,6 +489,15 @@ export class GameSession
                 const player: Player = this.engine.players[playerIndex];
                 const card: Card = player.hand.getCards()[action.cardIndex];
                 const targets: Map<Effect, Targetable | null> = new Map();
+                const effect = this.engine.getOnPlayEffect(card);
+
+                if (effect)
+                {
+                    const target = action.targetIndex !== undefined
+                        ? this.engine.getOnPlayTargets(card)[action.targetIndex] ?? null
+                        : null;
+                    targets.set(effect, target);
+                }
 
                 result = this.engine.playCard(action.cardIndex, targets);
                 if (result.succes)
@@ -507,7 +516,6 @@ export class GameSession
             case "endTurn":
             {
                 result = this.engine.endTurn();
-                this.broadcastAnimationEvents(result.animationEvents);
                 this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
                 break;
             }
