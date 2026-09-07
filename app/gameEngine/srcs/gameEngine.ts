@@ -2,7 +2,7 @@ import { Card, MinionCard, SpellCard } from "./card";
 import { Board } from "./board";
 import { Player } from "./player";
 import { GameContext } from "./effect";
-import { Targetable } from "./target";
+import { Targetable, EnemyCharacterResolver } from "./target";
 import { Effect } from "./effect";
 import { Hero } from "./hero";
 import { freddyPassive, jeffePassive, timmyPassive } from "./legendary";
@@ -41,25 +41,27 @@ export class GameEngine
         this.currentTurn = 0;
     }
 
-    startGame(): void
+    startGame(): ActionResult
     {
         for (let i = 0; i < 2; i++)
         {
             this.players[i].checkDeckForLeg();
             if (this.players[i].legPassive === "timmy")
                 timmyPassive(this.players[i]);
-            
+
             this.players[i].deck.shuffle();
             for (let j = 0; j < 3; j++)
                 this.players[i].drawCard();
             if (i === 1)
                 this.players[i].drawCard();
         }
-        this.startTurn();
+        return this.startTurn();
     }
 
     startTurn(): ActionResult
     {
+        this.animationChain = [];
+
         const player: Player = this.activePlayer();
         player.gainMana();
         player.drawCard();
@@ -112,15 +114,16 @@ export class GameEngine
         }
     }
 
-    endTurn(): ActionResult
+    endTurn(): { endOfTurn: ActionResult; startOfTurn: ActionResult }
     {
         this.animationChain = [];
-
         this.triggerEndOfTurnEffects(this.currentTurn);
+        const endOfTurn: ActionResult = { succes: true, animationEvents: this.animationChain };
 
         this.currentTurn = this.currentTurn === 0 ? 1 : 0;
-        this.startTurn(); // effects and events caused by start turn are ignored right now
-        return { succes: true, animationEvents: this.animationChain };
+        const startOfTurn: ActionResult = this.startTurn();
+
+        return { endOfTurn, startOfTurn };
     }
 
     playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): ActionResult
@@ -411,14 +414,23 @@ export class GameEngine
         }
 
         const attackers = this.board.getMinions(this.currentTurn);
-        const targets    = this.board.getMinions(opponentIndex);
+        const opponentMinions = this.board.getMinions(opponentIndex);
+        const attackResolver = new EnemyCharacterResolver();
+
         for (let i = 0; i < attackers.length; i++)
         {
-            if (!attackers[i].canAttack)
+            const attacker = attackers[i];
+
+            if (!attacker.canAttack)
                 continue;
-            actions.push({ type: "attack", attackerIndex: i, targetIndex: -1 });
-            for (let t = 0; t < targets.length; t++)
-                actions.push({ type: "attack", attackerIndex: i, targetIndex: t });
+
+            const validTargets = attackResolver.resolve({ engine: this, owner: player, source: attacker });
+
+            for (const target of validTargets)
+            {
+                const targetIndex = target instanceof MinionCard ? opponentMinions.indexOf(target) : -1;
+                actions.push({ type: "attack", attackerIndex: i, targetIndex });
+            }
         }
 
         actions.push({ type: "endTurn" });

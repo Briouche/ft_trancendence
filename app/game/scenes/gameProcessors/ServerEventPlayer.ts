@@ -53,8 +53,6 @@ export class ServerEventPlayer
             return;
 
         const targetObject = resolved.kind === "hero" ? resolved.hero : resolved.card;
-        const targetName = resolved.kind === "hero" ? resolved.hero.heroData.name : resolved.card.cardData.name;
-        this.history.addDetail(`Dealt ${event.amount} damage to ${targetName}`);
 
         await damageAnimation(this.scene, targetObject, event.amount);
         if (resolved.kind === "hero")
