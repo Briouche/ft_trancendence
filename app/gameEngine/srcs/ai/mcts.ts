@@ -40,7 +40,8 @@ export async function getBestAction(
     for (const child of root.children) {
       if (!child.action) continue;
       const key      = JSON.stringify(child.action);
-      const winRate  = child.visits > 0 ? child.wins / child.visits : 0;
+      const rawRate  = child.visits > 0 ? child.wins / child.visits : 0;
+      const winRate  = child.ownerIndex === currentPlayer ? rawRate : 1 - rawRate;
       const existing = scores.get(key);
       if (existing) { 
         existing.total += winRate; existing.count++; }
