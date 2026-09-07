@@ -9,13 +9,13 @@ export class Deck
     private width: number;
     private height: number;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, width = 150, height = 90)
+    constructor(scene: Phaser.Scene, x: number, y: number, width = 150, height = 90, cardBackKey = "cardBack_0")
     {
         this.scene = scene;
         this.width = width;
         this.height = height;
 
-        this.graphic = scene.add.image(x, y, "cardBack").setDisplaySize(width, height);
+        this.graphic = scene.add.image(x, y, cardBackKey).setDisplaySize(width, height);
 
         this.text = scene.add.text(x, y - 30, "",
         {

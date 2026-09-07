@@ -32,6 +32,7 @@ export function toClientCard(card: Card): ClientCard
         id: card.id,
         name: card.name,
         assetKey: card.assetKey,
+        rarity: card.rarity,
         cost: card.manaCost,
         description: card.description,
         requiresTarget : requiresTarget(card),
@@ -43,6 +44,8 @@ export function toClientCard(card: Card): ClientCard
         clientCard.attack = card.attack;
         clientCard.health = card.currentHealth;
         clientCard.maxHealth = card.maxHealth;
+        clientCard.baseAttack = card.baseAttack;
+        clientCard.baseHealth = card.baseMaxHealth;
         clientCard.canAttack = card.canAttack;
         if (card.effects.taunt)
             clientCard.effects.taunt = true;
@@ -60,6 +63,8 @@ export function toClientCard(card: Card): ClientCard
             clientCard.effects.battlecry = true;
         if (card.effects.rush)
             clientCard.effects.rush = true;
+        if (card.effects.cannotAttack)
+            clientCard.effects.cannotAttack = true;
         if (card.effects.archi)
             clientCard.effects.archi = true;
     }
@@ -70,11 +75,15 @@ export function toClientCard(card: Card): ClientCard
 function toClientHero(player: Player): ClientHero
 {
     // Use the hero's own id and name so the client receives full hero identity emitted by the engine
-    let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth };
+    let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth, cardBack: player.cardBack };
     if (player.legPassive == "archimede")
         data.archi = player.archimedeCount;
     else if (player.legPassive == "freddy")
         data.freddy = player.freddyCount;
+    else if (player.legPassive == "roidesrats")
+        data.roiDesRats = player.roiDesRatsCount;
+    else if (player.legPassive == "gertrude")
+        data.gertrude = player.gertrudeCount;
     return data;
 }
 
@@ -92,6 +101,8 @@ export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGam
         opponentBoard: engine.board.getMinions(opponentIndex).map(toClientCard),
         mana: engine.players[playerIndex].currentMana,
         maxMana: engine.players[playerIndex].maxMana,
+        opponentMana: engine.players[opponentIndex].currentMana,
+        opponentMaxMana: engine.players[opponentIndex].maxMana,
         playerDeck: engine.players[playerIndex].deck.size(),
         opponentDeck: engine.players[opponentIndex].deck.size()
     };

@@ -1,11 +1,12 @@
 import Phaser from "phaser";
-import { Card } from "../../objects/Card";
+import { Card } from "../../objects/card/Card";
 import { Board } from "../../objects/board/Board";
 import { Hand } from "../../objects/Hand";
 import { TargetArrow } from "../../objects/TargetArrow";
 import { ResolvedTarget } from "../../objects/Target";
 import { EventManager } from "../../EventManager";
 import { GameFlowState } from "./GameFlowState";
+import { summonAnimation } from "../../animations";
 
 type ClickTargetMode = "attack" | "spell";
 
@@ -46,13 +47,14 @@ export class InputController
                 return;
 
             obj.isDragging = true;
+            obj.isHovering = false;
             obj.setDepth(1000);
 
             if (this.board.containsCard(obj, 0) && obj.cardData.canAttack !== false)
             {
                 this.targetingCard = obj;
                 this.targetArrow = new TargetArrow(this.scene, obj.x, obj.y);
-                this.board.setTargetHighlights(this.board.getLegalAttackTargetIds());
+                this.board.setTargetHighlights(this.board.getLegalAttackTargetIds(obj));
                 return;
             }
 
@@ -198,7 +200,7 @@ export class InputController
         this.targetArrow = new TargetArrow(this.scene, card.x, card.y);
 
         if (mode === "attack")
-            this.board.setTargetHighlights(this.board.getLegalAttackTargetIds());
+            this.board.setTargetHighlights(this.board.getLegalAttackTargetIds(card));
         else
             this.board.setTargetHighlights(this.board.getLegalSpellTargetIds());
     }
@@ -207,18 +209,20 @@ export class InputController
     {
         this.clickMovingCard = card;
         card.isDragging = true;
+        card.isHovering = false;
         card.setDepth(1000);
     }
 
     private resolveClickCard(pointer: Phaser.Input.Pointer): void
     {
         const card = this.clickMovingCard!;
-        const index = this.board.findInsertIndex(card.x);
+        const isMinion = card.cardData.attack !== undefined;
+        const index = isMinion ? this.board.findInsertIndex(card.x) : undefined;
 
         this.clickMovingCard = null;
         card.isDragging = false;
 
-        if (this.hasInvalidTargetZoneAt(pointer) || !this.board.isPointOverBoard(pointer) || index === undefined)
+        if (this.hasInvalidTargetZoneAt(pointer) || !this.board.isPointOverBoard(pointer) || (isMinion && index === undefined))
         {
             card.returnToBase();
             return;
@@ -272,9 +276,10 @@ export class InputController
 
     private handleCardDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer): void
     {
-        const index = this.board.findInsertIndex(card.x);
+        const isMinion = card.cardData.attack !== undefined;
+        const index = isMinion ? this.board.findInsertIndex(card.x) : undefined;
 
-        if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }) || index === undefined)
+        if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }) || (isMinion && index === undefined))
         {
             card.returnToBase();
             return;
@@ -319,6 +324,7 @@ export class InputController
         this.hand.extractCard(card);
         this.board.insertCard(card, boardIndex, 0);
         card.setWaiting(true);
+        void summonAnimation(this.scene, card);
 
         this.flow.awaitingServer = true;
         this.flow.pendingPlayCardId = card.cardData.id;
@@ -368,6 +374,15 @@ export class InputController
 
         this.flow.awaitingServer = true;
         this.flow.pendingPlayCardId = card.cardData.id;
+
+        if (boardIndex !== undefined)
+        {
+            this.hand.extractCard(card);
+            this.board.insertCard(card, boardIndex, 0);
+            card.setWaiting(true);
+            this.aimingCard = card;
+            void summonAnimation(this.scene, card);
+        }
 
         EventManager.emit("client:playCard", { cardId: card.cardData.id, boardIndex });
     }

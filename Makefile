@@ -5,41 +5,23 @@ include .env
 # Default target
 all: dev
 
-# Add domain name to local machine's DNS
-add_domain:
-	grep -qxF "127.0.0.1	$(DOMAIN_NAME)" /etc/hosts || echo "127.0.0.1	$(DOMAIN_NAME)" | sudo tee -a /etc/hosts
-
-# Development Setup
-dev: down
-	cd app && npm install
-	docker compose up
+dev:
+	docker compose up --build
 
 # Production Setup
 prod: down
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
-# Safe Rebuild for development (Forces fresh image composition without cache layers)
-rebuild: down
-	docker compose build --no-cache
-	docker compose up
+clean:
+	docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.prod.yml down
 
-# Gracefully takes down all possible service configurations & anonymized volumes
-down:
+fclean: clean
 	docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.prod.yml down -v
 
-# Clean local workspace state safely
-npm-clean: down
-	rm -rf app/.next
-	rm -rf app/dist
-	rm -rf app/node_modules
-
-# Wipe all built image states to free disk storage space
-docker-clean:
-	docker system prune -af
+ffclean: fclean
 	docker image prune -af
-
-# Hard factory reset of the development cycle
-fclean: npm-clean docker-clean
+	docker volume prune -f
+	docker system prune -af
 
 # Full fresh run
 re: fclean all

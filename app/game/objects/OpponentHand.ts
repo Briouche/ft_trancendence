@@ -13,10 +13,12 @@ export class OpponentHand
 {
     private scene: Phaser.Scene;
     private cards: OpponentCard[] = [];
+    private cardBackKey: string;
 
-    constructor(scene: Phaser.Scene)
+    constructor(scene: Phaser.Scene, cardBack = 0)
     {
         this.scene = scene;
+        this.cardBackKey = `cardBack_${cardBack}`;
     }
 
     setCount(count: number)
@@ -25,7 +27,7 @@ export class OpponentHand
         {
             const cardHeight = this.scene.scale.height * CARD_HEIGHT_RATIO;
             const cardWidth = cardHeight / CARD_ASPECT_RATIO;
-            this.cards.push(new OpponentCard(this.scene, cardWidth, cardHeight));
+            this.cards.push(new OpponentCard(this.scene, cardWidth, cardHeight, this.cardBackKey));
         }
         while (this.cards.length > count)
             this.cards.pop()?.destroy();

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../Card";
+import { Card, CardData } from "../card/Card";
 import { Hero, HeroData } from "../Hero";
 import { Target } from "../Target";
 import { EndTurn } from "../EndTurn";
@@ -42,6 +42,7 @@ export class Board
     public playerHero: Hero;
     public opponentHero: Hero;
     private playerManaBar: Manabar;
+    private opponentManaBar: Manabar;
     private playerDeck: Deck;
     private opponentDeck: Deck;
 
@@ -78,8 +79,9 @@ export class Board
 
         this.endTurn = new EndTurn(scene, 10, 10);
         this.playerManaBar = new Manabar(scene, 0, 0, 250, 30);
-        this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
-        this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO);
+        this.opponentManaBar = new Manabar(scene, 0, 0, 250, 30);
+        this.playerDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO, `cardBack_${playerHeroData.cardBack}`);
+        this.opponentDeck = new Deck(scene, 0, 0, scene.scale.height * DECK_WIDTH_RATIO, scene.scale.height * DECK_HEIGHT_RATIO, `cardBack_${opponentHeroData.cardBack}`);
     }
 
     layout(width = this.scene.scale.width, height = this.scene.scale.height): void
@@ -120,8 +122,8 @@ export class Board
         {
             const playerTarget = this.targets.at(i * 2);
             const opponentTarget = this.targets.at(i * 2 + 1);
-            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight, 0.9);
-            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight, 0.9);
+            playerTarget.layout(playerXs[i] ?? 0, playerY, cardSize, cardHeight, 1);
+            opponentTarget.layout(opponentXs[i] ?? 0, opponentY, cardSize, cardHeight, 1);
         }
 
         const heroSize = height * HERO_SIZE_RATIO;
@@ -151,6 +153,11 @@ export class Board
         const manabarY = height * 0.8;
         this.playerManaBar.setPosition(manabarX, manabarY);
         this.playerManaBar.resize(height * 0.28, height * 0.05);
+
+        const opponentManabarX = width / 2 - height * 0.55;
+        const opponentManabarY = height * 0.2;
+        this.opponentManaBar.setPosition(opponentManabarX, opponentManabarY);
+        this.opponentManaBar.resize(height * 0.28, height * 0.05);
 
         const playerDeckX = width / 2 - height * 0.65;
         const playerDeckY = height * 0.63;
@@ -185,6 +192,7 @@ export class Board
         this.opponentDeck.update(state.opponentDeck);
         this.playerDeck.update(state.playerDeck);
         this.playerManaBar.update(state.mana, state.maxMana);
+        this.opponentManaBar.update(state.opponentMana, state.opponentMaxMana);
 
         this.layout();
     }
@@ -232,13 +240,14 @@ export class Board
         this.targets.setHighlights(legalIds);
     }
 
-    getLegalAttackTargetIds(): Set<string>
+    getLegalAttackTargetIds(attackerCard?: Card): Set<string>
     {
         const tauntMinions = this.opponentRow.all.filter((c) => c.cardData.effects?.taunt);
         const minions = tauntMinions.length > 0 ? tauntMinions : this.opponentRow.all;
 
         const ids = new Set(minions.map((c) => c.cardData.id));
-        if (tauntMinions.length === 0)
+        const isRushRestricted = !!attackerCard?.cardData.effects?.rush;
+        if (tauntMinions.length === 0 && !isRushRestricted)
             ids.add(this.opponentHero.heroData.id);
         return ids;
     }
@@ -259,6 +268,19 @@ export class Board
     findCardById(id: string): Card | undefined
     {
         return this.playerRow.findById(id) ?? this.opponentRow.findById(id);
+    }
+
+    materializeMinion(side: 0 | 1, data: CardData, boardIndex?: number): Card
+    {
+        const row = side === 0 ? this.playerRow : this.opponentRow;
+        const existing = row.findById(data.id);
+        if (existing)
+            return existing;
+
+        const card = new Card(this.scene, data);
+        row.insert(card, boardIndex ?? row.all.length, this.yourTurn);
+        this.layout();
+        return card;
     }
     
     getDeckPosition(side: 0 | 1): { x: number; y: number }

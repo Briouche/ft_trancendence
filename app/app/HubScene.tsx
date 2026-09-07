@@ -1,9 +1,9 @@
 'use client'
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { PerspectiveCamera, RoundedBox, Sparkles, Html } from '@react-three/drei'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { PerspectiveCamera, RoundedBox, Sparkles, Html, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import Lantern from '@/components/library/Lantern'
 import Candle from '@/components/library/Candle'
@@ -25,38 +25,39 @@ import AccountMenu from './AccountMenu'
 // GAME_DOOR_ANGLE occupe un de ces emplacements (les bibliothèques voisines débordent dedans,
 // donc pas de trou même si la porte elle-même est plus étroite).
 const RING_RADIUS = 5.6
-// La porte du sous-sol occupe un créneau proche du centre (13°), pas pile 0° — pour qu'elle
-// s'inscrive dans la même progression que les 3 autres plutôt que de lire comme "LE centre".
-// Deux créneaux (0° et 26°) sont laissés libres de part et d'autre pour lui donner de la place —
-// mais ça laissait un vrai trou visible (la porte ne touchait plus aucune bibliothèque). Les deux
-// angles ci-dessous rajoutent une bibliothèque calée juste contre chaque bord du cadre de la
-// porte, en plus de la grille régulière, pour refermer ce trou sans réduire l'espace de la porte.
-const GAME_DOOR_ANGLE = 13
-const SHELF_RING_ANGLES = [-78, -65, -52, -39, -26, -13, 39, 52, 65, 78]
-const DOOR_FLANK_ANGLES = [-7, 33]
+// La porte du sous-sol occupe maintenant le créneau plein centre (0°) — 5 emplacements dans le
+// hall (Collection/Deck/Porte/Bibliothécaire/Tuto), la porte au milieu du lot. Deux créneaux de
+// part et d'autre du centre sont laissés libres pour lui donner de la place — mais ça laissait un
+// vrai trou visible (la porte ne touchait plus aucune bibliothèque). Les deux angles ci-dessous
+// rajoutent une bibliothèque calée juste contre chaque bord du cadre de la porte, en plus de la
+// grille régulière, pour refermer ce trou sans réduire l'espace de la porte.
+const GAME_DOOR_ANGLE = 0
+const SHELF_RING_ANGLES = [-91, -78, -65, -52, -39, -26, 26, 39, 52, 65, 78, 91]
+const DOOR_FLANK_ANGLES = [-20, 20]
 // Torches murales, montées sur certaines de ces bibliothèques (pas toutes — juste assez pour
 // éclairer la pièce par endroits, sans recréer le lavage uniforme qu'on veut éviter).
 const TORCH_ANGLES = [-65, -26, 26, 65]
 const TORCH_HEIGHT = 2.15
 
-type Variant = 'books' | 'table' | 'librarian' | 'door'
+type Variant = 'books' | 'table' | 'librarian' | 'door' | 'tuto'
 type Layout = { angleDeg: number; radius: number; variant: Variant }
 
-// Rayons des 3 portes "posées au sol" bien inférieurs à RING_RADIUS : elles doivent rester
+// Rayons des 4 éléments "posés au sol" bien inférieurs à RING_RADIUS : ils doivent rester
 // devant le mur de bibliothèques, jamais le traverser. Ordre gauche→droite, espacement régulier
-// (~29-32°) : Collection, Deck, Sous-sol, Bibliothécaire — le sous-sol est le 3ème de la
-// séquence, pas un élément à part planté au centre de la pièce.
-// Même rayon pour les 3 éléments "posés dans la pièce" (les seuls qu'on peut vraiment
+// (30°) : Collection, Deck, Porte (Game room), Bibliothécaire, Tuto — la porte est maintenant
+// pile au centre de la rangée (0°), les 4 autres répartis symétriquement de part et d'autre.
+// Même rayon pour les 4 éléments "posés dans la pièce" (les seuls qu'on peut vraiment
 // repositionner — la porte reste encastrée dans le mur à RING_RADIUS) : ça les ramène tous à
 // la même distance de la caméra (donc même taille apparente) et bien à l'intérieur de l'anneau
 // de bibliothèques (5.0 dépassait dans le mur pour la table de la création de deck).
 const PROP_RADIUS = 4.2
 
 const LAYOUT: Record<string, Layout> = {
-    '/collection': { angleDeg: -48, radius: PROP_RADIUS, variant: 'books' },
-    '/deck': { angleDeg: -16, radius: PROP_RADIUS, variant: 'table' },
-    '/packs': { angleDeg: 42, radius: PROP_RADIUS, variant: 'librarian' },
+    '/collection': { angleDeg: -56, radius: PROP_RADIUS, variant: 'books' },
+    '/deck': { angleDeg: -28, radius: PROP_RADIUS, variant: 'table' },
     '/play': { angleDeg: GAME_DOOR_ANGLE, radius: RING_RADIUS, variant: 'door' },
+    '/packs': { angleDeg: 28, radius: PROP_RADIUS, variant: 'librarian' },
+    '/manual': { angleDeg: 56, radius: PROP_RADIUS, variant: 'tuto' },
 }
 
 // Même hauteur pour les 4 noms (au lieu d'une hauteur par variante) : plus lisible d'un coup
@@ -131,9 +132,9 @@ function Bookshelf({ position, rotationY = 0, seed = 0 }: { position: [number, n
 
     return (
         <group position={position} rotation={[0, rotationY, 0]}>
-            <RoundedBox args={[1.9, 3.3, 0.5]} radius={0.03} smoothness={2} position={[0, 1.65, 0]} castShadow receiveShadow>
-                <meshStandardMaterial color={PALETTE.leather900} roughness={0.9} />
-            </RoundedBox>
+            {/* Le caisson n'est plus posé ici : les 12 sont rigoureusement identiques (même
+                taille, même couleur), donc un seul instancedMesh partagé (BookshelfCaissons,
+                rendu une fois dans HallScene) les remplace tous — voir ce composant. */}
             {Array.from({ length: SHELF_ROWS }).map((_, row) => (
                 <mesh key={row} position={[0, 0.32 + row * 0.58 - 0.02, 0.1]} receiveShadow>
                     <boxGeometry args={[1.82, 0.04, 0.42]} />
@@ -145,6 +146,43 @@ function Bookshelf({ position, rotationY = 0, seed = 0 }: { position: [number, n
                 <meshStandardMaterial color={PALETTE.leather700} roughness={0.8} />
             </instancedMesh>
         </group>
+    )
+}
+
+type CaissonPlacement = { position: [number, number, number]; rotationY: number }
+
+// Les 12 caissons de bibliothèque sont géométriquement identiques (même taille [1.9, 3.3, 0.5],
+// même couleur leather900) — seules position et rotation changent d'une bibliothèque à l'autre.
+// Un seul instancedMesh (même principe que les livres ci-dessus) remplace donc 12 RoundedBox
+// séparées par une géométrie construite une fois et un seul draw call, au lieu de 12 de chaque.
+// boxGeometry (coins vifs) plutôt que RoundedBox : le chanfrein de 0.03 unité sur un caisson de
+// cette taille, vu à quelques mètres dans une salle sombre éclairée aux torches, était de toute
+// façon imperceptible — aucune couleur ni proportion ne change.
+function BookshelfCaissons({ shelves }: { shelves: CaissonPlacement[] }) {
+    const ref = useRef<THREE.InstancedMesh>(null)
+
+    useLayoutEffect(() => {
+        const mesh = ref.current
+        if (!mesh) return
+        const dummy = new THREE.Object3D()
+        shelves.forEach((s, i) => {
+            // Offset local [0, 1.65, 0] de l'ancien caisson : une rotation autour de Y seul ne
+            // change jamais un vecteur purement vertical, donc l'addition directe en espace
+            // monde reproduit exactement la position qu'aurait eue le caisson imbriqué dans le
+            // groupe pivoté de sa bibliothèque.
+            dummy.position.set(s.position[0], s.position[1] + 1.65, s.position[2])
+            dummy.rotation.set(0, s.rotationY, 0)
+            dummy.updateMatrix()
+            mesh.setMatrixAt(i, dummy.matrix)
+        })
+        mesh.instanceMatrix.needsUpdate = true
+    }, [shelves])
+
+    return (
+        <instancedMesh ref={ref} args={[undefined, undefined, shelves.length]} castShadow receiveShadow>
+            <boxGeometry args={[1.9, 3.3, 0.5]} />
+            <meshStandardMaterial color={PALETTE.leather900} roughness={0.9} />
+        </instancedMesh>
     )
 }
 
@@ -201,10 +239,10 @@ function OldLamp({ position }: { position: [number, number, number] }) {
 function TableChest({ position }: { position: [number, number, number] }) {
     return (
         <group position={position}>
-            <RoundedBox args={[0.32, 0.18, 0.22]} radius={0.02} smoothness={2} position={[0, 0.09, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.32, 0.18, 0.22]} radius={0.02} smoothness={1} position={[0, 0.09, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather800} roughness={0.6} />
             </RoundedBox>
-            <RoundedBox args={[0.34, 0.08, 0.24]} radius={0.03} smoothness={2} position={[0, 0.22, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.34, 0.08, 0.24]} radius={0.03} smoothness={1} position={[0, 0.22, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.55} />
             </RoundedBox>
             <mesh position={[0, 0.13, 0.115]}>
@@ -232,7 +270,7 @@ function Librarian({ locked }: { locked: boolean }) {
 
     return (
         <group>
-            <RoundedBox args={[1.1, 0.5, 0.55]} radius={0.04} smoothness={3} position={[0, 0.25, 0.48]} castShadow receiveShadow>
+            <RoundedBox args={[1.1, 0.5, 0.55]} radius={0.04} smoothness={1} position={[0, 0.25, 0.48]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather800} roughness={0.6} />
             </RoundedBox>
             <OldLamp position={[-0.32, 0.5, 0.35]} />
@@ -291,14 +329,14 @@ function Armchair() {
     const legs: [number, number][] = [[-0.2, -0.18], [0.2, -0.18], [-0.2, 0.18], [0.2, 0.18]]
     return (
         <group>
-            <RoundedBox args={[0.5, 0.14, 0.46]} radius={0.05} smoothness={3} position={[0, 0.28, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.5, 0.14, 0.46]} radius={0.05} smoothness={1} position={[0, 0.28, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather700} roughness={0.75} />
             </RoundedBox>
-            <RoundedBox args={[0.5, 0.56, 0.14]} radius={0.06} smoothness={3} position={[0, 0.58, -0.18]} rotation={[-0.14, 0, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.5, 0.56, 0.14]} radius={0.06} smoothness={1} position={[0, 0.58, -0.18]} rotation={[-0.14, 0, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather700} roughness={0.75} />
             </RoundedBox>
             {[-1, 1].map(side => (
-                <RoundedBox key={side} args={[0.1, 0.22, 0.4]} radius={0.04} smoothness={2} position={[side * 0.26, 0.42, -0.02]} castShadow receiveShadow>
+                <RoundedBox key={side} args={[0.1, 0.22, 0.4]} radius={0.04} smoothness={1} position={[side * 0.26, 0.42, -0.02]} castShadow receiveShadow>
                     <meshStandardMaterial color={PALETTE.leather800} roughness={0.75} />
                 </RoundedBox>
             ))}
@@ -317,10 +355,10 @@ function Armchair() {
 function NightTable({ position }: { position: [number, number, number] }) {
     return (
         <group position={position}>
-            <RoundedBox args={[0.28, 0.44, 0.28]} radius={0.02} smoothness={2} position={[0, 0.26, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.28, 0.44, 0.28]} radius={0.02} smoothness={1} position={[0, 0.26, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.7} />
             </RoundedBox>
-            <RoundedBox args={[0.34, 0.04, 0.34]} radius={0.015} smoothness={2} position={[0, 0.5, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.34, 0.04, 0.34]} radius={0.015} smoothness={1} position={[0, 0.5, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather800} roughness={0.6} />
             </RoundedBox>
             <mesh position={[0, 0.28, 0.145]}>
@@ -337,12 +375,12 @@ function OpenBookOnStand({ position, rotationY = 0 }: { position: [number, numbe
     return (
         <group position={position} rotation={[0, rotationY, 0]}>
             {/* Socle du lutrin, à plat */}
-            <RoundedBox args={[0.3, 0.03, 0.16]} radius={0.012} smoothness={2} position={[0, 0.015, 0.05]} castShadow receiveShadow>
+            <RoundedBox args={[0.3, 0.03, 0.16]} radius={0.012} smoothness={1} position={[0, 0.015, 0.05]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.7} />
             </RoundedBox>
             {/* Plan incliné qui porte le livre, penché comme un vrai lutrin */}
             <group position={[0, 0.03, -0.02]} rotation={[-0.6, 0, 0]}>
-                <RoundedBox args={[0.3, 0.02, 0.22]} radius={0.01} smoothness={2} position={[0, 0, 0.11]} castShadow receiveShadow>
+                <RoundedBox args={[0.3, 0.02, 0.22]} radius={0.01} smoothness={1} position={[0, 0, 0.11]} castShadow receiveShadow>
                     <meshStandardMaterial color={PALETTE.leather800} roughness={0.7} />
                 </RoundedBox>
                 {/* Couverture rouge, visible en dessous des pages */}
@@ -415,8 +453,10 @@ function CollectionProps() {
 
 // La table de la porte "Création de deck" : des cartes éparpillées, jamais alignées, posées sur
 // une vieille table ronde.
+type DeckTableCard = { x: number; z: number; rot: number; face: string; sleeve: string }
+
 function DeckTable() {
-    const cards = useMemo(
+    const cards = useMemo<DeckTableCard[]>(
         () => Array.from({ length: 6 }).map((_, i) => ({
             x: (pseudoRandom(i * 4.1) - 0.5) * 0.7,
             z: (pseudoRandom(i * 8.3) - 0.5) * 0.7,
@@ -430,6 +470,38 @@ function DeckTable() {
         [],
     )
 
+    const sleeveRef = useRef<THREE.InstancedMesh>(null)
+    const faceRef = useRef<THREE.InstancedMesh>(null)
+
+    // Même idée que BookshelfCaissons : les 6 sleeves partagent une géométrie, les 6 faces une
+    // autre — seules position/rotation/couleur changent par carte. Deux instancedMesh (couleur
+    // par instance, comme les livres) remplacent donc 12 RoundedBox séparées. boxGeometry (coins
+    // vifs) : le rayon d'arrondi d'origine (0.005/0.0015 unité, une fraction de millimètre à
+    // l'échelle de la scène) était déjà invisible.
+    useLayoutEffect(() => {
+        const sleeve = sleeveRef.current
+        const face = faceRef.current
+        if (!sleeve || !face) return
+        const dummy = new THREE.Object3D()
+        cards.forEach((c, i) => {
+            dummy.rotation.set(0, c.rot, 0)
+
+            dummy.position.set(c.x, 0.565 + i * 0.004, c.z)
+            dummy.updateMatrix()
+            sleeve.setMatrixAt(i, dummy.matrix)
+            sleeve.setColorAt(i, new THREE.Color(c.sleeve))
+
+            dummy.position.set(c.x, 0.565 + i * 0.004 + 0.009, c.z)
+            dummy.updateMatrix()
+            face.setMatrixAt(i, dummy.matrix)
+            face.setColorAt(i, new THREE.Color(c.face))
+        })
+        sleeve.instanceMatrix.needsUpdate = true
+        if (sleeve.instanceColor) sleeve.instanceColor.needsUpdate = true
+        face.instanceMatrix.needsUpdate = true
+        if (face.instanceColor) face.instanceColor.needsUpdate = true
+    }, [cards])
+
     return (
         <group>
             <mesh position={[0, 0.52, 0]} castShadow receiveShadow>
@@ -440,19 +512,17 @@ function DeckTable() {
                 <cylinderGeometry args={[0.07, 0.09, 0.5, 12]} />
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.65} />
             </mesh>
-            {cards.map((c, i) => (
-                // Une vraie petite pile à deux couches plutôt qu'un plan unicolore : la sleeve
-                // (fine boîte arrondie, comme le plastique d'une protection de carte) et la face
-                // qu'on aperçoit à travers, légèrement en retrait sur les bords.
-                <group key={i} position={[c.x, 0.565 + i * 0.004, c.z]} rotation={[0, c.rot, 0]}>
-                    <RoundedBox args={[0.19, 0.012, 0.26]} radius={0.005} smoothness={2} castShadow>
-                        <meshStandardMaterial color={c.sleeve} roughness={0.5} />
-                    </RoundedBox>
-                    <RoundedBox args={[0.155, 0.005, 0.225]} radius={0.0015} smoothness={2} position={[0, 0.009, 0]} castShadow>
-                        <meshStandardMaterial color={c.face} roughness={0.75} />
-                    </RoundedBox>
-                </group>
-            ))}
+            {/* Une vraie petite pile à deux couches plutôt qu'un plan unicolore : la sleeve (fine
+                boîte, comme le plastique d'une protection de carte) et la face qu'on aperçoit à
+                travers, légèrement en retrait sur les bords. */}
+            <instancedMesh ref={sleeveRef} args={[undefined, undefined, cards.length]} castShadow>
+                <boxGeometry args={[0.19, 0.012, 0.26]} />
+                <meshStandardMaterial roughness={0.5} />
+            </instancedMesh>
+            <instancedMesh ref={faceRef} args={[undefined, undefined, cards.length]} castShadow>
+                <boxGeometry args={[0.155, 0.005, 0.225]} />
+                <meshStandardMaterial roughness={0.75} />
+            </instancedMesh>
             {/* Une vraie bougie posée sur la table (au lieu d'une pointLight flottante invisible) :
                 la source de lumière doit se voir sur la table, pas juste éclairer depuis nulle part.
                 Candle est centrée sur son origine locale (le corps s'étend au-dessus ET en dessous
@@ -475,18 +545,18 @@ function CellarDoor() {
     return (
         <group>
             {/* Encadrement en pierre */}
-            <RoundedBox args={[0.22, frameHeight, 0.34]} radius={0.03} smoothness={2} position={[-halfWidth - 0.08, frameHeight / 2, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.22, frameHeight, 0.34]} radius={0.03} smoothness={1} position={[-halfWidth - 0.08, frameHeight / 2, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.ink700} roughness={0.9} />
             </RoundedBox>
-            <RoundedBox args={[0.22, frameHeight, 0.34]} radius={0.03} smoothness={2} position={[halfWidth + 0.08, frameHeight / 2, 0]} castShadow receiveShadow>
+            <RoundedBox args={[0.22, frameHeight, 0.34]} radius={0.03} smoothness={1} position={[halfWidth + 0.08, frameHeight / 2, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.ink700} roughness={0.9} />
             </RoundedBox>
-            <RoundedBox args={[(halfWidth + 0.08) * 2 + 0.22, 0.26, 0.34]} radius={0.03} smoothness={2} position={[0, lintelY, 0]} castShadow receiveShadow>
+            <RoundedBox args={[(halfWidth + 0.08) * 2 + 0.22, 0.26, 0.34]} radius={0.03} smoothness={1} position={[0, lintelY, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.ink700} roughness={0.9} />
             </RoundedBox>
 
             {/* Vantail en bois massif */}
-            <RoundedBox args={[halfWidth * 2, doorHeight, 0.12]} radius={0.02} smoothness={2} position={[0, doorHeight / 2 + 0.05, 0.05]} castShadow receiveShadow>
+            <RoundedBox args={[halfWidth * 2, doorHeight, 0.12]} radius={0.02} smoothness={1} position={[0, doorHeight / 2 + 0.05, 0.05]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.85} />
             </RoundedBox>
             {/* Planches verticales (joints visibles) */}
@@ -515,6 +585,91 @@ function CellarDoor() {
 
             {/* Lueur froide qui filtre sous la porte : garde l'idée "sous-sol verrouillé" sans grille de prison */}
             <pointLight position={[0, 0.12, 0.25]} color="#3a4550" intensity={0.5} distance={2} decay={2} />
+        </group>
+    )
+}
+
+// Une "affiche" pinglée sur le tableau : un plan texturé (asset du carnet/travel book — portrait
+// de légendaire, cadre de carte, bannière...), légèrement de travers, avec une punaise de couleur
+// en haut. `w`/`h` sont fixes par note plutôt que dérivés de la texture (chaque source a son
+// propre ratio natif, plus simple à caler à la main pour 7 assets que de le lire dynamiquement).
+type TutoNote = { tex: string; x: number; y: number; w: number; h: number; rot: number; pin: string }
+
+// Disposition en longueur : une bannière fine tout en haut, une seule rangée des 6 autres
+// affiches en dessous — pensée pour un panneau large et bas, pas la colonne portrait d'origine.
+const TUTO_NOTES: TutoNote[] = [
+    { tex: '/textures/notebook/banner01.png', x: 0, y: 0.42, w: 1.3, h: 0.22, rot: -0.02, pin: '#c0392b' },
+    { tex: '/textures/collection/icon-leg-timmy.png', x: -1.05, y: -0.06, w: 0.36, h: 0.38, rot: 0.08, pin: '#2980b9' },
+    { tex: '/textures/collection/icon-leg-freddy.png', x: -0.63, y: -0.06, w: 0.36, h: 0.38, rot: -0.06, pin: '#27ae60' },
+    { tex: '/textures/cards/frame-commune.png', x: -0.21, y: -0.06, w: 0.34, h: 0.5, rot: -0.09, pin: '#2980b9' },
+    { tex: '/textures/notebook/slot.png', x: 0.21, y: -0.06, w: 0.3, h: 0.3, rot: 0.08, pin: '#e0a72b' },
+    { tex: '/textures/collection/icon-leg-jeffe.png', x: 0.63, y: -0.06, w: 0.36, h: 0.38, rot: 0.05, pin: '#c0392b' },
+    { tex: '/textures/collection/icon-leg-gertrude.png', x: 1.05, y: -0.06, w: 0.36, h: 0.38, rot: -0.07, pin: '#27ae60' },
+]
+
+function TutoNoteMesh({ note, texture }: { note: TutoNote; texture: THREE.Texture }) {
+    return (
+        <group position={[note.x, note.y, 0.05]} rotation={[0, 0, note.rot]}>
+            <mesh castShadow>
+                <planeGeometry args={[note.w, note.h]} />
+                <meshStandardMaterial map={texture} roughness={0.85} transparent />
+            </mesh>
+            <mesh position={[0, note.h / 2 - 0.02, 0.01]}>
+                <circleGeometry args={[0.02, 12]} />
+                <meshStandardMaterial color={note.pin} roughness={0.4} metalness={0.3} />
+            </mesh>
+        </group>
+    )
+}
+
+// Le tableau du Tuto : un grand panneau (cadre + fond liège) monté sur un pied, couvert d'affiches
+// punaisées — portraits des légendaires, un cadre de carte, une bannière — comme un vrai tableau
+// de recherche plutôt qu'une simple pancarte. Le contenu détaillé (règles, glossaire) vit sur la
+// page /manual ; ce tableau n'est qu'un aperçu en 3D, pas le tutoriel lui-même.
+function TutoBoard() {
+    const textures = useTexture(TUTO_NOTES.map(n => n.tex))
+
+    useLayoutEffect(() => {
+        textures.forEach(t => {
+            t.magFilter = THREE.NearestFilter
+            t.minFilter = THREE.NearestFilter
+            t.needsUpdate = true
+        })
+    }, [textures])
+
+    return (
+        <group rotation={[-0.05, 0, 0]}>
+            {/* Pied : un socle bas + deux montants, raccourcis (0.6, contre 1.02 avant — sommet à
+                0.64 au lieu de 1.06) pour un support plus bas, moins imposant. */}
+            <RoundedBox args={[1.1, 0.08, 0.32]} radius={0.02} smoothness={1} position={[0, 0.04, -0.08]} castShadow receiveShadow>
+                <meshStandardMaterial color={PALETTE.leather900} roughness={0.8} />
+            </RoundedBox>
+            {[-0.42, 0.42].map(x => (
+                <mesh key={x} position={[x, 0.34, -0.08]} castShadow>
+                    <boxGeometry args={[0.07, 0.6, 0.07]} />
+                    <meshStandardMaterial color={PALETTE.leather800} roughness={0.75} />
+                </mesh>
+            ))}
+
+            {/* Cadre + fond liège du panneau : en longueur (2.8 x 1.3) et un peu rallongé vers le
+                bas (hauteur 1.5, +0.2) — le cadre et le liège sont décalés de -0.10 en y (leur
+                bord haut ne bouge pas, seul le bas descend) pendant que les notes ci-dessous
+                gardent leurs coordonnées d'origine, donc tout l'ajout de hauteur se voit sous
+                elles plutôt que de resserrer la marge du haut. Posé sur le sommet des montants
+                (1.065 = 0.64 + moitié de la nouvelle hauteur basse mise à l'échelle, 0.425). */}
+            <group position={[0, 1.065, 0]} scale={0.5}>
+                <RoundedBox args={[2.8, 1.5, 0.07]} radius={0.03} smoothness={1} position={[0, -0.1, 0]} castShadow receiveShadow>
+                    <meshStandardMaterial color={PALETTE.leather900} roughness={0.85} />
+                </RoundedBox>
+                <mesh position={[0, -0.1, 0.036]} receiveShadow>
+                    <planeGeometry args={[2.66, 1.36]} />
+                    <meshStandardMaterial color={PALETTE.gold500} roughness={0.95} />
+                </mesh>
+
+                {TUTO_NOTES.map((note, i) => (
+                    <TutoNoteMesh key={note.tex} note={note} texture={textures[i]} />
+                ))}
+            </group>
         </group>
     )
 }
@@ -560,6 +715,7 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
             {layout.variant === 'books' && <CollectionProps />}
             {layout.variant === 'table' && <DeckTable />}
             {layout.variant === 'door' && <CellarDoor />}
+            {layout.variant === 'tuto' && <TutoBoard />}
 
             <Html position={[0, LABEL_Y, 0]} center className="pointer-events-none">
                 <div className="text-center whitespace-nowrap">
@@ -730,6 +886,17 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
     // équidistance de Collection (-48°) et Deck (-16°), loin de tout chemin d'approche.
     const [baX, baZ] = polar(-32, 5.0)
 
+    const shelfCaissonPlacements = useMemo<CaissonPlacement[]>(() => [
+        ...SHELF_RING_ANGLES.map(angleDeg => {
+            const [sx, sz] = polar(angleDeg, RING_RADIUS)
+            return { position: [sx, 0, sz] as [number, number, number], rotationY: -(angleDeg * Math.PI) / 180 }
+        }),
+        ...DOOR_FLANK_ANGLES.map(angleDeg => {
+            const [sx, sz] = polar(angleDeg, RING_RADIUS)
+            return { position: [sx, 0, sz] as [number, number, number], rotationY: -(angleDeg * Math.PI) / 180 }
+        }),
+    ], [])
+
     return (
         <>
             {/* Encore plus lumineux : le brouillard recule encore, l'ambiante et la directionnelle
@@ -748,7 +915,10 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
             <RoomMist y={4.4} facingDown radius={5.5} count={2} opacity={0.06} color="#8a7a63" />
 
             {/* Anneau de bibliothèques qui referme la pièce ; le créneau à GAME_DOOR_ANGLE est
-                laissé libre pour la porte du sous-sol, rendue par le Hotspot3D 'door' ci-dessous. */}
+                laissé libre pour la porte du sous-sol, rendue par le Hotspot3D 'door' ci-dessous.
+                Les 12 caissons (identiques) sont un seul instancedMesh partagé ; chaque Bookshelf
+                ne pose plus par-dessus que ses planches et ses livres. */}
+            <BookshelfCaissons shelves={shelfCaissonPlacements} />
             {SHELF_RING_ANGLES.map((angleDeg, i) => {
                 const [sx, sz] = polar(angleDeg, RING_RADIUS)
                 return <Bookshelf key={i} position={[sx, 0, sz]} rotationY={-(angleDeg * Math.PI) / 180} seed={i + 1} />
@@ -785,67 +955,27 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
     )
 }
 
-// Distance à laquelle la caméra s'arrête devant l'élément (ne doit pas traverser le cylindre
-// de hit invisible ni le mobilier) et hauteur d'œil pendant l'approche.
-const APPROACH_STOP_DISTANCE = 1.75
-const APPROACH_EYE_Y = 1.55
-const REST_CAMERA_X = 0
-const REST_CAMERA_Z = 3.0
-
-// Anime la caméra existante (pas de caméra additionnelle, pas de nouvel objet Three) vers
-// l'élément cliqué avant la navigation — un simple damping scalaire par frame, actif
-// uniquement pendant la fenêtre de transition (~ le temps que `handleArrive` attend avant le
-// router.push), donc aucun coût une fois la page quittée ou tant qu'on n'a rien cliqué.
-function ApproachCamera({ arrivingHref }: { arrivingHref: string | null }) {
-    const { camera } = useThree()
-    const lookRef = useRef({ x: 0, y: 1.6, z: -2.4 })
-
-    useFrame((_, delta) => {
-        if (!arrivingHref) return
-        const layout = LAYOUT[arrivingHref]
-        if (!layout) return
-
-        const [hx, hz] = polar(layout.angleDeg, layout.radius)
-        const lookY = LABEL_Y * 0.55
-
-        const dirX = REST_CAMERA_X - hx
-        const dirZ = REST_CAMERA_Z - hz
-        const dirLen = Math.hypot(dirX, dirZ) || 1
-        const targetX = hx + (dirX / dirLen) * APPROACH_STOP_DISTANCE
-        const targetZ = hz + (dirZ / dirLen) * APPROACH_STOP_DISTANCE
-
-        const smooth = 4.5
-        camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, smooth, delta)
-        camera.position.y = THREE.MathUtils.damp(camera.position.y, APPROACH_EYE_Y, smooth, delta)
-        camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, smooth, delta)
-
-        lookRef.current.x = THREE.MathUtils.damp(lookRef.current.x, hx, smooth, delta)
-        lookRef.current.y = THREE.MathUtils.damp(lookRef.current.y, lookY, smooth, delta)
-        lookRef.current.z = THREE.MathUtils.damp(lookRef.current.z, hz, smooth, delta)
-        camera.lookAt(lookRef.current.x, lookRef.current.y, lookRef.current.z)
-    })
-
-    return null
-}
-
-export default function HubScene({ username, cardCount, wins }: {
+export default function HubScene({ username, cardCount, wins, active = true }: {
     username:  string
     cardCount: number
     wins:      number
+    active?:   boolean
 }) {
     const router = useRouter()
-    const [, setTransitioning] = useState(false)
     const [hoveredHref, setHoveredHref] = useState<string | null>(null)
-    const [arrivingHref, setArrivingHref] = useState<string | null>(null)
     const arrivingRef = useRef(false)
+
+    // Le composant ne se démonte plus en quittant le hub (voir HubBackground.tsx) : sans ce
+    // reset, arrivingRef restait bloqué à `true` après le tout premier clic pour le reste de la
+    // session, empêchant toute navigation ultérieure depuis le hub après un premier retour.
+    useEffect(() => {
+        if (active) arrivingRef.current = false
+    }, [active])
 
     function handleArrive(item: MenuItem) {
         if (arrivingRef.current) return
         arrivingRef.current = true
-        setTransitioning(true)
-        setArrivingHref(item.href)
-        // Assez long pour laisser l'approche caméra se jouer, assez court pour rester réactif.
-        setTimeout(() => router.push(item.href), 650)
+        router.push(item.href)
     }
 
     const locked = hoveredHref !== null && !MENU_ITEMS.find(i => i.href === hoveredHref)?.available
@@ -856,14 +986,22 @@ export default function HubScene({ username, cardCount, wins }: {
                 ${hoveredHref ? (locked ? 'cursor-not-allowed' : 'cursor-pointer') : 'cursor-default'}`}
         >
             {/* dpr plafonné à 1.5 (pas 2) : sur un écran retina, 2x double le nombre de pixels à
-                calculer pour un gain visuel marginal — gros levier de perf pour une scène chargée. */}
-            <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true }}>
+                calculer pour un gain visuel marginal — gros levier de perf pour une scène chargée.
+                frameloop="never" pendant que le hub est masqué (voir HubBackground.tsx, `active`) :
+                le Canvas reste monté (contexte WebGL/géométrie jamais recréés en revenant sur "/")
+                mais sa boucle de rendu s'arrête vraiment — les torches/étincelles/papillon ne
+                tournent pas pour rien pendant qu'on est sur une autre page. */}
+            <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true }} frameloop={active ? 'always' : 'never'}>
                 {/* Sans sol à gérer, la caméra redevient simple : quasiment de niveau, elle regarde
                     droit vers la rangée des 4 éléments (comme le croquis) plutôt que de chercher un
                     pitch qui équilibre un sol qui n'existe plus. */}
                 <PerspectiveCamera makeDefault position={[0, 1.75, 3.0]} fov={56} onUpdate={c => c.lookAt(0, 1.6, -2.4)} />
-                <ApproachCamera arrivingHref={arrivingHref} />
-                <HallScene hoveredHref={hoveredHref} onHoverChange={setHoveredHref} onArrive={handleArrive} />
+                {/* TutoBoard charge ses textures via useTexture (async, drei) : sans Suspense ici,
+                    ce chargement fait planter tout l'arbre R3F (pas de fallback pour l'attraper) —
+                    la scène entière se démonte, y compris les Html des autres hotspots. */}
+                <Suspense fallback={null}>
+                    <HallScene hoveredHref={hoveredHref} onHoverChange={setHoveredHref} onArrive={handleArrive} />
+                </Suspense>
             </Canvas>
 
             <div className="pointer-events-none absolute inset-x-0 top-8 z-50 flex justify-center">

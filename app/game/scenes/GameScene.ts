@@ -39,16 +39,20 @@ export class GameScene extends Phaser.Scene
 
     private mode!: GameMode;
     private difficulty!: Difficulty;
+    private deckId!: number;
+    private cardBack!: number;
 
     constructor()
     {
         super("GameScene");
     }
 
-    init(data: { mode: GameMode; difficulty: Difficulty })
+    init(data: { mode: GameMode; difficulty: Difficulty; deckId: number; cardBack: number })
     {
         this.mode = data.mode;
         this.difficulty = data.difficulty;
+        this.deckId = data.deckId;
+        this.cardBack = data.cardBack;
     }
 
     create()
@@ -74,9 +78,9 @@ export class GameScene extends Phaser.Scene
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         if (this.mode === "solo")
-            EventManager.emit("client:readySolo", this.difficulty);
+            EventManager.emit("client:readySolo", { difficulty: this.difficulty, deckId: this.deckId, cardBack: this.cardBack });
         else
-            EventManager.emit("client:ready");
+            EventManager.emit("client:ready", { deckId: this.deckId, cardBack: this.cardBack });
     }
 
     private layoutBackground()
@@ -149,7 +153,10 @@ export class GameScene extends Phaser.Scene
     private onServerRejected(reason: string): void
     {
         console.warn("Server rejected action:", reason);
-        this.input_.clearWaitingState(true);
+        // input_ n'existe que depuis onTableCreated (état reçu du serveur) — un rejet peut
+        // maintenant arriver AVANT ça (ex: deck introuvable/vide côté serverSocket.ts, envoyé dès
+        // "readySolo"/"ready"), ce qui plantait ici auparavant.
+        this.input_?.clearWaitingState(true);
     }
 
     private onGameOver(winner: "you" | "opponent"): void
@@ -157,9 +164,12 @@ export class GameScene extends Phaser.Scene
         this.flow.awaitingTarget = false;
         this.input_.clearWaitingState();
 
-        const text = winner === "you" ? "YOU WIN!!" : "YOU LOSE :(";
-        const color = winner === "you" ? "#03c844" : "#760606";
-        new GameOverOverlay(this, text, color);
+        this.animationQueue.runAfterDrain(() =>
+        {
+            const text = winner === "you" ? "YOU WIN!!" : "YOU LOSE :(";
+            const color = winner === "you" ? "#03c844" : "#760606";
+            new GameOverOverlay(this, text, color);
+        });
     }
 
     private onServerEvent(event: GameEvent): void

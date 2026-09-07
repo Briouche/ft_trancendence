@@ -1,4 +1,4 @@
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 
 
 const HOVER_LIFT_RATIO = 0.25;

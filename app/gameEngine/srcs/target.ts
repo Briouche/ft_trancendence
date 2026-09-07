@@ -1,7 +1,6 @@
 import { MinionCard } from "./card";
 import { Hero }       from "./hero";
 import { Player }     from "./player";
-import { GameEngine } from "./gameEngine";
 import { GameContext } from "./effect";
 
 //make object for a target that accepts both minion and hero,
@@ -9,7 +8,7 @@ export interface Targetable
 {
     isAlive(): boolean;
     takeDamage(amount: number): void;
-    heal(amount: number): void;
+    heal(amount: number): number;
     currentHealth:   number;
     readonly name:   string;
     readonly id: string;
@@ -37,9 +36,9 @@ export abstract class TargetResolver
         return targets;
     }
 
-    protected opponentIndex(engine: GameEngine): 0 | 1
+    protected opponentIndex(context: GameContext): 0 | 1
     {
-        return engine.currentTurn === 0 ? 1 : 0;
+        return context.owner.index === 0 ? 1 : 0;
     }
 }
 
@@ -80,7 +79,7 @@ export class EnemyCharacterResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        const oppIdx: 0 | 1        = this.opponentIndex(context.engine);
+        const oppIdx: 0 | 1        = this.opponentIndex(context);
         const enemyMinions: MinionCard[] = context.engine.board.getMinions(oppIdx);
         const enemyHero: Hero      = context.engine.players[oppIdx].hero;
 
@@ -107,7 +106,7 @@ export class EnemyMinionResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        const oppIdx: 0 | 1        = this.opponentIndex(context.engine);
+        const oppIdx: 0 | 1        = this.opponentIndex(context);
         const enemyMinions: MinionCard[] = context.engine.board.getMinions(oppIdx);
         return this.tauntFilter([...enemyMinions], enemyMinions);
     }
@@ -140,7 +139,7 @@ export class EnemyHeroResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        const oppIdx: 0 | 1        = this.opponentIndex(context.engine);
+        const oppIdx: 0 | 1        = this.opponentIndex(context);
         return [context.engine.players[oppIdx].hero];
     }
 }
@@ -187,7 +186,7 @@ export class AllEnemyMinionsResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        const oppIdx: 0 | 1 = this.opponentIndex(context.engine);
+        const oppIdx: 0 | 1 = this.opponentIndex(context);
         return [...context.engine.board.getMinions(oppIdx)];
     }
 }
@@ -202,7 +201,7 @@ export class AllEnemiesResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        const oppIdx: 0 | 1 = this.opponentIndex(context.engine);
+        const oppIdx: 0 | 1 = this.opponentIndex(context);
         return [...context.engine.board.getMinions(oppIdx), context.engine.players[oppIdx].hero];
     }
 }
@@ -235,6 +234,20 @@ export class PlayerHeroResolver extends TargetResolver
     }
 }
 
+// single allied minion, player picks
+export class AllyMinionResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(true);
+    }
+
+    resolve(context: GameContext): Targetable[]
+    {
+        return [...context.engine.board.getMinions(context.owner.index)];
+    }
+}
+
 // all allied minions
 export class AlliedMinionsResolver extends TargetResolver
 {
@@ -245,7 +258,7 @@ export class AlliedMinionsResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        return [...context.engine.board.getMinions(context.engine.currentTurn)];
+        return [...context.engine.board.getMinions(context.owner.index)];
     }
 }
 
@@ -261,12 +274,27 @@ export class OtherAlliedMinionsResolver extends TargetResolver
     {
         let targets: Targetable[] = [];
 
-        for (const minion of context.engine.board.getMinions(context.engine.currentTurn))
+        for (const minion of context.engine.board.getMinions(context.owner.index))
         {
             if (minion != context.source)
                 targets.push(minion);
         }
         return targets;
+    }
+}
+
+// allied minions currently damaged (currentHealth < maxHealth)
+export class DamagedAlliedMinionsResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(false);
+    }
+
+    resolve(context: GameContext): Targetable[]
+    {
+        return context.engine.board.getMinions(context.owner.index)
+            .filter(m => m.currentHealth < m.maxHealth);
     }
 }
 
@@ -297,7 +325,7 @@ export class RandomEnemyResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        const oppIdx: 0 | 1  = this.opponentIndex(context.engine);
+        const oppIdx: 0 | 1  = this.opponentIndex(context);
         const enemies: Targetable[] = [...context.engine.board.getMinions(oppIdx), context.engine.players[oppIdx].hero]
             .filter((e: Targetable) => e.isAlive());
 

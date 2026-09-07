@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { openPack } from '@/lib/packs'
+import { getSession } from '@/lib/session'
 
 export async function POST() {
-    // TODO: remplacer par l'utilisateur connecté quand l'auth sera en place
-    const userId = 1
+    const session = await getSession()
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     try {
-        const result = await openPack(prisma, userId)
+        const result = await openPack(prisma, session.userId)
         return NextResponse.json(result)
     } catch (error) {
         return NextResponse.json(

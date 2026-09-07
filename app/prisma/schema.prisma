@@ -35,7 +35,7 @@ model User {
   // Aucun mode de jeu live n'existe encore : reste à 0 pour tout le monde pour l'instant, prêt
   // à être incrémenté une fois qu'une partie peut se terminer.
   wins          Int        @default(0)
-  // Index (0-19) dans le catalogue de dos de carte cosmétiques — voir lib/cardBacks.ts.
+  // Index (0-7) dans le catalogue de dos de carte cosmétiques — voir lib/cardBacks.ts.
   cardBack      Int        @default(0)
   // Designs de dos de carte débloqués (index 0 offert d'office à tout le monde) — les autres
   // s'obtiennent en paquet, comme un drop rare (voir lib/packs.ts).
@@ -65,19 +65,18 @@ model Card {
   type     String     @default("")
   rarity   String
   cost     String
-  costNum  Int        @default(0)
   atk      String
   def      String
   desc     String
   qty      Int        @default(1)
-  emoji    String     @default("")
-  color    String     @default("")
   legendId String     @default("")
   decks    DeckCard[]
 
-  taunt     Boolean?
-  rush      Boolean?
-  archi     Boolean?
+  taunt        Boolean?
+  rush         Boolean?
+  cannotAttack Boolean?
+  archi        Boolean?
+  spellpower   Int?
 
   battlecry         Json?
   deathrattle       Json?

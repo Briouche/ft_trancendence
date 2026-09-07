@@ -1,41 +1,18 @@
-"use client";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { ROUTES } from "@/config/routes";
+import PlayModeSelector from "./PlayModeSelector";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import type { Difficulty } from "@/game/shared/protocol";
+export default async function PlayPage() {
+  const session = await getSession();
+  if (!session) redirect(ROUTES.home);
 
-export default function PlayPage()
-{
-  const router = useRouter();
-  const [showDifficulty, setShowDifficulty] = useState(false);
+  const decks = await prisma.deck.findMany({
+    where:   { userId: session.userId },
+    include: { cards: { include: { card: true } } },
+    orderBy: { createdAt: "desc" },
+  });
 
-  const startSolo = (difficulty: Difficulty) =>
-  {
-    router.push(`/play/game?mode=solo&difficulty=${difficulty}`);
-  };
-
-  if (showDifficulty)
-  {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", gap: "1rem" }}>
-        <h1>Choisis la difficulté</h1>
-        <button onClick={() => startSolo("facile")}>Facile</button>
-        <button onClick={() => startSolo("moyen")}>Moyen</button>
-        <button onClick={() => startSolo("difficile")}>Difficile</button>
-        <button onClick={() => setShowDifficulty(false)}>Retour</button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", gap: "1rem" }}>
-      <h1>Choisis ton mode de jeu</h1>
-      <button onClick={() => setShowDifficulty(true)}>
-        Solo (vs IA)
-      </button>
-      <button onClick={() => router.push("/play/game?mode=multiplayer")}>
-        Multijoueur
-      </button>
-    </div>
-  );
+  return <PlayModeSelector decks={decks} />;
 }

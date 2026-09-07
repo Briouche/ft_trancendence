@@ -1,8 +1,9 @@
 import Phaser from "phaser";
+import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
 const DEFAULT_SIZE = 90;
 const BUFFED_HEALTH_COLOR = "#03c844";
-const MAX_HEALTH_COLOR = "#000000";
+const MAX_HEALTH_COLOR = "#ffffff";
 const HEALTH_COLOR = "#760606";
 const PORTRAIT_COLOR = 0x3a2b2b;
 const STROKE_COLOR = 0xff5555;
@@ -22,21 +23,25 @@ const FRAME_OFFSET_Y_RATIO = 0.13;
 const OPPONENT_FRAME_OFFSET_X_RATIO = -0.17;
 const OPPONENT_FRAME_OFFSET_Y_RATIO = -0.12;
 
-const HEALTH_TEXT_OFFSET_X_RATIO = -0.58;
+const HEALTH_TEXT_OFFSET_X_RATIO = -0.62;
 const HEALTH_TEXT_OFFSET_Y_RATIO = 0.3;
-const OPPONENT_HEALTH_TEXT_OFFSET_X_RATIO = 0.58;
+const OPPONENT_HEALTH_TEXT_OFFSET_X_RATIO = 0.60;
 const OPPONENT_HEALTH_TEXT_OFFSET_Y_RATIO = -0.3;
 const HEALTH_TEXT_DEPTH = 10;
 
 const COUNTER_COLOR = 0x2b2b3a;
 const COUNTER_STROKE_COLOR = 0x55aaff;
+const COUNTER_GLOW_COLOR = 0xffe066;
+const COUNTER_GLOW_DURATION_MS = 550;
 const COUNTER_GAP = 2;
 const HOVER_DELAY_MS = 2000;
 const TOOLTIP_PADDING = 6;
 
-const COUNTER_INFO: Record<"freddy" | "archi", { divisor: number; description: string }> = {
+const COUNTER_INFO: Record<"freddy" | "archi" | "roiDesRats" | "gertrude", { divisor: number; description: string }> = {
     freddy: { divisor: 4, description: "Every 4 minions that die,\nfreddy summons a 1/1 skeleton." },
     archi: { divisor: 6, description: "Once you have played\nall 6 bocal memebrs,\nplay Archimede to win the game." },
+    roiDesRats: { divisor: 3, description: "Every 3 end of turns,\nyour end-of-turn effects\ntrigger one extra time." },
+    gertrude: { divisor: 4, description: "Every 4th spell you cast\ngoes back to your hand." },
 };
 
 export interface HeroData
@@ -47,6 +52,9 @@ export interface HeroData
     maxHealth?: number;
     archi?: number;
     freddy?: number;
+    roiDesRats?: number;
+    gertrude?: number;
+    cardBack: number;
 }
 
 export class Hero extends Phaser.GameObjects.Container
@@ -58,13 +66,16 @@ export class Hero extends Phaser.GameObjects.Container
     private healthText: Phaser.GameObjects.Text;
     private size: number;
     private isOpponent: boolean;
+    private fontFamily: string | undefined;
 
-    private counterType?: "freddy" | "archi";
+    private counterType?: "freddy" | "archi" | "roiDesRats" | "gertrude";
     private counterCircle?: Phaser.GameObjects.Arc;
     private counterText?: Phaser.GameObjects.Text;
     private tooltipBg?: Phaser.GameObjects.Rectangle;
     private tooltipText?: Phaser.GameObjects.Text;
     private hoverTimer?: Phaser.Time.TimerEvent;
+    private counterRawValues: Partial<Record<"freddy" | "archi" | "roiDesRats" | "gertrude", number>> = {};
+    private glowRings: Phaser.GameObjects.Arc[] = [];
 
     constructor(scene: Phaser.Scene, heroData: HeroData, size: number = DEFAULT_SIZE, isOpponent: boolean = false)
     {
@@ -72,12 +83,13 @@ export class Hero extends Phaser.GameObjects.Container
         this.heroData = heroData;
         this.size = size;
         this.isOpponent = isOpponent;
+        this.fontFamily = scene.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
 
         this.portrait = scene.add.rectangle(0, 0, size, size, PORTRAIT_COLOR).setStrokeStyle(3, STROKE_COLOR);
         this.nameText = scene.add.text(0, -size * 0.2, heroData.name,
-            { fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
+            { fontFamily: this.fontFamily, fontSize: `${Math.round(size * 0.14)}px`, color: "#fff", stroke: "#000000", strokeThickness: 4  }).setOrigin(0.5, 1);
         this.healthText = scene.add.text(0, 0, `${heroData.health}`,
-            { fontSize: `${Math.round(size * 0.3)}px`, color: MAX_HEALTH_COLOR, stroke: "#ffffff", strokeThickness: 4  }).setDepth(HEALTH_TEXT_DEPTH);
+            { fontFamily: this.fontFamily, fontSize: `${Math.round(size * 0.34)}px`, color: MAX_HEALTH_COLOR, stroke: "#000000", strokeThickness: 4  }).setDepth(HEALTH_TEXT_DEPTH);
 
         const frameOffset = this.getFrameOffset(size);
         this.frame = scene.add.image(frameOffset.x, frameOffset.y, isOpponent ? "opponentHeroFrame" : "heroFrame");
@@ -99,7 +111,7 @@ export class Hero extends Phaser.GameObjects.Container
         this.portrait.setSize(size, size);
         this.nameText.setPosition(0, -size * 0.5);
         this.nameText.setFontSize(`${Math.round(size * 0.14)}px`);
-        this.healthText.setFontSize(`${Math.round(size * 0.3)}px`);
+        this.healthText.setFontSize(`${Math.round(size * 0.34)}px`);
         const frameOffset = this.getFrameOffset(size);
         this.frame.setPosition(frameOffset.x, frameOffset.y);
         this.frame.setDisplaySize(size * FRAME_SCALE, size * FRAME_SCALE);
@@ -152,11 +164,69 @@ export class Hero extends Phaser.GameObjects.Container
 
     setHeroData(heroData: HeroData)
     {
+        this.checkCounterTrigger("freddy", heroData.freddy);
+        this.checkCounterTrigger("archi", heroData.archi);
+        this.checkCounterTrigger("roiDesRats", heroData.roiDesRats);
+        this.checkCounterTrigger("gertrude", heroData.gertrude);
+
         this.heroData.archi = heroData.archi;
         if (heroData.freddy !== undefined)
             this.heroData.freddy = heroData.freddy % 4;
+        if (heroData.roiDesRats !== undefined)
+            this.heroData.roiDesRats = heroData.roiDesRats % 3;
+        if (heroData.gertrude !== undefined)
+            this.heroData.gertrude = heroData.gertrude % 4;
         this.setHealth(heroData.health);
         this.updateCounter();
+    }
+
+    private checkCounterTrigger(type: "freddy" | "archi" | "roiDesRats" | "gertrude", newValue: number | undefined): void
+    {
+        if (newValue === undefined)
+            return;
+
+        const oldValue = this.counterRawValues[type];
+        this.counterRawValues[type] = newValue;
+        if (oldValue === undefined)
+            return;
+
+        const divisor = COUNTER_INFO[type].divisor;
+        if (Math.floor(newValue / divisor) > Math.floor(oldValue / divisor))
+            this.playCounterGlow();
+    }
+
+    private playCounterGlow(): void
+    {
+        if (!this.counterCircle)
+            return;
+
+        this.scene.tweens.add({
+            targets: this.counterCircle,
+            scale: { from: 1, to: 1.2 },
+            duration: 180,
+            yoyo: true,
+            ease: "Sine.easeOut"
+        });
+
+        const radius = this.counterCircle.radius;
+        const ring = this.scene.add.circle(this.counterCircle.x, this.counterCircle.y, radius, COUNTER_GLOW_COLOR, 0.5)
+            .setStrokeStyle(2, COUNTER_GLOW_COLOR);
+        this.add(ring);
+        this.sort("depth");
+        this.glowRings.push(ring);
+
+        this.scene.tweens.add({
+            targets: ring,
+            scale: { from: 1, to: 1.9 },
+            alpha: { from: 0.55, to: 0 },
+            duration: COUNTER_GLOW_DURATION_MS,
+            ease: "Cubic.easeOut",
+            onComplete: () =>
+            {
+                ring.destroy();
+                this.glowRings = this.glowRings.filter(r => r !== ring);
+            }
+        });
     }
 
     private updateCounter(): void
@@ -167,6 +237,10 @@ export class Hero extends Phaser.GameObjects.Container
                 this.createCounter("freddy");
             else if (this.heroData.archi !== undefined)
                 this.createCounter("archi");
+            else if (this.heroData.roiDesRats !== undefined)
+                this.createCounter("roiDesRats");
+            else if (this.heroData.gertrude !== undefined)
+                this.createCounter("gertrude");
             return;
         }
 
@@ -175,7 +249,7 @@ export class Hero extends Phaser.GameObjects.Container
             this.counterText.setText(`${value}/${COUNTER_INFO[this.counterType].divisor}`);
     }
 
-    private createCounter(type: "freddy" | "archi"): void
+    private createCounter(type: "freddy" | "archi" | "roiDesRats" | "gertrude"): void
     {
         this.counterType = type;
         const value = this.heroData[type];
@@ -183,7 +257,7 @@ export class Hero extends Phaser.GameObjects.Container
 
         this.counterCircle = this.scene.add.circle(0, 0, radius, COUNTER_COLOR).setStrokeStyle(2, COUNTER_STROKE_COLOR);
         this.counterText = this.scene.add.text(0, 0, `${value}/${COUNTER_INFO[type].divisor}`,
-            { fontSize: `${Math.round(radius * 0.9)}px`, color: "#fff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
+            { fontFamily: this.fontFamily, fontSize: `${Math.round(radius * 0.9)}px`, color: "#fff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 
         this.add([this.counterCircle, this.counterText]);
         this.sort("depth");
@@ -218,7 +292,7 @@ export class Hero extends Phaser.GameObjects.Container
         this.hideTooltip();
 
         this.tooltipText = this.scene.add.text(0, 0, description,
-            { fontSize: "12px", color: "#fff" }).setOrigin(0, 0);
+            { fontFamily: this.fontFamily, fontSize: "12px", color: "#fff" }).setOrigin(0, 0);
         const width = this.tooltipText.width + TOOLTIP_PADDING * 2;
         const height = this.tooltipText.height + TOOLTIP_PADDING * 2;
         const x = circle.x + circle.radius;
@@ -245,6 +319,9 @@ export class Hero extends Phaser.GameObjects.Container
     destroy(fromScene?: boolean): void
     {
         this.hoverTimer?.remove();
+        for (const ring of this.glowRings)
+            ring.destroy();
+        this.glowRings = [];
         super.destroy(fromScene);
     }
 

@@ -11,18 +11,17 @@ interface RawCard
 	type:     string
 	rarity:   string
 	cost:     string
-	costNum:  number
 	atk:      string
 	def:      string
 	desc:     string
 	qty:      number
-	emoji:    string
-	color:    string
 	legendId: string
 
 	taunt?: boolean
 	rush?:  boolean
+	cannotAttack?: boolean
 	archi?: boolean
+	spellpower?: number
 
 	battlecry?:         EffectSpec
 	deathrattle?:       EffectSpec
@@ -75,14 +74,14 @@ export async function seedCards(prisma: PrismaClient)
 			def:       card.def,
 			desc:      card.desc,
 			qty:       card.qty    ?? 1,
-			emoji:     card.emoji  ?? '',
-			color:     card.color  ?? '',
 			legendId:  card.legendId ?? '',
 			assetKey:  card.assetKey,
 
 			taunt: card.taunt,
 			rush:  card.rush,
+			cannotAttack: card.cannotAttack,
 			archi: card.archi,
+			spellpower: card.spellpower,
 
 			battlecry:         card.battlecry,
 			deathrattle:       card.deathrattle,
@@ -90,7 +89,9 @@ export async function seedCards(prisma: PrismaClient)
 			onDamage:          card.onDamage,
 			startOfTurnEffect: card.startOfTurnEffect,
 			endOfTurnEffect:   card.endOfTurnEffect,
-			spellEffect:       card.spellEffect
+			spellEffect:       card.spellEffect,
+
+			keywords: parseKeywords(card.keywords, card.id),
 		}
 
 		await prisma.card.upsert(
@@ -102,4 +103,20 @@ export async function seedCards(prisma: PrismaClient)
 	}
 
 	console.log('✅ Cards successfully seeded.')
+
+	// upsert() ci-dessus ne supprime jamais : une carte retirée du JSON restait donc en base
+	// indéfiniment (vue en prod : 27 cartes fantômes après un nettoyage du fichier). Synchronise
+	// la suppression — UserCard/DeckCard d'abord (Card n'a pas onDelete: Cascade), Card ensuite.
+	// Garde-fou sur un JSON vide : `notIn: []` matcherait TOUT le monde et viderait la table.
+	const validIds = data.cards.map(c => c.id)
+	if (validIds.length > 0) {
+		const staleCount = await prisma.card.count({ where: { id: { notIn: validIds } } })
+
+		if (staleCount > 0) {
+			await prisma.userCard.deleteMany({ where: { cardId: { notIn: validIds } } })
+			await prisma.deckCard.deleteMany({ where: { cardId: { notIn: validIds } } })
+			await prisma.card.deleteMany({ where: { id: { notIn: validIds } } })
+			console.log(`🧹 Removed ${staleCount} stale card(s) no longer in tcg-collection.json.`)
+		}
+	}
 }

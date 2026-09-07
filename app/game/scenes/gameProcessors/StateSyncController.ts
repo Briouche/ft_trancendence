@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Card } from "@/game/objects/Card";
+import { Card } from "@/game/objects/card/Card";
 import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
@@ -43,7 +43,7 @@ export class StateSyncController
         {
             const hand = new Hand(this.scene);
             const board = new Board(this.scene, 6, state.playerHero, state.opponentHero);
-            const opponentHand = new OpponentHand(this.scene);
+            const opponentHand = new OpponentHand(this.scene, state.opponentHero.cardBack);
 
             this.table = { hand, board, opponentHand };
             this.onTableCreated(this.table);

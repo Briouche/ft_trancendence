@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../Card";
-import { attachCardPreviewHover } from "../CardPreview";
+import { Card, CardData } from "../card/Card";
+import { attachCardPreviewHover } from "../card/CardPreview";
 import { computeXs } from "./BoardMath";
 
 const CARD_ASPECT_RATIO = 1.4;
@@ -104,6 +104,8 @@ export class CardRow
 
     private applyInteractivity(card: Card): void
     {
+        card.off("pointerover");
+        card.off("pointerout");
         if (this.side === 1)
             card.setInteractive(); // hover only — attack/target still goes through Target.ts's own zones, not the card object
         else

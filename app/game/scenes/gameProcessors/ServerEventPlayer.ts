@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { Board } from "../../objects/board/Board";
 import { GameEvent } from "../../shared/protocol";
-import { Card } from "@/game/objects/Card";
-import { showCardPreview } from "@/game/objects/CardPreview";
-import { attackAnimation, battlecryAnimation, damageAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
+import { Card, withStartingStats } from "@/game/objects/card/Card";
+import { showCardPreview } from "@/game/objects/card/CardPreview";
+import { attackAnimation, battlecryAnimation, damageAnimation, healAnimation, buffAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
 
 //handles the "GameEvent" signal
 // mostly runs the animations
@@ -18,7 +18,10 @@ export class ServerEventPlayer
         {
             case "attack": return this.playAttack(event);
             case "damage": return this.playDamage(event);
+            case "heal": return this.playHeal(event);
+            case "buff": return this.playBuff(event);
             case "cardPlayed": return this.playCardPlayed(event);
+            case "summon": return this.playSummon(event);
             case "minionDied": return this.playMinionDied(event);
             case "turnEnded": return this.playTurnEnded(event);
             case "effect": return this.playEffectTriggered(event);
@@ -49,6 +52,41 @@ export class ServerEventPlayer
             resolved.card.updateStats(resolved.card.cardData.health as number - event.amount, resolved.card.cardData.attack as number);
     }
 
+    private async playHeal(event: Extract<GameEvent, { type: "heal" }>): Promise<void>
+    {
+        const resolved = this.board.getTargetById(event.targetId)?.resolve();
+        if (!resolved)
+            return;
+
+        const targetObject = resolved.kind === "hero" ? resolved.hero : resolved.card;
+        await healAnimation(this.scene, targetObject, event.amount);
+        if (resolved.kind === "hero")
+            resolved.hero.setHealth(resolved.hero.heroData.health + event.amount);
+        else if (resolved.kind === "minion")
+            resolved.card.updateStats(resolved.card.cardData.health as number + event.amount, resolved.card.cardData.attack as number);
+    }
+
+    private async playBuff(event: Extract<GameEvent, { type: "buff" }>): Promise<void>
+    {
+        const resolved = this.board.getTargetById(event.targetId)?.resolve();
+        if (!resolved)
+            return;
+
+        if (resolved.kind === "hero")
+        {
+            await buffAnimation(this.scene, resolved.hero, 0, event.healthDelta);
+            resolved.hero.setHealth(resolved.hero.heroData.health + event.healthDelta);
+        }
+        else if (resolved.kind === "minion")
+        {
+            await buffAnimation(this.scene, resolved.card, event.attackDelta, event.healthDelta);
+            resolved.card.updateStats(
+                (resolved.card.cardData.health as number) + event.healthDelta,
+                (resolved.card.cardData.attack as number) + event.attackDelta
+            );
+        }
+    }
+
     private async playMinionDied(event: Extract<GameEvent, { type: "minionDied" }>): Promise<void>
     {
         const card = this.board.findCardById(event.minionId);
@@ -60,7 +98,15 @@ export class ServerEventPlayer
     private async playCardPlayed(event: Extract<GameEvent, { type: "cardPlayed" }>): Promise<void>
     {
         showCardPreview(this.scene, event.card, 2000);
-        this.deferUntilCardExists(event.cardId, (card) => summonAnimation(this.scene, card));
+    }
+
+    private async playSummon(event: Extract<GameEvent, { type: "summon" }>): Promise<void>
+    {
+        const side: 0 | 1 = event.playerIndex === this.getPlayerIndex() ? 0 : 1;
+        const alreadyOnBoard = this.board.findCardById(event.card.id) !== undefined;
+        const card = this.board.materializeMinion(side, withStartingStats(event.card), event.boardIndex);
+        if (!alreadyOnBoard)
+            await summonAnimation(this.scene, card);
     }
 
     private async playTurnEnded(event: Extract<GameEvent, { type: "turnEnded" }>): Promise<void>

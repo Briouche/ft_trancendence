@@ -29,9 +29,16 @@ export const MENU_ITEMS: MenuItem[] = [
     },
     {
         href:        '/play',
-        label:       'Cellar',
+        label:       'Game room',
         description: 'Play a match',
         emoji:       '⚔️',
+        available:   true,
+    },
+    {
+        href:        '/manual',
+        label:       'Tuto',
+        description: 'Learn how to play',
+        emoji:       '📋',
         available:   true,
     },
 ]

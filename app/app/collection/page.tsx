@@ -8,7 +8,7 @@ export default async function CollectionPage() {
     const session = await getSession()
     if (!session) redirect(ROUTES.home)
 
-    const [owned, user, totalCardCount] = await Promise.all([
+    const [owned, user, totalCopies] = await Promise.all([
         prisma.userCard.findMany({
             where:   { userId: session.userId },
             include: { card: true },
@@ -18,7 +18,7 @@ export default async function CollectionPage() {
             where:  { id: session.userId },
             select: { cardBack: true, unlockedCardBacks: true },
         }),
-        prisma.card.count(),
+        prisma.card.aggregate({ _sum: { qty: true } }),
     ])
 
     const cards = owned.map(({ card, qty }) => ({ ...card, ownedQty: qty }))
@@ -28,7 +28,7 @@ export default async function CollectionPage() {
             cards={cards}
             initialCardBack={user.cardBack}
             unlockedCardBacks={user.unlockedCardBacks}
-            totalCardCount={totalCardCount}
+            totalCardCount={totalCopies._sum.qty ?? 0}
         />
     )
 }

@@ -1,3 +1,3 @@
 import Phaser from "phaser";
-import { Card } from "../objects/Card";
+import { Card } from "../objects/card/Card";
 

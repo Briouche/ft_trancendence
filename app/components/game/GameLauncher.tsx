@@ -7,7 +7,7 @@ import { createGameConfig, GameMode } from "@/game/GameConfig";
 import { EventManager } from "@/game/EventManager";
 import type { Difficulty } from "@/game/shared/protocol";
 
-export default function GameLauncher({ mode, difficulty }: { mode: GameMode; difficulty: Difficulty })
+export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { mode: GameMode; difficulty: Difficulty; deckId: number; cardBack: number })
 {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -17,7 +17,7 @@ export default function GameLauncher({ mode, difficulty }: { mode: GameMode; dif
     if (!containerRef.current || gameRef.current)
       return;
 
-    gameRef.current = new Phaser.Game(createGameConfig(containerRef.current, mode, difficulty));
+    gameRef.current = new Phaser.Game(createGameConfig(containerRef.current, mode, difficulty, deckId, cardBack));
 
     const goHome = () => router.push("/");
     EventManager.on("phaser:navigateHome", goHome);
@@ -28,7 +28,7 @@ export default function GameLauncher({ mode, difficulty }: { mode: GameMode; dif
       gameRef.current = null;
       };
 //    }, [router]);
-    }, [mode, difficulty]);
+    }, [mode, difficulty, deckId, cardBack]);
 
   return <div ref={containerRef} style={{ width: "100vw", height: "100vh", overflow: "hidden" }} />;
 }

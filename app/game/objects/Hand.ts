@@ -1,14 +1,16 @@
 import Phaser from "phaser";
-import { Card, CardData } from "../objects/Card";
+import { Card, CardData } from "./card/Card";
 import { attachCardHover } from "../animations";
+import { detachCardPreviewHover } from "./card/CardPreview";
 
 const HAND_Y_RATIO = 0.14;
-const CARD_HEIGHT_RATIO = 0.28;
+const CARD_HEIGHT_RATIO = 0.26;
 const CARD_ASPECT_RATIO = 1.4;
 const OVERLAP_RATIO = 0.55;
 const MAX_HAND_SPAN_RATIO = 0.5;
 const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
+const FIRST_CARD_DEPTH = 200;
 
 
 export class Hand
@@ -83,8 +85,9 @@ export class Hand
             const dip = Math.pow(norm, 2) * heightCanvas * ARC_DIP_RATIO;
             const y = handY + dip;
             const rotation = Phaser.Math.DegToRad(norm * MAX_FAN_ANGLE_DEG);
+            const depth = FIRST_CARD_DEPTH + (this.cards.length - 1 - i);
             card.resize(cardWidth, cardHeight);
-            card.setTransform(x, y, rotation, i);
+            card.setTransform(x, y, rotation, depth);
             if (!card.isDragging && !card.isHovering)
                 card.returnToBase();
         }
@@ -134,6 +137,11 @@ export class Hand
     {
         if (!this.cards.includes(card))
             this.cards.push(card);
+        card.setCardContext(false, false, true);
+        detachCardPreviewHover(card);
+        card.off("pointerover");
+        card.off("pointerout");
+        attachCardHover(card);
         this.layout();
     }
 }

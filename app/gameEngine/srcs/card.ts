@@ -8,9 +8,10 @@ export abstract class Card
     public readonly description: string;
     public readonly id: string;
     public readonly assetKey: string;
+    public readonly rarity: string;
     private legendaryPassive: legendary | undefined;
 
-    constructor(name: string, manaCost: number, description: string, id: string, legendaryPassive?: legendary, assetKey: string = "placeholder_card")
+    constructor(name: string, manaCost: number, description: string, id: string, legendaryPassive?: legendary, assetKey: string = "placeholder_card", rarity: string = "Commune")
     {
         this.name = name;
         this.manaCost = manaCost;
@@ -18,6 +19,7 @@ export abstract class Card
         this.id = id;
         this.legendaryPassive = legendaryPassive;
         this.assetKey = assetKey;
+        this.rarity = rarity;
     }
 
     getLeg(): legendary | undefined
@@ -44,11 +46,13 @@ interface Keywords
     deathrattle?: Effect;
     rush?: boolean;
     taunt?: boolean;
+    cannotAttack?: boolean;
     onAttack?: Effect;
     endOfTurnEffect?: Effect;
     startOfTurnEffect?: Effect;
     archi?: boolean;
     onDamage?: Effect;
+    spellpower?: number;
     //onMinionDamage?: Effect;
 }
 
@@ -59,19 +63,24 @@ export class MinionCard extends Card
     public attack:    number;
     public maxHealth: number;
     public currentHealth:      number;
+    public readonly baseAttack:    number;
+    public readonly baseMaxHealth: number;
     public canAttack:          boolean = false;
     public effects:            Keywords = {};
     public jeffeBuff: boolean = false;
 
     constructor(id: string = "", name: string, manaCost: number,
                 description: string, attack: number,
-                maxHealth: number, effects: Keywords = {}, legendaryPassive?: legendary, assetKey: string = "placeholder_card")
+                maxHealth: number, effects: Keywords = {}, legendaryPassive?: legendary, assetKey: string = "placeholder_card",
+                baseAttack: number = attack, baseMaxHealth: number = maxHealth, rarity: string = "Commune")
     {
-        super(name, manaCost, description, id, legendaryPassive, assetKey);
+        super(name, manaCost, description, id, legendaryPassive, assetKey, rarity);
         this.attack      = attack;
         this.maxHealth   = maxHealth;
         this.currentHealth = maxHealth;
         this.effects = effects;
+        this.baseAttack = baseAttack;
+        this.baseMaxHealth = baseMaxHealth;
     }
 
     getType(): string
@@ -82,7 +91,8 @@ export class MinionCard extends Card
     clone(): MinionCard
     {
         return new MinionCard(this.id + nextTokenId++, this.name, this.manaCost,
-            this.description, this.attack, this.maxHealth, { ...this.effects }, this.getLeg(), this.assetKey);
+            this.description, this.attack, this.maxHealth, { ...this.effects }, this.getLeg(), this.assetKey,
+            this.baseAttack, this.baseMaxHealth, this.rarity);
     }
 
     isAlive(): boolean
@@ -95,11 +105,13 @@ export class MinionCard extends Card
         this.currentHealth -= amount;
     }
 
-	heal(amount: number): void
+	heal(amount: number): number
 	{
+		const before = this.currentHealth;
 		this.currentHealth += amount;
 		if (this.currentHealth > this.maxHealth)
 			this.currentHealth = this.maxHealth;
+		return this.currentHealth - before;
 	}
 
     toString(): string
@@ -113,7 +125,8 @@ export class MinionCard extends Card
     cloneCopy(): MinionCard
     {
         const copy = new MinionCard(this.id, this.name, this.manaCost, this.description,
-                                    this.attack, this.maxHealth, this.effects, undefined, this.assetKey);
+                                    this.attack, this.maxHealth, this.effects, undefined, this.assetKey,
+                                    this.baseAttack, this.baseMaxHealth, this.rarity);
         copy.currentHealth = this.currentHealth;
         copy.canAttack     = this.canAttack;
         return copy;
@@ -124,9 +137,9 @@ export class SpellCard extends Card
 {
     public readonly effect: Effect;
 
-    constructor(id: string = "", name: string, manaCost: number, description: string, effect: Effect, legendaryPassive?: legendary, assetKey: string = "placeholder_card")
+    constructor(id: string = "", name: string, manaCost: number, description: string, effect: Effect, legendaryPassive?: legendary, assetKey: string = "placeholder_card", rarity: string = "Commune")
     {
-        super(name, manaCost, description, id, legendaryPassive, assetKey);
+        super(name, manaCost, description, id, legendaryPassive, assetKey, rarity);
         this.effect = effect;
     }
 
@@ -139,6 +152,6 @@ export class SpellCard extends Card
 
     cloneCopy(): SpellCard
     {
-        return new SpellCard(this.id, this.name, this.manaCost, this.description, this.effect, undefined, this.assetKey);
+        return new SpellCard(this.id, this.name, this.manaCost, this.description, this.effect, undefined, this.assetKey, this.rarity);
     }
 }
