@@ -4,6 +4,7 @@
     {
       "id": "mpzqp0u9",
       "name": "Le menestrel",
+      "assetKey": "LeMenestrel",
       "artist": "Brieuc",
       "type": "creature",
       "rarity": "Commune",
