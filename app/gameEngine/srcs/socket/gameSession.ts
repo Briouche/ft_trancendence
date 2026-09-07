@@ -337,7 +337,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card), targetId: target ? this.targetToOption(target).id : undefined });
         this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();

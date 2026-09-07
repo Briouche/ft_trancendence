@@ -30,6 +30,8 @@ export class BootScene extends Phaser.Scene
         this.load.image("placeholder_card", "/gameAssets/cards/placeholder_card.png");
         this.load.image("shield_taunt", "/gameAssets/shield_taunt.png");
         this.load.image("effect_lightning", "/gameAssets/lightning_bolt.png");
+        this.load.image("history_attack", "/gameAssets/attackSword.webp");
+        this.load.image("history_turnEnded", "/gameAssets/hourglass.webp");
         this.load.image("wooden_table", "/gameAssets/wooden_table.webp");
         this.load.image("banner", "/gameAssets/UI_NoteBook_Banner04a.png");
         this.load.image("emptyEnergy", "/gameAssets/UI_TravelBook_IconEnergy01g.png");

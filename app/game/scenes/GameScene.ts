@@ -2,6 +2,9 @@ import Phaser from "phaser";
 import { Hand } from "../objects/Hand";
 import { Board } from "../objects/board/Board";
 import { OpponentHand } from "../objects/OpponentHand";
+import { MatchHistory } from "../objects/history/MatchHistory";
+import { HistoryStrip } from "../objects/history/HistoryStrip";
+import { HistoryOverlay } from "../objects/history/HistoryOverlay";
 import { EventManager } from "../EventManager";
 import { ClientGameState, TargetPrompt, GameEvent } from "../shared/protocol";
 import { GameFlowState } from "./gameProcessors/GameFlowState";
@@ -27,6 +30,9 @@ export class GameScene extends Phaser.Scene
     private hand!: Hand;
     private board!: Board;
     private opponentHand!: OpponentHand;
+    private history!: MatchHistory;
+    private historyStrip!: HistoryStrip;
+    private historyOverlay!: HistoryOverlay;
 
     private background!: Phaser.GameObjects.Image;
 
@@ -100,13 +106,17 @@ export class GameScene extends Phaser.Scene
         );
     }
 
-    private onTableCreated(table: { hand: Hand; board: Board; opponentHand: OpponentHand }): void
+    private onTableCreated(table: { hand: Hand; board: Board; opponentHand: OpponentHand; history: MatchHistory }): void
     {
         this.hand = table.hand;
         this.board = table.board;
         this.opponentHand = table.opponentHand;
+        this.history = table.history;
 
-        this.eventPlayer = new ServerEventPlayer(this, this.board, () => this.flow.playerIndex, (cardId, run) => this.stateSync.deferUntilCardExists(cardId, run));
+        this.eventPlayer = new ServerEventPlayer(this, this.board, () => this.flow.playerIndex, (cardId, run) => this.stateSync.deferUntilCardExists(cardId, run), this.history);
+
+        this.historyOverlay = new HistoryOverlay(this, this.history);
+        this.historyStrip = new HistoryStrip(this, this.history, () => this.historyOverlay.show());
 
         this.input_ = new InputController(this, this.board, this.hand, this.flow);
         this.input_.register();
@@ -121,6 +131,7 @@ export class GameScene extends Phaser.Scene
         this.hand.layout();
         this.board.layout();
         this.opponentHand.layout();
+        this.historyStrip.layout();
     }
 
     private onServerState(state: ClientGameState): void
@@ -174,7 +185,11 @@ export class GameScene extends Phaser.Scene
 
     private onServerEvent(event: GameEvent): void
     {
-        this.animationQueue.run(() => this.eventPlayer!.play(event));
+        this.animationQueue.run(async () =>
+        {
+            await this.eventPlayer!.play(event);
+            this.historyStrip.refresh();
+        });
     }
 
     shutdown()

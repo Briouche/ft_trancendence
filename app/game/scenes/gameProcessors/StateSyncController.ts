@@ -3,6 +3,7 @@ import { Card } from "@/game/objects/card/Card";
 import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
+import { MatchHistory } from "../../objects/history/MatchHistory";
 import { ClientGameState } from "../../shared/protocol";
 import { summonAnimation, drawCardAnimation } from "../../animations";
 import { GameFlowState } from "./GameFlowState";
@@ -12,6 +13,7 @@ interface TableRefs
     hand: Hand;
     board: Board;
     opponentHand: OpponentHand;
+    history: MatchHistory;
 }
  
 interface DeferredCardAnimation
@@ -44,8 +46,9 @@ export class StateSyncController
             const hand = new Hand(this.scene);
             const board = new Board(this.scene, 6, state.playerHero, state.opponentHero);
             const opponentHand = new OpponentHand(this.scene, state.opponentHero.cardBack);
+            const history = new MatchHistory();
 
-            this.table = { hand, board, opponentHand };
+            this.table = { hand, board, opponentHand, history };
             this.onTableCreated(this.table);
         }
 

@@ -241,7 +241,6 @@
       "desc": "LEG PASSIVE: Place the 4 jar members in your deck\n\nPlay the 4 other jar members to win the game",
       "qty": 1,
       "legendId": "archimede",
-      "archi": true,
       "battlecry": {
         "kind": "archi",
         "resolver": {
