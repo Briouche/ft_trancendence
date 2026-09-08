@@ -50,7 +50,7 @@ export default function SignInForm() {
           reste du site sourcé sur le carnet, plutôt que le popup.png du Essential Pack. */}
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
-          className="text-center font-display text-4xl font-bold text-white"
+          className="text-center font-display text-5xl font-bold text-white"
           style={outlinedWhiteTextStyle}
         >
           Sign In
@@ -99,7 +99,7 @@ export default function SignInForm() {
           <button
             type="submit"
             disabled={pending}
-            className="travelbook-slot03a mt-2 h-11 w-full font-display font-bold text-white
+            className="travelbook-slot03a mt-2 h-11 w-full font-display text-lg font-bold text-white
               transition-transform active:scale-95 disabled:opacity-30"
             style={outlinedWhiteTextStyle}
           >
@@ -115,14 +115,14 @@ export default function SignInForm() {
           <a
             href="/api/auth/42"
             className="travelbook-slot03a flex h-11 w-full items-center justify-center
-              font-display font-bold text-white transition-transform active:scale-95"
+              font-display text-lg font-bold text-white transition-transform active:scale-95"
             style={outlinedWhiteTextStyle}
           >
             Sign in with 42
           </a>
         </form>
 
-        <p className="mt-5 text-center font-serif text-sm text-ink-muted">
+        <p className="mt-5 text-center font-serif text-base text-ink-muted">
           New here?{" "}
           <Link
             href={ROUTES.register}

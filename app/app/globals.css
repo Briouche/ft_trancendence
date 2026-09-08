@@ -92,43 +92,6 @@ body {
   image-rendering: pixelated;
 }
 
-/* Bannière-ruban (Complete UI Essential Pack, thème Flat) — pour les bandeaux larges (Header,
-   Footer, titres de page), à la place de la couverture de livre rouge. Les extrémités du ruban
-   (repliées en biais) tiennent dans le slice gauche/droite, plus large que le haut/bas. */
-.book-cover-panel {
-  border-style: solid;
-  border-width: 16px 40px 4px 40px;
-  border-image-source: url("/textures/book/banner.png");
-  border-image-slice: 16 20 4 20 fill;
-  border-image-width: 16px 40px 4px 40px;
-  border-image-repeat: stretch;
-  image-rendering: pixelated;
-}
-
-/* Petite case (case d'inventaire) — pour les pastilles/boutons/cases (menu simple...) où le
-   cadre de .book-cover-panel dominerait un élément déjà petit. */
-.book-slot {
-  border-style: solid;
-  border-width: 6px;
-  border-image-source: url("/textures/book/slot.png");
-  border-image-slice: 2 fill;
-  border-image-width: 6px;
-  border-image-repeat: stretch;
-  image-rendering: pixelated;
-}
-
-/* Champ de texte (Complete UI Book Styles Pack, TravelBookLite — double liseré foncé/clair)
-   pour les <input> des formulaires (Sign In, Register...). */
-.book-input {
-  border-style: solid;
-  border-width: 8px;
-  border-image-source: url("/textures/book/input-field.png");
-  border-image-slice: 8 fill;
-  border-image-width: 8px;
-  border-image-repeat: stretch;
-  image-rendering: pixelated;
-}
-
 /* Refonte de la Collection, 2e itération : mêmes classes/structure qu'avant (pour ne pas
    toucher CollectionBook.tsx), mais sourcées sur le "carnet" (03_NoteBook) du Complete UI Book
    Styles Pack plutôt que sur le "bouquin 1" (01_TravelBook) — les noms de classes gardent le
