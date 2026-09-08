@@ -1,4 +1,4 @@
-// Régions de texte mesurées à la main sur les 4 cadres (public/textures/cards/frame-*.png) —
+// Régions de texte mesurées à la main sur les 4 cadres (public/textures/cards/frame/frame-*.png) —
 // source unique partagée entre CardFace.tsx (rendu DOM) et le rendu Phaser en jeu (Card.ts,
 // CardPreview.ts), pour que les deux restent alignés sur le même visuel.
 export interface CardBox

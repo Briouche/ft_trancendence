@@ -1,8 +1,8 @@
-import { MinionCard, SpellCard } from "./card";
+import { Card, MinionCard, SpellCard } from "./card";
 import { Board } from "./board";
 import { Player } from "./player";
 import { GameContext } from "./effect";
-import { Targetable } from "./target";
+import { Targetable, EnemyCharacterResolver } from "./target";
 import { Effect } from "./effect";
 import { Hero } from "./hero";
 import { freddyPassive, jeffePassive, timmyPassive } from "./legendary";
@@ -22,7 +22,7 @@ export interface ActionResult
 }
 
 export type Action =
-    | { type: "playCard"; cardIndex: number }
+    | { type: "playCard"; cardIndex: number; targetIndex?: number }
     | { type: "attack"; attackerIndex: number; targetIndex: number }
     | { type: "endTurn" };
 
@@ -41,25 +41,27 @@ export class GameEngine
         this.currentTurn = 0;
     }
 
-    startGame(): void
+    startGame(): ActionResult
     {
         for (let i = 0; i < 2; i++)
         {
             this.players[i].checkDeckForLeg();
             if (this.players[i].legPassive === "timmy")
                 timmyPassive(this.players[i]);
-            
+
             this.players[i].deck.shuffle();
             for (let j = 0; j < 3; j++)
                 this.players[i].drawCard();
             if (i === 1)
                 this.players[i].drawCard();
         }
-        this.startTurn();
+        return this.startTurn();
     }
 
     startTurn(): ActionResult
     {
+        this.animationChain = [];
+
         const player: Player = this.activePlayer();
         player.gainMana();
         player.drawCard();
@@ -67,7 +69,7 @@ export class GameEngine
         const minions: MinionCard[] = this.board.getMinions(this.currentTurn);
         for (const minion of minions)
         {
-            minion.canAttack = true;
+            minion.canAttack = !minion.effects.cannotAttack;
             if (minion.effects.rush && minion.effects.rush == true)
                 minion.effects.rush = false;
             if (minion.effects.startOfTurnEffect !== undefined)
@@ -88,9 +90,6 @@ export class GameEngine
             this.triggerMinionEndOfTurnEffect(playerIndex, minion);
     }
 
-    // fires one minion's end-of-turn effect, whether from the natural end-of-turn sweep or a
-    // card re-triggering it (e.g. Investment Goblin) — roidesrats' passive counts every such
-    // trigger and repeats every 3rd one, so it must live here rather than in endTurn().
     triggerMinionEndOfTurnEffect(playerIndex: 0 | 1, minion: MinionCard): void
     {
         if (minion.effects.endOfTurnEffect === undefined)
@@ -115,15 +114,16 @@ export class GameEngine
         }
     }
 
-    endTurn(): ActionResult
+    endTurn(): { endOfTurn: ActionResult; startOfTurn: ActionResult }
     {
         this.animationChain = [];
-
         this.triggerEndOfTurnEffects(this.currentTurn);
+        const endOfTurn: ActionResult = { succes: true, animationEvents: this.animationChain };
 
         this.currentTurn = this.currentTurn === 0 ? 1 : 0;
-        this.startTurn(); // effects and events caused by start turn are ignored right now
-        return { succes: true, animationEvents: this.animationChain };
+        const startOfTurn: ActionResult = this.startTurn();
+
+        return { endOfTurn, startOfTurn };
     }
 
     playCard(cardIndex: number, targets: Map<Effect, Targetable | null>, boardIndex?: number): ActionResult
@@ -133,6 +133,9 @@ export class GameEngine
         const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
+            return { succes: false, animationEvents: [] };
+
+        if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= 6)
             return { succes: false, animationEvents: [] };
 
         player.hand.play(cardIndex);
@@ -153,7 +156,7 @@ export class GameEngine
                 this.recordAnimationChain({ kind: "effect", sourceId: card.id, trigger: "battlecry" });
                 card.effects.battlecry.execute(context);
             }
-            else if (card.effects.rush)
+            if (card.effects.rush && !card.effects.cannotAttack)
                 card.canAttack = true;
         }
         else if (card instanceof SpellCard)
@@ -346,9 +349,32 @@ export class GameEngine
         return copy;
     }
 
+
+    getOnPlayEffect(card: Card): Effect | null
+    {
+        if (card instanceof SpellCard)
+            return card.effect;
+        if (card instanceof MinionCard && card.effects.battlecry)
+            return card.effects.battlecry;
+        return null;
+    }
+
+    // Resolves the legal targets for a card's on-play effect against the current state.
+    // Empty for cards with no on-play effect, or an effect that doesn't require a target.
+    getOnPlayTargets(card: Card): Targetable[]
+    {
+        const effect = this.getOnPlayEffect(card);
+
+        if (!effect || !effect.resolver || !effect.resolver.requiresInput)
+            return [];
+
+        const context: GameContext = { engine: this, owner: this.activePlayer(), source: card };
+        return effect.resolver.resolve(context);
+    }
+
     //getLegalActions() duplicates the mana/canAttack checks already inside playCard()/attackWithMinion().
     //If either of those changes, this needs to change with it — flag it now so it doesn't silently drift.
-    
+
     getLegalActions(): Action[]
     {
         const actions: Action[] = [];
@@ -358,19 +384,53 @@ export class GameEngine
         const hand = player.hand.getCards();
         for (let i = 0; i < hand.length; i++)
         {
-            if (hand[i].manaCost <= player.currentMana)
+            const card = hand[i];
+
+            if (card.manaCost > player.currentMana)
+                continue;
+            if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= 6)
+                continue;
+
+            const effect = this.getOnPlayEffect(card);
+
+            if (effect && effect.resolver && effect.resolver.requiresInput)
+            {
+                const targets = this.getOnPlayTargets(card);
+
+                if (targets.length === 0)
+                {
+                    if (!(card instanceof SpellCard))
+                        actions.push({ type: "playCard", cardIndex: i }); // battlecry with no legal target no-ops, same as human path
+                    // spell with no legal target: not playable, matches gameSession's "no valid targets" rejection
+                }
+                else
+                {
+                    for (let t = 0; t < targets.length; t++)
+                        actions.push({ type: "playCard", cardIndex: i, targetIndex: t });
+                }
+            }
+            else
                 actions.push({ type: "playCard", cardIndex: i });
         }
 
         const attackers = this.board.getMinions(this.currentTurn);
-        const targets    = this.board.getMinions(opponentIndex);
+        const opponentMinions = this.board.getMinions(opponentIndex);
+        const attackResolver = new EnemyCharacterResolver();
+
         for (let i = 0; i < attackers.length; i++)
         {
-            if (!attackers[i].canAttack)
+            const attacker = attackers[i];
+
+            if (!attacker.canAttack)
                 continue;
-            actions.push({ type: "attack", attackerIndex: i, targetIndex: -1 });
-            for (let t = 0; t < targets.length; t++)
-                actions.push({ type: "attack", attackerIndex: i, targetIndex: t });
+
+            const validTargets = attackResolver.resolve({ engine: this, owner: player, source: attacker });
+
+            for (const target of validTargets)
+            {
+                const targetIndex = target instanceof MinionCard ? opponentMinions.indexOf(target) : -1;
+                actions.push({ type: "attack", attackerIndex: i, targetIndex });
+            }
         }
 
         actions.push({ type: "endTurn" });

@@ -46,6 +46,7 @@ interface Keywords
     deathrattle?: Effect;
     rush?: boolean;
     taunt?: boolean;
+    cannotAttack?: boolean;
     onAttack?: Effect;
     endOfTurnEffect?: Effect;
     startOfTurnEffect?: Effect;
@@ -89,9 +90,12 @@ export class MinionCard extends Card
 
     clone(): MinionCard
     {
-        return new MinionCard(this.id + nextTokenId++, this.name, this.manaCost,
+        const copy = new MinionCard(this.id + nextTokenId++, this.name, this.manaCost,
             this.description, this.attack, this.maxHealth, { ...this.effects }, this.getLeg(), this.assetKey,
             this.baseAttack, this.baseMaxHealth, this.rarity);
+        copy.currentHealth = this.currentHealth;
+        copy.canAttack     = this.canAttack;
+        return copy;
     }
 
     isAlive(): boolean

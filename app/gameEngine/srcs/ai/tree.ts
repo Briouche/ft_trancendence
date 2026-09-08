@@ -3,6 +3,8 @@
 import { GameEngine } from "../gameEngine";
 import { Targetable } from "../target";
 import { Action } from "./types";
+import { MinionCard } from "../card";
+import { Effect } from "../effect";
 
 const UCB1_C = Math.SQRT2;
 
@@ -27,9 +29,21 @@ export function applyAction(engine: GameEngine, action: Action): GameEngine {
   const clone = engine.clone();
 
   switch (action.type) {
-    case "playCard":
-      clone.playCard(action.cardIndex, new Map());
+    case "playCard": {
+      const card = clone.activePlayer().hand.getCards()[action.cardIndex];
+      const targets = new Map<Effect, Targetable | null>();
+      const effect = clone.getOnPlayEffect(card);
+
+      if (effect) {
+        const target = action.targetIndex !== undefined
+          ? clone.getOnPlayTargets(card)[action.targetIndex] ?? null
+          : null;
+        targets.set(effect, target);
+      }
+
+      clone.playCard(action.cardIndex, targets);
       break;
+    }
     case "attack": {
       const opponentIdx: 0 | 1 = clone.currentTurn === 0 ? 1 : 0;
       const target: Targetable = action.targetIndex === -1
@@ -90,26 +104,57 @@ export function expand(node: MCTSNode): MCTSNode {
 // Plays a full game out to the end using random moves on both sides, just
 // to get a rough "did this path lead to a win or a loss" signal.
 
-export function simulate(state: GameEngine, forPlayer: 0 | 1): number {
+function evaluate(state: GameEngine, forPlayer: 0 | 1): number 
+{
+  const oppPlayer = forPlayer === 0 ? 1 : 0;
+  const me  = state.players[forPlayer];
+  const opp = state.players[oppPlayer];
+
+  const hpDiff = (me.hero.currentHealth / me.hero.maxHealth)
+               - (opp.hero.currentHealth / opp.hero.maxHealth);
+
+  const boardScore = (minions: MinionCard[]) =>
+    minions.reduce((sum, m) => sum + m.attack + m.currentHealth, 0);
+  const boardDiff = boardScore(state.board.getMinions(forPlayer))
+                   - boardScore(state.board.getMinions(oppPlayer));
+
+  const handDiff = me.hand.size() - opp.hand.size();
+
+  const W_HP = 1.0, W_BOARD = 0.05, W_HAND = 0.1;
+  const raw = W_HP * hpDiff + W_BOARD * boardDiff + W_HAND * handDiff;
+
+  return 0.5 + 0.5 * Math.tanh(raw);
+}
+
+export function simulate(state: GameEngine, forPlayer: 0 | 1): number 
+{
   let s = state;
   const MAX_DEPTH = 60;
 
-  for (let d = 0; d < MAX_DEPTH && !s.isTerminal(); d++) {
+  for (let d = 0; d < MAX_DEPTH && !s.isTerminal(); d++) 
+  {
     const actions = s.getLegalActions();
     s = applyAction(s, actions[Math.floor(Math.random() * actions.length)]);
   }
 
-  const winner = s.getWinner();
-  if (winner === forPlayer) return 1;
-  if (winner === null)      return 0.5;
-  return 0;
+  if (s.isTerminal()) 
+  {
+    const winner = s.getWinner();
+    if (winner === forPlayer) return 1;
+    if (winner === null)      return 0.5;
+    return 0;
+  }
+
+  return evaluate(s, forPlayer);
 }
 
 // After a simulated game ends, walks back up the tree updating each node's
 // win/loss record — this is how the AI "learns" which early moves were good.
 
-export function backpropagate(node: MCTSNode | null, result: number, forPlayer: 0 | 1): void {
-  for (let n = node; n !== null; n = n.parent) {
+export function backpropagate(node: MCTSNode | null, result: number, forPlayer: 0 | 1): void 
+{
+  for (let n = node; n !== null; n = n.parent) 
+  {
     n.visits++;
     n.wins += n.ownerIndex === forPlayer ? result : 1 - result;
   }

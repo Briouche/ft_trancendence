@@ -32,14 +32,19 @@ model User {
   cards         UserCard[]
   unopenedPacks Int        @default(0)
   pityCounter   Int        @default(0)
-  // Aucun mode de jeu live n'existe encore : reste à 0 pour tout le monde pour l'instant, prêt
-  // à être incrémenté une fois qu'une partie peut se terminer.
-  wins          Int        @default(0)
+  // Décomptées séparément par type d'adversaire — voir GameSession.recordResult (gameEngine) qui
+  // incrémente le bon compteur à la fin de chaque partie, selon le seat en face (IA + sa
+  // difficulté, ou un vrai joueur).
+  winsVsAiEasy   Int @default(0)
+  winsVsAiMedium Int @default(0)
+  winsVsAiHard   Int @default(0)
+  winsVsPlayer   Int @default(0)
   // Index (0-7) dans le catalogue de dos de carte cosmétiques — voir lib/cardBacks.ts.
   cardBack      Int        @default(0)
-  // Designs de dos de carte débloqués (index 0 offert d'office à tout le monde) — les autres
-  // s'obtiennent en paquet, comme un drop rare (voir lib/packs.ts).
-  unlockedCardBacks Int[]  @default([0])
+  // Designs de dos de carte débloqués (index 0-2 offerts d'office à tout le monde) — les 5
+  // restants (3-7) sont réservés à un haut fait précis, jamais offerts ni tirables en paquet
+  // (voir ACHIEVEMENT_CARD_BACKS dans lib/cardBacks.ts et packs.ts).
+  unlockedCardBacks Int[]  @default([0, 1, 2])
 }
 
 enum Keyword {
@@ -61,6 +66,7 @@ enum Keyword {
 model Card {
   id       String     @id
   assetKey String     @default("placeholder_card")
+  artist   String?
   name     String
   type     String     @default("")
   rarity   String
@@ -72,10 +78,11 @@ model Card {
   legendId String     @default("")
   decks    DeckCard[]
 
-  taunt     Boolean?
-  rush      Boolean?
-  archi     Boolean?
-  spellpower Int?
+  taunt        Boolean?
+  rush         Boolean?
+  cannotAttack Boolean?
+  archi        Boolean?
+  spellpower   Int?
 
   battlecry         Json?
   deathrattle       Json?

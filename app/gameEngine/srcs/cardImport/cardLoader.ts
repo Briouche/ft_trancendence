@@ -50,6 +50,7 @@ export function rawToMinionCard(raw: RawCard, playerPrefix = "", suffix = ""): M
         {
             taunt: raw.taunt ?? undefined,
             rush: raw.rush ?? undefined,
+            cannotAttack: raw.cannotAttack ?? undefined,
             archi: raw.archi ?? undefined,
             spellpower: raw.spellpower ?? undefined,
             battlecry:          buildEffect(raw.battlecry as EffectSpec | null),
@@ -177,6 +178,45 @@ export async function makeDeckFromDeckId(deckId: number, playerPrefix = ""): Pro
             cardIds.push(dc.cardId)
 
     return makeDeckFromIds(cardIds, playerPrefix)
+}
+
+
+export async function getUsernameForDeck(deckId: number): Promise<string | null>
+{
+    const deck = await prisma.deck.findUnique({ where: { id: deckId }, select: { user: { select: { username: true } } } })
+    return deck?.user.username ?? null
+}
+
+
+export async function getUserIdForDeck(deckId: number): Promise<number | null>
+{
+    const deck = await prisma.deck.findUnique({ where: { id: deckId }, select: { userId: true } })
+    return deck?.userId ?? null
+}
+
+export type WinCategory = 'winsVsAiEasy' | 'winsVsAiMedium' | 'winsVsAiHard' | 'winsVsPlayer'
+
+
+const WIN_CATEGORY_CARD_BACK: Record<WinCategory, number> = {
+    winsVsPlayer:   3,
+    winsVsAiEasy:   4,
+    winsVsAiMedium: 5,
+    winsVsAiHard:   6,
+}
+
+
+export async function recordWin(userId: number, category: WinCategory): Promise<void>
+{
+    await prisma.user.update({ where: { id: userId }, data: { [category]: { increment: 1 } } })
+    await unlockCardBackIfNeeded(userId, WIN_CATEGORY_CARD_BACK[category])
+}
+
+async function unlockCardBackIfNeeded(userId: number, index: number): Promise<void>
+{
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { unlockedCardBacks: true } })
+    if (!user || user.unlockedCardBacks.includes(index))
+        return
+    await prisma.user.update({ where: { id: userId }, data: { unlockedCardBacks: { set: [...user.unlockedCardBacks, index] } } })
 }
 
 function pickRandom<T>(arr: T[]): T

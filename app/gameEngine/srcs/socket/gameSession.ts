@@ -9,8 +9,18 @@ import { Targetable, EnemyCharacterResolver } from "../target";
 import { getBestAction } from "../ai/mcts";
 import { Action } from "../ai/types";
 import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
+import { recordWin, WinCategory } from "../cardImport/cardLoader";
 
-export type Seat = { kind: "human"; socket: Socket } | { kind: "ai" };
+export type Seat = { kind: "human"; socket: Socket; userId: number | null } | { kind: "ai" };
+
+// Quel compteur (User.winsVsAi{Easy,Medium,Hard}) créditer selon la difficulté de la partie —
+// utilisé uniquement quand le perdant est l'IA ; winsVsPlayer (vrai adversaire humain) est câblé
+// à part, voir recordResult.
+const DIFFICULTY_WIN_CATEGORY: Record<Difficulty, WinCategory> = {
+    facile:    "winsVsAiEasy",
+    moyen:     "winsVsAiMedium",
+    difficile: "winsVsAiHard",
+}
 
 interface PendingTarget
 {
@@ -44,7 +54,8 @@ export class GameSession
         this.send(0, { type: "assigned", playerIndex: 0 });
         this.send(1, { type: "assigned", playerIndex: 1 });
         console.log("players assigned... game starting!");
-        this.engine.startGame();
+        const startResult = this.engine.startGame();
+        this.broadcastAnimationEvents(startResult.animationEvents);
         this.broadcastState();
         this.runAiTurnLoop();
     }
@@ -69,6 +80,7 @@ export class GameSession
             return -1;
 
         const playerIndex = idx as 0 | 1;
+        const previousSeat = this.seats[playerIndex];
 
         if (this.disconnectTimers[playerIndex])
         {
@@ -76,7 +88,7 @@ export class GameSession
             this.disconnectTimers[playerIndex] = null;
         }
 
-        this.seats[playerIndex] = { kind: "human", socket };
+        this.seats[playerIndex] = { kind: "human", socket, userId: previousSeat.kind === "human" ? previousSeat.userId : null };
         socket.on("message", (msg: ClientMessage) => this.handle(playerIndex, msg));
 
         this.send(playerIndex, { type: "assigned", playerIndex });
@@ -140,11 +152,24 @@ export class GameSession
             return;
 
         this.gameOver = true;
-        const winnerIndex: number = alive[0] ? 0 : 1;
+        const winnerIndex: 0 | 1 = alive[0] ? 0 : 1;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(1 - winnerIndex, { type: "gameOver", winner: "opponent" });
+        this.recordResult(winnerIndex);
         this.onGameEnd();
         return ;
+    }
+
+    private recordResult(winnerIndex: 0 | 1): void
+    {
+        const winnerSeat = this.seats[winnerIndex];
+        const loserSeat = this.seats[1 - winnerIndex];
+
+        if (winnerSeat.kind !== "human" || winnerSeat.userId === null)
+            return;
+
+        const category: WinCategory = loserSeat.kind === "ai" ? DIFFICULTY_WIN_CATEGORY[this.difficulty] : "winsVsPlayer";
+        recordWin(winnerSeat.userId, category).catch(err => console.error("Failed to record win:", err));
     }
 
     private send(playerIndex: number, msg: ServerMessage): void
@@ -337,7 +362,7 @@ export class GameSession
             this.reject(playerIndex, "unable to play card");
             return;
         }
-        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card) });
+        this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card), targetId: target ? this.targetToOption(target).id : undefined });
         this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastState();
         this.checkGameOver();
@@ -439,17 +464,17 @@ export class GameSession
         const winnerIndex: 0 | 1 = loserIndex === 0 ? 1 : 0;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(loserIndex, { type: "gameOver", winner: "opponent" });
+        this.recordResult(winnerIndex);
         this.onGameEnd();
     }
 
     handleEndTurn()
     {
-        let result: ActionResult;
-
-        result = this.engine.endTurn();
+        const { endOfTurn, startOfTurn } = this.engine.endTurn();
         this.pending = null;
-        this.broadcastAnimationEvents(result.animationEvents);
         this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
+        this.broadcastAnimationEvents(endOfTurn.animationEvents);
+        this.broadcastAnimationEvents(startOfTurn.animationEvents);
         this.broadcastState();
         this.checkGameOver();
         this.runAiTurnLoop();
@@ -462,19 +487,9 @@ export class GameSession
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
             let action: Action;
-
-            //bug where getBestAction never comes back, added timeout to cardLoader so no infinite wait 
-            //isnt a real solution because it still fails, just end turn?
-            try
-            {
-                action = await getBestAction(this.engine, simulations, worlds);
-            }
-            catch (err)
-            {
-                console.error("AI turn failed, ending turn instead of hanging:", err);
-                action = { type: "endTurn" };
-            }
-
+            
+            action = await getBestAction(this.engine, simulations, worlds);
+            
             this.applyAiAction(action);
 
             if (action.type !== "endTurn")
@@ -489,25 +504,52 @@ export class GameSession
 
     private applyAiAction(action: Action): void
     {
+        if (action.type === "endTurn")
+        {
+            const { endOfTurn, startOfTurn } = this.engine.endTurn();
+            this.broadcastEvent({ type: "turnEnded", nextPlayerIndex: this.engine.currentTurn as 0 | 1 });
+            this.broadcastAnimationEvents(endOfTurn.animationEvents);
+            this.broadcastAnimationEvents(startOfTurn.animationEvents);
+            this.broadcastState();
+            this.checkGameOver();
+            return;
+        }
+
         let result: ActionResult;
 
         switch (action.type)
         {
             case "playCard":
             {
+                const playerIndex = this.engine.currentTurn;
+                const player: Player = this.engine.players[playerIndex];
+                const card: Card = player.hand.getCards()[action.cardIndex];
                 const targets: Map<Effect, Targetable | null> = new Map();
+                const effect = this.engine.getOnPlayEffect(card);
+                let target: Targetable | null = null;
+
+                if (effect)
+                {
+                    target = action.targetIndex !== undefined
+                        ? this.engine.getOnPlayTargets(card)[action.targetIndex] ?? null
+                        : null;
+                    targets.set(effect, target);
+                }
+
                 result = this.engine.playCard(action.cardIndex, targets);
+                if (result.succes)
+                    this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card), targetId: target ? this.targetToOption(target).id : undefined });
                 break;
             }
             case "attack":
             {
                 const target: Targetable = this.resolveAiTarget(action.targetIndex);
+                const attackerId = this.engine.board.getMinions(this.engine.currentTurn)[action.attackerIndex]?.id;
                 result = this.engine.attackWithMinion(action.attackerIndex, target);
+                if (result.succes && attackerId !== undefined)
+                    this.broadcastEvent({ type: "attack", attackerId, targetId: this.targetToOption(target).id, playerIndex: this.engine.currentTurn });
                 break;
             }
-            case "endTurn":
-                result = this.engine.endTurn();
-                break;
         }
 
         this.broadcastAnimationEvents(result.animationEvents);

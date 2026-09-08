@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Card, CardData } from "./card/Card";
 import { attachCardHover } from "../animations";
+import { detachCardPreviewHover } from "./card/CardPreview";
 
 const HAND_Y_RATIO = 0.14;
 const CARD_HEIGHT_RATIO = 0.26;
@@ -16,6 +17,8 @@ export class Hand
 {
     private scene: Phaser.Scene;
     private cards: Card[] = [];
+    private isMyTurn: boolean = false;
+    private mana: number = 0;
 
     constructor(scene: Phaser.Scene)
     {
@@ -28,7 +31,8 @@ export class Hand
         const cardWidth = cardHeight / CARD_ASPECT_RATIO;
 
         const card: Card = new Card(this.scene, data, cardWidth, cardHeight);
-        card.setCardContext(false, false, true);
+        card.setCardContext(false, this.isMyTurn, true);
+        card.setAvailableMana(this.mana);
         attachCardHover(card);
         this.cards.push(card);
         this.layout();
@@ -92,8 +96,11 @@ export class Hand
         }
     }
 
-    syncHandFromState(cards: CardData[]): void
+    syncHandFromState(cards: CardData[], isMyTurn: boolean, mana: number): void
     {
+        this.isMyTurn = isMyTurn;
+        this.mana = mana;
+
         const incomingIds: Set<string> = new Set(cards.map((c) => c.id));
         const current: Card[] = this.getCards();
 
@@ -110,7 +117,8 @@ export class Hand
             if (existing)
             {
                 existing.updateData(data);
-                existing.setCardContext(false, false, true);
+                existing.setCardContext(false, this.isMyTurn, true);
+                existing.setAvailableMana(this.mana);
             }
             else
                 this.addCard(data);
@@ -136,6 +144,12 @@ export class Hand
     {
         if (!this.cards.includes(card))
             this.cards.push(card);
+        card.setCardContext(false, this.isMyTurn, true);
+        card.setAvailableMana(this.mana);
+        detachCardPreviewHover(card);
+        card.off("pointerover");
+        card.off("pointerout");
+        attachCardHover(card);
         this.layout();
     }
 }

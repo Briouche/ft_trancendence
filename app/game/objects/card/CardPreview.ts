@@ -2,11 +2,13 @@ import Phaser from "phaser";
 import { Card, CardData, withStartingStats } from "./Card";
 import { clientEffect } from "../../shared/protocol";
 import { ensureCardArt, resolveCardFrameKey, resolveInitialCardArt } from "./CardAssetLoader";
-import { boxCenterOffset, layoutBoxImage, layoutBoxText, maximizeTextToBox, maximizeWrappedTextToBox } from "./cardTextLayout";
+import {
+    boxCenterOffset, layoutBoxImage, layoutBoxText, maximizeTextToBox, maximizeWrappedTextToBox,
+    GAME_ATTACK_BOX, GAME_COST_BOX, GAME_COST_BOX_SPELL, GAME_HEALTH_BOX,
+} from "./cardTextLayout";
 import { GAME_FONT_FAMILY_KEY } from "./../gameFontRegistry";
 import {
-    CARD_ART_BOX, CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_DESC_BOX, CARD_DESC_BOX_SPELL,
-    CARD_HEALTH_BOX, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, isSpellRarity,
+    CARD_ART_BOX, CARD_DESC_BOX, CARD_DESC_BOX_SPELL, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, isSpellRarity,
 } from "@/lib/cardLayout";
 
 const PREVIEW_DEPTH = 3200;
@@ -53,7 +55,7 @@ class CardPreview extends Phaser.GameObjects.Container
         const fontFamily = scene.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
         const isSpell = isSpellRarity(cardData.rarity);
         const nameBox = isSpell ? CARD_NAME_BOX_SPELL : CARD_NAME_BOX;
-        const costBox = isSpell ? CARD_COST_BOX_SPELL : CARD_COST_BOX;
+        const costBox = isSpell ? GAME_COST_BOX_SPELL : GAME_COST_BOX;
 
         const nameText = scene.add.text(0, 0, cardData.name,
             { fontFamily, color: "#020202", stroke: "#ffffff", strokeThickness: 3 }).setOrigin(0.5);
@@ -83,11 +85,11 @@ class CardPreview extends Phaser.GameObjects.Container
         {
             const attackText = scene.add.text(0, 0, `${cardData.attack}`,
                 { fontFamily, color: "#ffffff", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5);
-            layoutBoxText(attackText, CARD_ATTACK_BOX, previewWidth, previewHeight, 0.20);
+            layoutBoxText(attackText, GAME_ATTACK_BOX, previewWidth, previewHeight, 0.20);
 
             const healthText = scene.add.text(0, 0, `${cardData.health}`,
                 { fontFamily, color: "#ffffff", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5);
-            layoutBoxText(healthText, CARD_HEALTH_BOX, previewWidth, previewHeight, 0.20);
+            layoutBoxText(healthText, GAME_HEALTH_BOX, previewWidth, previewHeight, 0.20);
 
             children.push(attackText, healthText);
         }
@@ -147,8 +149,12 @@ class CardPreview extends Phaser.GameObjects.Container
     }
 }
 
+const previewCleanups = new WeakMap<Card, () => void>();
+
 export function attachCardPreviewHover(card: Card): void
 {
+    detachCardPreviewHover(card);
+
     let timer: Phaser.Time.TimerEvent | null = null;
     let preview: CardPreview | null = null;
 
@@ -169,6 +175,22 @@ export function attachCardPreviewHover(card: Card): void
     });
     card.on("pointerout", clear);
     card.once(Phaser.GameObjects.Events.DESTROY, clear);
+
+    previewCleanups.set(card, clear);
+}
+
+// Must be called before stripping/replacing a card's listeners (e.g. moving it
+// between hand and board) so a pending delayed preview can't fire after the
+// hover that requested it has already been torn down — that preview would
+// then have no pointerout/destroy handler left to clear it.
+export function detachCardPreviewHover(card: Card): void
+{
+    const clear = previewCleanups.get(card);
+    if (clear)
+    {
+        clear();
+        previewCleanups.delete(card);
+    }
 }
 
 export function showCardPreview(scene: Phaser.Scene, cardData: CardData, durationMs: number = PLAYED_DURATION_MS): void

@@ -8,6 +8,7 @@ export interface clientEffect
     onDamage?: boolean;
     battlecry?: boolean;
     rush?: boolean;
+    cannotAttack?: boolean;
     archi?: boolean;
 }
 
@@ -54,6 +55,8 @@ export interface ClientGameState
     pendingPrompt?: TargetPrompt;
     mana: number;
     maxMana: number;
+    opponentMana: number;
+    opponentMaxMana: number;
     playerDeck: number;
     opponentDeck: number;
 }
@@ -62,7 +65,7 @@ export type GameEvent = { type: "attack"; attackerId: string; targetId: string; 
     | { type: "damage"; targetId: string; amount: number; targetDied: boolean }
     | { type: "heal"; targetId: string; amount: number }
     | { type: "buff"; targetId: string; attackDelta: number; healthDelta: number }
-    | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number; card: ClientCard }
+    | { type: "cardPlayed"; cardId: string; playerIndex: 0 | 1; boardIndex?: number; card: ClientCard; targetId?: string }
     | { type: "summon"; minionId: string; playerIndex: 0 | 1; boardIndex?: number; card: ClientCard }
     | { type: "minionDied"; minionId: string; playerIndex: 0 | 1 }
     | { type: "effect"; minionId: string; playerIndex: 0 | 1; trigger: "passive" | "battlecry" | "deathrattle" }

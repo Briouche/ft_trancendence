@@ -4,11 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { checkCredentials } from "@/lib/auth";
-
-import Form from "@/components/elements/Form";
-import FormButton from "@/components/elements/FormButton";
-import TextField from "@/components/elements/TextField";
 import { ROUTES } from "@/config/routes";
+import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
 
 export default function SignInForm() {
   const [error, setError] = useState("");
@@ -49,59 +46,92 @@ export default function SignInForm() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-vertical">
-      <Form
-        title="Sign In"
-        action={handleSubmit}
-        footer={
-          <>
-            New here?{" "}
-            <Link
-              href={ROUTES.register}
-              className="font-medium text-ink-text hover:underline"
-            >
-              Create an account
-            </Link>
-          </>
-        }
-      >
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-        <TextField
-          name="username"
-          label="Username"
-          type="text"
-          autoComplete="username"
-          placeholder="..."
-          required
-          minLength={3}
-          maxLength={30}
-        />
-        <TextField
-          name="password"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="..."
-          required
-          maxLength={128}
-        />
-        <FormButton className="mt-3" disabled={pending}>
-          {pending ? "Signing in..." : "Sign in"}
-        </FormButton>
-
-        <div className="flex items-center gap-3 py-1">
-          <span className="h-px flex-1 bg-ink-muted/30" />
-          <span className="font-pixel text-xs text-ink-muted">or</span>
-          <span className="h-px flex-1 bg-ink-muted/30" />
-        </div>
-
-        <a
-          href="/api/auth/42"
-          className="w-72 self-center rounded-btn border border-gold-500/50 bg-ink-900 px-4 py-2 text-center font-pixel text-lg text-gold-300 transition-colors hover:bg-ink-800"
+      {/* Même cadre "parchemin" (Frame04a) que l'encart du Deck Builder — cohérent avec le
+          reste du site sourcé sur le carnet, plutôt que le popup.png du Essential Pack. */}
+      <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
+        <h2
+          className="text-center font-display text-5xl font-bold text-white"
+          style={outlinedWhiteTextStyle}
         >
-          Sign in with 42
-        </a>
-      </Form>
+          Sign In
+        </h2>
+
+        <form action={handleSubmit} className="mt-5 flex flex-col gap-3">
+          {error && (
+            <p role="alert" className="text-center text-sm text-red-500">
+              {error}
+            </p>
+          )}
+
+          <label className="flex flex-col gap-1">
+            <span className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
+              Username
+            </span>
+            <input
+              name="username"
+              type="text"
+              autoComplete="username"
+              placeholder="..."
+              required
+              minLength={3}
+              maxLength={30}
+              className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
+                text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
+              Password
+            </span>
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="..."
+              required
+              maxLength={128}
+              className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
+                text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={pending}
+            className="travelbook-slot03a mt-2 h-11 w-full font-display text-lg font-bold text-white
+              transition-transform active:scale-95 disabled:opacity-30"
+            style={outlinedWhiteTextStyle}
+          >
+            {pending ? "Signing in..." : "Sign in"}
+          </button>
+
+          <div className="flex items-center gap-3 py-1">
+            <span className="h-px flex-1 bg-ink-muted/30" />
+            <span className="font-serif text-xs text-ink-muted">or</span>
+            <span className="h-px flex-1 bg-ink-muted/30" />
+          </div>
+
+          <a
+            href="/api/auth/42"
+            className="travelbook-slot03a flex h-11 w-full items-center justify-center
+              font-display text-lg font-bold text-white transition-transform active:scale-95"
+            style={outlinedWhiteTextStyle}
+          >
+            Sign in with 42
+          </a>
+        </form>
+
+        <p className="mt-5 text-center font-serif text-base text-ink-muted">
+          New here?{" "}
+          <Link
+            href={ROUTES.register}
+            className="font-medium text-ink-text hover:underline"
+          >
+            Create an account
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

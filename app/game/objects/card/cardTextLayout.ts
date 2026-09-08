@@ -1,5 +1,24 @@
 import Phaser from "phaser";
-import { CardBox } from "@/lib/cardLayout";
+import { CardBox, CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_HEALTH_BOX } from "@/lib/cardLayout";
+
+// Cases mana/ATK/DEF un peu plus grandes que celles partagées avec le rendu DOM (CardFace.tsx,
+// cardLayout.ts) — en jeu les cartes s'affichent souvent bien plus petites (main, plateau) qu'à
+// l'écran de collection, donc ces chiffres ont besoin de plus de place pour rester lisibles.
+// Recentrées sur le même point que la case d'origine, pour ne pas se décaler de l'icône.
+function growBox(box: CardBox, extraWidth: number, extraHeight: number): CardBox
+{
+    return {
+        left: box.left - extraWidth / 2,
+        top: box.top - extraHeight / 2,
+        width: box.width + extraWidth,
+        height: box.height + extraHeight,
+    };
+}
+
+export const GAME_COST_BOX = growBox(CARD_COST_BOX, 5, 5);
+export const GAME_COST_BOX_SPELL = growBox(CARD_COST_BOX_SPELL, 5, 5);
+export const GAME_ATTACK_BOX = growBox(CARD_ATTACK_BOX, 5, 5);
+export const GAME_HEALTH_BOX = growBox(CARD_HEALTH_BOX, 5, 5);
 
 export function boxCenterOffset(box: CardBox, width: number, height: number): { x: number; y: number }
 {
@@ -91,15 +110,30 @@ export function layoutBoxText(text: Phaser.GameObjects.Text, box: CardBox, width
     fitTextToBox(text, boxWidthPx, boxHeightPx);
 }
 
+// "Cover" à la CSS : chaque illustration source a son propre ratio (voir CardAssetLoader.ts), qui
+// ne colle jamais exactement à celui de la case. Plutôt que de la faire tenir entière dans la case
+// (quitte à laisser du vide sur un axe), on la fait toujours remplir la case en entier, en rognant
+// l'excédent — centré, donc symétrique — sur l'axe qui dépasse. Le rognage se fait en repère
+// source (setCrop, avant setDisplaySize) : une fois la zone recadrée à ce ratio, l'étirer aux
+// dimensions exactes de la case ne déforme plus rien.
 export function layoutBoxImage(image: Phaser.GameObjects.Image, box: CardBox, width: number, height: number): void
 {
     const boxWidthPx = (box.width / 100) * width;
+    const boxHeightPx = (box.height / 100) * height;
     const offset = boxCenterOffset(box, width, height);
     image.setPosition(offset.x, offset.y);
 
     const source = image.frame;
-    const targetScale = boxWidthPx / source.width;
-    const maxScale = Math.min(width / source.width, height / source.height);
-    const scale = Math.min(targetScale, maxScale);
-    image.setDisplaySize(source.width * scale, source.height * scale);
+    const boxRatio = boxWidthPx / boxHeightPx;
+    const sourceRatio = source.width / source.height;
+
+    let cropWidth = source.width;
+    let cropHeight = source.height;
+    if (sourceRatio > boxRatio)
+        cropWidth = source.height * boxRatio;
+    else
+        cropHeight = source.width / boxRatio;
+
+    image.setCrop((source.width - cropWidth) / 2, (source.height - cropHeight) / 2, cropWidth, cropHeight);
+    image.setDisplaySize(boxWidthPx, boxHeightPx);
 }
