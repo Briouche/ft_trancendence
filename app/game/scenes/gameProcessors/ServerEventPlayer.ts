@@ -154,6 +154,8 @@ export class ServerEventPlayer
             await this.runEffectAnimation(event.trigger, existing);
             return;
         }
+        // The minion this effect belongs to isn't on the board yet (its own "summon" event hasn't
+        // been synced in) — defer the animation until StateSyncController.apply() materializes it.
         this.deferUntilCardExists(event.minionId, (card) =>
         {
             void this.runEffectAnimation(event.trigger, card);

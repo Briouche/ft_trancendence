@@ -17,10 +17,13 @@ const BUFFED_STAT_COLOR = "#09d84e";
 const MAX_STAT_COLOR = "#fbfbfb";
 const STAT_COLOR = "#eb0a0a";
 
-// Plafond de la police de la description, relatif à la hauteur de sa case — sans lui, un texte
-// très court (ex: un seul mot) grandirait jusqu'à remplir toute la hauteur de la case sur une
-// seule ligne géante.
+// Ceiling on the description's font size, relative to its box height, so a single short word
+// can't grow into one giant line filling the whole box.
 const DESC_MAX_FONT_RATIO = 0.225;
+
+// Visual representation of one card, in hand or on the board — renders frame/art/text from
+// CardData and exposes resize()/updateData()/updateStats() for the server-driven sync layer to
+// call as state changes. Drag/drop and hover wiring live in InputController and animations/hover.ts.
 
 export interface CardData
 {
@@ -128,6 +131,9 @@ export class Card extends Phaser.GameObjects.Container
 
         this.setInteractive({ draggable: true, useHandCursor: true });
 
+        // Card art loads lazily on demand, so the texture may not be ready yet: use it immediately
+        // if cached, otherwise show the frame bare and swap the texture in once ensureCardArt's
+        // async load completes.
         const { key: artKey, needsAsyncLoad } = resolveInitialCardArt(scene, cardData.assetKey);
         if (artKey)
             this.setArtTexture(artKey);
@@ -216,6 +222,10 @@ export class Card extends Phaser.GameObjects.Container
         this.drawEffects(width, height);
     }
 
+    // Records the slot this card should sit at ("base") on every layout pass, but only snaps
+    // position/rotation/depth to it the first time — afterward, callers animate toward the new
+    // base themselves (e.g. returnToBase()), so a resize doesn't yank a mid-drag/mid-animation
+    // card to its new spot instantly.
     setTransform(x: number, y: number, rotation: number, depth: number)
     {
         this.baseDepth = depth;

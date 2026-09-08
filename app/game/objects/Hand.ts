@@ -3,6 +3,9 @@ import { Card, CardData } from "./card/Card";
 import { attachCardHover } from "../animations";
 import { detachCardPreviewHover } from "./card/CardPreview";
 
+// Owns the local player's hand: holds the Card instances, and lays them out in a fanned arc
+// (see layout()) that re-flows whenever cards are added/removed or the canvas resizes.
+
 const HAND_Y_RATIO = 0.14;
 const CARD_HEIGHT_RATIO = 0.26;
 const CARD_ASPECT_RATIO = 1.4;

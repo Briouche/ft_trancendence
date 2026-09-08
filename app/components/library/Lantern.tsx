@@ -6,25 +6,25 @@ import * as THREE from 'three'
 import { LANTERN } from './theme'
 
 type Props = (
-    // Accrochée à la caméra : utilisée dans le hall en FPS, où la souris EST la direction du
-    // regard (pointer lock) — la lanterne suit donc le regard sans calcul supplémentaire.
+    // Attached to the camera: used in the FPS hall, where the mouse IS the look direction
+    // (pointer lock) — so the lantern follows the gaze with no extra computation.
     | { mode: 'attached' }
-    // Suit la souris à travers le cadre de la caméra, sur un plan perpendiculaire à son axe
-    // de vue (et non le sol) : reste stable et couvre tout l'écran quel que soit l'angle de
-    // la caméra — une projection sur le sol devient dégénérée dès que la caméra vise à
-    // l'horizontale (le rayon ne croise plus jamais le plan y=0 dans la moitié haute de l'écran).
+    // Follows the mouse across the camera's frame, on a plane perpendicular to its view axis
+    // (not the floor): stays stable and covers the whole screen regardless of camera angle — a
+    // floor projection becomes degenerate as soon as the camera looks toward the horizon (the
+    // ray never crosses the y=0 plane anymore in the upper half of the screen).
     | { mode: 'mouse-track'; distance?: number; spreadX?: number; spreadY?: number }
 ) & {
-    // Surcharges optionnelles du faisceau (par défaut les constantes LANTERN) : une pièce plus
-    // large qu'une salle de table (le hall) a besoin d'un faisceau plus étroit/moins intense
-    // pour rester une flaque de lumière crédible plutôt qu'un lavage general du sol.
+    // Optional beam overrides (defaulting to the LANTERN constants): a room wider than a table
+    // room (the hall) needs a narrower/dimmer beam to stay a believable pool of light rather than
+    // a general floor wash.
     lightIntensity?: number
     lightAngle?:     number
     lightDistance?:  number
 }
 
-// La lanterne : unique source de lumière chaude et mobile de chaque scène, tout le reste
-// n'étant éclairé qu'en pénombre par l'ambient light d'Atmosphere.
+// The lantern: each scene's single warm, moving light source — everything else is only lit in
+// dim ambient light from Atmosphere.
 export default function Lantern(props: Props) {
     const { lightIntensity = LANTERN.intensity, lightAngle = LANTERN.angle, lightDistance = LANTERN.distance } = props
     const lightRef = useRef<THREE.SpotLight>(null)

@@ -1,4 +1,6 @@
-
+// A player's hero: just a health pool that's also a valid combat Targetable (see target.ts).
+// Kept separate from Player (which owns hand/deck/mana) since heroes, unlike players, can be
+// targeted and damaged/healed the same way minions are.
 export class Hero
 {
     public readonly name: string;

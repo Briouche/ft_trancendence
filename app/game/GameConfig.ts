@@ -9,9 +9,8 @@ export function createGameConfig(parent: HTMLDivElement, mode: GameMode, difficu
 {
     return {
         type: Phaser.AUTO, parent, backgroundColor: "#5858b3",
-        // roundPixels : sans ça, le texte des cartes (positionné à des coordonnées en %
-        // converties en float, pas forcément sur un pixel entier) rendait légèrement flou/
-        // anti-crénelé au lieu de net.
+        // roundPixels: card text sits at percentage-based coordinates converted to floats, which
+        // don't always land on an integer pixel — this keeps it crisp instead of blurry.
         roundPixels: true,
         scale: { mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.CENTER_BOTH, width: "100%", height: "100%" },
         scene: [BootScene, GameScene],

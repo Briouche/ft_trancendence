@@ -102,9 +102,9 @@ export class Manabar
             this.icons.pop()?.destroy();
     }
 
-    // Positionne pips/bannière/texte ensemble : `width` (venu de Board, via resize()) n'est plus
-    // qu'un plancher — la bannière (NineSlice, s'étire proprement) s'élargit au-delà dès que la
-    // rangée de pips en a besoin, plutôt que de garder une taille fixe quel que soit maxMana.
+    // Positions pips/banner/text together. `width` (passed in from Board via resize()) is only a
+    // floor: the banner (a NineSlice, which stretches cleanly) grows beyond it whenever the pip
+    // row needs more room, rather than staying a fixed size regardless of maxMana.
     private layout(): void
     {
         const count = this.icons.length;
@@ -125,8 +125,8 @@ export class Manabar
             icon.setPosition(startX + i * spacing, this.y);
         }
 
-        // Repose sur la largeur du texte déjà mesurée par Phaser (pas un décalage fixe) pour ne
-        // jamais chevaucher la bannière, quel que soit le nombre de chiffres affichés.
+        // Uses the text's own width, already measured by Phaser (not a fixed offset), so the label
+        // never overlaps the banner no matter how many digits it displays.
         this.text.setPosition(this.x - effectiveWidth / 2 - this.height * TEXT_GAP_RATIO - this.text.width / 2, this.y);
     }
 }

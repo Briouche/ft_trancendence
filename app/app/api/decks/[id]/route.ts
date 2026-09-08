@@ -12,12 +12,12 @@ export async function PUT(
   const { id } = await params;
   const { name, cards } = await req.json();
 
-  // Un deck n'appartenant pas à l'utilisateur connecté ne matche aucune ligne ici (userId dans
-  // le where, pas juste id) — évite qu'un joueur modifie le deck d'un autre en devinant son id.
+  // A deck not owned by the current user matches no row here (userId is part of the where,
+  // not just id) — stops a player from editing someone else's deck by guessing its id.
   const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Supprime les anciennes cartes du deck et les remplace par les nouvelles
+  // Drop the deck's current cards; the new set is recreated below via the nested create.
   await prisma.deckCard.deleteMany({ where: { deckId: Number(id) } });
 
   const deck = await prisma.deck.update({
@@ -45,7 +45,7 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Même vérification d'appartenance que PUT — évite qu'un joueur supprime le deck d'un autre.
+  // Same ownership check as PUT — stops a player from deleting someone else's deck.
   const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

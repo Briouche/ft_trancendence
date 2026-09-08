@@ -46,8 +46,8 @@ export default function SignInForm() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-vertical">
-      {/* Même cadre "parchemin" (Frame04a) que l'encart du Deck Builder — cohérent avec le
-          reste du site sourcé sur le carnet, plutôt que le popup.png du Essential Pack. */}
+      {/* Same "parchment" frame (Frame04a) as the Deck Builder panel — consistent with the rest
+          of the site sourced from the notebook pack, rather than the Essential Pack's popup.webp. */}
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
           className="text-center font-display text-5xl font-bold text-white"

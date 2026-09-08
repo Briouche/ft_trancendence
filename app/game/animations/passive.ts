@@ -11,6 +11,8 @@ export function passiveEffectAnimation(scene: Phaser.Scene, card: Card): Promise
         const bolt = card.getEffectBolt();
         const fxCapable = bolt as unknown as { postFX?: Phaser.GameObjects.Components.FX };
 
+        // postFX (real glow shader) only exists under WebGL; on the Canvas fallback renderer it's
+        // undefined, so a manually animated ring below approximates the same pulse.
         if (fxCapable.postFX)
         {
             const glow = fxCapable.postFX.addGlow(GLOW_COLOR, 0, 0, false, 0.2, 12);

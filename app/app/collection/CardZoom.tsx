@@ -6,10 +6,10 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 
 type Card = CardFaceData & { ownedQty: number }
 
-// Zoom plein écran d'une carte, en DOM plat (pas dans la scène 3D) : bien plus net, et évite de
-// refaire tout le calage caméra/distanceFactor qui a déjà donné du fil à retordre côté livre.
-// La légère bascule qui suit la souris (parallaxe) est un simple transform CSS, amorti par une
-// transition plutôt qu'un vrai ressort — suffisant pour l'effet recherché ici.
+// Full-screen card zoom, rendered in flat DOM (not the 3D scene): much sharper, and avoids
+// redoing the camera/distanceFactor calibration that already caused headaches on the book side.
+// The slight mouse-following tilt (parallax) is a plain CSS transform eased by a transition
+// rather than a real spring — good enough for the effect wanted here.
 export default function CardZoom({ card, onClose }: { card: Card | null; onClose: () => void }) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 })
     const cardRef = useRef<HTMLDivElement>(null)
@@ -57,13 +57,13 @@ export default function CardZoom({ card, onClose }: { card: Card | null; onClose
                         transform: `perspective(900px) rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 12}deg) scale(1.04)`,
                     }}
                 >
-                    {/* stackQty=1 : le zoom montre toujours une seule carte (avec son badge xN),
-                        pas l'effet de pile à deux calques utilisé dans la grille de la Collection. */}
+                    {/* stackQty=1: the zoom always shows a single card (with its xN badge),
+                        not the two-layer stack effect used in the Collection grid. */}
                     <ScaledCardFace card={card} ownedQty={card.ownedQty} stackQty={1} />
                 </div>
 
-                {/* Signature de l'illustrateur, sous la carte (pas sur son visuel) — absente tant
-                    que `artist` n'est pas renseigné pour cette carte (voir tcg-collection.json). */}
+                {/* Illustrator signature, below the card (not over its artwork) — absent until
+                    `artist` is set for this card (see tcg-collection.json). */}
                 {card.artist && (
                     <p className="font-serif text-2xl italic text-parchment-300/70">{card.artist}</p>
                 )}

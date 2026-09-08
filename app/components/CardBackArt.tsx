@@ -1,18 +1,16 @@
 import Image from 'next/image'
 
-// Un fichier par dos de carte (public/textures/cards/backs/{index}.png, chaque design déjà
-// dessiné pleine case, bord compris) plutôt qu'un recadrage CSS background-position/-size sur une
-// spritesheet partagée : ce dernier calculait juste, mais `image-rendering: pixelated` combiné à
-// des tailles de conteneur non entières faisait parfois déborder un pixel de la case voisine sur
-// les bords. object-fit: contain (pas cover) : le ratio des sources (100×130) est plus large que
-// celui de la carte (130×191) — cover recadrait les bords gauche/droit du dessin pour remplir la
-// hauteur, contain garde tout le dessin visible (pleine largeur) quitte à laisser une fine bande
-// vide en haut/bas.
+// One file per card back (public/textures/cards/backs/{index}.webp, each design already drawn
+// full-bleed, border included) instead of a CSS background-position/-size crop on a shared
+// spritesheet, since `image-rendering: pixelated` at non-integer container sizes can bleed a
+// pixel in from the neighboring cell. object-fit: contain (not cover): the source ratio (100×130)
+// is wider than the card's (130×191), so contain keeps the whole drawing visible (full width)
+// instead of cropping its left/right edges to fill the height.
 export default function CardBackArt({ index, className = '' }: { index: number; className?: string }) {
     return (
         <div className={`relative overflow-hidden ${className}`}>
             <Image
-                src={`/textures/cards/backs/${index}.png`}
+                src={`/textures/cards/backs/${index}.webp`}
                 alt=""
                 fill
                 unoptimized

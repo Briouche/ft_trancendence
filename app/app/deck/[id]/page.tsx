@@ -31,13 +31,13 @@ export default async function EditDeckPage({
         prisma.card.aggregate({ _sum: { qty: true } }),
     ])
 
-    // Un deck d'un autre joueur (ou inexistant) ne doit ni s'afficher ni fuiter son contenu.
+    // A deck belonging to another player (or nonexistent) must neither render nor leak its content.
     if (!deck || deck.userId !== session.userId) notFound()
 
-    // qty ici = nombre d'exemplaires possédés par le joueur (utilisé comme plafond dans DeckBuilder)
+    // qty here = number of copies owned by the player (used as the cap in DeckBuilder)
     const cards = owned.map(({ card, qty }) => ({ ...card, qty }))
 
-  // Convertit les cartes du deck au format attendu par DeckBuilder
+  // Converts the deck's cards to the shape expected by DeckBuilder
   const initialDeck = Object.fromEntries(
     deck.cards.map((dc) => [dc.cardId, { card: dc.card, qty: dc.qty }]),
   );

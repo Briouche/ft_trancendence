@@ -2,6 +2,10 @@ import { Card, SpellCard, MinionCard } from "./card";
 import { AddEffectfEffect, archiDamageEffect, BuffEffect, CombinedEffect, DamageEffect, DrawCardEffect, HealEffect, RandomMissileEffect, SummonMinionEffect, timmyDamageEffect, triggerDeathrattleEffect } from "./effect";
 import { AllCharactersResolver, AlliedMinionsResolver, AllMinionsResolver, AnyCharacterResolver, EnemyHeroResolver, NeighboringMinionsResolver, OtherAlliedMinionsResolver, RandomEnemyResolver } from "./target";
 
+// Deck owns one player's draw pile: shuffling, drawing, and cloning for simulation. Real matches
+// never use the hardcoded decks below — those (makeBasicDeck) are fixtures for the standalone
+// ai/aiDiagnostic.ts script only. Actual player/AI decks are built from the database at runtime,
+// see cardImport/cardLoader.ts (player decks) and cardImport/aiDecks.ts (AI decks by card name).
 export class Deck
 {
     private cards: Card[];

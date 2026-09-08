@@ -28,11 +28,9 @@ const VOLUME_ROWS: { channel: VolumeChannel; label: string }[] = [
     { channel: 'ambience', label: 'Ambience' },
 ]
 
-// Un curseur natif (<input type="range">) plutôt qu'un asset dédié : le pack d'UI du carnet n'en
-// fournit pas (juste des barres de scroll verticales, voir NotebookUI.tsx) — stylé avec la même
-// palette encre/parchemin que le reste du panneau plutôt que d'importer un nouvel asset. Lit/écrit
-// directement lib/audioSettings.ts (localStorage) ; le parent (re)affiche la valeur via `value`
-// pour rester synchro si le volume change ailleurs (getVolume relu à l'ouverture du panneau).
+// A native <input type="range"> rather than a dedicated asset — the notebook UI pack only ships
+// vertical scrollbars (see NotebookUI.tsx) — styled with the panel's own ink/parchment palette.
+// Reads/writes lib/audioSettings.ts (localStorage) directly.
 function VolumeSlider({ channel, label, value, onChange }: {
     channel: VolumeChannel
     label:   string
@@ -56,18 +54,12 @@ function VolumeSlider({ channel, label, value, onChange }: {
     )
 }
 
-// Remplace l'ancien bouton "☰ Simple menu" : un accès rapide au compte plutôt qu'un repli de
-// navigation à plat — la 3D est maintenant la seule façon de naviguer le Hub. Structuré comme un
-// vrai menu déroulant (profil / paramètres / trophée) plutôt qu'un simple panneau de stats.
-// Rangée de 3 icônes 01_TravelBook (ButtonAbout01a/ButtonSetting01a/ButtonAchievement01a, via
-// AssetButton) plutôt que le seul bouton texte "👤 {username}" d'avant. Settings ouvre maintenant
-// un panneau de volumes (master/musique/ambiance, voir lib/audioSettings.ts) plutôt que de rester
-// désactivé ; Achievement ouvre son propre panneau (les victoires, voir
-// winsVsAi{Easy,Medium,Hard}/winsVsPlayer sur User).
-//
-// Plus de page /profile séparée : tout ce qu'elle montrait (stats, dos de carte) tient maintenant
-// ici — le dos de carte se choisit déjà depuis la Collection (même API), donc rien n'est perdu à
-// la retirer, juste un aller-retour en moins.
+// Account/settings/trophy dropdown — the only account UI now that the Hub is navigated
+// entirely in 3D. Icons are the 01_TravelBook set (ButtonAbout01a/ButtonSetting01a/
+// ButtonAchievement01a, via AssetButton). Settings opens a volume panel (lib/audioSettings.ts);
+// Achievement shows win counts (winsVsAi{Easy,Medium,Hard}/winsVsPlayer on User). Stands in for
+// the old separate /profile page — its content fits here, and card backs are still picked from
+// the Collection (same API).
 export default function AccountMenu({ username, cardCount, wins, cardBacks }: {
     username:  string
     cardCount: number
@@ -75,9 +67,9 @@ export default function AccountMenu({ username, cardCount, wins, cardBacks }: {
     cardBacks: CardBacksSummary
 }) {
     const [openPanel, setOpenPanel] = useState<Panel>(null)
-    // Relu depuis lib/audioSettings.ts (localStorage) à l'ouverture du panneau plutôt qu'à chaque
-    // rendu de AccountMenu : cet état local sert juste à faire réagir les curseurs immédiatement
-    // au drag, pas de source de vérité — setVolume() reste celle qui persiste.
+    // Read from lib/audioSettings.ts (localStorage) once when the panel opens rather than on
+    // every AccountMenu render: this local state only makes the sliders react immediately while
+    // dragging, it isn't the source of truth — setVolume() is what actually persists.
     const [volumes, setVolumes] = useState(() => ({
         master:   getVolume('master'),
         music:    getVolume('music'),

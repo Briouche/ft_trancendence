@@ -12,9 +12,9 @@ import { HomeButton, TitleBanner, outlinedWhiteTextStyle, woodenTableBackground 
 
 type Phase = 'choosing' | 'opening' | 'revealing'
 
-// Angle de la déchirure mesuré sur le sprite "cardRIPfx" (diff entre sa frame "intacte" et sa
-// frame juste avant séparation) : la ligne de crack va de (0%, 30%) à gauche à (100%, 66%) à
-// droite. FLAP = le triangle au-dessus (le coin haut-droit qui part) ; BODY = le reste.
+// Tear angle measured on the "cardRIPfx" sprite (diff between its "intact" frame and the frame
+// just before separation): the crack line runs from (0%, 30%) on the left to (100%, 66%) on the
+// right. FLAP = the triangle above it (the departing top-right corner); BODY = the rest.
 const FLAP_CLIP = 'polygon(0% 0%, 100% 0%, 100% 66%, 0% 30%)'
 const BODY_CLIP = 'polygon(0% 30%, 100% 66%, 100% 100%, 0% 100%)'
 
@@ -26,9 +26,9 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const [packsLeft, setPacksLeft]             = useState(initialPacks)
     const [pityCounter, setPityCounter]         = useState(initialPityCounter)
     const [phase, setPhase]                     = useState<Phase>('choosing')
-    // [] au premier rendu (serveur + hydratation client) : randomPackSkins() tiré à ce moment
-    // donnerait des valeurs différentes entre le HTML serveur et le premier rendu client
-    // (mismatch d'hydratation). Le vrai tirage n'a lieu qu'après coup, dans l'effet ci-dessous.
+    // [] on first render (server + client hydration): calling randomPackSkins() at this point
+    // would give different values between the server HTML and the first client render (hydration
+    // mismatch). The actual roll only happens afterward, in the effect below.
     const [packChoices, setPackChoices]         = useState<PackSkin[]>([])
     const [chosenSkin, setChosenSkin]           = useState<PackSkin | null>(null)
     const [bursting, setBursting]               = useState(false)
@@ -43,16 +43,14 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const router                                = useRouter()
 
     useEffect(() => {
-        // Tirage aléatoire volontairement différé après le montage (pas dans le lazy initializer
-        // du useState ci-dessus) : c'est le correctif standard React pour un contenu non
-        // déterministe rendu par un Client Component encore server-rendu au premier passage —
-        // sans ça, le HTML serveur et le premier rendu client divergent (hydration mismatch).
+        // Roll deferred until after mount rather than in the useState initializer above: the
+        // standard fix for non-deterministic content in a server-rendered Client Component.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setPackChoices(randomPackSkins(3))
     }, [])
 
-    // Choisir un des 3 paquets proposés déclenche directement l'ouverture — pas d'étape "idle"
-    // intermédiaire, le choix EST le clic d'ouverture.
+    // Choosing one of the 3 offered packs directly triggers opening — no intermediate "idle"
+    // step, the choice IS the opening click.
     async function openPack(skin: PackSkin) {
         if (packsLeft <= 0 || phase !== 'choosing') return
 
@@ -82,8 +80,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         setRevealedIndices(new Set())
         setUnlockedCardBacks(data.unlockedCardBacks)
 
-        // Le paquet se déchire (le coin haut-droit part, le reste s'affaisse) avant de céder la
-        // place au cercle de cartes, plutôt qu'une coupure nette entre l'animation et la révélation.
+        // The pack tears (the top-right corner flies off, the rest sags) before giving way to the
+        // card circle, rather than a hard cut between the animation and the reveal.
         setBursting(true)
         await new Promise(resolve => setTimeout(resolve, 450))
         setPhase('revealing')
@@ -97,9 +95,9 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         })
     }
 
-    // Premier clic sur une carte encore dos tourné : elle se retourne sur place, dans le cercle
-    // (petite), sans passer au premier plan. Recliquer une carte déjà révélée l'amène en grand
-    // (PackCardZoom), qui reste ouvert jusqu'à un clic à côté pour le refermer.
+    // First click on a still-back-facing card: it flips in place, inside the circle (small),
+    // without coming to the foreground. Clicking an already-revealed card again brings it up full
+    // size (PackCardZoom), which stays open until a click outside closes it.
     function selectCard(index: number) {
         if (revealedIndices.has(index)) {
             setZoomedIndex(index)
@@ -108,9 +106,9 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         }
     }
 
-    // Barre espace = équivalent clavier d'un clic sur la prochaine carte encore face cachée,
-    // une à la fois (comme un clic) plutôt que tout révéler d'un coup. preventDefault : sans ça
-    // Space fait aussi défiler la page dans la plupart des navigateurs.
+    // Spacebar = keyboard equivalent of clicking the next still-face-down card, one at a time
+    // (like a click) rather than revealing everything at once. preventDefault: without it Space
+    // also scrolls the page in most browsers.
     useEffect(() => {
         if (phase !== 'revealing') return
         function onKeyDown(e: KeyboardEvent) {
@@ -123,8 +121,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         return () => window.removeEventListener('keydown', onKeyDown)
     }, [phase, cards, revealedIndices])
 
-    // Retour à l'écran de choix (depuis "Back" ou après avoir tout révélé) : 3 nouveaux designs
-    // tirés au sort — un choix est de nouveau requis avant la prochaine ouverture.
+    // Back to the choice screen (from "Back" or after revealing everything): 3 new designs are
+    // rolled — a fresh choice is required before the next opening.
     function backToChoosing() {
         setPhase('choosing')
         setPackChoices(randomPackSkins(3))
@@ -164,9 +162,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     return (
         <div className="relative min-h-screen w-full" style={woodenTableBackground}>
         <HomeButton onClick={() => router.push('/')} />
-        {/* pointer-events-none sur le conteneur : le vide autour du texte doit laisser passer le
-            clic jusqu'aux paquets/cartes affichés par-dessus — sinon ce conteneur (min-h-screen,
-            donc plein écran même sans contenu visible partout) intercepte tout. */}
+        {/* pointer-events-none: this container is full-screen (min-h-screen) even where there's
+            no visible content, so it must let clicks pass through to the packs/cards above it. */}
         <div className="min-h-screen flex flex-col items-center justify-start p-6 md:p-10 gap-6 pointer-events-none">
             <div className="pointer-events-auto">
                 <TitleBanner width="w-[700px]">PACK OPENING</TitleBanner>
@@ -180,8 +177,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                         {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
                     </span>
                 </p>
-                {/* Boutons temporaires en attendant un vrai mode de jeu (gagner des paquets) et
-                    un vrai flux de test/reset (vider ou tout débloquer la collection) */}
+                {/* Temporary buttons pending a real way to earn packs through gameplay, and a
+                    real test/reset flow (clearing or fully unlocking the collection) */}
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <button
                         onClick={grantFreePack}
@@ -229,8 +226,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                     {bursting && (
                         <div className="absolute inset-0 -m-8 animate-pack-flash rounded-full bg-gold-300/40 blur-2xl" />
                     )}
-                    {/* Avant l'éclatement : un seul PackArt entier, pas de découpe visible — la
-                        déchirure (deux moitiés en clip-path) n'apparaît qu'au moment du burst. */}
+                    {/* Before the burst: a single whole PackArt, no visible cut — the tear (two
+                        clip-path halves) only appears at the moment of the burst. */}
                     {!bursting ? (
                         <PackArt
                             skin={chosenSkin}
@@ -239,15 +236,14 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                         />
                     ) : (
                         <>
-                            {/* Moitié basse : reste en place, s'affaisse et s'efface. */}
+                            {/* Bottom half: stays in place, sags and fades out. */}
                             <PackArt
                                 skin={chosenSkin}
                                 width={220}
                                 className="relative rounded-md border-[3px] border-gold-500/60 shadow-2xl shadow-black/60 animate-pack-tear-body"
                                 style={{ clipPath: BODY_CLIP }}
                             />
-                            {/* Moitié haute (le coin déchiré) : posée par-dessus au même endroit,
-                                part en vol. */}
+                            {/* Top half (the torn corner): overlaid at the same spot, flies off. */}
                             <PackArt
                                 skin={chosenSkin}
                                 width={220}
@@ -261,16 +257,14 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         )}
 
         {phase === 'revealing' && (
-            // Cercle sorti du flux normal (fixed, centré sur TOUTE la fenêtre) plutôt que posé
-            // dans la colonne sous l'en-tête : sinon la hauteur du bandeau du dessus repousse le
-            // cercle vers le bas et ses cartes du bas sortent de l'écran. pointer-events-none :
-            // le centre doit laisser passer le clic vers ce qui est affiché par-dessus au même
-            // endroit — chaque élément interactif repasse en pointer-events-auto.
+            // Circle is fixed and centered on the whole window rather than placed under the
+            // header, so the header's height doesn't push it down and clip its bottom cards.
+            // pointer-events-none here, switched back to auto on each interactive element.
             <div className="fixed inset-0 z-20 flex flex-col items-center justify-center gap-6
                 bg-ink-950/40 backdrop-blur-md pointer-events-none">
-                {/* Plus de bouton "Open another pack"/"Back" ici — les deux actions de fin de
-                    révélation (retour au choix, aller à la collection) vivent maintenant au
-                    centre du cercle (PackCardCircle), une fois tout révélé. */}
+                {/* No more "Open another pack"/"Back" button here — both end-of-reveal actions
+                    (back to choice, go to collection) now live at the center of the circle
+                    (PackCardCircle), once everything is revealed. */}
                 {!allRevealed && (
                     <p className="font-serif text-sm italic text-parchment-300/60">
                         Tap a card to reveal it

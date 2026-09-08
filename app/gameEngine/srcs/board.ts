@@ -2,6 +2,12 @@ import { MinionCard } from "./card";
 
 const MAX_BOARD_SIZE: number = 6;
 
+// Owns each player's row of minions. Array order IS board position — index 0 is the left-most
+// slot — and that ordering is load-bearing: NeighboringMinionsResolver (target.ts) and
+// cleaveEffect (effect.ts) find "adjacent" minions purely by array index, not by any separate
+// position field. playMinion's optional `index` param exists so a card can be inserted at a
+// specific board slot (e.g. the position the client says it was dropped on) instead of always
+// appending.
 export class Board
 {
     private minions: [MinionCard[], MinionCard[]];

@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { OpponentCard } from "./OpponentCard";
 
+// Mirrors Hand.ts's fan-layout math for the opponent's side, but the opponent's actual cards are
+// hidden information — the server only tells us a count, so this just manages face-down card backs.
+
 const HAND_Y_RATIO = 0.12;          // distance from the TOP of the canvas
 const CARD_HEIGHT_RATIO = 0.2;
 const CARD_ASPECT_RATIO = 1.4;

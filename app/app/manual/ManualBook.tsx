@@ -7,11 +7,11 @@ import {
   woodenTableBackground, outlinedWhiteTextStyle,
 } from "@/components/notebook/NotebookUI";
 
-// Les mots-clés vraiment KEYWORD_LABELS (lib/keywords.ts) tels qu'affichés en gras dans le texte
-// des cartes — mais seuls Taunt/Ruée/Cri de guerre/Râle d'agonie/Vol de vie/Silence ont une vraie
-// règle générique côté moteur (voir gameEngine/srcs/cardImport/keywordEffects.ts). Soigné,
-// Régénération et Aventurier ne sont que des mots surlignés dans le texte de certaines cartes,
-// pas des règles à part entière — décrits ici sans en inventer une.
+// These are the real KEYWORD_LABELS (lib/keywords.ts) as shown bolded in card text — but only
+// Taunt/Rush/Battlecry/Deathrattle/Lifesteal/Silence have an actual generic rule on the engine
+// side (see gameEngine/srcs/cardImport/keywordEffects.ts). Soigné, Régénération and Aventurier
+// are just highlighted words in specific cards' text, not standalone rules — described here
+// without inventing one.
 const KEYWORDS: { label: string; desc: string }[] = [
   { label: "Taunt", desc: "The enemy must attack this minion first if it's on the board." },
   { label: "Ruée (Rush)", desc: "Can attack minions (not the enemy hero) the same turn it's played." },

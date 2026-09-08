@@ -11,15 +11,14 @@ const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: Scen
 const EMPTY_WINS: WinsBreakdown = { vsAiEasy: 0, vsAiMedium: 0, vsAiHard: 0, vsPlayer: 0 }
 const EMPTY_CARD_BACKS: CardBacksSummary = { unlocked: 1, total: 1 }
 
-// Monté une seule fois dans le layout racine (jamais démonté entre deux pages — voir layout.tsx)
-// plutôt que recréé à chaque retour sur "/" : reconstruire le Canvas three-fiber à froid (contexte
-// WebGL, compilation des shaders, géométrie procédurale des bibliothèques...) est ce qui causait
-// le demi-seconde de gel avant affichage. `hidden` (display: none) masque la scène sur les autres
-// routes sans jamais couper son contexte WebGL, contrairement à un démontage React.
+// Mounted once in the root layout, never unmounted between pages (see layout.tsx): rebuilding
+// the three-fiber Canvas from scratch (WebGL context, shaders, procedural bookshelf geometry)
+// on every return to "/" is what causes a visible freeze. `hidden` hides the scene on other
+// routes without tearing down its WebGL context, unlike a React unmount.
 //
-// cardCount/wins ne viennent plus des props serveur de HomePage (qui ne s'exécutent qu'à son
-// propre montage) mais d'un fetch client relancé à chaque retour sur "/", pour rester à jour après
-// une action faite ailleurs (ouvrir un pack, gagner une partie) sans jamais recréer ce composant.
+// cardCount/wins come from a client fetch re-run on every return to "/" (rather than HomePage's
+// server props, which only run once) so they reflect actions taken elsewhere — opening a pack,
+// winning a match — without needing to recreate this component.
 export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'

@@ -13,9 +13,9 @@ import { recordWin, WinCategory } from "../cardImport/cardLoader";
 
 export type Seat = { kind: "human"; socket: Socket; userId: number | null } | { kind: "ai" };
 
-// Quel compteur (User.winsVsAi{Easy,Medium,Hard}) créditer selon la difficulté de la partie —
-// utilisé uniquement quand le perdant est l'IA ; winsVsPlayer (vrai adversaire humain) est câblé
-// à part, voir recordResult.
+// Which counter (User.winsVsAi{Easy,Medium,Hard}) to credit based on the game's difficulty — only
+// used when the loser is the AI; winsVsPlayer (a real human opponent) is wired separately, see
+// recordResult.
 const DIFFICULTY_WIN_CATEGORY: Record<Difficulty, WinCategory> = {
     facile:    "winsVsAiEasy",
     moyen:     "winsVsAiMedium",

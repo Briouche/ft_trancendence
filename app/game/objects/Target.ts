@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import { Card } from "./card/Card";
 import { Hero } from "./Hero";
 
+// Wraps a hero or a board minion-slot as a uniform "thing that can be targeted": a drop zone for
+// drag-to-attack/drag-to-play, plus a highlight ring. Board/CardRow build one per slot/hero.
 export type ResolvedTarget = { kind: "hero"; hero: Hero; id: string } | { kind: "minion"; card: Card; id: string };
 
 const HIGHLIGHT_DEPTH = 1500;

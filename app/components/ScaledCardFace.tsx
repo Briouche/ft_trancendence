@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import CardFace, { type CardFaceData } from './CardFace'
 
-// Largeur "de conception" de CardFace : ses tailles de police (emoji, description, stats...)
-// sont fixes et calibrées pour un affichage à peu près à cette taille (celle de la grille de la
-// Collection). La rendre plus petite qu'à sa largeur naturelle casse la mise en page (texte de
-// description qui n'a plus de place, emoji disproportionné) — donc au lieu de la contraindre
-// directement dans une cellule de grille étroite, on la rend à sa taille naturelle puis on
-// réduit le tout avec un seul transform scale mesuré sur la largeur réelle disponible.
+// CardFace's "design" width: its font sizes (emoji, description, stats...) are fixed and
+// calibrated for display at roughly this size (the Collection grid's). Rendering it smaller than
+// its natural width breaks the layout (description text running out of room, disproportionate
+// emoji) — so instead of constraining it directly inside a narrow grid cell, it's rendered at its
+// natural size and the whole thing is then shrunk with a single transform scale measured against
+// the actual available width.
 const NATURAL_WIDTH = 400
 
 function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: number }) {
@@ -34,15 +34,15 @@ function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: numb
     )
 }
 
-// `stackQty` pilote uniquement l'effet de pile (une deuxième carte collée derrière, décalée sur
-// la gauche) — séparé de `ownedQty` (qui pilote le badge "x2" dessiné par CardFace) car le Deck
-// Builder n'a pas besoin de ce badge (il grise plutôt les calques eux-mêmes, voir `dimFront`/
-// `dimBack`). Par défaut `stackQty` retombe sur `ownedQty` pour la Collection, qui n'a besoin que
-// d'un seul des deux props.
+// `stackQty` only drives the stack effect (a second card glued behind, offset to the left) —
+// kept separate from `ownedQty` (which drives the "x2" badge drawn by CardFace) because the Deck
+// Builder doesn't need that badge (it dims the layers themselves instead, see `dimFront`/
+// `dimBack`). `stackQty` defaults to `ownedQty` for the Collection, which only needs one of the
+// two props.
 //
-// `dimFront`/`dimBack` : un exemplaire ajouté au deck grise d'abord la carte de derrière (feedback
-// visuel immédiat dès le premier clic), un deuxième ajout grise aussi celle de devant (dernière
-// restante, plus aucun exemplaire disponible).
+// `dimFront`/`dimBack`: adding one copy to the deck dims the back card first (immediate visual
+// feedback on the first click), a second addition also dims the front one (last copy left, none
+// available anymore).
 export default function ScaledCardFace({ card, ownedQty, stackQty, dimFront, dimBack }: {
     card: CardFaceData
     ownedQty?: number

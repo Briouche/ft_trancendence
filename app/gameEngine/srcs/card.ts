@@ -1,6 +1,12 @@
 import { Effect } from "./effect";
 import { legendary } from "./legendary";
 
+// Card hierarchy: abstract Card holds identity (id/name/mana/description/rarity) shared by both
+// concrete kinds — MinionCard (attack/health plus a Keywords bag of hooks: battlecry, deathrattle,
+// onAttack, startOfTurnEffect, etc., each an Effect from effect.ts) and SpellCard (a single Effect
+// fired on play). Cards are built once from DB rows (cardImport/cardLoader.ts) and then cloned per
+// game instance/simulation — see clone() vs cloneCopy() below, which differ in whether the id is
+// preserved.
 export abstract class Card
 {
     public readonly name:        string;
@@ -88,6 +94,11 @@ export class MinionCard extends Card
         return "Minion";
     }
 
+    // Mints a fresh id (module-level counter) instead of keeping the original — needed since
+    // SummonMinionEffect clones the same token MinionCard template on every fire (e.g. each
+    // Mother Spider death), and Board.clone() uses this (not cloneCopy()) when GameEngine.clone()
+    // snapshots the board for an MCTS branch. Each copy needs its own id to stay independently
+    // targetable.
     clone(): MinionCard
     {
         const copy = new MinionCard(this.id + nextTokenId++, this.name, this.manaCost,
@@ -125,6 +136,9 @@ export class MinionCard extends Card
 
     //-----
 
+    // Keeps the original id, unlike clone() above — used for Deck/Hand cards, whose identity
+    // (e.g. "the card the client says it's playing, looked up by id") must survive Deck.clone()/
+    // Hand.clone() and Player.clone().
     cloneCopy(): MinionCard
     {
         const copy = new MinionCard(this.id, this.name, this.manaCost, this.description,

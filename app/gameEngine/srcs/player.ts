@@ -21,9 +21,9 @@ export class Player
     public archimedeCount: number = 0;
     public roiDesRatsCount: number = 0;
     public gertrudeCount: number = 0;
-    // Dos de carte cosmétique (catalogue partagé avec la Collection/le profil côté Next.js, voir
-    // app/lib/cardBacks.ts) — envoyé par le client pour un humain, tiré au sort pour l'IA (voir
-    // serverSocket.ts). Purement visuel, ne pèse jamais sur les règles du jeu.
+    // Cosmetic card back (catalog shared with the Collection/profile pages on the Next.js side,
+    // see app/lib/cardBacks.ts) — sent by the client for a human player, picked at random for the
+    // AI (see serverSocket.ts). Purely visual, never affects game rules.
     public cardBack: number;
 
     constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1, cardBack: number = 0)

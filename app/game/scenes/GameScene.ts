@@ -19,6 +19,11 @@ import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 
 
+// The main gameplay scene, started once by BootScene for the whole match. Wires socket events
+// (via EventManager) to the sub-controllers below — GameFlowState (turn/prompt state),
+// AnimationQueue (animation ordering), StateSyncController (builds the board from server state),
+// ServerEventPlayer (plays one GameEvent's animation), InputController (drag/click handling) —
+// and owns the Phaser objects (Hand, Board, OpponentHand, history UI) once they're created.
 export class GameScene extends Phaser.Scene
 {
     private flow = new GameFlowState();
@@ -80,7 +85,9 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:rejected", this.onRejectedHandler);
         EventManager.on("server:event", this.onEventHandler);
 
-        // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY,
+        // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY, not
+        // the normal scene shutdown/stop events, so cleanup is hooked here rather than in a
+        // Scene.shutdown() lifecycle method.
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         if (this.mode === "solo")
@@ -136,6 +143,8 @@ export class GameScene extends Phaser.Scene
 
     private onServerState(state: ClientGameState): void
     {
+        // Defer to AnimationQueue while animations are playing, so a state push can't make the
+        // board jump ahead of what's still being animated (see AnimationQueue.ts).
         if (this.animationQueue.isBusy)
         {
             this.animationQueue.queueState(state);
@@ -164,9 +173,9 @@ export class GameScene extends Phaser.Scene
     private onServerRejected(reason: string): void
     {
         console.warn("Server rejected action:", reason);
-        // input_ n'existe que depuis onTableCreated (état reçu du serveur) — un rejet peut
-        // maintenant arriver AVANT ça (ex: deck introuvable/vide côté serverSocket.ts, envoyé dès
-        // "readySolo"/"ready"), ce qui plantait ici auparavant.
+        // input_ only exists once onTableCreated has run (after the first server state). A
+        // rejection can arrive before that — e.g. an empty/missing deck in serverSocket.ts, sent
+        // right on "readySolo"/"ready" — hence the optional chaining.
         this.input_?.clearWaitingState(true);
     }
 

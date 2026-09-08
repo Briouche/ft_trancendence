@@ -6,8 +6,8 @@ export type MenuItem = {
     available:   boolean
 }
 
-// Source unique : chaque entrée devient un corridor dans le hall 3D ET une ligne dans le
-// menu simple (accessibilité / mobile / repli).
+// Single source of truth: each entry becomes a corridor in the 3D hall AND a line in the
+// simple menu (accessibility / mobile / fallback).
 export const MENU_ITEMS: MenuItem[] = [
     {
         href:        '/collection',

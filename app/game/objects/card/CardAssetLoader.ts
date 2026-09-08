@@ -1,5 +1,8 @@
 import Phaser from "phaser";
 
+// Card art loads on demand (per assetKey) rather than all upfront in BootScene, since a match
+// only ever shows a fraction of all cards. `loadingKeys` dedupes concurrent requests for the same
+// key (e.g. two copies of the same minion drawn at once) to avoid queuing duplicate loader entries.
 const loadingKeys = new Set<string>();
 
 const RARITY_FRAME_KEYS: Record<string, string> = {

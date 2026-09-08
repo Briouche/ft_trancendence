@@ -6,6 +6,8 @@ import { Action } from "./types";
 import { MinionCard } from "../card";
 import { Effect } from "../effect";
 
+// √2 is the standard UCB1 exploration constant for rewards normalized to [0,1] (Kocsis &
+// Szepesvári, 2006) — balances trying under-explored moves against exploiting known-good ones.
 const UCB1_C = Math.SQRT2;
 
 // A single point in the "tree" of possible futures the AI is exploring.
@@ -101,10 +103,8 @@ export function expand(node: MCTSNode): MCTSNode {
   return child;
 }
 
-// Plays a full game out to the end using random moves on both sides, just
-// to get a rough "did this path lead to a win or a loss" signal.
-
-function evaluate(state: GameEngine, forPlayer: 0 | 1): number 
+// Heuristic score for a rollout that hit MAX_DEPTH without a winner (see simulate() below).
+function evaluate(state: GameEngine, forPlayer: 0 | 1): number
 {
   const oppPlayer = forPlayer === 0 ? 1 : 0;
   const me  = state.players[forPlayer];
@@ -120,13 +120,18 @@ function evaluate(state: GameEngine, forPlayer: 0 | 1): number
 
   const handDiff = me.hand.size() - opp.hand.size();
 
+  // Hero HP dominates the score; board/hand are minor tie-breakers when HP is close. These exact
+  // weights are hand-tuned by feel, not derived from anything documented — treat them as knobs
+  // to revisit, not settled constants.
   const W_HP = 1.0, W_BOARD = 0.05, W_HAND = 0.1;
   const raw = W_HP * hpDiff + W_BOARD * boardDiff + W_HAND * handDiff;
 
   return 0.5 + 0.5 * Math.tanh(raw);
 }
 
-export function simulate(state: GameEngine, forPlayer: 0 | 1): number 
+// Plays a full game out using random moves on both sides, capped at MAX_DEPTH plies so a rollout
+// always terminates — falls back to the heuristic evaluate() above if the game hasn't ended by then.
+export function simulate(state: GameEngine, forPlayer: 0 | 1): number
 {
   let s = state;
   const MAX_DEPTH = 60;

@@ -1,11 +1,11 @@
-// Catalogue de dos de carte cosmétiques : 8 fichiers (public/textures/cards/backs/{0..7}.png),
-// chacun son propre design découpé individuellement (plus une grille 4×5 partagée comme avant).
+// Catalog of cosmetic card backs: 8 individually-cropped design files
+// (public/textures/cards/backs/{0..7}.webp).
 export const CARD_BACK_COUNT = 8
 
-// 0-2 sont offerts d'office à tout le monde dès la création du compte (voir schema.prisma,
-// User.unlockedCardBacks @default — et /api/collection/clear, qui doit revenir à ce même état,
-// pas à un simple [0]). Les 5 index ci-dessous sont réservés à un haut fait précis, jamais
-// tirables au hasard dans un paquet (voir packs.ts, qui exclut ces index du pool de tirage).
+// 0-2 are granted to everyone by default at account creation (see schema.prisma,
+// User.unlockedCardBacks @default) and are the set /api/collection/clear resets to. The 5
+// indices below are each tied to a specific achievement and are never drawn at random from a
+// pack (see packs.ts, which excludes them from the draw pool).
 export const DEFAULT_UNLOCKED_CARD_BACKS = [0, 1, 2]
 
 export const ACHIEVEMENT_CARD_BACKS = {
@@ -16,10 +16,10 @@ export const ACHIEVEMENT_CARD_BACKS = {
     fullCollection: 7,
 } as const
 
-// Texte affiché sur un dos encore verrouillé pour expliquer comment le débloquer (voir
-// CollectionBook.tsx) — indexé par le même index que ACHIEVEMENT_CARD_BACKS ci-dessus. Les index
-// 1 et 2 (pur drop de paquet) n'y figurent pas : ils gardent juste l'icône de cadenas, sans texte,
-// puisqu'"ouvrir des paquets" n'est pas un haut fait précis à expliquer.
+// Hint text shown on a still-locked back to explain how to unlock it (see CollectionBook.tsx) —
+// indexed by the same index as ACHIEVEMENT_CARD_BACKS above. Indices 1 and 2 (plain pack drops)
+// are absent on purpose: they just keep the lock icon with no text, since "open packs" isn't a
+// specific achievement worth explaining.
 export const ACHIEVEMENT_CARD_BACK_HINTS: Record<number, string> = {
     [ACHIEVEMENT_CARD_BACKS.winVsPlayer]:    'Win a game vs another player',
     [ACHIEVEMENT_CARD_BACKS.winVsAiEasy]:    'Win a game vs AI (Easy)',

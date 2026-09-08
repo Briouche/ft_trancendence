@@ -11,6 +11,9 @@ export default async function Header() {
 
   return (
     <header className="py-2 text-center">
+      {/* 3-column grid with an empty left cell balancing the logout button's column on the
+          right, so the title (justify-self-center) stays visually centered on the page instead
+          of drifting toward whichever side has content. */}
       <div className="grid grid-cols-3 items-center gap-4 p-4">
         <div />
 

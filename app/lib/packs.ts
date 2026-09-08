@@ -5,10 +5,9 @@ const CARDS_PER_PACK = 8;
 const PACKS_BEFORE_GUARANTEED_LEGENDARY = 5;
 const LEGENDARY_RARITY = "Légendaire";
 
-// Poids relatifs de tirage par rareté (avant application de la pity légendaire). "Peu commune"
-// retirée du jeu. Plus de tier dos de carte ici : les dos ne se tirent plus au hasard dans un
-// paquet — seuls 0-2 (offerts d'office) et le haut fait "collection complète" (voir plus bas)
-// débloquent un dos, voir lib/cardBacks.ts.
+// Relative draw weights per rarity, applied before the legendary pity check below. Card backs
+// have no entry here: only indices 0-2 (granted by default) and the "full collection" achievement
+// (see below) unlock a back — packs never draw one, see lib/cardBacks.ts.
 const RARITY_WEIGHTS: Record<string, number> = {
   "Commune": 40,
   "Rare": 15,
@@ -32,7 +31,7 @@ function pickWeighted<T>(items: T[], weight: (item: T) => number): T {
   return items[items.length - 1];
 }
 
-// Un slot de paquet : tire une rareté puis une carte concrète dedans.
+// One pack slot: draws a rarity, then a concrete card within it.
 function drawOneSlot(pool: DrawableCard[]): DrawableCard | null {
   const available = pool.filter((c) => c.remaining > 0);
   const rarities = [...new Set(available.map((c) => c.rarity))];
@@ -49,8 +48,8 @@ function drawOneSlot(pool: DrawableCard[]): DrawableCard | null {
 
 export async function openPack(prisma: PrismaClient, userId: number) {
   return prisma.$transaction(async (tx) => {
-    // select explicite : la table User réelle n'a pas de colonne `name` (contrairement au schema
-    // Prisma) — un findUnique sans select tente de la lire et fait planter la requête.
+    // Explicit select: the real User table has no `name` column (unlike the Prisma schema) —
+    // a findUnique without a select tries to read it back and crashes the query.
     const user = await tx.user.findUniqueOrThrow({
       where: { id: userId },
       select: { id: true, unopenedPacks: true, pityCounter: true, unlockedCardBacks: true },
@@ -74,7 +73,7 @@ export async function openPack(prisma: PrismaClient, userId: number) {
 
     const drawnCards: DrawableCard[] = [];
 
-    // Pity: si le joueur n'a pas eu de légendaire depuis 5 paquets, on en force une.
+    // Pity: if the player hasn't pulled a legendary in the last 5 packs, force one now.
     const mustForceLegendary =
       user.pityCounter >= PACKS_BEFORE_GUARANTEED_LEGENDARY - 1;
 
@@ -93,7 +92,7 @@ export async function openPack(prisma: PrismaClient, userId: number) {
     let slotsFilled = drawnCards.length;
     while (slotsFilled < CARDS_PER_PACK) {
       const card = drawOneSlot(pool);
-      if (!card) break; // collection entièrement complétée
+      if (!card) break; // collection fully completed
       drawnCards.push(card);
       slotsFilled += 1;
     }
@@ -105,8 +104,8 @@ export async function openPack(prisma: PrismaClient, userId: number) {
       countByCard.set(c.id, (countByCard.get(c.id) ?? 0) + 1);
     }
 
-    // Haut fait "collection complète" : ce paquet peut être celui qui l'atteint, donc vérifié sur
-    // le total APRÈS ce tirage (possédé avant + ce qui vient d'être gagné), pas juste `owned`.
+    // "Full collection" achievement: this pack might be the one that completes it, so the check
+    // uses the total AFTER this draw (owned before + what was just won), not just `owned`.
     const fullCollectionIndex = ACHIEVEMENT_CARD_BACKS.fullCollection;
     const alreadyHasFullCollectionBack = user.unlockedCardBacks.includes(fullCollectionIndex);
     const justCompletedCollection = !alreadyHasFullCollectionBack && allCards.every(

@@ -11,6 +11,8 @@ export async function POST() {
         const result = await openPack(prisma, session.userId)
         return NextResponse.json(result)
     } catch (error) {
+        // openPack only throws plain Errors for expected failure cases (e.g. no packs left), so
+        // the message is safe to surface as-is — it's never derived from user input.
         return NextResponse.json(
             { error: (error as Error).message },
             { status: 400 }

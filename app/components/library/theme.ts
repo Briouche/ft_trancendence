@@ -1,7 +1,7 @@
-// Palette miroir de app/globals.css (@theme) — à garder synchronisée avec les tokens Tailwind,
-// car les matériaux Three.js ne peuvent pas lire les variables CSS directement. Les noms de clés
-// (leather/gold/parchment) datent du thème cuir/or d'origine ; ils servent maintenant une palette
-// pierre/gris terne, choisie pour ne plus avoir cette teinte brune-jaune dominante.
+// Palette mirroring app/globals.css (@theme) — keep this in sync with the Tailwind tokens, since
+// Three.js materials can't read CSS variables directly. The key names (leather/gold/parchment)
+// date back to the original leather/gold theme; they now serve a dull stone/gray palette, chosen
+// to get rid of that dominant brown-yellow tint.
 export const PALETTE = {
     ink950: '#0b0c0d',
     ink900: '#15171a',
@@ -23,8 +23,8 @@ export const PALETTE = {
     gold600: '#726550',
 } as const
 
-// Ambiance commune à toutes les salles (reprise de BookScene, qui a établi le ton "bibliothèque
-// lugubre" : plus sombre que ink-950, brouillard court pour que le hall se perde dans le noir).
+// Atmosphere shared by every room (carried over from BookScene, which established the "gloomy
+// library" tone: darker than ink-950, short fog so the hall fades into darkness).
 export const ATMOSPHERE = {
     background: '#08090a',
     fogNear: 6,

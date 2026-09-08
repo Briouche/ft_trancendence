@@ -6,9 +6,9 @@ import { getSession } from "@/lib/session";
 import HubBackground from "./HubBackground";
 import "./globals.css";
 
-// Pixel Game (1001fonts.com/pixel-game-font — gratuit usage personnel uniquement, voir credits
-// dans le README) — police de tout le front (globals.css y fait pointer
-// font-display/font-serif/font-sans/font-engraved/font-pixel).
+// Pixel Game (1001fonts.com/pixel-game-font — free for personal use only, see credits in the
+// README) — the font for the whole frontend (globals.css points
+// font-display/font-serif/font-sans/font-engraved/font-pixel at it).
 const pixelGame = localFont({
   src: "./fonts/PixelGame-Regular.otf",
   variable: "--font-pixel-game",
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   description: "The card library of ft_transcendence",
 };
 
-// Émis comme <meta name="color-scheme" content="dark"> dans le <head> — lu par le navigateur
-// avant même que globals.css arrive, donc c'est la première ligne de défense contre le flash blanc.
+// Emitted as <meta name="color-scheme" content="dark"> in the <head> — read by the browser
+// before globals.css even arrives, so it's the first line of defense against the white flash.
 export const viewport: Viewport = {
   colorScheme: "dark",
 };
@@ -39,16 +39,16 @@ export default async function RootLayout({
       className={`${pixelGame.variable} h-full antialiased`}
       style={{ backgroundColor: '#0b0c0d' }}
     >
-      {/* backgroundColor en inline ici (pas en classe Tailwind) : le but est justement
-          d'éviter le flash blanc pendant que la feuille Tailwind s'injecte encore en dev
-          (Turbopack) — une classe utilitaire subirait le même délai. */}
+      {/* backgroundColor inline here (not a Tailwind class): the whole point is to avoid the
+          white flash while the Tailwind stylesheet is still being injected in dev (Turbopack) —
+          a utility class would suffer the same delay. */}
       <body className="min-h-full flex flex-col bg-ink-950">
         <TransitionOverlay />
         <CustomCursor />
-        {/* Monté une seule fois ici (pas dans page.tsx, qui se démonte à chaque navigation hors
-            de "/") pour que le Canvas three-fiber du hub (contexte WebGL, shaders, géométrie
-            procédurale des bibliothèques) ne soit jamais reconstruit à froid en revenant sur le
-            hub — voir HubBackground.tsx. */}
+        {/* Mounted once here (not in page.tsx, which unmounts on every navigation away from
+            "/") so the hub's three-fiber Canvas (WebGL context, shaders, procedural bookshelf
+            geometry) never gets rebuilt from scratch when coming back to the hub — see
+            HubBackground.tsx. */}
         {session && <HubBackground username={session.username} />}
         {children}
       </body>

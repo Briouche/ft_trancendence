@@ -11,45 +11,38 @@ import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
 import { MENU_ITEMS, type MenuItem } from './menu'
 import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './AccountMenu'
 
-// Le hall : une vraie salle en three-fiber, fermée par un anneau de bibliothèques. Pas de plan de
-// sol visible — juste le mobilier et les portes posés dans le noir/brouillard, comme une rangée
-// d'éléments éclairés plutôt qu'une pièce entièrement modélisée. Les 4 portes ne sont pas le même
-// socle dupliqué : chacune a son propre mobilier — une pile de livres + une vieille lampe, une
-// table avec des cartes éparpillées, le bibliothécaire derrière son comptoir, et la porte du
-// sous-sol encastrée dans le mur de bibliothèques comme une vraie grille.
+// The hall: a real room in three-fiber, enclosed by a ring of bookshelves. No visible floor
+// plane — just furniture and doors placed in the dark/fog, like a row of lit elements rather
+// than a fully modeled room. The 4 doors aren't the same base duplicated: each has its own
+// furniture — a stack of books + an old lamp, a table with scattered cards, the librarian
+// behind his counter, and the cellar door set into the bookshelf wall like a real gate.
 
-// Grille régulière à 13° d'écart : chaque bibliothèque (19.3° de large au rayon choisi) déborde
-// largement sur ses voisines plutôt que de laisser un interstice. L'anneau va de -73° à 83°
-// (156°) — nettement plus large que ce que la caméra peut voir même à un FOV large — pour qu'on
-// ne puisse jamais apercevoir son extrémité (donc le "vide" derrière) sur les bords de l'écran.
-// GAME_DOOR_ANGLE occupe un de ces emplacements (les bibliothèques voisines débordent dedans,
-// donc pas de trou même si la porte elle-même est plus étroite).
+// A regular grid at 13° spacing: each bookshelf (19.3° wide at the chosen radius) overlaps its
+// neighbors generously rather than leaving a gap. The ring spans -73° to 83° (156°) — well wider
+// than what the camera can ever see even at a wide FOV — so its end (and the "void" behind it) is
+// never visible at the screen edges. GAME_DOOR_ANGLE occupies one of these slots (neighboring
+// shelves overlap into it, so there's no gap even though the door itself is narrower).
 const RING_RADIUS = 5.6
-// La porte du sous-sol occupe maintenant le créneau plein centre (0°) — 5 emplacements dans le
-// hall (Collection/Deck/Porte/Bibliothécaire/Tuto), la porte au milieu du lot. Deux créneaux de
-// part et d'autre du centre sont laissés libres pour lui donner de la place — mais ça laissait un
-// vrai trou visible (la porte ne touchait plus aucune bibliothèque). Les deux angles ci-dessous
-// rajoutent une bibliothèque calée juste contre chaque bord du cadre de la porte, en plus de la
-// grille régulière, pour refermer ce trou sans réduire l'espace de la porte.
+// The cellar door sits dead-center (0°) among the hall's 5 spots
+// (Collection/Deck/Door/Librarian/Tuto), with two empty slots on either side for clearance.
+// DOOR_FLANK_ANGLES add one extra bookshelf flush against each edge of the door frame so the
+// door stays visually attached to the wall instead of floating in that clearance gap.
 const GAME_DOOR_ANGLE = 0
 const SHELF_RING_ANGLES = [-91, -78, -65, -52, -39, -26, 26, 39, 52, 65, 78, 91]
 const DOOR_FLANK_ANGLES = [-20, 20]
-// Torches murales, montées sur certaines de ces bibliothèques (pas toutes — juste assez pour
-// éclairer la pièce par endroits, sans recréer le lavage uniforme qu'on veut éviter).
+// Wall torches, mounted on some of these bookshelves (not all — just enough to light the room
+// in spots, without recreating the uniform wash we want to avoid).
 const TORCH_ANGLES = [-65, -26, 26, 65]
 const TORCH_HEIGHT = 2.15
 
 type Variant = 'books' | 'table' | 'librarian' | 'door' | 'tuto'
 type Layout = { angleDeg: number; radius: number; variant: Variant }
 
-// Rayons des 4 éléments "posés au sol" bien inférieurs à RING_RADIUS : ils doivent rester
-// devant le mur de bibliothèques, jamais le traverser. Ordre gauche→droite, espacement régulier
-// (30°) : Collection, Deck, Porte (Game room), Bibliothécaire, Tuto — la porte est maintenant
-// pile au centre de la rangée (0°), les 4 autres répartis symétriquement de part et d'autre.
-// Même rayon pour les 4 éléments "posés dans la pièce" (les seuls qu'on peut vraiment
-// repositionner — la porte reste encastrée dans le mur à RING_RADIUS) : ça les ramène tous à
-// la même distance de la caméra (donc même taille apparente) et bien à l'intérieur de l'anneau
-// de bibliothèques (5.0 dépassait dans le mur pour la table de la création de deck).
+// Radius for the 4 floor-standing elements, kept well under RING_RADIUS so they stay in front
+// of the bookshelf wall rather than poking into it. Left-to-right order, even 30° spacing:
+// Collection, Deck, Door (Game room), Librarian, Tuto, with the door dead-center (0°) and the
+// other 4 spread symmetrically around it. Sharing one radius keeps them all the same apparent
+// size (same camera distance) — the door alone stays embedded in the wall at RING_RADIUS.
 const PROP_RADIUS = 4.2
 
 const LAYOUT: Record<string, Layout> = {
@@ -60,8 +53,8 @@ const LAYOUT: Record<string, Layout> = {
     '/manual': { angleDeg: 56, radius: PROP_RADIUS, variant: 'tuto' },
 }
 
-// Même hauteur pour les 4 noms (au lieu d'une hauteur par variante) : plus lisible d'un coup
-// d'œil, et cohérent avec le fait que les props sont maintenant à la même distance.
+// Same height for all 4 labels (instead of one height per variant): easier to read at a
+// glance, and consistent with the props now sharing the same distance.
 const LABEL_Y = 1.85
 
 function polar(angleDeg: number, radius: number): [number, number] {
@@ -69,9 +62,8 @@ function polar(angleDeg: number, radius: number): [number, number] {
     return [Math.sin(a) * radius, -Math.cos(a) * radius]
 }
 
-// Hash déterministe (pas Math.random) : les rangées de livres et les cartes éparpillées ne
-// doivent pas se reconfigurer visuellement à chaque re-render (ex: le survol d'un autre élément
-// qui change du state plus haut).
+// Deterministic hash (not Math.random): book rows and scattered cards must not visually
+// reshuffle on every re-render (e.g. hovering another element that changes state higher up).
 function pseudoRandom(seed: number): number {
     const x = Math.sin(seed * 12.9898) * 43758.5453
     return x - Math.floor(x)
@@ -80,14 +72,14 @@ function pseudoRandom(seed: number): number {
 const SHELF_ROWS = 5
 const BOOKS_PER_ROW = 8
 
-// Une bibliothèque murale : un caisson + des rangées de livres à la largeur/hauteur/teinte/
-// inclinaison irrégulières (jamais deux livres identiques). `seed` distingue chaque instance de
-// l'anneau — sans lui, toutes les bibliothèques utilisaient le même calcul (row/i) et étaient
-// donc des copies visuellement identiques malgré la géométrie procédurale.
+// A wall bookshelf: a cabinet + rows of books with irregular width/height/tint/tilt (never two
+// identical books). `seed` distinguishes each instance in the ring — without it every bookshelf
+// used the same row/i calculation and ended up as visually identical copies despite the
+// procedural geometry.
 //
-// Les livres sont un seul <instancedMesh> par bibliothèque (~35 livres en un draw call) plutôt
-// que 35 mesh séparés : avec ~12 bibliothèques, ça faisait plus de 400 mesh individuels, chacun
-// projetant une ombre — la vraie cause du ralentissement.
+// Books are a single <instancedMesh> per bookshelf (~35 books in one draw call) rather than 35
+// separate meshes: with ~12 bookshelves that was 400+ individual meshes, each casting a shadow —
+// the actual cause of the slowdown.
 function Bookshelf({ position, rotationY = 0, seed = 0 }: { position: [number, number, number]; rotationY?: number; seed?: number }) {
     const shelfColors = [PALETTE.leather700, PALETTE.leather800, PALETTE.ink700, PALETTE.leather900]
     const booksRef = useRef<THREE.InstancedMesh>(null)
@@ -96,8 +88,8 @@ function Bookshelf({ position, rotationY = 0, seed = 0 }: { position: [number, n
         const list: { x: number; y: number; w: number; h: number; tilt: number; color: string }[] = []
         for (let row = 0; row < SHELF_ROWS; row++) {
             const shelfY = 0.32 + row * 0.58
-            // Chaque rangée décale légèrement son point de départ et son nombre de livres :
-            // des bords irréguliers, pas une grille parfaite répétée à chaque étagère.
+            // Each row slightly shifts its start point and book count: irregular edges, not a
+            // perfect grid repeated on every shelf.
             const rowCount = BOOKS_PER_ROW - Math.round(pseudoRandom(seed * 331 + row * 71) * 2)
             const rowStartX = -0.78 + pseudoRandom(seed * 197 + row * 53) * 0.16
             for (let i = 0; i < rowCount; i++) {
@@ -132,9 +124,9 @@ function Bookshelf({ position, rotationY = 0, seed = 0 }: { position: [number, n
 
     return (
         <group position={position} rotation={[0, rotationY, 0]}>
-            {/* Le caisson n'est plus posé ici : les 12 sont rigoureusement identiques (même
-                taille, même couleur), donc un seul instancedMesh partagé (BookshelfCaissons,
-                rendu une fois dans HallScene) les remplace tous — voir ce composant. */}
+            {/* The cabinet isn't placed here anymore: all 12 are strictly identical (same
+                size, same color), so a single shared instancedMesh (BookshelfCaissons,
+                rendered once in HallScene) replaces all of them — see that component. */}
             {Array.from({ length: SHELF_ROWS }).map((_, row) => (
                 <mesh key={row} position={[0, 0.32 + row * 0.58 - 0.02, 0.1]} receiveShadow>
                     <boxGeometry args={[1.82, 0.04, 0.42]} />
@@ -151,13 +143,12 @@ function Bookshelf({ position, rotationY = 0, seed = 0 }: { position: [number, n
 
 type CaissonPlacement = { position: [number, number, number]; rotationY: number }
 
-// Les 12 caissons de bibliothèque sont géométriquement identiques (même taille [1.9, 3.3, 0.5],
-// même couleur leather900) — seules position et rotation changent d'une bibliothèque à l'autre.
-// Un seul instancedMesh (même principe que les livres ci-dessus) remplace donc 12 RoundedBox
-// séparées par une géométrie construite une fois et un seul draw call, au lieu de 12 de chaque.
-// boxGeometry (coins vifs) plutôt que RoundedBox : le chanfrein de 0.03 unité sur un caisson de
-// cette taille, vu à quelques mètres dans une salle sombre éclairée aux torches, était de toute
-// façon imperceptible — aucune couleur ni proportion ne change.
+// The 12 bookshelf cabinets are geometrically identical (same [1.9, 3.3, 0.5] size, same
+// leather900 color) — only position and rotation differ between bookshelves. A single
+// instancedMesh (same idea as the books above) replaces 12 separate RoundedBox meshes with one
+// geometry built once and a single draw call, instead of 12 of each. boxGeometry (sharp corners)
+// instead of RoundedBox: the 0.03-unit chamfer on a cabinet this size, seen from a few meters in
+// a dim torch-lit room, was imperceptible anyway — no color or proportion changes.
 function BookshelfCaissons({ shelves }: { shelves: CaissonPlacement[] }) {
     const ref = useRef<THREE.InstancedMesh>(null)
 
@@ -166,10 +157,10 @@ function BookshelfCaissons({ shelves }: { shelves: CaissonPlacement[] }) {
         if (!mesh) return
         const dummy = new THREE.Object3D()
         shelves.forEach((s, i) => {
-            // Offset local [0, 1.65, 0] de l'ancien caisson : une rotation autour de Y seul ne
-            // change jamais un vecteur purement vertical, donc l'addition directe en espace
-            // monde reproduit exactement la position qu'aurait eue le caisson imbriqué dans le
-            // groupe pivoté de sa bibliothèque.
+            // Local offset [0, 1.65, 0] from the old nested cabinet: a rotation around Y alone
+            // never changes a purely vertical vector, so adding it directly in world space
+            // reproduces exactly the position the cabinet would have had nested inside its
+            // bookshelf's rotated group.
             dummy.position.set(s.position[0], s.position[1] + 1.65, s.position[2])
             dummy.rotation.set(0, s.rotationY, 0)
             dummy.updateMatrix()
@@ -186,10 +177,10 @@ function BookshelfCaissons({ shelves }: { shelves: CaissonPlacement[] }) {
     )
 }
 
-// Une torche murale, montée sur le caisson d'une bibliothèque — une vraie applique plutôt qu'un
-// brasero posé au sol : le bras en fer est fixé dans la tranche du caisson, la bougie dépasse à
-// peine vers la pièce (une torche, pas un cierge géant). Lumière fixe pour l'instant (le glow
-// animé a été retiré à la demande).
+// A wall-mounted torch, fixed onto a bookshelf cabinet — a real wall sconce rather than a
+// floor-standing brazier: the iron arm is anchored into the cabinet's edge, the candle barely
+// protrudes into the room (a torch, not a giant candle). Light is static for now (the animated
+// glow was removed on request).
 function WallTorch({ position, rotationY }: { position: [number, number, number]; rotationY: number }) {
     return (
         <group position={position} rotation={[0, rotationY, 0]}>
@@ -203,8 +194,8 @@ function WallTorch({ position, rotationY }: { position: [number, number, number]
     )
 }
 
-// Une vieille lampe à huile : base en laiton, globe de verre qui vacille doucement — la source
-// de lumière qui éclaire la pile de livres à côté d'elle.
+// An old oil lamp: brass base, glass globe that flickers gently — the light source
+// illuminating the book stack beside it.
 function OldLamp({ position }: { position: [number, number, number] }) {
     const glassRef = useRef<THREE.Mesh>(null)
 
@@ -234,8 +225,8 @@ function OldLamp({ position }: { position: [number, number, number] }) {
     )
 }
 
-// Un petit coffre fermé, posé sur le comptoir du bibliothécaire — pas le grand coffre à paquets
-// (déjà utilisé dans VaultRoom), juste un accessoire de comptoir : base + couvercle + fermoir doré.
+// A small closed chest on the librarian's counter — not the large pack chest (already used in
+// VaultRoom), just a counter prop: base + lid + gold clasp.
 function TableChest({ position }: { position: [number, number, number] }) {
     return (
         <group position={position}>
@@ -253,10 +244,10 @@ function TableChest({ position }: { position: [number, number, number] }) {
     )
 }
 
-// Le bibliothécaire : silhouette encapuchonnée derrière son comptoir, sans visage — juste deux
-// points de lumière dans l'ombre de la capuche, qui bougent furtivement (petits coups d'oeil,
-// pas un balayage régulier) pour donner l'impression que quelqu'un observe vraiment. Une vieille
-// lampe et un petit coffre posés sur le comptoir, devant lui.
+// The librarian: a hooded, faceless silhouette behind his counter — just two points of light
+// in the shadow of the hood that dart around furtively (small glances, not a regular sweep) to
+// sell the impression that someone is really watching. An old lamp and a small chest sit on the
+// counter in front of him.
 function Librarian({ locked }: { locked: boolean }) {
     const eyesRef = useRef<THREE.Group>(null)
 
@@ -276,9 +267,9 @@ function Librarian({ locked }: { locked: boolean }) {
             <OldLamp position={[-0.32, 0.5, 0.35]} />
             <TableChest position={[0.22, 0.5, 0.5]} />
 
-            {/* Un fantôme, tout simplement : un cylindre à largeur CONSTANTE (pas de rétrécissement
-                vers le haut, donc pas d'effet "cou puis tête") surmonté d'une demi-sphère de
-                exactement le même rayon — une seule silhouette arrondie et fluide, sans pointe. */}
+            {/* A ghost, simply: a CONSTANT-width cylinder (no taper toward the top, so no
+                "neck then head" effect) topped with a half-sphere of the exact same radius —
+                one smooth, rounded silhouette, no point. */}
             <mesh position={[0, 0.6, 0]} castShadow>
                 <cylinderGeometry args={[0.26, 0.26, 1.2, 24]} />
                 <meshStandardMaterial color={PALETTE.ink900} roughness={0.9} />
@@ -290,20 +281,18 @@ function Librarian({ locked }: { locked: boolean }) {
 
             {!locked && (
                 <>
-                    {/* Creux de la capuche, en meshBasicMaterial (pas Standard, pour ne pas
-                        s'ombrer lui-même). z=0.26 avec une bonne marge devant la surface du corps
-                        (0.26 pile) : le creux précédent était quasi coincident avec elle → z-fighting
-                        (scintillement en damier, lu comme "une texture" sur le visage). */}
+                    {/* Hood hollow, using meshBasicMaterial (not Standard, so it doesn't shade
+                        itself). Kept at a safe z distance from the body surface to avoid
+                        z-fighting (near-coincident faces flicker in a checkerboard pattern,
+                        reading as a texture glitch on the face). */}
                     <mesh position={[0, 1.17, 0.26]} scale={[1, 0.85, 0.09]}>
                         <sphereGeometry args={[0.18, 16, 12]} />
                         <meshBasicMaterial color="#050505" />
                     </mesh>
 
-                    {/* z=0.285 : un peu plus enfoncés dans le creux qu'avant (0.3), tout en
-                        gardant une marge de sécurité devant lui (≈0.276) pour éviter le
-                        z-fighting. Écart latéral réduit (±0.08, contre ±0.095) et amplitude de
-                        glissement réduite (0.07, contre 0.11, ci-dessus) : les yeux restent
-                        maintenant bien dans le rayon du creux (0.18) même en bout de course. */}
+                    {/* Eyes sit just in front of the hollow (small z gap, to avoid z-fighting)
+                        and drift within a tight radius so they never stray past the hollow's
+                        edge (0.18) during their glance animation. */}
                     <group ref={eyesRef} position={[0, 1.17, 0.285]}>
                         <mesh position={[-0.08, 0, 0]} scale={[1.3, 0.4, 1]}>
                             <sphereGeometry args={[0.028, 10, 8]} />
@@ -313,8 +302,9 @@ function Librarian({ locked }: { locked: boolean }) {
                             <sphereGeometry args={[0.028, 10, 8]} />
                             <meshStandardMaterial color={PALETTE.gold400} emissive={PALETTE.gold400} emissiveIntensity={12} toneMapped={false} />
                         </mesh>
-                        {/* Pas de pointLight ici : le matériau émissif suffit à faire briller les
-                            yeux eux-mêmes, sans éclairer (et donc délaver) le fantôme tout autour. */}
+                        {/* No pointLight here: the emissive material is enough to make the eyes
+                            glow on their own, without lighting up (and washing out) the ghost
+                            around them. */}
                     </group>
                 </>
             )}
@@ -324,7 +314,7 @@ function Librarian({ locked }: { locked: boolean }) {
     )
 }
 
-// Un fauteuil de lecture : assise, dossier légèrement incliné en arrière, accoudoirs, pieds fins.
+// A reading armchair: seat, backrest tilted slightly back, armrests, thin legs.
 function Armchair() {
     const legs: [number, number][] = [[-0.2, -0.18], [0.2, -0.18], [-0.2, 0.18], [0.2, 0.18]]
     return (
@@ -350,8 +340,8 @@ function Armchair() {
     )
 }
 
-// La table de chevet à côté du fauteuil : un petit plateau + un caisson, tenant la lampe et le
-// gros livre rouge.
+// The nightstand beside the armchair: a small top + a cabinet, holding the lamp and the big
+// red book.
 function NightTable({ position }: { position: [number, number, number] }) {
     return (
         <group position={position}>
@@ -369,26 +359,26 @@ function NightTable({ position }: { position: [number, number, number] }) {
     )
 }
 
-// Le gros livre rouge, OUVERT et posé sur un petit lutrin (repose-livre) — pour qu'on le
-// reconnaisse comme un livre qu'on est en train de lire, pas un simple bloc rouge fermé.
+// The big red book, OPEN and resting on a small stand — so it reads as a book being read,
+// not just a closed red block.
 function OpenBookOnStand({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
     return (
         <group position={position} rotation={[0, rotationY, 0]}>
-            {/* Socle du lutrin, à plat */}
+            {/* Stand base, flat */}
             <RoundedBox args={[0.3, 0.03, 0.16]} radius={0.012} smoothness={1} position={[0, 0.015, 0.05]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.7} />
             </RoundedBox>
-            {/* Plan incliné qui porte le livre, penché comme un vrai lutrin */}
+            {/* Tilted plane holding the book, angled like a real stand */}
             <group position={[0, 0.03, -0.02]} rotation={[-0.6, 0, 0]}>
                 <RoundedBox args={[0.3, 0.02, 0.22]} radius={0.01} smoothness={1} position={[0, 0, 0.11]} castShadow receiveShadow>
                     <meshStandardMaterial color={PALETTE.leather800} roughness={0.7} />
                 </RoundedBox>
-                {/* Couverture rouge, visible en dessous des pages */}
+                {/* Red cover, visible beneath the pages */}
                 <mesh position={[0, 0.014, 0.11]}>
                     <boxGeometry args={[0.28, 0.012, 0.21]} />
                     <meshStandardMaterial color="#7a1c1c" roughness={0.55} />
                 </mesh>
-                {/* Deux pages ouvertes, légèrement pliées de part et d'autre de la tranche centrale */}
+                {/* Two open pages, slightly bent on either side of the center spine */}
                 <mesh position={[-0.065, 0.022, 0.11]} rotation={[0, 0, 0.06]}>
                     <boxGeometry args={[0.12, 0.01, 0.19]} />
                     <meshStandardMaterial color={PALETTE.parchment100} roughness={0.9} />
@@ -406,8 +396,8 @@ function OpenBookOnStand({ position, rotationY = 0 }: { position: [number, numbe
     )
 }
 
-// Une lampe sur pied, plus haute qu'une lampe de table — de l'autre côté du fauteuil par rapport
-// à la table de chevet, pour équilibrer la composition plutôt que d'empiler les deux du même côté.
+// A floor lamp, taller than a table lamp — on the opposite side of the armchair from the
+// nightstand, to balance the composition rather than stacking both on the same side.
 function FloorLamp({ position }: { position: [number, number, number] }) {
     const glassRef = useRef<THREE.Mesh>(null)
 
@@ -437,22 +427,21 @@ function FloorLamp({ position }: { position: [number, number, number] }) {
     )
 }
 
-// La porte "Collection" : un fauteuil de lecture, sa table de chevet avec le livre ouvert d'un
-// côté, la lampe sur pied — plus haute — de l'autre côté pour équilibrer la composition.
+// The "Collection" door: a reading armchair, its nightstand with the open book on one side,
+// the taller floor lamp on the other side to balance the composition.
 function CollectionProps() {
     return (
         <group>
             <Armchair />
             <NightTable position={[0.55, 0, 0.1]} />
-            {/* +PI : le lutrin est tourné de sorte que les pages fassent face à la pièce, pas au mur */}
+            {/* +PI: the stand is rotated so the pages face the room, not the wall */}
             <OpenBookOnStand position={[0.55, 0.52, 0.02]} rotationY={Math.PI + 0.15} />
             <FloorLamp position={[-0.52, 0, 0.05]} />
         </group>
     )
 }
 
-// La table de la porte "Création de deck" : des cartes éparpillées, jamais alignées, posées sur
-// une vieille table ronde.
+// The "Deck Builder" door's table: scattered cards, never aligned, on an old round table.
 type DeckTableCard = { x: number; z: number; rot: number; face: string; sleeve: string }
 
 function DeckTable() {
@@ -461,9 +450,8 @@ function DeckTable() {
             x: (pseudoRandom(i * 4.1) - 0.5) * 0.7,
             z: (pseudoRandom(i * 8.3) - 0.5) * 0.7,
             rot: pseudoRandom(i * 15.2) * Math.PI * 2,
-            // Face visible à travers la sleeve + couleur de la sleeve elle-même — deux couches
-            // distinctes (comme une vraie carte à jouer sous protection), pas un simple rectangle
-            // plat d'une seule couleur.
+            // Face visible through the sleeve + the sleeve's own color — two distinct layers
+            // (like a real card under a sleeve), not a single flat rectangle of one color.
             face: [PALETTE.parchment200, PALETTE.parchment100, PALETTE.gold500][i % 3],
             sleeve: [PALETTE.ink900, PALETTE.leather900, '#2b3a4a'][i % 3],
         })),
@@ -473,11 +461,11 @@ function DeckTable() {
     const sleeveRef = useRef<THREE.InstancedMesh>(null)
     const faceRef = useRef<THREE.InstancedMesh>(null)
 
-    // Même idée que BookshelfCaissons : les 6 sleeves partagent une géométrie, les 6 faces une
-    // autre — seules position/rotation/couleur changent par carte. Deux instancedMesh (couleur
-    // par instance, comme les livres) remplacent donc 12 RoundedBox séparées. boxGeometry (coins
-    // vifs) : le rayon d'arrondi d'origine (0.005/0.0015 unité, une fraction de millimètre à
-    // l'échelle de la scène) était déjà invisible.
+    // Same idea as BookshelfCaissons: the 6 sleeves share one geometry, the 6 faces another —
+    // only position/rotation/color differ per card. Two instancedMesh (per-instance color, like
+    // the books) replace 12 separate RoundedBox meshes. boxGeometry (sharp corners): the original
+    // corner radius (0.005/0.0015 units, a fraction of a millimeter at this scene's scale) was
+    // already invisible.
     useLayoutEffect(() => {
         const sleeve = sleeveRef.current
         const face = faceRef.current
@@ -512,9 +500,9 @@ function DeckTable() {
                 <cylinderGeometry args={[0.07, 0.09, 0.5, 12]} />
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.65} />
             </mesh>
-            {/* Une vraie petite pile à deux couches plutôt qu'un plan unicolore : la sleeve (fine
-                boîte, comme le plastique d'une protection de carte) et la face qu'on aperçoit à
-                travers, légèrement en retrait sur les bords. */}
+            {/* A real two-layer stack rather than a flat single-color plane: the sleeve (a thin
+                box, like a card-sleeve's plastic) and the face glimpsed through it, slightly
+                recessed at the edges. */}
             <instancedMesh ref={sleeveRef} args={[undefined, undefined, cards.length]} castShadow>
                 <boxGeometry args={[0.19, 0.012, 0.26]} />
                 <meshStandardMaterial roughness={0.5} />
@@ -523,28 +511,28 @@ function DeckTable() {
                 <boxGeometry args={[0.155, 0.005, 0.225]} />
                 <meshStandardMaterial roughness={0.75} />
             </instancedMesh>
-            {/* Une vraie bougie posée sur la table (au lieu d'une pointLight flottante invisible) :
-                la source de lumière doit se voir sur la table, pas juste éclairer depuis nulle part.
-                Candle est centrée sur son origine locale (le corps s'étend au-dessus ET en dessous
-                de `position`), donc il faut remonter le y de sa demi-hauteur mise à l'échelle pour
-                que la base touche vraiment le plateau (0.555) au lieu d'être à moitié enfoncée dedans. */}
+            {/* A real candle sitting on the table (instead of an invisible floating pointLight):
+                the light source should be visible on the table, not just illuminate from
+                nowhere. Candle is centered on its local origin (the body extends both above AND
+                below `position`), so its y must be raised by its scaled half-height for the base
+                to actually touch the tabletop (0.555) instead of being half-sunk into it. */}
             <Candle position={[0.36, 0.555 + 0.275 * 0.42, 0.3]} scale={0.42} />
         </group>
     )
 }
-// La porte du sous-sol : une vraie porte en bois massif de bonne taille, encastrée dans le mur de
-// bibliothèques — encadrement en pierre, planches verticales, ferrures horizontales, anneau et
-// plaque de serrure. Plus une grille de prison : une porte qu'on pourrait pousser.
+// The cellar door: a real, good-sized solid wood door set into the bookshelf wall — stone
+// frame, vertical planks, horizontal ironwork, ring and lock plate. No longer a prison gate: a
+// door one could actually push open.
 function CellarDoor() {
     const halfWidth = 0.82
     const doorHeight = 2.8
-    // Le cadre est dérivé de doorHeight (pas de valeurs figées) pour ne jamais se retrouver plus
-    // bas que le vantail si on retouche la taille de la porte.
+    // The frame is derived from doorHeight (not hardcoded) so it can never end up shorter than
+    // the door leaf if the door's size is tweaked.
     const frameHeight = doorHeight + 0.4
     const lintelY = frameHeight - 0.13
     return (
         <group>
-            {/* Encadrement en pierre */}
+            {/* Stone frame */}
             <RoundedBox args={[0.22, frameHeight, 0.34]} radius={0.03} smoothness={1} position={[-halfWidth - 0.08, frameHeight / 2, 0]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.ink700} roughness={0.9} />
             </RoundedBox>
@@ -555,25 +543,25 @@ function CellarDoor() {
                 <meshStandardMaterial color={PALETTE.ink700} roughness={0.9} />
             </RoundedBox>
 
-            {/* Vantail en bois massif */}
+            {/* Solid wood door leaf */}
             <RoundedBox args={[halfWidth * 2, doorHeight, 0.12]} radius={0.02} smoothness={1} position={[0, doorHeight / 2 + 0.05, 0.05]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.85} />
             </RoundedBox>
-            {/* Planches verticales (joints visibles) */}
+            {/* Vertical planks (visible seams) */}
             {[-0.35, -0.12, 0.12, 0.35].map(x => (
                 <mesh key={x} position={[x, doorHeight / 2 + 0.05, 0.115]}>
                     <boxGeometry args={[0.015, doorHeight - 0.12, 0.008]} />
                     <meshStandardMaterial color={PALETTE.leather700} roughness={0.8} />
                 </mesh>
             ))}
-            {/* Ferrures horizontales */}
+            {/* Horizontal ironwork */}
             {[0.35, 1.1, doorHeight - 0.25].map(y => (
                 <mesh key={y} position={[0, y, 0.115]} castShadow>
                     <boxGeometry args={[halfWidth * 2 - 0.06, 0.05, 0.015]} />
                     <meshStandardMaterial color="#1c1d1f" roughness={0.5} metalness={0.5} />
                 </mesh>
             ))}
-            {/* Anneau et plaque de serrure */}
+            {/* Ring and lock plate */}
             <mesh position={[halfWidth - 0.18, doorHeight / 2 - 0.1, 0.11]}>
                 <boxGeometry args={[0.06, 0.08, 0.015]} />
                 <meshStandardMaterial color="#1c1d1f" roughness={0.5} metalness={0.5} />
@@ -583,28 +571,28 @@ function CellarDoor() {
                 <meshStandardMaterial color={PALETTE.gold500} metalness={0.6} roughness={0.3} />
             </mesh>
 
-            {/* Lueur froide qui filtre sous la porte : garde l'idée "sous-sol verrouillé" sans grille de prison */}
+            {/* Cold glow seeping under the door: keeps the "locked cellar" feel without a prison gate */}
             <pointLight position={[0, 0.12, 0.25]} color="#3a4550" intensity={0.5} distance={2} decay={2} />
         </group>
     )
 }
 
-// Une "affiche" pinglée sur le tableau : un plan texturé (asset du carnet/travel book — portrait
-// de légendaire, cadre de carte, bannière...), légèrement de travers, avec une punaise de couleur
-// en haut. `w`/`h` sont fixes par note plutôt que dérivés de la texture (chaque source a son
-// propre ratio natif, plus simple à caler à la main pour 7 assets que de le lire dynamiquement).
+// A "note" pinned on the board: a textured plane (a notebook/travelbook asset — legendary
+// portrait, card frame, banner...), slightly askew, with a colored pin at the top. `w`/`h` are
+// fixed per note rather than derived from the texture (each source has its own native ratio,
+// simpler to hand-tune for 7 assets than to read dynamically).
 type TutoNote = { tex: string; x: number; y: number; w: number; h: number; rot: number; pin: string }
 
-// Disposition en longueur : une bannière fine tout en haut, une seule rangée des 6 autres
-// affiches en dessous — pensée pour un panneau large et bas, pas la colonne portrait d'origine.
+// Landscape layout: a thin banner across the top, a single row of the other 6 notes below —
+// designed for a wide, short panel, not the original portrait column.
 const TUTO_NOTES: TutoNote[] = [
-    { tex: '/textures/notebook/banner01.png', x: 0, y: 0.42, w: 1.3, h: 0.22, rot: -0.02, pin: '#c0392b' },
-    { tex: '/textures/collection/icon-leg-timmy.png', x: -1.05, y: -0.06, w: 0.36, h: 0.38, rot: 0.08, pin: '#2980b9' },
-    { tex: '/textures/collection/icon-leg-freddy.png', x: -0.63, y: -0.06, w: 0.36, h: 0.38, rot: -0.06, pin: '#27ae60' },
-    { tex: '/textures/cards/frame/frame-commune.png', x: -0.21, y: -0.06, w: 0.34, h: 0.5, rot: -0.09, pin: '#2980b9' },
-    { tex: '/textures/notebook/slot.png', x: 0.21, y: -0.06, w: 0.3, h: 0.3, rot: 0.08, pin: '#e0a72b' },
-    { tex: '/textures/collection/icon-leg-jeffe.png', x: 0.63, y: -0.06, w: 0.36, h: 0.38, rot: 0.05, pin: '#c0392b' },
-    { tex: '/textures/collection/icon-leg-gertrude.png', x: 1.05, y: -0.06, w: 0.36, h: 0.38, rot: -0.07, pin: '#27ae60' },
+    { tex: '/textures/notebook/banner01.webp', x: 0, y: 0.42, w: 1.3, h: 0.22, rot: -0.02, pin: '#c0392b' },
+    { tex: '/textures/collection/icon-leg-timmy.webp', x: -1.05, y: -0.06, w: 0.36, h: 0.38, rot: 0.08, pin: '#2980b9' },
+    { tex: '/textures/collection/icon-leg-freddy.webp', x: -0.63, y: -0.06, w: 0.36, h: 0.38, rot: -0.06, pin: '#27ae60' },
+    { tex: '/textures/cards/frame/frame-commune.webp', x: -0.21, y: -0.06, w: 0.34, h: 0.5, rot: -0.09, pin: '#2980b9' },
+    { tex: '/textures/notebook/slot.webp', x: 0.21, y: -0.06, w: 0.3, h: 0.3, rot: 0.08, pin: '#e0a72b' },
+    { tex: '/textures/collection/icon-leg-jeffe.webp', x: 0.63, y: -0.06, w: 0.36, h: 0.38, rot: 0.05, pin: '#c0392b' },
+    { tex: '/textures/collection/icon-leg-gertrude.webp', x: 1.05, y: -0.06, w: 0.36, h: 0.38, rot: -0.07, pin: '#27ae60' },
 ]
 
 function TutoNoteMesh({ note, texture }: { note: TutoNote; texture: THREE.Texture }) {
@@ -622,10 +610,10 @@ function TutoNoteMesh({ note, texture }: { note: TutoNote; texture: THREE.Textur
     )
 }
 
-// Le tableau du Tuto : un grand panneau (cadre + fond liège) monté sur un pied, couvert d'affiches
-// punaisées — portraits des légendaires, un cadre de carte, une bannière — comme un vrai tableau
-// de recherche plutôt qu'une simple pancarte. Le contenu détaillé (règles, glossaire) vit sur la
-// page /manual ; ce tableau n'est qu'un aperçu en 3D, pas le tutoriel lui-même.
+// The Tuto board: a large panel (frame + corkboard) on a stand, covered in pinned notes —
+// legendary portraits, a card frame, a banner — like a real investigation board rather than a
+// plain sign. Detailed content (rules, glossary) lives on the /manual page; this board is only a
+// 3D preview, not the tutorial itself.
 function TutoBoard() {
     const textures = useTexture(TUTO_NOTES.map(n => n.tex))
 
@@ -639,8 +627,7 @@ function TutoBoard() {
 
     return (
         <group rotation={[-0.05, 0, 0]}>
-            {/* Pied : un socle bas + deux montants, raccourcis (0.6, contre 1.02 avant — sommet à
-                0.64 au lieu de 1.06) pour un support plus bas, moins imposant. */}
+            {/* Stand: a low base + two short posts, for a low, unobtrusive support (top at 0.64). */}
             <RoundedBox args={[1.1, 0.08, 0.32]} radius={0.02} smoothness={1} position={[0, 0.04, -0.08]} castShadow receiveShadow>
                 <meshStandardMaterial color={PALETTE.leather900} roughness={0.8} />
             </RoundedBox>
@@ -651,12 +638,10 @@ function TutoBoard() {
                 </mesh>
             ))}
 
-            {/* Cadre + fond liège du panneau : en longueur (2.8 x 1.3) et un peu rallongé vers le
-                bas (hauteur 1.5, +0.2) — le cadre et le liège sont décalés de -0.10 en y (leur
-                bord haut ne bouge pas, seul le bas descend) pendant que les notes ci-dessous
-                gardent leurs coordonnées d'origine, donc tout l'ajout de hauteur se voit sous
-                elles plutôt que de resserrer la marge du haut. Posé sur le sommet des montants
-                (1.065 = 0.64 + moitié de la nouvelle hauteur basse mise à l'échelle, 0.425). */}
+            {/* Panel frame + corkboard: landscape (2.8 x 1.3), with extra margin below the notes
+                rather than above — the notes keep fixed coordinates, so the panel's top edge
+                stays level while the bottom margin absorbs the panel's height. Positioned on
+                top of the posts (post height + half the panel's height). */}
             <group position={[0, 1.065, 0]} scale={0.5}>
                 <RoundedBox args={[2.8, 1.5, 0.07]} radius={0.03} smoothness={1} position={[0, -0.1, 0]} castShadow receiveShadow>
                     <meshStandardMaterial color={PALETTE.leather900} roughness={0.85} />
@@ -685,9 +670,9 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
     const groupRef = useRef<THREE.Group>(null)
     const [x, z] = polar(layout.angleDeg, layout.radius)
     const facingRotationY = -(layout.angleDeg * Math.PI) / 180
-    // La zone de clic ne doit pas se limiter au maillage visible (souvent fin/petit) : un
-    // cylindre invisible mais bien raycastable (opacity 0, pas visible=false — un objet
-    // invisible n'est plus intersecté du tout) qui monte du sol jusque bien au-dessus du nom.
+    // The click zone shouldn't be limited to the visible mesh (often thin/small): an
+    // invisible but still raycastable cylinder (opacity 0, not visible=false — an invisible
+    // object stops being intersected at all) rising from the floor well above the label.
     const hitHeight = LABEL_Y + 0.4
     const hitRadius = 0.85
 
@@ -732,9 +717,9 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
     )
 }
 
-// Texture générée une seule fois (canvas 2D, dégradé radial) et partagée par toutes les
-// volutes de fumée, plutôt qu'une par instance — le vrai coût d'un effet comme celui-ci vient
-// souvent de la génération de texture répétée, pas du rendu des quelques sprites eux-mêmes.
+// Texture generated once (2D canvas, radial gradient) and shared by every smoke wisp,
+// rather than one per instance — the real cost of an effect like this usually comes from
+// repeated texture generation, not from rendering the handful of sprites themselves.
 let smokeTexture: THREE.Texture | null = null
 function getSmokeTexture(): THREE.Texture {
     if (smokeTexture) return smokeTexture
@@ -752,10 +737,10 @@ function getSmokeTexture(): THREE.Texture {
     return smokeTexture
 }
 
-// Quelques volutes de fumée bon marché au-dessus d'un foyer : des sprites (toujours face
-// caméra, pas de géométrie custom) qui montent et s'estompent en boucle. Pas d'ombre, pas de
-// physique, une seule texture partagée — volontairement limité au brasero plutôt que posé sur
-// chaque bougie/torche de la salle, pour que le coût reste négligeable.
+// A few cheap smoke wisps above a fire: sprites (always camera-facing, no custom geometry)
+// that rise and fade in a loop. No shadows, no physics, one shared texture — deliberately
+// limited to the brazier rather than added to every candle/torch in the room, to keep the cost
+// negligible.
 function Smoke({ position, count = 5 }: { position: [number, number, number]; count?: number }) {
     const texture = useMemo(() => getSmokeTexture(), [])
     const refs = useRef<(THREE.Sprite | null)[]>([])
@@ -788,10 +773,10 @@ function Smoke({ position, count = 5 }: { position: [number, number, number]; co
     )
 }
 
-// Brume au sol et au plafond de la pièce : de grands plans plats, quasi-transparents,
-// réutilisant la même texture (dégradé radial) que la fumée du brasero — aucune texture ni
-// génération supplémentaire. Rotation très lente, pas d'ombre, unlit (meshBasicMaterial, pas
-// affecté par les lumières de la scène) : un effet ambiant bon marché, pas une simulation.
+// Floor and ceiling mist for the room: large, near-transparent flat planes reusing the same
+// texture (radial gradient) as the brazier smoke — no extra texture or generation. Very slow
+// rotation, no shadows, unlit (meshBasicMaterial, unaffected by scene lights): a cheap ambient
+// effect, not a simulation.
 function RoomMist({ y, facingDown = false, radius = 8, count = 3, opacity = 0.1, color = '#333a40' }: {
     y: number
     facingDown?: boolean
@@ -809,8 +794,8 @@ function RoomMist({ y, facingDown = false, radius = 8, count = 3, opacity = 0.1,
         for (let i = 0; i < count; i++) {
             const mesh = refs.current[i]
             if (!mesh) continue
-            // Dérive lente (rotation + léger va-et-vient en x/z) et respiration de l'opacité,
-            // déphasées par couche : une brume figée ne lit pas comme "vivante".
+            // Slow drift (rotation + slight x/z sway) and opacity breathing, phase-shifted per
+            // layer: a static mist doesn't read as "alive".
             mesh.rotation.z += delta * 0.012 * (i % 2 === 0 ? 1 : -1)
             mesh.position.x = Math.sin(t * 0.06 + i * 2.1) * radius * 0.08
             mesh.position.z = Math.cos(t * 0.05 + i * 1.7) * radius * 0.08
@@ -838,16 +823,16 @@ function Brazier({ position }: { position: [number, number, number] }) {
                 <cylinderGeometry args={[0.11, 0.14, 0.38, 14]} />
                 <meshStandardMaterial color={PALETTE.ink700} roughness={0.6} metalness={0.2} />
             </mesh>
-            {/* Même correction que la bougie de la table de deck : la base de Candle doit toucher
-                le haut du brasero (0.38), pas être centrée dessus (moitié flottante au-dessus). */}
+            {/* As with the deck-table candle: Candle's base must touch the top of the brazier
+                (0.38), not be centered on it (which would float it half above). */}
             <Candle position={[0, 0.38 + 0.275 * 0.55, 0]} scale={0.55} />
             <Smoke position={[0, 0.75, 0]} />
         </group>
     )
 }
 
-// Un papillon en silhouette : tourne autour d'un brasero. Un détail vivant, imprévisible,
-// discret — plutôt qu'un décor figé.
+// A silhouette moth circling a brazier. A subtle, unpredictable living detail — rather than
+// static scenery.
 function Moth({ center }: { center: [number, number, number] }) {
     const ref = useRef<THREE.Group>(null)
     const phase = useMemo(() => Math.random() * Math.PI * 2, [])
@@ -879,11 +864,10 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
     onHoverChange: (href: string | null) => void
     onArrive: (item: MenuItem) => void
 }) {
-    // Rayon proche du mur (5.0, contre 3.6 avant) : la caméra s'approche de chaque élément
-    // cliquable en passant par le milieu de la pièce (rayon ~2.5 à l'arrivée), donc un brasero
-    // planté à mi-chemin s'y retrouvait presque nez à nez avec la caméra — d'où l'effet de
-    // bougie géante flottant au premier plan sur la vue du deck builder. Angle -32° : à
-    // équidistance de Collection (-48°) et Deck (-16°), loin de tout chemin d'approche.
+    // Radius close to the wall, not mid-room: the camera passes through the room's center on
+    // its way to each clickable element, so a brazier placed there would sit almost against the
+    // lens. Angle -32°: equidistant from Collection (-48°) and Deck (-16°), clear of any
+    // approach path.
     const [baX, baZ] = polar(-32, 5.0)
 
     const shelfCaissonPlacements = useMemo<CaissonPlacement[]>(() => [
@@ -899,8 +883,8 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
 
     return (
         <>
-            {/* Encore plus lumineux : le brouillard recule encore, l'ambiante et la directionnelle
-                montent encore. Pas de parallax caméra (retiré) : la caméra reste fixe. */}
+            {/* Brighter still: fog pushed back further, ambient and directional light raised
+                further. No camera parallax (removed): the camera stays fixed. */}
             <color attach="background" args={[ATMOSPHERE.background]} />
             <fog attach="fog" args={[ATMOSPHERE.background, 16, 38]} />
             <ambientLight intensity={2.8} color={ATMOSPHERE.ambientColor} />
@@ -908,31 +892,30 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
             <Sparkles count={45} scale={[14, 4, 12]} position={[0, 1.8, -4]} size={1.6} speed={0.2} opacity={0.18} color="#8a8478" />
             <Lantern mode="mouse-track" distance={7} spreadX={2.6} spreadY={1.6} lightIntensity={4} lightAngle={0.26} lightDistance={6} />
 
-            {/* Toujours pas de plan de sol/plafond solide — juste une brume basse et une brume
-                haute (mêmes plans texturés bon marché que la fumée du brasero) pour suggérer les
-                deux sans reconstruire une pièce entièrement fermée. */}
+            {/* Still no solid floor/ceiling plane — just a low mist and a high mist (the same
+                cheap textured planes as the brazier smoke) to suggest both without building a
+                fully enclosed room. */}
             <RoomMist y={0.12} radius={5} count={3} opacity={0.08} color="#6b7178" />
             <RoomMist y={4.4} facingDown radius={5.5} count={2} opacity={0.06} color="#8a7a63" />
 
-            {/* Anneau de bibliothèques qui referme la pièce ; le créneau à GAME_DOOR_ANGLE est
-                laissé libre pour la porte du sous-sol, rendue par le Hotspot3D 'door' ci-dessous.
-                Les 12 caissons (identiques) sont un seul instancedMesh partagé ; chaque Bookshelf
-                ne pose plus par-dessus que ses planches et ses livres. */}
+            {/* Ring of bookshelves enclosing the room; the slot at GAME_DOOR_ANGLE is left open
+                for the cellar door, rendered by the 'door' Hotspot3D below. The 12 (identical)
+                cabinets are one shared instancedMesh; each Bookshelf only layers its shelves
+                and books on top. */}
             <BookshelfCaissons shelves={shelfCaissonPlacements} />
             {SHELF_RING_ANGLES.map((angleDeg, i) => {
                 const [sx, sz] = polar(angleDeg, RING_RADIUS)
                 return <Bookshelf key={i} position={[sx, 0, sz]} rotationY={-(angleDeg * Math.PI) / 180} seed={i + 1} />
             })}
-            {/* Bibliothèques calées contre le cadre de la porte, pour qu'elle touche vraiment le
-                mur au lieu de flotter dans un trou. */}
+            {/* Bookshelves flush against the door frame, so it actually touches the wall
+                instead of floating in a gap. */}
             {DOOR_FLANK_ANGLES.map((angleDeg, i) => {
                 const [sx, sz] = polar(angleDeg, RING_RADIUS)
                 return <Bookshelf key={`flank-${i}`} position={[sx, 0, sz]} rotationY={-(angleDeg * Math.PI) / 180} seed={100 + i} />
             })}
 
-            {/* Torches murales : quelques bibliothèques de l'anneau en portent une, pour une
-                lumière crédible (elle vient d'une applique visible) plutôt que du seul halo qui
-                suit la souris. */}
+            {/* Wall torches: a few bookshelves in the ring carry one, for believable light (it
+                comes from a visible fixture) rather than just the halo that follows the mouse. */}
             {TORCH_ANGLES.map(angleDeg => {
                 const [tx, tz] = polar(angleDeg, RING_RADIUS - 0.15)
                 return <WallTorch key={angleDeg} position={[tx, TORCH_HEIGHT, tz]} rotationY={-(angleDeg * Math.PI) / 180} />
@@ -966,9 +949,9 @@ export default function HubScene({ username, cardCount, wins, cardBacks, active 
     const [hoveredHref, setHoveredHref] = useState<string | null>(null)
     const arrivingRef = useRef(false)
 
-    // Le composant ne se démonte plus en quittant le hub (voir HubBackground.tsx) : sans ce
-    // reset, arrivingRef restait bloqué à `true` après le tout premier clic pour le reste de la
-    // session, empêchant toute navigation ultérieure depuis le hub après un premier retour.
+    // The component no longer unmounts when leaving the hub (see HubBackground.tsx): without
+    // this reset, arrivingRef stayed stuck at `true` after the very first click for the rest of
+    // the session, blocking any further navigation from the hub after the first return.
     useEffect(() => {
         if (active) arrivingRef.current = false
     }, [active])
@@ -986,20 +969,21 @@ export default function HubScene({ username, cardCount, wins, cardBacks, active 
             className={`relative h-screen w-full select-none overflow-hidden bg-ink-950
                 ${hoveredHref ? (locked ? 'cursor-not-allowed' : 'cursor-pointer') : 'cursor-default'}`}
         >
-            {/* dpr plafonné à 1.5 (pas 2) : sur un écran retina, 2x double le nombre de pixels à
-                calculer pour un gain visuel marginal — gros levier de perf pour une scène chargée.
-                frameloop="never" pendant que le hub est masqué (voir HubBackground.tsx, `active`) :
-                le Canvas reste monté (contexte WebGL/géométrie jamais recréés en revenant sur "/")
-                mais sa boucle de rendu s'arrête vraiment — les torches/étincelles/papillon ne
-                tournent pas pour rien pendant qu'on est sur une autre page. */}
+            {/* dpr capped at 1.5 (not 2): on a retina screen, 2x doubles the pixels to compute
+                for marginal visual gain — a big perf lever for a busy scene. frameloop="never"
+                while the hub is hidden (see HubBackground.tsx, `active`): the Canvas stays
+                mounted (WebGL context/geometry never recreated when returning to "/") but its
+                render loop actually stops — torches/sparkles/moth don't spin for nothing while
+                on another page. */}
             <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true }} frameloop={active ? 'always' : 'never'}>
-                {/* Sans sol à gérer, la caméra redevient simple : quasiment de niveau, elle regarde
-                    droit vers la rangée des 4 éléments (comme le croquis) plutôt que de chercher un
-                    pitch qui équilibre un sol qui n'existe plus. */}
+                {/* With no floor to manage, the camera is simple again: nearly level, looking
+                    straight at the row of elements (as sketched) instead of hunting for a pitch
+                    that balances a floor that no longer exists. */}
                 <PerspectiveCamera makeDefault position={[0, 1.75, 3.0]} fov={56} onUpdate={c => c.lookAt(0, 1.6, -2.4)} />
-                {/* TutoBoard charge ses textures via useTexture (async, drei) : sans Suspense ici,
-                    ce chargement fait planter tout l'arbre R3F (pas de fallback pour l'attraper) —
-                    la scène entière se démonte, y compris les Html des autres hotspots. */}
+                {/* TutoBoard loads its textures via useTexture (async, drei): without Suspense
+                    here, that load crashes the whole R3F tree (nothing to catch it as a
+                    fallback) — the entire scene unmounts, including the Html labels of the
+                    other hotspots. */}
                 <Suspense fallback={null}>
                     <HallScene hoveredHref={hoveredHref} onHoverChange={setHoveredHref} onArrive={handleArrive} />
                 </Suspense>

@@ -4,6 +4,16 @@ import { Player } from "./player";
 import { EnemyHeroResolver, PlayerHeroResolver, Targetable, TargetResolver } from "./target";
 import { Hero } from "./hero";
 
+// Card effects (battlecries, deathrattles, spells, on-attack/on-damage/start-/end-of-turn hooks,
+// ...) are modeled as small Effect subclasses, each optionally paired with a TargetResolver (see
+// target.ts) that decides which Targetable(s) it acts on. GameContext bundles everything an
+// execute() needs: which engine/board, which player triggered it, the source card, and — when the
+// resolver requires player input — the target that was already chosen and validated upstream
+// (see socket/gameSession.ts). Most execute() bodies share the same shape: if the resolver
+// requires input, act on context.target; otherwise call resolver.resolve(context) and act on
+// every target it returns. Effects are invoked from gameEngine.ts and report what happened back
+// through context.engine.record*() so the client can animate it (see toClientState.ts /
+// AnimationEvent).
 export interface GameContext
 {
     engine: GameEngine;
@@ -264,7 +274,9 @@ export class silenceEffect extends Effect
             target.currentHealth -= excess;
         }
 
-        // problem: if silenced on first turn plyed it can attack immidiatly
+        // Known quirk, left as-is: forcing canAttack=true here (the only other place it's granted
+        // is start-of-turn/rush) lets a freshly silenced cannotAttack minion attack immediately,
+        // bypassing normal summoning sickness.
         const wasCannotAttack = !!target.effects.cannotAttack;
 
         target.effects = {};
@@ -328,6 +340,10 @@ export class CombinedEffect extends Effect
 
     constructor(effects: Effect[])
     {
+        // Exposes a single resolver so callers that only check "does this card need a target"
+        // (e.g. GameEngine.playCard/getOnPlayEffect) still work on a combined effect. Assumes at
+        // most one sub-effect in the list requires input — combining two target-picking effects
+        // isn't supported.
         const inputResolver: TargetResolver | null =
             effects.find(e => e.resolver && e.resolver.requiresInput)?.resolver ?? null;
         super(inputResolver);

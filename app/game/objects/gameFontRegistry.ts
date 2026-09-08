@@ -1,4 +1,4 @@
-// Clé du registry Phaser sous laquelle BootScene stocke le fontFamily résolu (voir gameFonts.ts)
-// une fois la police chargée — partagée par tout le texte du jeu (cartes, héros, barre de mana...)
-// qui le lit sous le même nom.
+// Phaser registry key under which BootScene stores the resolved fontFamily (see gameFonts.ts)
+// once the font has loaded — shared by every piece of game text (cards, heroes, mana bar...) that
+// reads it back under this same name.
 export const GAME_FONT_FAMILY_KEY = "gameFontFamily";

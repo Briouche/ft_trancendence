@@ -18,7 +18,7 @@ export function drawCardAnimation(scene: Phaser.Scene, card: Card, fromX: number
             tweens: [
                 { x: card.x, y: card.y, duration: 200, scale: 0.5, ease: "Cubic.out" },
                 { x: scene.scale.canvas.width / 2.5, y: scene.scale.canvas.height / 2.5, rotation: 0, alpha: 1, scale: 1.5, duration: 500, ease: "Cubic.out" },
-                { duration: 1000 },
+                { duration: 1000 }, // hold the enlarged card on screen so the player has time to read it
                 { x: base.x, y: base.y, scale: 1, rotation: base.rotation, duration: 200, ease: "Cubic.InOut", onComplete: () => resolve() }
             ]
         });

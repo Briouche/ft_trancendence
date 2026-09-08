@@ -34,7 +34,7 @@ interface RawCard
 	keywords?: string[]
 }
 
-// Libellés tels qu'écrits dans le JSON -> valeur d'enum Prisma
+// Labels as written in the JSON -> Prisma enum value
 const KEYWORD_LABELS: Record<string, Keyword> = {
 	'Ruée':             Keyword.RUEE,
 	"Râle d'agonie":    Keyword.RALE_DAGONIE,
@@ -106,10 +106,10 @@ export async function seedCards(prisma: PrismaClient)
 
 	console.log('✅ Cards successfully seeded.')
 
-	// upsert() ci-dessus ne supprime jamais : une carte retirée du JSON restait donc en base
-	// indéfiniment (vue en prod : 27 cartes fantômes après un nettoyage du fichier). Synchronise
-	// la suppression — UserCard/DeckCard d'abord (Card n'a pas onDelete: Cascade), Card ensuite.
-	// Garde-fou sur un JSON vide : `notIn: []` matcherait TOUT le monde et viderait la table.
+	// upsert() above never deletes, so a card removed from the JSON would otherwise stay in the
+	// DB indefinitely. This syncs the deletion — UserCard/DeckCard first (Card has no
+	// onDelete: Cascade), then Card. Guard against an empty JSON: `notIn: []` would match every
+	// row and wipe the table.
 	const validIds = data.cards.map(c => c.id)
 	if (validIds.length > 0) {
 		const staleCount = await prisma.card.count({ where: { id: { notIn: validIds } } })

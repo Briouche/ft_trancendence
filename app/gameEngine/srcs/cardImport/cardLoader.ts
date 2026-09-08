@@ -18,18 +18,18 @@ const LEGENDARY_PASSIVES: legendary[] = ["jeffe", "timmy", "archimede", "freddy"
 
 // legendId doubles as the legendaryPassive slot for a legendary card itself (e.g. "timmy"),
 // while on non-legendary cards it's a family-grouping reference to another card's id (e.g. the
-// "(archi card)" creatures point at Archimed's own id, see ARCHIMEDE_ID in keywordEffects.ts) —
+// "(archi card)" creatures point at Archimede's own id, see ARCHIMEDE_ID in keywordEffects.ts) —
 // only recognize it as a passive when it's one of the implemented legendary types.
 function resolveLegendaryPassive(legendId: string): legendary | undefined
 {
     return LEGENDARY_PASSIVES.find(l => l === legendId)
 }
 
-// cost/atk/def sont des String en base (voir schema.prisma) — normalement numériques, sauf pour
-// les rares cartes à coût/stats variables ("X", pas encore scriptées ici). Number("") vaut déjà
-// 0 (pas NaN), donc les champs vides des sorts (pas d'atk/def) passent tels quels ; seul "X" a
-// besoin de ce filet, sinon NaN se propage dans tout le moteur (mana >= NaN est toujours faux :
-// carte injouable en silence plutôt qu'une vraie erreur).
+// cost/atk/def are Strings in the DB (see schema.prisma) — normally numeric, except for the rare
+// cards with variable cost/stats ("X", not scripted here yet). Number("") already evaluates to 0
+// (not NaN), so spells' empty fields (no atk/def) pass through fine; only "X" needs this net,
+// otherwise NaN would propagate through the whole engine (mana >= NaN is always false: the card
+// becomes silently unplayable instead of throwing a real error).
 function safeNumber(value: string): number
 {
     const n = Number(value)

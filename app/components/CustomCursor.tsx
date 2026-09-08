@@ -2,37 +2,35 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Pointe de la flèche dans chaque sprite (mesurée au pixel près, à l'échelle native du fichier
-// — DISPLAY_SCALE la corrige ensuite) : c'est ce point-là, pas le coin de l'image, qui doit
-// coïncider avec la position réelle de la souris.
+// Arrow tip within each sprite (measured pixel-precise, at the file's native scale —
+// DISPLAY_SCALE corrects it afterwards): it's this point, not the image's corner, that must
+// coincide with the mouse's actual position.
 const DEFAULT_TIP = { x: 4, y: 0 }
 const CLICK_TIP    = { x: 16, y: 16 }
 const CLICK_FRAME_MS = 45
 
-// Sprites affichés à moitié de leur taille native (déjà upscalée ×4 depuis la source pixel-art) :
-// un curseur plus discret. Les offsets de pointe ci-dessus sont mis à l'échelle en même temps,
-// sinon la pointe de la flèche se déconnecte de la position réelle de la souris.
+// Sprites displayed at roughly half their native size (already upscaled ×4 from the pixel-art
+// source): a more discreet cursor. The tip offsets above are scaled at the same time, otherwise
+// the arrow tip drifts away from the mouse's actual position.
 const DISPLAY_SCALE = 0.6
 
 type Frame = 'default' | 1 | 2 | 3 | 4
 
-// Remplace le curseur natif par celui du "Complete UI Book Styles Pack" (Crusenho), avec une
-// petite animation au clic (4 frames) — impossible avec `cursor: url()` seul, qui n'accepte
-// qu'une image statique, d'où ce composant : un <img> positionné à la main qui suit la souris.
+// Replaces the native cursor with the one from the "Complete UI Book Styles Pack" (Crusenho),
+// with a small click animation (4 frames) — impossible with `cursor: url()` alone, which only
+// accepts a static image, hence this component: a manually positioned <img> that follows the mouse.
 export default function CustomCursor() {
     const imgRef = useRef<HTMLImageElement>(null)
     const [frame, setFrame] = useState<Frame>('default')
     const revealed = useRef(false)
-    // Dernière position connue de la souris : un clic sans bouger la souris ne déclenche aucun
-    // "mousemove", donc reposition() a besoin d'une position à réutiliser hors de cet event.
+    // Last known mouse position: a click without moving the mouse fires no "mousemove" at all,
+    // so reposition() needs a position to reuse outside of that event.
     const lastMouse = useRef({ x: 0, y: 0 })
 
-    // scale() après translate() : avec transform-origin à 0 0 (top-left), le point de la pointe
-    // (déjà compensé ci-dessous) reste sous la souris quelle que soit l'échelle. Sortie de
-    // l'effet mousemove pour pouvoir aussi être appelée directement au changement de frame (voir
-    // plus bas) : sinon l'animation de clic restait affichée à la position calculée pour la
-    // pointe PAR DÉFAUT (le mousemove suivant, souvent bien après la fin de l'anim, la corrigeait
-    // trop tard) — décalage visible entre le clic réel et l'anim.
+    // scale() after translate(): with transform-origin at 0 0 (top-left), the tip offset stays
+    // correct under the mouse regardless of scale. Kept outside the mousemove effect so the
+    // click animation can also reposition itself directly on each frame change, rather than
+    // waiting on the next mousemove to correct its position.
     function reposition(clientX: number, clientY: number, currentFrame: Frame) {
         const el = imgRef.current
         if (!el) return
@@ -78,8 +76,8 @@ export default function CustomCursor() {
     }, [])
 
     const src = frame === 'default'
-        ? '/textures/book/cursor/default.png'
-        : `/textures/book/cursor/click-${frame}.png`
+        ? '/textures/book/cursor/default.webp'
+        : `/textures/book/cursor/click-${frame}.webp`
 
     return (
         <img

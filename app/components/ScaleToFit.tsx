@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Même principe que ScaledCardFace (voir ce fichier) : le contenu (le livre, la bannière...) garde
-// ses dimensions "de conception" en pixels fixes — jamais retouchées, tout l'alignement pixel-perfect
-// de l'art du notebook reste valable — et c'est un seul transform scale, mesuré sur sa taille
-// naturelle (ResizeObserver, non affecté par le transform qu'on applique nous-mêmes) rapportée à la
-// fenêtre, qui le fait tenir dans n'importe quelle taille d'écran (portrait 1080×1920 compris).
+// Same idea as ScaledCardFace (see that file): the content (the book, the banner...) keeps its
+// "design" dimensions in fixed pixels — never touched, so all the notebook art's pixel-perfect
+// alignment stays valid — and a single transform scale, measured against its natural size
+// (ResizeObserver, unaffected by the transform we apply ourselves) relative to the window, is
+// what makes it fit any screen size (portrait 1080×1920 included).
 export default function ScaleToFit({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     const innerRef = useRef<HTMLDivElement>(null)
     const naturalSize = useRef({ width: 0, height: 0 })

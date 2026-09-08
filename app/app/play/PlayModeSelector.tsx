@@ -136,7 +136,7 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
                           {legendaryCards.map((c, i) => (
                             <Image
                               key={i}
-                              src={`/textures/collection/icon-leg-${c.card.legendId}.png`}
+                              src={`/textures/collection/icon-leg-${c.card.legendId}.webp`}
                               alt="Legendary"
                               width={32} height={34} unoptimized
                               className="h-9 w-auto"

@@ -1,3 +1,4 @@
+// Plain submit-button styling, currently only used by LogoutButton.
 type FormButtonProps = {
   children: React.ReactNode;
   className?: string;

@@ -1,6 +1,6 @@
-// Repli affiché pendant le téléchargement/hydratation du chunk d'une salle 3D (dynamic import,
-// ssr:false — WebGL ne peut pas être rendu côté serveur). Sans ça, next/dynamic n'affiche rien
-// du tout par défaut le temps que le chunk arrive, ce qui se lit comme un gel de la page.
+// Fallback shown while a 3D room's chunk downloads/hydrates (dynamic import, ssr:false — WebGL
+// can't be rendered server-side). next/dynamic renders nothing at all by default during that
+// gap, which otherwise reads as the page having frozen.
 export default function SceneLoading() {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-ink-950">

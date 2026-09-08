@@ -3,12 +3,10 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { DEFAULT_UNLOCKED_CARD_BACKS } from '@/lib/cardBacks'
 
-// Route temporaire en attendant un vrai flux de test/reset — vide entièrement la collection de
-// cartes de l'utilisateur (ne touche pas aux paquets non ouverts ni au pity counter). Remet aussi
-// les dos de carte à l'état par défaut d'un nouveau compte (0-2, voir DEFAULT_UNLOCKED_CARD_BACKS),
-// pas à [0] seul : sans ça, un dos gagné avant le clear restait débloqué alors que la collection
-// qui l'a débloqué (paquets/hauts faits) vient d'être remise à zéro — cardBack réinitialisé à 0 au
-// passage, au cas où le dos actuellement équipé ne fait plus partie des dos débloqués après reset.
+// Temporary route standing in for a real test/reset flow — wipes the user's card collection
+// (unopened packs and the pity counter are untouched) and resets card backs and the equipped
+// cardBack to a fresh account's defaults, since achievement-earned backs are tied to the
+// collection that was just cleared.
 export async function POST() {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

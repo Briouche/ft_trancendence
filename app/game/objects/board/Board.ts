@@ -10,6 +10,10 @@ import { CardRow } from "./CardRow";
 import { TargetRegistry } from "./TargetRegistry";
 import { computeXs } from "./BoardMath";
 
+// Owns and lays out every visible board element (both minion rows, both heroes, mana bars, decks,
+// the end-turn button) and the Target registry used for attack/play targeting. GameScene creates
+// one Board per match and drives it via syncBoardFromState() (server push) and layout() (resize).
+
 const BOARD_MARGIN = 0.1;
 const BOARD_GAP_RATIO = 0.125;
 const SLOT_SIZE_RATIO = 0.20;
@@ -66,6 +70,10 @@ export class Board
         this.playerGraphic = scene.add.rectangle(0, 0, 0, 0, 0xa4c6e6, 0.07).setStrokeStyle(1, 0x7fa2c7);
         this.opponentGraphic = scene.add.rectangle(0, 0, 0, 0, 0xa4c6e6, 0.07).setStrokeStyle(1, 0x7fa2c7);
 
+        // Registration order matters: slot targets are added in player/opponent pairs, and
+        // layout() relies on that interleaving (targets.at(i*2)/(i*2+1)) to find each slot's
+        // Target. The two hero targets end up last, which layout() also assumes
+        // (allTargets[length-2]/[length-1]).
         for (let i = 0; i < slotCount; i++)
         {
             this.targets.add(Target.forMinionSlot(scene, () => this.playerRow.all[i] ?? null));
@@ -242,6 +250,9 @@ export class Board
 
     getLegalAttackTargetIds(attackerCard?: Card): Set<string>
     {
+        // Taunt minions absorb all attacks while any are present, so they fully replace the
+        // legal target list rather than being added to it. Rush-flagged attackers can hit
+        // minions but never the hero directly (mirrors the server's rush rule).
         const tauntMinions = this.opponentRow.all.filter((c) => c.cardData.effects?.taunt);
         const minions = tauntMinions.length > 0 ? tauntMinions : this.opponentRow.all;
 

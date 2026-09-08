@@ -44,6 +44,9 @@ const COUNTER_INFO: Record<"freddy" | "archi" | "roiDesRats" | "gertrude", { div
     gertrude: { divisor: 4, description: "Every 4th spell you cast\ngoes back to your hand." },
 };
 
+// Renders one hero's portrait, name, and health, plus (for heroes with a passive counter ability —
+// Freddy/Archimede/Roi des Rats/Gertrude) a small progress badge with a hover tooltip describing it.
+
 export interface HeroData
 {
     id: string;
@@ -169,6 +172,9 @@ export class Hero extends Phaser.GameObjects.Container
         this.checkCounterTrigger("roiDesRats", heroData.roiDesRats);
         this.checkCounterTrigger("gertrude", heroData.gertrude);
 
+        // freddy/roiDesRats/gertrude count up forever server-side; wrapped here via modulo since
+        // the client only needs progress toward the next trigger. archi is a one-time win
+        // condition (not repeating), so it's kept as-is.
         this.heroData.archi = heroData.archi;
         if (heroData.freddy !== undefined)
             this.heroData.freddy = heroData.freddy % 4;
@@ -190,6 +196,8 @@ export class Hero extends Phaser.GameObjects.Container
         if (oldValue === undefined)
             return;
 
+        // Comparing floor(value / divisor) before and after catches the moment the counter rolls
+        // past a multiple of its divisor — i.e. when the passive just fired server-side.
         const divisor = COUNTER_INFO[type].divisor;
         if (Math.floor(newValue / divisor) > Math.floor(oldValue / divisor))
             this.playCounterGlow();

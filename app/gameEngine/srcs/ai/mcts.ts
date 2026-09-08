@@ -20,6 +20,8 @@ export async function getBestAction(
   const currentPlayer: 0 | 1 = engine.currentTurn;
   const scores = new Map<string, { action: Action; total: number; count: number }>();
 
+  // A fresh tree per world, built on a different guess at the opponent's hand — averaging each
+  // action's win rate across worlds avoids over-fitting the choice to one guessed hand.
   for (let w = 0; w < worlds; w++) {
     const root = createNode( await determinize(engine, currentPlayer), null, null);
 
@@ -40,6 +42,9 @@ export async function getBestAction(
     for (const child of root.children) {
       if (!child.action) continue;
       const key      = JSON.stringify(child.action);
+      // wins/visits at each node is kept relative to whoever is about to move at that node (see
+      // backpropagate in tree.ts), so UCB1 selection compares like-for-like at every depth; flip
+      // it back to currentPlayer's perspective here since we're ranking the root's own actions.
       const rawRate  = child.visits > 0 ? child.wins / child.visits : 0;
       const winRate  = child.ownerIndex === currentPlayer ? rawRate : 1 - rawRate;
       const existing = scores.get(key);

@@ -12,7 +12,7 @@ export default async function CollectionPage() {
         prisma.userCard.findMany({
             where:   { userId: session.userId },
             include: { card: true },
-            orderBy: { card: { name: 'asc' } }, // CollectionBook retrie ensuite par le vrai coût côté client
+            orderBy: { card: { name: 'asc' } }, // CollectionBook re-sorts by the real cost client-side afterward
         }),
         prisma.user.findUniqueOrThrow({
             where:  { id: session.userId },

@@ -1,5 +1,9 @@
 import Phaser from "phaser";
 
+// Small VFX helpers (floating +/- numbers, glow pulses) reused by several animations/*.ts files.
+
+// Clamps the value so a huge damage/heal/buff number can't blow up font size or shake distance
+// past this point.
 export const MAX_MAGNITUDE = 40;
 export const POSITIVE_COLOR = "#09d84e";
 export const NEGATIVE_COLOR = "#ff4d4d";

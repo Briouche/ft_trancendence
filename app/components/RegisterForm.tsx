@@ -67,7 +67,7 @@ export default function RegisterForm() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-vertical">
-      {/* Même cadre "parchemin" (Frame04a) que le Sign In — voir SignInForm.tsx. */}
+      {/* Same "parchment" frame (Frame04a) as Sign In — see SignInForm.tsx. */}
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
           className="text-center font-display text-5xl font-bold text-white"

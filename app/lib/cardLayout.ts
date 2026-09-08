@@ -1,6 +1,6 @@
-// Régions de texte mesurées à la main sur les 4 cadres (public/textures/cards/frame/frame-*.png) —
-// source unique partagée entre CardFace.tsx (rendu DOM) et le rendu Phaser en jeu (Card.ts,
-// CardPreview.ts), pour que les deux restent alignés sur le même visuel.
+// Text regions hand-measured on the 4 card frames (public/textures/cards/frame/frame-*.webp) —
+// single source of truth shared between CardFace.tsx (DOM rendering) and the in-game Phaser
+// rendering (Card.ts, CardPreview.ts) so both stay aligned on the same visuals.
 export interface CardBox
 {
     left: number;
@@ -21,15 +21,14 @@ export const CARD_DESC_BOX_SPELL: CardBox = { left: 5.4, top: 57.1, width: 89.2,
 export const CARD_ATTACK_BOX: CardBox = { left: 4.5, top: 86, width: 18, height: 11 };
 export const CARD_HEALTH_BOX: CardBox = { left: 80, top: 86, width: 18, height: 11 };
 
-// Le vrai trou découpé dans le cadre (zone transparente du PNG) où vient se poser l'illustration
-// de la carte, derrière le cadre — mesuré directement sur le canal alpha des 4 frame-*.png
-// (identique sur les 4, à 0.1% près) : transparent de x=21 à x=368 sur 390px de large, de y=81 à
-// y=317 sur 573px de haut. Plus large que la zone du portrait légendaire dans CardFace.tsx
-// (25%/16%/50%/36%, un badge volontairement petit et centré) — ici on veut remplir tout le trou.
+// The actual hole cut into the frame (the PNG's transparent area) where card artwork sits behind
+// the frame — measured off the shared alpha channel (x=21-368 of 390px wide, y=81-317 of 573px
+// tall). Wider than the legendary-portrait area in CardFace.tsx, which is a deliberately small,
+// centered badge rather than a fill for the whole hole.
 export const CARD_ART_BOX: CardBox = { left: 5.4, top: 14.1, width: 89, height: 41.2 };
 
-// Le cadre "Rare" (sorts) n'a ni épées ni goutte de sang : sa case de texte du bas est plus haute
-// et sa gemme est positionnée différemment (voir CardFace.tsx) — tous les sorts sont rangés dans
-// cette rareté, qui n'est donc jamais une créature.
+// The "Rare" frame (spells) has no swords or blood drop: its bottom text box is taller and its
+// gem sits in a different spot (see CardFace.tsx) — every spell is filed under this rarity, which
+// therefore is never a creature.
 export const SPELL_RARITIES = new Set(["Rare"]);
 export const isSpellRarity = (rarity: string) => SPELL_RARITIES.has(rarity);

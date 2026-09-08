@@ -16,8 +16,8 @@ export default async function HomePage() {
     );
   }
 
-  // Le hub lui-même est rendu par HubBackground dans le layout racine (monté une seule fois,
-  // jamais démonté entre deux visites de "/" — voir layout.tsx et HubBackground.tsx) : cette
-  // page n'a plus rien à afficher pour un utilisateur connecté.
+  // The hub itself is rendered by HubBackground in the root layout (mounted once, never
+  // unmounted between visits to "/" — see layout.tsx and HubBackground.tsx): this page has
+  // nothing left to render for a logged-in user.
   return null;
 }

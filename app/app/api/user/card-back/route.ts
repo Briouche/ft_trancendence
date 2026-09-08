@@ -14,6 +14,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid card back' }, { status: 400 })
     }
 
+    // Re-check unlock status server-side even though the UI only ever offers unlocked backs —
+    // this is the actual enforcement point, not just a UX nicety.
     const user = await prisma.user.findUniqueOrThrow({
         where:  { id: session.userId },
         select: { unlockedCardBacks: true },

@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import { CardBox, CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_HEALTH_BOX } from "@/lib/cardLayout";
 
-// Cases mana/ATK/DEF un peu plus grandes que celles partagées avec le rendu DOM (CardFace.tsx,
-// cardLayout.ts) — en jeu les cartes s'affichent souvent bien plus petites (main, plateau) qu'à
-// l'écran de collection, donc ces chiffres ont besoin de plus de place pour rester lisibles.
-// Recentrées sur le même point que la case d'origine, pour ne pas se décaler de l'icône.
+// Mana/ATK/DEF boxes are grown a bit larger than the ones shared with the DOM renderer
+// (CardFace.tsx, cardLayout.ts) — in-game cards render much smaller (hand, board) than on the
+// collection screen, so these numbers need more room to stay legible. Re-centered on the same
+// point as the original box so they don't drift off the icon.
 function growBox(box: CardBox, extraWidth: number, extraHeight: number): CardBox
 {
     return {
@@ -28,7 +28,7 @@ export function boxCenterOffset(box: CardBox, width: number, height: number): { 
     };
 }
 
-// Rétrécit la police de `text` jusqu'à ce qu'il tienne dans sa case (mesurée en pixels, pas en %)
+// Shrinks `text`'s font size until it fits its box (measured in pixels, not %).
 export function fitTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: number, boxHeightPx: number, minSize = 8): void
 {
     let size = parseInt(text.style.fontSize as string, 10);
@@ -42,10 +42,10 @@ export function fitTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: number, 
     }
 }
 
-// Trouve la plus grande taille de police (entre minSize et maxSize) qui tient encore dans la
-// case — contrairement à fitTextToBox, qui ne fait que rétrécir depuis un point de départ fixe,
-// celle-ci grandit ou rétrécit depuis la taille courante pour maximiser l'usage de l'espace
-// disponible (utile pour le nom, dont la longueur varie beaucoup d'une carte à l'autre).
+// Finds the largest font size (between minSize and maxSize) that still fits the box — unlike
+// fitTextToBox, which only shrinks from a fixed starting point, this grows or shrinks from the
+// current size to maximize use of the available space (useful for the name, whose length varies
+// a lot from card to card).
 export function maximizeTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: number, boxHeightPx: number, minSize = 8, maxSize = 200): void
 {
     const fits = (size: number): boolean =>
@@ -67,15 +67,14 @@ export function maximizeTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: num
     text.setFontSize(size);
 }
 
-// Largeurs de retour à la ligne essayées par maximizeWrappedTextToBox, en fraction de la largeur
-// de la case — 1 = une seule ligne (retour naturel de Phaser), les suivantes forcent de plus en
-// plus de lignes.
+// Wrap widths tried by maximizeWrappedTextToBox, as a fraction of the box width — 1 = a single
+// line (Phaser's natural wrap), and each subsequent value forces progressively more lines.
 const WRAP_WIDTH_FRACTIONS = [1, 0.8, 0.65, 0.5, 0.4];
 
-// Comme maximizeTextToBox, mais essaie aussi plusieurs largeurs de retour à la ligne (donc plus
-// ou moins de lignes) et garde celle qui permet la plus grande police — un texte court/large
-// souvent bridé par la LARGEUR d'une seule ligne peut devenir bien plus gros une fois réparti sur
-// 2-3 lignes plus étroites, qui utilisent la hauteur encore disponible dans la case.
+// Like maximizeTextToBox, but also tries several wrap widths (i.e. more or fewer lines) and keeps
+// whichever yields the largest font — a short/wide text often bottlenecked by the WIDTH of a
+// single line can end up much bigger once spread over 2-3 narrower lines that use the box's
+// remaining height.
 export function maximizeWrappedTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: number, boxHeightPx: number, minSize = 8, maxSize = 200): void
 {
     let bestSize = minSize;
@@ -99,7 +98,7 @@ export function maximizeWrappedTextToBox(text: Phaser.GameObjects.Text, boxWidth
     text.setFontSize(bestSize);
 }
 
-// Repositionne `text` au centre de `box` et le redimensionne pour qu'il y tienne — combine
+// Centers `text` on `box` and shrinks it to fit — combines boxCenterOffset + fitTextToBox.
 export function layoutBoxText(text: Phaser.GameObjects.Text, box: CardBox, width: number, height: number, baseSizeRatio: number): void
 {
     const boxWidthPx = (box.width / 100) * width;
@@ -110,12 +109,11 @@ export function layoutBoxText(text: Phaser.GameObjects.Text, box: CardBox, width
     fitTextToBox(text, boxWidthPx, boxHeightPx);
 }
 
-// "Cover" à la CSS : chaque illustration source a son propre ratio (voir CardAssetLoader.ts), qui
-// ne colle jamais exactement à celui de la case. Plutôt que de la faire tenir entière dans la case
-// (quitte à laisser du vide sur un axe), on la fait toujours remplir la case en entier, en rognant
-// l'excédent — centré, donc symétrique — sur l'axe qui dépasse. Le rognage se fait en repère
-// source (setCrop, avant setDisplaySize) : une fois la zone recadrée à ce ratio, l'étirer aux
-// dimensions exactes de la case ne déforme plus rien.
+// CSS "cover"-style fit: each source illustration's aspect ratio never exactly matches the box's,
+// so instead of fitting the whole image inside the box (leaving empty space on one axis), this
+// fills the box completely, center-cropping the excess on whichever axis overflows. The crop is
+// applied in source pixel space (setCrop) before setDisplaySize, so the final stretch to the box's
+// exact dimensions doesn't distort it.
 export function layoutBoxImage(image: Phaser.GameObjects.Image, box: CardBox, width: number, height: number): void
 {
     const boxWidthPx = (box.width / 100) * width;

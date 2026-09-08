@@ -50,8 +50,8 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
             : cards.filter(c => normalize(c.name).includes(query) || normalize(c.desc).includes(query))
 
         if (costFilter !== null) {
-            // Même règle que la Collection : le premier éclair (coût 1) absorbe aussi le coût 0,
-            // pas d'éclair dédié pour ce dernier.
+            // Same rule as the Collection: the first bolt (cost 1) also absorbs cost 0, with no
+            // dedicated bolt for it.
             matches = costFilter === 1
                 ? matches.filter(c => parseCost(c.cost) <= 1)
                 : matches.filter(c => parseCost(c.cost) === costFilter)
@@ -116,9 +116,8 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
     function addCard(card: Card) {
         if (!canAdd(card)) return
-        // Choisir une carte avant d'avoir cliqué "Create deck" démarre la création à la volée —
-        // sinon la carte s'ajoutait silencieusement à un deck que le panneau "My decks" ne
-        // montrait pas encore, donnant l'impression que le clic ne faisait rien.
+        // Picking a card before clicking "Create deck" starts creation on the fly, so the card
+        // doesn't silently land in a deck the "My decks" panel isn't showing yet.
         if (!creating) setCreating(true)
         setDeck(prev => ({ ...prev, [card.id]: { card, qty: (prev[card.id]?.qty ?? 0) + 1 } }))
     }
@@ -169,8 +168,8 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
         setDeletingDeckId(id)
         const res = await fetch(`/api/decks/${id}`, { method: 'DELETE' })
         setDeletingDeckId(null)
-        // Le deck édité peut être celui qu'on vient de supprimer — retour à "My decks" plutôt que
-        // de laisser un formulaire d'édition pointer vers un deck qui n'existe plus.
+        // The deck being edited may be the one just deleted — go back to "My decks" instead of
+        // leaving an edit form pointing at a deck that no longer exists.
         if (res.ok && deckId === id) router.push('/deck/new')
         else router.refresh()
     }
@@ -178,9 +177,9 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
     function renderSlot(card: Card | null, slotIndex: number) {
         if (card === null) return <Slot key={`empty-${slotIndex}`} />
         const inDeck = deck[card.id]?.qty ?? 0
-        // Bloquée pour une autre raison que "plus d'exemplaires possédés" (ex : plafond légendaire
-        // atteint) : la pile entière grise quand même, même si aucun exemplaire de CETTE carte
-        // n'est encore dans le deck — sinon elle aurait l'air disponible alors qu'elle ne l'est pas.
+        // Blocked for a reason other than "no more copies owned" (e.g. legendary cap reached):
+        // the whole stack still grays out, even if none of THIS card is in the deck yet —
+        // otherwise it would look available when it isn't.
         const blocked = !canAdd(card)
         return (
             <Slot
@@ -206,11 +205,9 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
         >
             <HomeButton onClick={() => router.push('/')} />
 
-            {/* Même traitement que CollectionBook.tsx : bannière + livre + panneau deck dans un
-                seul bloc à taille de conception fixe, que ScaleToFit ramène à la taille de la
-                fenêtre (portrait 1080×1920 compris) via un seul transform scale. La bannière
-                n'est donc plus `fixed` sur la fenêtre : elle doit rétrécir avec le reste plutôt
-                que garder sa taille desktop pendant que le livre rapetisse. */}
+            {/* Same treatment as CollectionBook.tsx: banner + book + deck panel sit in one
+                fixed-size block that ScaleToFit scales to the window as a whole, so the banner
+                is no longer `fixed` — it shrinks along with the rest. */}
             <ScaleToFit>
                 <div className="flex flex-col items-center gap-1">
                     <TitleBanner width="w-[1250px]" className="z-20">DECK BUILDER</TitleBanner>
@@ -218,9 +215,9 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                     <div className="flex h-[900px] items-stretch gap-4">
                         <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
-                {/* Livre : mêmes pages/cases que la Collection (voir NotebookUI), mais cliquer une
-                    carte l'ajoute au deck au lieu d'ouvrir un zoom — pas d'onglet Cards/Card Backs
-                    ici, uniquement la collection à parcourir. */}
+                {/* Book: same pages/slots as the Collection (see NotebookUI), but clicking a card
+                    adds it to the deck instead of opening a zoom — no Cards/Card Backs tabs here,
+                    just the collection to browse. */}
                 <div className="relative flex h-[900px] w-[1160px] flex-col">
                     <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
                         <div className="travelbook-page relative flex flex-1 flex-col p-3">
@@ -249,7 +246,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                     className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
                                 >
                                     <Image
-                                        src={`/textures/collection/icon-star-${legendaryOnly ? 'full' : 'empty'}.png`}
+                                        src={`/textures/collection/icon-star-${legendaryOnly ? 'full' : 'empty'}.webp`}
                                         alt="Legendary only"
                                         width={16} height={16} unoptimized
                                         className="h-6 w-auto"
@@ -258,7 +255,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                 </button>
                                 {COST_FILTERS.map(value => {
                                     const filled = costFilter !== null && value <= costFilter
-                                    const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.png`
+                                    const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.webp`
                                     return (
                                         <button
                                             key={value}
@@ -289,10 +286,10 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
                 <PageArrow direction="next" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1} />
 
-                {/* Parchemin : le deck en cours d'édition (nom, stats, sauvegarde) en haut, la
-                    liste de tous les decks du joueur en dessous — cadre "Frame04a" à part (pas les
-                    pages du livre), plus grand que la rangée du livre pour déborder visiblement en
-                    haut et en bas (-my-10 compense le surplus de hauteur, pas de scroll ajouté). */}
+                {/* Parchment panel: the deck being edited (name, stats, save) on top, the list of
+                    all the player's decks below — a separate "Frame04a" frame (not the book
+                    pages), taller than the book row so it visibly overflows top and bottom
+                    (-my-10 offsets the extra height, no scroll added). */}
                 <div className="travelbook-frame4-panel relative z-30 -my-10 flex h-[980px] w-96 flex-col p-5">
                     {creating ? (
                         <>
@@ -306,7 +303,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                     className="absolute left-0 shrink-0 transition-opacity hover:opacity-70"
                                 >
                                     <Image
-                                        src="/textures/notebook/arrow/Arrow2.png"
+                                        src="/textures/notebook/arrow/Arrow2.webp"
                                         alt="Back"
                                         width={10} height={6} unoptimized
                                         className="h-8 w-auto"
@@ -370,7 +367,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                             <span className="shrink-0 font-serif text-xs text-ink-muted">×{entry.qty}</span>
                                             <span className="flex shrink-0 items-center gap-1.5">
                                                 <Image
-                                                    src="/textures/collection/icon-energy-full.png"
+                                                    src="/textures/collection/icon-energy-full.webp"
                                                     alt=""
                                                     width={12} height={14} unoptimized
                                                     className="h-4 w-auto"
@@ -383,7 +380,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                             <p className="truncate font-serif text-lg text-ink-text">{entry.card.name}</p>
                                             {entry.card.rarity === 'Légendaire' && (
                                                 <Image
-                                                    src="/textures/collection/icon-star-full.png"
+                                                    src="/textures/collection/icon-star-full.webp"
                                                     alt="Legendary"
                                                     width={16} height={16} unoptimized
                                                     className="h-4 w-auto shrink-0"
@@ -424,7 +421,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                                     {legendaryCards.map((c, i) => (
                                                         <Image
                                                             key={i}
-                                                            src={`/textures/collection/icon-leg-${c.card.legendId}.png`}
+                                                            src={`/textures/collection/icon-leg-${c.card.legendId}.webp`}
                                                             alt="Legendary"
                                                             width={32} height={34} unoptimized
                                                             className="h-9 w-auto"
@@ -442,7 +439,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                                 className="relative z-20 mr-4 shrink-0 transition-opacity hover:opacity-70 disabled:opacity-30"
                                             >
                                                 <Image
-                                                    src="/textures/notebook/icon-cross.png"
+                                                    src="/textures/notebook/icon-cross.webp"
                                                     alt="Delete deck"
                                                     width={15} height={15} unoptimized
                                                     className="h-4 w-auto"

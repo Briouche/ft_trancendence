@@ -3,8 +3,8 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
-// Route temporaire en attendant un vrai flux de test/reset — débloque entièrement la collection
-// de l'utilisateur (toutes les cartes au max de qty, tous les dos de carte).
+// Temporary route standing in for a real test/reset flow — unlocks the user's entire
+// collection (every card at max qty, every card back).
 export async function POST() {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

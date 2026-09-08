@@ -22,7 +22,11 @@ interface DeferredCardAnimation
     run: (card: Card) => void;
 }
 
-//syncs with serverstate, use apply on every recieved state from the server
+// Syncs the board/hand/hero objects to the latest server state — call apply() on every state
+// received from the server (see GameScene/AnimationQueue). Builds the Hand/Board/OpponentHand the
+// first time it's called. `pendingCardAnimations` mirrors ServerEventPlayer's defer pattern: an
+// animation tied to a card id that doesn't exist on the board yet waits here until a later
+// apply() call materializes it.
 export class StateSyncController
 {
     private previousState: ClientGameState | null = null;

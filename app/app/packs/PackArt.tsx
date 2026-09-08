@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react'
 
-// Sprite-sheet "CardPacks" (couvertures de paquet non ouvert) : 9 teintes de couleur (colonnes)
-// × 20 motifs (lignes) = 180 designs, chacun une illustration complète et statique — malgré le nom
-// du fichier source, il n'y a pas de séquence d'animation dedans (vérifié image par image), donc
-// l'ouverture (secousse + éclat) est une animation CSS maison plutôt que des frames de l'asset.
-// Provenance/licence non retrouvée à côté du fichier téléchargé — à vérifier avant tout usage
-// commercial, credits à compléter dans le README une fois la source confirmée.
-const SHEET_URL = '/textures/packs/card-packs.png'
+// "CardPacks" sprite sheet (unopened pack covers): 9 color tints (columns) × 20 patterns (rows)
+// = 180 designs, each a complete static illustration — despite the source file's name, there's no
+// animation sequence in it (checked frame by frame), so the opening effect (shake + burst) is a
+// hand-built CSS animation rather than asset frames. Provenance/license was not found alongside
+// the downloaded file — verify before any commercial use; add credits to the README once the
+// source is confirmed.
+const SHEET_URL = '/textures/packs/card-packs.webp'
 const SHEET_W = 849
 const SHEET_H = 3143
 const CELL_W = 84
@@ -26,7 +26,7 @@ function randomPackSkin(): PackSkin {
     }
 }
 
-// `count` designs distincts (jamais deux fois la même case) tirés des 180 combinaisons.
+// `count` distinct designs (never the same cell twice) drawn from the 180 combinations.
 export function randomPackSkins(count: number): PackSkin[] {
     const seen = new Set<string>()
     const skins: PackSkin[] = []

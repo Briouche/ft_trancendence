@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+// Global singleton so Next.js dev-mode hot reload (which re-evaluates this module on every
+// edit) doesn't spin up a fresh Pool/PrismaClient each time and exhaust DB connections.
 const prismaClientSingleton = () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL

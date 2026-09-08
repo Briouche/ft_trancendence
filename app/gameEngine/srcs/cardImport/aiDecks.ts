@@ -1,11 +1,10 @@
-// Decks de l'IA en mode solo — écrits à la main ici (noms de carte, pas des ids opaques), donc
-// éditables directement sans passer par un compte/Deck Builder. Un même nom répété deux fois =
-// deux exemplaires, exactement comme un deck normal. serverSocket.ts en tire un au hasard à
-// chaque partie solo — voir makeDeckFromNames dans cardLoader.ts, qui résout ces noms sans
-// vérifier qui possède la carte : l'IA peut jouer des cartes que le joueur humain n'a jamais
-// débloquées.
+// AI decks for solo mode — hand-written here (card names, not opaque ids), so they're directly
+// editable without going through an account/deck builder. A name repeated twice = two copies,
+// exactly like a normal deck. serverSocket.ts picks one at random for each solo game — see
+// makeDeckFromNames in cardLoader.ts, which resolves these names without checking who owns the
+// card: the AI can play cards the human player has never unlocked.
 
-// Deck agressif : courbe basse, pression dès le début.
+// Aggro deck: low curve, pressure from the start.
 const AGGRO_DECK: string[] = [
     "Leon, le chien saucisse",
     "le croupier", "le croupier", "Big mama hyena", "Big mama hyena",
@@ -15,7 +14,7 @@ const AGGRO_DECK: string[] = [
     "Equal opportunity", "Equal opportunity", "Pyroblin", "Pyroblin",
 ]
 
-// Deck contrôle : tous les sorts (Rare) + quelques grosses créatures pour tenir la fin de partie.
+// Control deck: all the (Rare) spells + a few big creatures to hold out for the late game.
 const CONTROL_DECK: string[] = [
     "Roi des rats",
     "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
@@ -25,8 +24,8 @@ const CONTROL_DECK: string[] = [
     "Slime orthophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
 ]
 
-// Deck synergie Archimed : les 6 membres "bocal" (Épique) + Archimed lui-même, complété par des
-// communes milieu de courbe — voir la description de la mécanique sur le compteur "archi" (Hero.ts).
+// Archimede synergy deck: the 6 "jar" members (Epic) + Archimede himself, filled out with
+// mid-curve commons — see the "archi" counter mechanic (Player.archimedeCount, player.ts).
 const ARCHI_DECK: string[] = [
     "Archimed la maudite",
     "Haku (archi card)", "Reborn (Archi card)", "Ribgy (Archi card)", "Neo (archi card)",

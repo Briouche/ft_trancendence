@@ -7,6 +7,8 @@ export type Action =
   | { type: "attack"; attackerIndex: number; targetIndex: number }
   | { type: "endTurn" };
 
+// More worlds sample the hidden opponent hand more robustly; more simulations search each sampled
+// world deeper. Values are tuned by feel, not measured.
 export const DIFFICULTY_PRESETS = {
   facile:    { simulations: 100, worlds: 2 },
   moyen:     { simulations: 500, worlds: 5 },

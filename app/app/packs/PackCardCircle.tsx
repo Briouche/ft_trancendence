@@ -6,16 +6,14 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 import CardBackArt from '@/components/CardBackArt'
 import { AssetButton } from '@/components/notebook/NotebookUI'
 
-// Tailles en fonction de vmin (1% de la plus petite dimension de la fenêtre) plutôt qu'en pixels
-// fixes : le cercle occupe alors toujours la même proportion de la page, quelle que soit sa
-// taille, sans jamais déborder en bas (les cartes du bas sortaient de l'écran avec des px fixes).
-// Le ratio rayon/largeur est choisi pour que les cartes espacées régulièrement ne se touchent pas :
-// la distance entre deux cartes voisines (corde du cercle) doit dépasser la hauteur d'une carte.
+// Sizes are in vmin rather than fixed pixels, so the circle keeps the same proportion of the
+// page at any viewport size. The radius/width ratio keeps neighboring cards from touching: the
+// chord between them must exceed a card's height.
 const RADIUS_VMIN     = 36
 const CARD_WIDTH_VMIN = 15
 
-// Aura au survol d'une carte pas encore retournée — un indice de rareté avant même de la
-// révéler. Pas d'entrée pour Commune : rien à teaser, donc pas d'aura du tout.
+// Hover glow on a card not yet flipped — a rarity hint before it's even revealed. No entry for
+// Common: nothing to tease, so no glow at all.
 const HOVER_RARITY_GLOW: Partial<Record<string, string>> = {
     'Rare':        '#3b82f6',
     'Épique':      '#a855f7',
@@ -33,9 +31,9 @@ function useVmin() {
     return vmin
 }
 
-// Les 10 cartes du paquet posées en cercle plutôt qu'en damier — chaque case reste cliquable
-// pour ouvrir la carte en grand (PackCardZoom). Plus de parallaxe à la souris : les cartes
-// restent immobiles (dos comme révélées), seul le retournement au clic anime encore quelque chose.
+// The pack's 10 cards laid out in a circle rather than a grid — each slot stays clickable to
+// open the card full-screen (PackCardZoom). No more mouse parallax: cards stay still (both back
+// and revealed), only the click-triggered flip still animates anything.
 export default function PackCardCircle({
     cards, revealedIndices, onSelect, onBack, onViewCollection, cardBack,
 }: {
@@ -56,15 +54,12 @@ export default function PackCardCircle({
     const size = radius * 2 + cardHeight
 
     return (
-        // pointer-events-none : le centre du cercle (où trône le coffre) n'a aucune carte —
-        // sans ça, ce conteneur (vide mais bien réel) intercepte les clics destinés à tout ce
-        // qui est affiché par-dessus à cet endroit (le zoom d'une carte, centré au même point).
+        // pointer-events-none: the circle's empty center would otherwise intercept clicks meant
+        // for whatever renders on top of it (a card zoom, centered on the same point).
         <div className="relative pointer-events-none" style={{ width: size, height: size }}>
-            {/* Flèche de retour + raccourci Collection, au centre du cercle — seulement une fois
-                tout révélé (pas de sortie prématurée pendant qu'il reste des cartes face cachée).
-                Deux boutons 01_TravelBook (Sprites Animated) plutôt que le carré générique + icône
-                séparée : ButtonBack01a pour le retour, ButtonManual01a (icône livre) réutilisé
-                comme raccourci Collection — pas de sprite "cartes" dédié dans ce bouquin. */}
+            {/* Back arrow + Collection shortcut, centered — only shown once everything is
+                revealed. Uses 01_TravelBook buttons (ButtonBack01a, ButtonManual01a reused as
+                the Collection shortcut) since this asset book has no dedicated "cards" sprite. */}
             {allRevealed && (
                 <div className="pointer-events-auto absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 gap-3">
                     <AssetButton onClick={onBack} variant="back" className="h-14 w-14 shrink-0" />
@@ -91,28 +86,25 @@ export default function PackCardCircle({
                             transform: 'translate(-50%, -50%)',
                         }}
                     >
-                        {/* Le retournement se joue ici, sur place, à cette petite taille — plus
-                            besoin de passer par le zoom pour la première révélation. Grossit
-                            légèrement au survol tant qu'elle n'est pas encore retournée (même
-                            portée que l'aura ci-dessous) — sur ce calque, pas celui qui tourne,
-                            pour ne pas se disputer la propriété transform avec le flip. */}
+                        {/* The flip plays here at small size, no zoom needed for the first
+                            reveal. Hover growth lives on this outer layer (not the rotating one)
+                            so it doesn't compete with the flip for the transform property. */}
                         <div className={`transition-transform duration-150 ease-out [perspective:600px]
                             ${!revealed ? 'group-hover:scale-110' : ''}`}>
                             <div
                                 className={`relative aspect-[3/4] w-full transition-transform duration-500 [transform-style:preserve-3d]
                                     ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
                             >
-                                {/* Pas de bordure ajoutée ici (contrairement au dos par défaut avant) :
-                                    chaque design du catalogue a déjà son propre cadre dessiné dans le
-                                    sprite — en superposer une créait un double-cadre qui mangeait le bord
-                                    de l'image et donnait l'impression qu'elle ne remplissait pas la carte. */}
+                                {/* No border added here: every catalog design already has its
+                                    own frame baked into the sprite — an extra one doubled up and
+                                    ate into the image's edge. */}
                                 <CardBackArt
                                     index={cardBack}
                                     className="h-full w-full rounded-lg shadow-lg [backface-visibility:hidden]"
                                 />
-                                {/* Aura au survol, tant que la carte est encore dos visible : un indice
-                                    de rareté avant la révélation — Commune n'a pas d'entrée dans
-                                    HOVER_RARITY_GLOW, donc rien ne s'affiche pour elle. */}
+                                {/* Hover glow while the card still shows its back: a rarity hint
+                                    before the reveal — Common has no entry in HOVER_RARITY_GLOW,
+                                    so nothing shows for it. */}
                                 {!revealed && hoverGlow && (
                                     <div
                                         className="pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity
@@ -120,8 +112,8 @@ export default function PackCardCircle({
                                         style={{ boxShadow: `0 0 40px 12px ${hoverGlow}` }}
                                     />
                                 )}
-                                {/* Éclat doré ponctuel à la révélation, en plus du contour de
-                                    CardFace lui-même — le pull d'une légendaire doit se sentir. */}
+                                {/* One-off golden flash on reveal, on top of CardFace's own
+                                    outline — pulling a legendary needs to feel like an event. */}
                                 <div className={`absolute inset-0 rounded-lg [backface-visibility:hidden] [transform:rotateY(180deg)]
                                     ${revealed && card.rarity === 'Légendaire' ? 'animate-legendary-reveal' : ''}`}>
                                     <ScaledCardFace card={card} />

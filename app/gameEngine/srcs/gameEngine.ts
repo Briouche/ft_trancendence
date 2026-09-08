@@ -7,6 +7,13 @@ import { Effect } from "./effect";
 import { Hero } from "./hero";
 import { freddyPassive, jeffePassive, timmyPassive } from "./legendary";
 
+// GameEngine holds the authoritative state of one match — players, board, whose turn it is — plus
+// every rule for mutating it (playing a card, attacking, ending a turn, resolving deaths). Two
+// very different callers drive it: socket/gameSession.ts mutates the single real instance for a
+// live match and streams its AnimationEvents to clients, while ai/tree.ts clones it on every
+// simulated move so MCTS can explore hypothetical futures without ever touching the real game.
+// Every mutating method returns an ActionResult carrying the AnimationEvents it produced, so
+// callers don't have to diff state before/after to know what to animate.
 export type AnimationEvent =
     | { kind: "summon"; minion: MinionCard; playerIndex: 0 | 1 }
     | { kind: "damage"; target: Targetable; amount: number }
@@ -102,6 +109,7 @@ export class GameEngine
         minion.effects.endOfTurnEffect.execute(context);
         this.processDeaths();
 
+        // roidesrats passive: every 3rd end-of-turn trigger this game, fire the effect a second time.
         if (player.legPassive === "roidesrats")
         {
             player.roiDesRatsCount++;
@@ -247,6 +255,10 @@ export class GameEngine
     {
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
 
+        // Loops instead of a single pass: a deathrattle can kill further minions (AoE deathrattle,
+        // destroyEffect chain, ...), so deaths are re-collected until none remain. Dead minions
+        // are cleared from the board before their deathrattles run, so summon effects see
+        // accurate free space (SummonMinionEffect checks board.getMinions().length < 6).
         while (true)
         {
             const deadCurrent: MinionCard[] = this.board.collectDead(this.currentTurn);
@@ -293,7 +305,6 @@ export class GameEngine
                 if (this.players[opponentIndex].legPassive === "freddy")
                 {
                     this.players[opponentIndex].freddyCount++;
-                    //console.log("minion died: " + minion.name + ": freddycount = " + this.players[opponentIndex].freddyCount);
                     if (this.players[opponentIndex].freddyCount % 4 === 0)
                     {
                         const context: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };

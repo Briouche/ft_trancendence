@@ -8,8 +8,8 @@ import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId, makeDeckFromNames, getUsernameForDeck, getUserIdForDeck } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 
-// Garde en phase avec app/lib/cardBacks.ts (Next.js) — même duplication volontaire que le reste
-// de shared/protocol.ts, ce process n'a pas accès à cet alias.
+// Keep in sync with app/lib/cardBacks.ts (Next.js) — same deliberate duplication as the rest of
+// shared/protocol.ts; this process has no access to that alias.
 const CARD_BACK_COUNT = 8;
 
 function clampCardBack(value: number): number
@@ -65,10 +65,10 @@ export function createGameServer(port: number): void
                 if (liveGames.some(g => g.hasSocket(socket.id)))
                     return;
 
-                // Deck du joueur = celui choisi dans le menu (deck builder), plus de deck codé en
-                // dur ni pioché au hasard dans la collection — voir PlayModeSelector.tsx. Deck de
-                // l'IA = un des 3 decks écrits à la main dans aiDecks.ts, tiré au sort — pas lié à
-                // un compte, donc joue des cartes même si le joueur humain ne les possède pas.
+                // Player's deck = whatever they chose in the menu (deck builder) — no more
+                // hardcoded deck or random pull from the collection, see PlayModeSelector.tsx.
+                // AI's deck = one of the 3 hand-written decks in aiDecks.ts, picked at random —
+                // not tied to any account, so the AI can play cards the human player doesn't own.
                 const [playerDeck, aiDeck, username, userId]: [Deck | null, Deck, string | null, number | null] = await Promise.all([
                     makeDeckFromDeckId(msg.deckId, "hey"),
                     makeDeckFromNames(pickRandomAiDeck(), "hola"),

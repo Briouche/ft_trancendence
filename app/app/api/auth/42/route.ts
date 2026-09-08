@@ -4,8 +4,8 @@ import { buildAuthorizeUrl } from "@/lib/oauth42";
 
 export const STATE_COOKIE = "ft_oauth_state";
 
-// Point de départ du flow "Sign in with 42" : un state anti-CSRF est posé dans un cookie
-// court, puis on redirige vers l'écran d'autorisation de 42.
+// Entry point for the "Sign in with 42" flow: stash an anti-CSRF state in a short-lived
+// cookie, then redirect to 42's authorization screen.
 export async function GET() {
     const state = crypto.randomUUID();
 

@@ -15,7 +15,7 @@ export interface Targetable
 }
 
 
-//base targetresolver class with tauntfilter and resolver that returns all avaiable targets
+//base TargetResolver class with a taunt filter and a resolver that returns all available targets
 //construct with true if player needs to pick a target
 export abstract class TargetResolver
 {
@@ -48,7 +48,7 @@ export abstract class TargetResolver
 
 //player chooses target out of returned array
 
-// any charachter, ignores taunt
+// any character, ignores taunt
 export class AnyCharacterResolver extends TargetResolver
 {
     constructor()

@@ -10,7 +10,12 @@ import { summonAnimation } from "../../animations";
 
 type ClickTargetMode = "attack" | "spell";
 
-//handles inputs: click and drag (only drag for now)
+// Handles all player input on cards/board, through two parallel schemes that both funnel into the
+// same finalize*/request* methods: drag-and-drop (dragstart/drag/drop/dragend) and click-to-select
+// then click-to-target (handleCardClick and the click* fields/methods). `targetingCard`/
+// `targetArrow` track an in-progress drag-based target selection; `clickTargetCard`/
+// `clickMovingCard` track the click-based equivalents. `dragOccurredThisPress` distinguishes an
+// actual click from the "gameobjectup" that also fires at the end of a drag release.
 export class InputController
 {
     private targetingCard: Card | null = null;
@@ -58,6 +63,8 @@ export class InputController
                 return;
             }
 
+            // attack === undefined is how a spell card is told apart from a minion card here
+            // (minions always carry attack/health stats, spells never do).
             if (this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack === undefined)
             {
                 this.targetingCard = obj;
@@ -166,7 +173,7 @@ export class InputController
         this.flow.awaitingTarget = true;
     }
 
-    //clicking methods - seperate from drag and dropping
+    //clicking methods - separate from drag and dropping
     private handleCardClick(obj: Card): void
     {
         if (this.clickTargetCard || this.clickMovingCard)
@@ -360,6 +367,9 @@ export class InputController
 
     private finalizeSpellTarget(card: Card, resolvedTarget: ResolvedTarget): void
     {
+        // playCard is sent without a target: the target chosen here is stashed in
+        // capturedTargetId so GameScene.onServerPrompt can answer the server's follow-up target
+        // prompt for this card automatically, without asking the player to pick again.
         this.flow.awaitingServer = true;
         this.flow.pendingPlayCardId = card.cardData.id;
         this.flow.capturedTargetId = resolvedTarget.id;

@@ -11,6 +11,10 @@ import {
     CARD_ART_BOX, CARD_DESC_BOX, CARD_DESC_BOX_SPELL, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, isSpellRarity,
 } from "@/lib/cardLayout";
 
+// A large, readable rendition of one card, shown either on hover (attachCardPreviewHover, e.g.
+// over small board/hand cards) or briefly when a card is played (showCardPreview). Also lists the
+// card's active keyword effects (taunt, rush, etc.) as an explanatory sidebar.
+
 const PREVIEW_DEPTH = 3200;
 const PREVIEW_HEIGHT_RATIO = 1 / 2.5;
 const CARD_ASPECT_RATIO = 1.4;
@@ -18,7 +22,7 @@ const LEFT_MARGIN_RATIO = 0.07;
 const HOVER_DELAY_MS = 2000;
 const PLAYED_DURATION_MS = 3000;
 
-// Plafond de la police de la description, relatif à la hauteur de sa case — voir Card.ts.
+// Ceiling on the description's font size, relative to its box height — see Card.ts.
 const DESC_MAX_FONT_RATIO = 0.225;
 
 const KEYWORD_GAP_RATIO = 0.03;

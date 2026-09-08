@@ -22,6 +22,8 @@ export function deathrattleAnimation(scene: Phaser.Scene, card: Card): Promise<v
             ease: "Sine.Out",
             onComplete: () =>
             {
+                // The skull is the card's persistent deathrattle icon (not a one-off sprite), so
+                // its transform is restored afterward rather than left blown-up/invisible.
                 skull.setScale(originalScaleX, originalScaleY);
                 skull.setAlpha(originalAlpha);
                 resolve();

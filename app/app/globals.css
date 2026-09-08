@@ -85,7 +85,7 @@ body {
 .book-panel {
   border-style: solid;
   border-width: 4px;
-  border-image-source: url("/textures/book/popup.png");
+  border-image-source: url("/textures/book/popup.webp");
   border-image-slice: 1 fill;
   border-image-width: 4px;
   border-image-repeat: stretch;
@@ -109,7 +109,7 @@ body {
 .travelbook-page {
   border-style: solid;
   border-width: 64px;
-  border-image-source: url("/textures/notebook/cover-left.png");
+  border-image-source: url("/textures/notebook/cover-left.webp");
   border-image-slice: 64 fill;
   border-image-width: 64px;
   border-image-repeat: round;
@@ -117,13 +117,13 @@ body {
 }
 
 .travelbook-page-right {
-  border-image-source: url("/textures/notebook/cover-right.png");
+  border-image-source: url("/textures/notebook/cover-right.webp");
 }
 
 .travelbook-banner {
   border-style: solid;
   border-width: 16px;
-  border-image-source: url("/textures/notebook/banner-bg.png");
+  border-image-source: url("/textures/notebook/banner-bg.webp");
   border-image-slice: 16 fill;
   border-image-width: 16px;
   border-image-repeat: stretch;
@@ -137,7 +137,7 @@ body {
 .travelbook-title-banner {
   border-style: solid;
   border-width: 24px 48px;
-  border-image-source: url("/textures/notebook/banner01.png");
+  border-image-source: url("/textures/notebook/banner01.webp");
   border-image-slice: 24 48 fill;
   border-image-width: 24px 48px;
   border-image-repeat: stretch;
@@ -149,7 +149,7 @@ body {
 .travelbook-side-panel {
   border-style: solid;
   border-width: 16px;
-  border-image-source: url("/textures/notebook/frame08.png");
+  border-image-source: url("/textures/notebook/frame08.webp");
   border-image-slice: 16 fill;
   border-image-width: 16px;
   border-image-repeat: stretch;
@@ -162,7 +162,7 @@ body {
 .travelbook-frame4-panel {
   border-style: solid;
   border-width: 12px;
-  border-image-source: url("/textures/notebook/frame04.png");
+  border-image-source: url("/textures/notebook/frame04.webp");
   border-image-slice: 12 fill;
   border-image-width: 12px;
   border-image-repeat: stretch;
@@ -181,7 +181,7 @@ body {
 .travelbook-slot {
   border-style: solid;
   border-width: 4px;
-  border-image-source: url("/textures/notebook/slot.png");
+  border-image-source: url("/textures/notebook/slot.webp");
   border-image-slice: 12 fill;
   border-image-width: 4px;
   border-image-repeat: stretch;
@@ -194,7 +194,7 @@ body {
 .travelbook-slot03a {
   border-style: solid;
   border-width: 8px;
-  border-image-source: url("/textures/notebook/slot03a.png");
+  border-image-source: url("/textures/notebook/slot03a.webp");
   border-image-slice: 12 fill;
   border-image-width: 8px;
   border-image-repeat: stretch;
@@ -205,7 +205,7 @@ body {
 .travelbook-deck-frame {
   border-style: solid;
   border-width: 4px;
-  border-image-source: url("/textures/notebook/slot.png");
+  border-image-source: url("/textures/notebook/slot.webp");
   border-image-slice: 12 fill;
   border-image-width: 4px;
   border-image-repeat: stretch;

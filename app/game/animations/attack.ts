@@ -17,6 +17,8 @@ export function attackAnimation(scene: Phaser.Scene, attacker: Card, targetX: nu
             tweens: [
                 { x: backX, y: backY, duration: 300, ease: "back.out" },
                 {
+                    // attacker.active guard: skips the impact shake if the attacker died before
+                    // this fires (e.g. a simultaneous trade).
                     x: targetX, y: targetY, duration: 100, ease: "expo.in",
                     onComplete: () => { if (attacker.active) scene.cameras.main.shake(150, 0.01); },
                 },

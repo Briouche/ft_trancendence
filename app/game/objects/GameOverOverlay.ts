@@ -5,7 +5,7 @@ import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 const OVERLAY_DEPTH = 3000; // above turnBanner (2000) and EndTurn (500)
 const DIM_COLOR = 0x000000;
 const DIM_ALPHA = 0.6;
-const CLICK_DELAY_MS = 2000;
+const CLICK_DELAY_MS = 2000; // delayed so a click already in flight when the overlay appears doesn't instantly dismiss it
 
 export class GameOverOverlay extends Phaser.GameObjects.Container
 {

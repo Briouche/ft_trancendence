@@ -1,6 +1,6 @@
-// Préférences de volume, partagées entre toutes les pages (Settings dans AccountMenu.tsx écrit,
-// les sons du site — page-flip pour l'instant, voir NotebookUI.tsx — lisent). Persisté en
-// localStorage : purement cosmétique et par appareil, aucune raison d'aller jusqu'en base pour ça.
+// Volume preferences, shared across all pages (Settings in AccountMenu.tsx writes, site sounds —
+// the page-flip, see NotebookUI.tsx — read them). Persisted to localStorage: purely cosmetic and
+// per-device, no reason to round-trip to the database for this.
 export type VolumeChannel = 'master' | 'music' | 'ambience'
 
 const STORAGE_KEY = 'audioSettings'
@@ -29,9 +29,9 @@ export function getVolume(channel: VolumeChannel): number {
     return volumes[channel]
 }
 
-// Volume réel d'un canal = son propre curseur × le volume général (mixeur classique
-// musique/bruitages/master, pas 3 curseurs indépendants) — c'est CE volume qu'il faut appliquer à
-// un HTMLAudioElement avant de le jouer, jamais getVolume('music'/'ambience') seul.
+// A channel's effective volume = its own slider x the master slider (a classic music/sfx/master
+// mixer, not 3 independent sliders) — this is the value to apply to an HTMLAudioElement before
+// playing it, never getVolume('music'/'ambience') alone.
 export function getEffectiveVolume(channel: 'music' | 'ambience'): number {
     return volumes.master * volumes[channel]
 }
@@ -44,8 +44,8 @@ export function setVolume(channel: VolumeChannel, value: number): void {
     listeners.forEach(listener => listener(volumes))
 }
 
-// Utilisé par les composants affichant un curseur (VolumeSlider, AccountMenu) pour rester
-// synchronisés si le volume change ailleurs (deux onglets ouverts, par ex.) sans prop-drilling.
+// Used by components that render a slider (VolumeSlider, AccountMenu) to stay in sync if volume
+// changes elsewhere (e.g. two open tabs) without prop-drilling.
 export function subscribeVolumes(listener: (volumes: Record<VolumeChannel, number>) => void): () => void {
     listeners.add(listener)
     return () => listeners.delete(listener)
