@@ -1,0 +1,51 @@
+# Build context is the repo root, not this directory — gameEngine shares the Prisma schema
+# with the main Next.js app (same DB, same Card table) instead of keeping a second copy that
+# could drift out of sync. See docker-compose.yml: game_engine.build.context.
+
+# --- STAGE 1: Install dependencies + generate the Prisma client ---
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY game_engine/package.json game_engine/package-lock.json* ./
+COPY app/prisma ./prisma/
+RUN npm ci --libc=musl
+RUN npx prisma generate --schema=prisma/schema.prisma
+
+# --- STAGE 2: Development stage (ts-node, matches the socket.io game server) ---
+FROM node:20-alpine AS development
+WORKDIR /app
+ENV NODE_ENV=development
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY game_engine .
+
+EXPOSE 4000
+CMD ["npm", "run", "dev"]
+
+# --- STAGE 3: Build stage (compiles TypeScript to dist/) ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY game_engine .
+
+RUN npm run build
+
+# --- STAGE 4: Production stage ---
+FROM node:20-alpine AS production
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 gameengine
+
+# node_modules carries the Prisma client generated in the deps stage; dist/ is
+# the compiled output, package.json only so `npm run` scripts stay resolvable
+COPY --from=builder --chown=gameengine:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=gameengine:nodejs /app/dist ./dist
+COPY --from=builder --chown=gameengine:nodejs /app/package.json ./package.json
+
+USER gameengine
+
+EXPOSE 4000
+CMD ["node", "dist/index.js"]

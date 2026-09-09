@@ -12,6 +12,10 @@ upstream game_engine_upstream {
     server game_engine:4000;
 }
 
+upstream socketio_upstream {
+    server socketio:4000;
+}
+
 # 2. HTTP to HTTPS Redirect
 server {
     listen 80;
@@ -76,6 +80,21 @@ server {
     # Next.js app) speaks socket.io on its own port; proxied here under the same origin.
     location /socket.io/ {
         proxy_pass http://game_engine_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host       $host;
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    # Chat/presence Socket.io — separate process (socket-server/) from game_engine, kept on
+    # its own path since both speak socket.io on the same default path otherwise. Must match
+    # the `path` the socketio server itself listens on (socket-server/index.js).
+    location /chat-socket.io/ {
+        proxy_pass http://socketio_upstream;
         proxy_http_version 1.1;
         proxy_set_header Upgrade    $http_upgrade;
         proxy_set_header Connection $connection_upgrade;

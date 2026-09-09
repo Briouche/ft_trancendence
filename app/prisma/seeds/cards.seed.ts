@@ -1,7 +1,7 @@
 import { PrismaClient, Keyword } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
-import { EffectSpec } from '../../gameEngine/srcs/cardImport/effectFactory'
+import { EffectSpec } from '../../../game_engine/srcs/cardImport/effectFactory'
 
 interface RawCard
 {

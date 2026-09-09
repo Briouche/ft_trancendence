@@ -1,5 +1,4 @@
-.PHONY: all add_domain dev prod rebuild down npm-clean docker-clean fclean re
-
+# Used to make sure there is a .env file
 include .env
 
 # Default target
@@ -9,7 +8,7 @@ dev:
 	docker compose up --build
 
 # Production Setup
-prod: down
+prod:
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
 clean:

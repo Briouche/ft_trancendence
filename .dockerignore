@@ -1,0 +1,19 @@
+# Used for the game_engine build, whose context is the repo root (it needs both
+# ./game_engine and ./app/prisma). Keeps that build from shipping the whole repo
+# (node_modules, .git, build output) to the daemon on every build.
+
+**/node_modules
+**/.next
+**/dist
+.git
+
+*.log
+npm-debug.log*
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+.vscode/
+.zed

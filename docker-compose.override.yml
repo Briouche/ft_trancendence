@@ -23,8 +23,21 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - ./app/gameEngine:/app
+      - ./game_engine:/app
       - /app/node_modules
+
+  socketio:
+    build:
+      target: development
+    ports:
+      - "4001:4000"
+    volumes:
+      - ./socket-server:/app
+      - /app/node_modules
+
+  redis:
+    ports:
+     - "6379:6379"
 
   db:
     ports:

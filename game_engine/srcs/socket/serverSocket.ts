@@ -26,7 +26,11 @@ type WaitingPlayer = { socket: Socket; deckId: number; cardBack: number };
 
 export function createGameServer(port: number): void
 {
-    const io = new Server(port, { cors: { origin: "http://localhost:3000" }, connectionStateRecovery: {} });
+    // Same-origin in practice: nginx proxies /socket.io/ straight through (see proxy/dev.conf
+    // and proxy/prod.conf.template), so the Origin header is whatever the page's real origin
+    // is (localhost:8080 in dev, the prod domain in prod) — never a fixed value. Mirrors
+    // socket-server/index.js's CORS handling for the same reason.
+    const io = new Server(port, { cors: { origin: (origin, callback) => callback(null, true) }, connectionStateRecovery: {} });
 
     const waiting: WaitingPlayer[] = [];
     const liveGames: GameSession[] = [];
