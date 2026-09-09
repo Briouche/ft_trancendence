@@ -33,15 +33,12 @@ interface PendingTarget
 
 export class GameSession
 {
-    private static readonly RECONNECT_GRACE_MS = 30000;
-
     private engine: GameEngine;
     private seats: [Seat, Seat];
     private pending: PendingTarget | null = null;
     private gameOver : boolean = false;
     private difficulty: Difficulty;
     private readonly onGameEnd: () => void;
-    private disconnectTimers: [NodeJS.Timeout | null, NodeJS.Timeout | null] = [null, null];
 
     constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen", onGameEnd: () => void = () => {})
     {
@@ -60,47 +57,11 @@ export class GameSession
         this.runAiTurnLoop();
     }
 
-    // True if `socketId` belongs to one of this session's human seats — used both to route a
-    // reconnecting socket back to its own game and to refuse spinning up a second game for a
-    // socket that's already live in one (see serverSocket.ts).
+    // True if `socketId` belongs to one of this session's human seats — used to refuse spinning
+    // up a second game for a socket that's already live in one (see serverSocket.ts).
     hasSocket(socketId: string): boolean
     {
         return this.seats.some(seat => seat.kind === "human" && seat.socket.id === socketId);
-    }
-
-    // Called when a socket carrying an id already known to this session reconnects (same
-    // Socket.IO connection-state-recovery id, new Socket object). Rebinds the seat to the new
-    // socket, re-attaches its message handler (the old socket's listener died with it), cancels
-    // any pending forfeit timer, and resends state so the client can rehydrate.
-    reconnect(socket: Socket): 0 | 1 | -1
-    {
-        const idx = this.seats.findIndex(seat => seat.kind === "human" && seat.socket.id === socket.id);
-
-        if (idx === -1)
-            return -1;
-
-        const playerIndex = idx as 0 | 1;
-        const previousSeat = this.seats[playerIndex];
-
-        if (this.disconnectTimers[playerIndex])
-        {
-            clearTimeout(this.disconnectTimers[playerIndex]!);
-            this.disconnectTimers[playerIndex] = null;
-        }
-
-        this.seats[playerIndex] = { kind: "human", socket, userId: previousSeat.kind === "human" ? previousSeat.userId : null };
-        socket.on("message", (msg: ClientMessage) => this.handle(playerIndex, msg));
-
-        this.send(playerIndex, { type: "assigned", playerIndex });
-        this.send(playerIndex, { type: "state", state: toClientState(this.engine, playerIndex) });
-
-        if (this.pending && this.pending.playerIndex === playerIndex)
-        {
-            const options: TargetOption[] = [...this.pending.optionsById.values()].map((t: Targetable) => this.targetToOption(t));
-            this.send(playerIndex, { type: "prompt", prompt: { forCardId: this.pending.id, options } });
-        }
-
-        return playerIndex;
     }
 
     private bindHandlers(): void
@@ -116,6 +77,15 @@ export class GameSession
     {
         if (this.gameOver)
             return ;
+
+        // Allowed regardless of whose turn it is — quitting on the opponent's turn must still
+        // forfeit, not get rejected by the turn-order check below.
+        if (msg.type === "quit")
+        {
+            this.forfeit(playerIndex);
+            return;
+        }
+
         if (playerIndex !== this.engine.currentTurn)
         {
             this.reject(playerIndex, "not your turn");
@@ -429,8 +399,7 @@ export class GameSession
         return effects;
     }
 
-    // Doesn't end the game immediately — starts a grace period so the same player can rejoin
-    // (see reconnect()) after a transient drop. Only forfeits if they don't come back in time.
+    // No reconnect grace period — a dropped human seat forfeits immediately.
     handleDisconnect(socket: Socket): void
     {
         if (this.gameOver)
@@ -443,16 +412,7 @@ export class GameSession
         if (seatIndex === -1)
             return;
 
-        const playerIndex = seatIndex as 0 | 1;
-
-        if (this.disconnectTimers[playerIndex])
-            return;
-
-        this.disconnectTimers[playerIndex] = setTimeout(() =>
-        {
-            this.disconnectTimers[playerIndex] = null;
-            this.forfeit(playerIndex);
-        }, GameSession.RECONNECT_GRACE_MS);
+        this.forfeit(seatIndex as 0 | 1);
     }
 
     private forfeit(loserIndex: 0 | 1): void

@@ -77,3 +77,9 @@ EventManager.on("client:endTurn", () =>
     const msg: ClientMessage = { type: "endTurn" };
     socket.emit("message", msg);
 });
+
+EventManager.on("client:quit", () =>
+{
+    const msg: ClientMessage = { type: "quit" };
+    socket.emit("message", msg);
+});

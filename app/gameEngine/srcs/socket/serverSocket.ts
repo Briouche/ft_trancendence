@@ -26,7 +26,7 @@ type WaitingPlayer = { socket: Socket; deckId: number; cardBack: number };
 
 export function createGameServer(port: number): void
 {
-    const io = new Server(port, { cors: { origin: "http://localhost:3000" }, connectionStateRecovery: {} });
+    const io = new Server(port, { cors: { origin: "http://localhost:3000" } });
 
     const waiting: WaitingPlayer[] = [];
     const liveGames: GameSession[] = [];
@@ -41,21 +41,6 @@ export function createGameServer(port: number): void
     io.on("connection", (socket: Socket) =>
     {
         console.log("client connected:", socket.id);
-
-        // Same socket id as an already-live game
-        const existingGame: GameSession | undefined = liveGames.find(g => g.hasSocket(socket.id));
-        if (existingGame)
-        {
-            console.log("reconnecting socket to its live game:", socket.id);
-            existingGame.reconnect(socket);
-
-            socket.on("disconnect", () =>
-            {
-                console.log("client disconnected:", socket.id);
-                existingGame.handleDisconnect(socket);
-            });
-            return;
-        }
 
         socket.on("message", async (msg: ClientMessage) =>
         {
@@ -97,6 +82,18 @@ export function createGameServer(port: number): void
                 const session: GameSession = new GameSession(seats[0], seats[1], players[0], players[1], msg.difficulty, () => removeGame(session));
 
                 liveGames.push(session);
+                return;
+            }
+
+            if (msg.type === "quit")
+            {
+                // Quitting while still queued (before any GameSession exists) never disconnects
+                // the socket — see EventManager.ts, the socket is a page-lifetime singleton that
+                // survives client-side navigation — so it has to be handled explicitly here,
+                // same as the "disconnect" handler below already does.
+                const idx: number = waiting.findIndex(w => w.socket === socket);
+                if (idx !== -1)
+                    waiting.splice(idx, 1);
                 return;
             }
 

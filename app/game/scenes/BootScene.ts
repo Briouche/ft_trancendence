@@ -29,8 +29,13 @@ export class BootScene extends Phaser.Scene
     }
 
     preload() {
+        // Kicked off (not awaited) here rather than in create(), so the font fetch runs
+        // concurrently with the image loads below instead of only starting once they've all
+        // finished — ensureCardFontLoaded() memoizes, so create()'s later await just picks up
+        // this same in-flight promise.
+        void ensureCardFontLoaded();
+
         // Load assets here :
-        this.load.image("placeholder_card", "/gameAssets/cards/placeholder_card.png");
         this.load.image("shield_taunt", "/gameAssets/shield_taunt.webp");
         this.load.image("effect_lightning", "/gameAssets/lightning_bolt.webp");
         this.load.image("history_attack", "/gameAssets/attackSword.webp");

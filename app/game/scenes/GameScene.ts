@@ -41,12 +41,21 @@ export class GameScene extends Phaser.Scene
 
     private background!: Phaser.GameObjects.Image;
 
-    private onAssignedHandler = (playerIndex: 0 | 1) => { this.flow.playerIndex = playerIndex; };
+    private onAssignedHandler = (playerIndex: 0 | 1) => { this.matched = true; this.flow.playerIndex = playerIndex; };
     private onStateHandler = (state: ClientGameState) => this.onServerState(state);
     private onPromptHandler = (prompt: TargetPrompt) => this.onServerPrompt(prompt);
     private onGameOverHandler = (winner: "you" | "opponent") => this.onGameOver(winner);
     private onRejectedHandler = (reason: string) => this.onServerRejected(reason);
     private onEventHandler = (event: GameEvent) => this.onServerEvent(event);
+    // The underlying socket (see EventManager.ts) can transparently drop and reconnect while this
+    // client is still sitting in the server's matchmaking queue (socket.io-client auto-reconnects
+    // by default) — a fresh connection means a fresh Socket.IO server-side socket id, which the
+    // server's `waiting` queue never learns about, so the original ready message effectively
+    // vanishes and this client waits forever with no error. Re-sending ready on every reconnect
+    // (until actually matched) keeps the client queued across that kind of blip. Once matched
+    // (server:assigned received) there's no queue entry left to lose, so this stops resending.
+    private onConnectedHandler = () => { if (!this.matched) this.sendReady(); };
+    private matched = false;
 
     private mode!: GameMode;
     private difficulty!: Difficulty;
@@ -84,12 +93,18 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:gameOver", this.onGameOverHandler);
         EventManager.on("server:rejected", this.onRejectedHandler);
         EventManager.on("server:event", this.onEventHandler);
+        EventManager.on("client:connected", this.onConnectedHandler);
 
         // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY, not
         // the normal scene shutdown/stop events, so cleanup is hooked here rather than in a
         // Scene.shutdown() lifecycle method.
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
+        this.sendReady();
+    }
+
+    private sendReady(): void
+    {
         if (this.mode === "solo")
             EventManager.emit("client:readySolo", { difficulty: this.difficulty, deckId: this.deckId, cardBack: this.cardBack });
         else
@@ -210,5 +225,6 @@ export class GameScene extends Phaser.Scene
         EventManager.off("server:gameOver", this.onGameOverHandler);
         EventManager.off("server:rejected", this.onRejectedHandler);
         EventManager.off("server:event", this.onEventHandler);
+        EventManager.off("client:connected", this.onConnectedHandler);
     }
 }

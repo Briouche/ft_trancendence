@@ -94,7 +94,8 @@ export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
     | { type: "playCard"; cardId: string; boardIndex?: number; }
     | { type: "attack"; attackerId: string; targetId: string; }
     | { type: "targetChoice"; targetId: string | null }
-    | { type: "endTurn" };
+    | { type: "endTurn" }
+    | { type: "quit" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }
