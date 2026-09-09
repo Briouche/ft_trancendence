@@ -27,6 +27,10 @@ services:
     build:
       context: ./app
       target: production
+    # The production image runs as the non-root `nextjs` user, but Docker creates named-volume
+    # mount points owned by root — override back to root for this short-lived copy-only container
+    # (it never serves traffic; proxy mounts the volumes it fills read-only afterward).
+    user: root
     entrypoint: ["sh", "-c", "cp -r /app/.next/static/. /next_static/ && cp -r /app/public/. /next_public/"]
     volumes:
       - next_static:/next_static

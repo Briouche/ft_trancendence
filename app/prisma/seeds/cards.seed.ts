@@ -1,7 +1,7 @@
-import { PrismaClient, Keyword } from '@prisma/client'
+import { Prisma, PrismaClient, Keyword } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
-import { EffectSpec } from '../../../game_engine/srcs/cardImport/effectFactory'
+import { EffectSpec } from './effectSpec'
 
 interface RawCard
 {
@@ -85,13 +85,16 @@ export async function seedCards(prisma: PrismaClient)
 			archi: card.archi,
 			spellpower: card.spellpower,
 
-			battlecry:         card.battlecry,
-			deathrattle:       card.deathrattle,
-			onAttack:          card.onAttack,
-			onDamage:          card.onDamage,
-			startOfTurnEffect: card.startOfTurnEffect,
-			endOfTurnEffect:   card.endOfTurnEffect,
-			spellEffect:       card.spellEffect,
+			// EffectSpec is a recursive discriminated union (addKeyword's `value` can itself be an
+			// EffectSpec); TS won't structurally match that against Prisma's InputJsonValue index
+			// signature on its own, so cast explicitly — the shape is still JSON-safe at runtime.
+			battlecry:         card.battlecry         as Prisma.InputJsonValue | undefined,
+			deathrattle:       card.deathrattle       as Prisma.InputJsonValue | undefined,
+			onAttack:          card.onAttack          as Prisma.InputJsonValue | undefined,
+			onDamage:          card.onDamage          as Prisma.InputJsonValue | undefined,
+			startOfTurnEffect: card.startOfTurnEffect as Prisma.InputJsonValue | undefined,
+			endOfTurnEffect:   card.endOfTurnEffect   as Prisma.InputJsonValue | undefined,
+			spellEffect:       card.spellEffect       as Prisma.InputJsonValue | undefined,
 
 			keywords: parseKeywords(card.keywords, card.id),
 		}

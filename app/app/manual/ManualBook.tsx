@@ -51,18 +51,18 @@ export default function ManualBook() {
         <div className="flex flex-col items-center gap-4">
           <TitleBanner width="w-[700px]">TUTO</TitleBanner>
 
-          <div className="travelbook-frame4-panel h-[700px] w-[820px] p-6">
+          <div className="travelbook-frame4-panel h-175 w-205 p-6">
             <NotebookScrollArea className="h-full pr-4">
               <Section title="Objective">
-                <p>Reduce the enemy hero's health to 0 before yours reaches 0.</p>
+                <p>Reduce the enemy hero&apos;s health to 0 before yours reaches 0.</p>
               </Section>
 
               <Section title="The board">
                 <p>
                   Your hand sits at the bottom of the screen, with your board and hero above it. The
-                  opponent's hand (face down), board and hero mirror yours at the top. Your mana bar
-                  sits bottom-left, your deck pile bottom-right — the opponent's deck sits at the top.
-                  End your turn with the button on the right once you're done.
+                  opponent&apos;s hand (face down), board and hero mirror yours at the top. Your mana bar
+                  sits bottom-left, your deck pile bottom-right — the opponent&apos;s deck sits at the top.
+                  End your turn with the button on the right once you&apos;re done.
                 </p>
               </Section>
 
@@ -75,7 +75,7 @@ export default function ManualBook() {
 
               <Section title="Playing cards & attacking">
                 <p>
-                  Drag a card from your hand onto the board to play it. A minion can attack once it's
+                  Drag a card from your hand onto the board to play it. A minion can attack once it&apos;s
                   been under your control since the start of your turn (unless it has Ruée) — click it,
                   then choose a target: an enemy minion or the enemy hero. If the enemy has a Taunt
                   minion on the board, you must attack it before anything else.
@@ -85,7 +85,7 @@ export default function ManualBook() {
               <Section title="Reading a card">
                 <p>
                   Top-left: name. Top-right gem: mana cost. Bottom-left sword: attack. Bottom-right
-                  drop: health. The white box in the middle is the card's text — keywords are shown in
+                  drop: health. The white box in the middle is the card&apos;s text — keywords are shown in
                   bold there.
                 </p>
               </Section>
