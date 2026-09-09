@@ -56,7 +56,7 @@ export default function PackCardZoom({
             <div
                 ref={cardRef}
                 onClick={e => e.stopPropagation()}
-                className="w-[300px] transition-transform duration-150 ease-out will-change-transform"
+                className="w-75 transition-transform duration-150 ease-out will-change-transform"
                 style={{
                     transform: `perspective(900px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 10}deg) scale(1.04)`,
                 }}

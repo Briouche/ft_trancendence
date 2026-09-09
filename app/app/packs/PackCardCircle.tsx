@@ -89,18 +89,18 @@ export default function PackCardCircle({
                         {/* The flip plays here at small size, no zoom needed for the first
                             reveal. Hover growth lives on this outer layer (not the rotating one)
                             so it doesn't compete with the flip for the transform property. */}
-                        <div className={`transition-transform duration-150 ease-out [perspective:600px]
+                        <div className={`transition-transform duration-150 ease-out perspective-[600px]
                             ${!revealed ? 'group-hover:scale-110' : ''}`}>
                             <div
-                                className={`relative aspect-[3/4] w-full transition-transform duration-500 [transform-style:preserve-3d]
-                                    ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
+                                className={`relative aspect-3/4 w-full transition-transform duration-500 transform:3d
+                                    ${revealed ? 'transform:[rotateY(180deg)]' : ''}`}
                             >
                                 {/* No border added here: every catalog design already has its
                                     own frame baked into the sprite — an extra one doubled up and
                                     ate into the image's edge. */}
                                 <CardBackArt
                                     index={cardBack}
-                                    className="h-full w-full rounded-lg shadow-lg [backface-visibility:hidden]"
+                                    className="h-full w-full rounded-lg shadow-lg backface:hidden"
                                 />
                                 {/* Hover glow while the card still shows its back: a rarity hint
                                     before the reveal — Common has no entry in HOVER_RARITY_GLOW,
@@ -108,13 +108,13 @@ export default function PackCardCircle({
                                 {!revealed && hoverGlow && (
                                     <div
                                         className="pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity
-                                            duration-300 [backface-visibility:hidden] group-hover:opacity-100"
+                                            duration-300 backface:hidden group-hover:opacity-100"
                                         style={{ boxShadow: `0 0 40px 12px ${hoverGlow}` }}
                                     />
                                 )}
                                 {/* One-off golden flash on reveal, on top of CardFace's own
                                     outline — pulling a legendary needs to feel like an event. */}
-                                <div className={`absolute inset-0 rounded-lg [backface-visibility:hidden] [transform:rotateY(180deg)]
+                                <div className={`absolute inset-0 rounded-lg backface:hidden transform:[rotateY(180deg)]
                                     ${revealed && card.rarity === 'Légendaire' ? 'animate-legendary-reveal' : ''}`}>
                                     <ScaledCardFace card={card} />
                                 </div>

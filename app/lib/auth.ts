@@ -7,36 +7,18 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { createSession, deleteSession } from "@/lib/session";
 import { ROUTES } from "@/config/routes";
-
-/** Matches the same argon2id parameters used to build {@link DUMMY_HASH}. */
-const ARGON2_OPTIONS = {
-  memoryCost: 19456,
-  timeCost: 2,
-  parallelism: 1,
-};
-
-const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// At least 8 characters, one uppercase, one lowercase, one digit.
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-
-const USERNAME_MIN_LENGTH = 3;
-const USERNAME_MAX_LENGTH = 30;
-// Upper bound only - argon2 cost scales with input size, so an unbounded
-// password lets someone send a multi-MB string and burn CPU/memory on every
-// hash/verify call. 128 is generous for any real passphrase.
-const PASSWORD_MAX_LENGTH = 128;
-const EMAIL_MAX_LENGTH = 254; // RFC 5321 max mailbox length
-
-const DUMMY_HASH =
-  "$argon2id$v=19$m=19456,t=2,p=1$c29tZXJhbmRvbXNhbHQ$2rXwn8YSrN3W5uJmYh1IhrJfw5PZqPFqUJvXWkG1SVI";
-
-function getStringField(formData: FormData, key: string): string | null {
-  const value = formData.get(key);
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
+import {
+  ARGON2_OPTIONS,
+  DUMMY_HASH,
+  EMAIL_MAX_LENGTH,
+  EMAIL_REGEX,
+  getStringField,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_REGEX,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  USERNAME_REGEX,
+} from "@/lib/constants";
 
 export async function checkCredentials(formData: FormData) {
   const usernameRaw = getStringField(formData, "username");

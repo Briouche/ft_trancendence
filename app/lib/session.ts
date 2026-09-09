@@ -33,6 +33,15 @@ export async function decrypt(token: string | undefined = "") {
     const { payload } = await jwtVerify(token, getEncodedKey(), {
       algorithms: ["HS256"],
     });
+
+    if (
+      typeof payload.userId !== "number" ||
+      typeof payload.username !== "string" ||
+      typeof payload.tokenVersion !== "number"
+    ) {
+      return null;
+    }
+
     return payload as unknown as SessionPayload;
   } catch {
     return null;

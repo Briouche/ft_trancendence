@@ -2,12 +2,11 @@ import "server-only";
 
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { USERNAME_MAX_LENGTH } from "@/lib/constants";
 
 const AUTHORIZE_URL = "https://api.intra.42.fr/oauth/authorize";
 const TOKEN_URL = "https://api.intra.42.fr/oauth/token";
 const ME_URL = "https://api.intra.42.fr/v2/me";
-
-const USERNAME_MAX_LENGTH = 30; // kept in sync with lib/auth.ts
 
 function getEnv(name: string): string {
     const value = process.env[name];

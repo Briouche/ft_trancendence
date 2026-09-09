@@ -52,7 +52,7 @@ export default function CardZoom({ card, onClose }: { card: Card | null; onClose
                 <div
                     ref={cardRef}
                     onClick={e => e.stopPropagation()}
-                    className="w-[340px] transition-transform duration-150 ease-out will-change-transform"
+                    className="w-85 transition-transform duration-150 ease-out will-change-transform"
                     style={{
                         transform: `perspective(900px) rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 12}deg) scale(1.04)`,
                     }}
