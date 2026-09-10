@@ -27,6 +27,12 @@ model User {
   // A JWT is only accepted if its embedded tokenVersion matches this value
   tokenVersion Int @default(0)
 
+  avatar String?
+  status UserStatus @default(OFFLINE)
+
+  friendshipsSent     Friendship[] @relation("FriendshipRequester")
+  friendshipsReceived Friendship[] @relation("FriendshipAddressee")
+
   createdAt     DateTime   @default(now())
   decks         Deck[]
   cards         UserCard[]
@@ -45,6 +51,36 @@ model User {
   // (3-7) are each tied to a specific achievement, never granted by default or drawn from a pack
   // (see ACHIEVEMENT_CARD_BACKS in lib/cardBacks.ts and packs.ts).
   unlockedCardBacks Int[]  @default([0, 1, 2])
+}
+
+enum UserStatus {
+  ONLINE
+  OFFLINE
+  IN_GAME
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model Friendship {
+  id     Int              @id @default(autoincrement())
+  status FriendshipStatus @default(PENDING)
+
+  requesterId Int
+  requester   User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  addresseeId Int
+  addressee   User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
 }
 
 enum Keyword {

@@ -3,4 +3,6 @@ export const ROUTES = {
   register:"/register",
   privacyNotice: "/privacy",
   termsOfUse: "/terms",
+  profile: "/profile",
+  friends: "/friends",
 }

@@ -212,13 +212,13 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                 <div className="flex flex-col items-center gap-1">
                     <TitleBanner width="w-[1250px]" className="z-20">DECK BUILDER</TitleBanner>
 
-                    <div className="flex h-[900px] items-stretch gap-4">
+                    <div className="flex h-225 items-stretch gap-4">
                         <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
                 {/* Book: same pages/slots as the Collection (see NotebookUI), but clicking a card
                     adds it to the deck instead of opening a zoom — no Cards/Card Backs tabs here,
                     just the collection to browse. */}
-                <div className="relative flex h-[900px] w-[1160px] flex-col">
+                <div className="relative flex h-225 w-290 flex-col">
                     <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
                         <div className="travelbook-page relative flex flex-1 flex-col p-3">
                             <div className="flex h-9 items-center justify-center">
@@ -290,7 +290,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                     all the player's decks below — a separate "Frame04a" frame (not the book
                     pages), taller than the book row so it visibly overflows top and bottom
                     (-my-10 offsets the extra height, no scroll added). */}
-                <div className="travelbook-frame4-panel relative z-30 -my-10 flex h-[980px] w-96 flex-col p-5">
+                <div className="travelbook-frame4-panel relative z-30 -my-10 flex h-245 w-96 flex-col p-5">
                     {creating ? (
                         <>
                             <div className="relative mb-3 flex items-center justify-center">
@@ -473,7 +473,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                 >
                     <div
                         onClick={e => e.stopPropagation()}
-                        className="travelbook-deck-frame flex w-[30rem] flex-col items-center gap-6 p-10"
+                        className="travelbook-deck-frame flex w-120 flex-col items-center gap-6 p-10"
                     >
                         <p className="text-center font-display text-3xl font-bold text-ink-text">
                             Delete deck?

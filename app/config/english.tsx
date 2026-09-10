@@ -6,7 +6,16 @@ export const english = {
   termsOfService: "Terms of Service",
 
   // notice page
-  lastUpdated: "Last Updated"
+  lastUpdated: "Last Updated",
+
+  // profile & friends pages
+  profile: "Profile",
+  friends: "Friends",
+  editProfile: "Edit profile",
+  save: "Save",
+  cancel: "Cancel",
+  back: "Back",
+  addFriend: "Add a friend",
 }
 
 import { NoticeData } from "@/components/NoticePage";

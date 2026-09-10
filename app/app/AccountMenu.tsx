@@ -57,9 +57,9 @@ function VolumeSlider({ channel, label, value, onChange }: {
 // Account/settings/trophy dropdown — the only account UI now that the Hub is navigated
 // entirely in 3D. Icons are the 01_TravelBook set (ButtonAbout01a/ButtonSetting01a/
 // ButtonAchievement01a, via AssetButton). Settings opens a volume panel (lib/audioSettings.ts);
-// Achievement shows win counts (winsVsAi{Easy,Medium,Hard}/winsVsPlayer on User). Stands in for
-// the old separate /profile page — its content fits here, and card backs are still picked from
-// the Collection (same API).
+// Achievement shows win counts (winsVsAi{Easy,Medium,Hard}/winsVsPlayer on User). Quick stats live
+// here; full profile editing and friends management are on the separate /profile and /friends
+// pages linked below — card backs are still picked from the Collection (same API).
 export default function AccountMenu({ username, cardCount, wins, cardBacks }: {
     username:  string
     cardCount: number
@@ -102,6 +102,21 @@ export default function AccountMenu({ username, cardCount, wins, cardBacks }: {
                     <p className="mt-0.5 font-serif text-sm text-ink-muted">
                         🎴 {cardBacks.unlocked}/{cardBacks.total} card backs unlocked
                     </p>
+
+                    <div className="my-3 h-px bg-ink-muted/30" />
+
+                    <Link
+                        href={ROUTES.profile}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-serif text-sm text-ink-muted transition-colors hover:bg-ink-900/10"
+                    >
+                        👤 Full profile
+                    </Link>
+                    <Link
+                        href={ROUTES.friends}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-serif text-sm text-ink-muted transition-colors hover:bg-ink-900/10"
+                    >
+                        🧑‍🤝‍🧑 Friends
+                    </Link>
 
                     <div className="my-3 h-px bg-ink-muted/30" />
 

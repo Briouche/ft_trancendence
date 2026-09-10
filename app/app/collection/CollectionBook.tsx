@@ -221,13 +221,13 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         "Arrow01a" icon, shown only when the mouse nears the book's edge (wide
                         hover zone, PageArrow). Book size is fixed so it never resizes when
                         switching tab/page. */}
-                    <div className="relative z-10 flex h-[990px] items-stretch gap-1">
+                    <div className="relative z-10 flex h-247.5 items-stretch gap-1">
                         <PageArrow direction="prev" onClick={goPrev} disabled={page === 0} />
 
                 {/* Each half (.travelbook-page/.travelbook-page-right) is a self-contained
                     notebook image (edge + spiral binding + cream fill), so this box is just a
                     fixed-size layout container, not a separate cover frame. */}
-                <div className="relative flex h-[990px] w-[1280px] flex-col">
+                <div className="relative flex h-247.5 w-7xl flex-col">
                     {/* Tabs sit ON TOP of the page (not behind the cover), z-indexed above
                         everything else in the book including the page-turn arrow (z-30,
                         PageArrow), with a slight overlap to stay flush against the edge. */}
