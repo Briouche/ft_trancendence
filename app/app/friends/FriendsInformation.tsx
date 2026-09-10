@@ -11,6 +11,10 @@ import FriendsList from './FriendsList'
 export default function FriendsInformation({ username }: { username: string }) {
     const router = useRouter()
     const [isAdding, setIsAdding] = useState(false)
+    // Bumped after any send/accept/refuse/cancel so the three lists below (which each fetch
+    // independently on mount) refetch and stay in sync with one another.
+    const [refreshKey, setRefreshKey] = useState(0)
+    const refresh = () => setRefreshKey(k => k + 1)
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10" style={woodenTableBackground}>
@@ -33,21 +37,21 @@ export default function FriendsInformation({ username }: { username: string }) {
                     </button>
 
                     <div className="mt-5 flex flex-col items-center gap-4">
-                        {isAdding && <AddFriend />}
+                        {isAdding && <AddFriend onSent={refresh} />}
 
                         <section className="flex w-full flex-col gap-2">
                             <p className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">Requests received</p>
-                            <FriendsRequestsList />
+                            <FriendsRequestsList refreshKey={refreshKey} onChange={refresh} />
                         </section>
 
                         <section className="flex w-full flex-col gap-2">
                             <p className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">Requests sent</p>
-                            <PendingRequestsList />
+                            <PendingRequestsList refreshKey={refreshKey} onChange={refresh} />
                         </section>
 
                         <section className="flex w-full flex-col gap-2">
                             <p className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">Friends</p>
-                            <FriendsList />
+                            <FriendsList refreshKey={refreshKey} />
                         </section>
                     </div>
                 </div>

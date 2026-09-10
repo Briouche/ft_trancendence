@@ -19,10 +19,12 @@ export async function GET() {
     },
   });
 
-  // Collapse each Friendship row down to "the other person"
-  const friends = friendships.map((f) =>
-    f.requesterId === session.userId ? f.addressee : f.requester
-  );
+  // Collapse each Friendship row down to "the other person" (friendshipId kept so the client
+  // can target this specific row when removing the friend).
+  const friends = friendships.map((f) => ({
+    friendshipId: f.id,
+    ...(f.requesterId === session.userId ? f.addressee : f.requester),
+  }));
 
   return NextResponse.json({ friends });
 }
