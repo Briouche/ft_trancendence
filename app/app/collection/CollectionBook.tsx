@@ -9,7 +9,7 @@ import CardBackArt from '@/components/CardBackArt'
 import { CARD_BACK_COUNT, ACHIEVEMENT_CARD_BACK_HINTS } from '@/lib/cardBacks'
 import {
     Slot, PageArrow, SearchInput,
-    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground, HomeButton, TitleBanner,
+    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground, HomeButton,
 } from '@/components/notebook/NotebookUI'
 import ScaleToFit from '@/components/ScaleToFit'
 import CardZoom from './CardZoom'
@@ -203,31 +203,32 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
 
     return (
         // Wooden table background instead of the plain bg-ink-950: makes the book look like
-        // it's sitting on top of it.
+        // it's sitting on top of it. h-screen + overflow-hidden (no padding, unlike the other
+        // notebook pages): ScaleToFit below already centers/scales its content to fit the
+        // viewport exactly — any padding added here on top of its own h-screen box would push
+        // the total past 100vh and force the page to scroll to see the rest of the book.
         <div
-            className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10"
+            className="h-screen w-full overflow-hidden"
             style={woodenTableBackground}
         >
             <HomeButton onClick={() => router.push('/')} />
 
-            {/* Banner + book sit in one fixed-size block that ScaleToFit scales down to the
-                window as a whole (portrait included), so the banner is no longer `fixed` — it
-                needs to shrink along with the book instead of keeping its desktop size. */}
+            {/* The book sits in one fixed-size block that ScaleToFit scales down to the window
+                as a whole (portrait included). No title banner here (unlike Deck Builder's other
+                notebook pages): removed so the book fits the viewport without scrolling. */}
             <ScaleToFit>
                 <div className="flex flex-col items-center gap-1">
-                    <TitleBanner className="z-20">CARD COLLECTION</TitleBanner>
-
                     {/* Arrows sit outside the book with no button chrome — just the animated
                         "Arrow01a" icon, shown only when the mouse nears the book's edge (wide
                         hover zone, PageArrow). Book size is fixed so it never resizes when
                         switching tab/page. */}
-                    <div className="relative z-10 flex h-247.5 items-stretch gap-1">
+                    <div className="relative z-10 flex h-200 items-stretch gap-1">
                         <PageArrow direction="prev" onClick={goPrev} disabled={page === 0} />
 
                 {/* Each half (.travelbook-page/.travelbook-page-right) is a self-contained
                     notebook image (edge + spiral binding + cream fill), so this box is just a
                     fixed-size layout container, not a separate cover frame. */}
-                <div className="relative flex h-247.5 w-7xl flex-col">
+                <div className="relative flex h-200 w-260 flex-col">
                     {/* Tabs sit ON TOP of the page (not behind the cover), z-indexed above
                         everything else in the book including the page-turn arrow (z-30,
                         PageArrow), with a slight overlap to stay flush against the edge. */}

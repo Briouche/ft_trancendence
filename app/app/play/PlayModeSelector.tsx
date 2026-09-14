@@ -55,7 +55,10 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10" style={woodenTableBackground}>
+    // h-screen + overflow-hidden, no padding (see CollectionBook.tsx/DeckBuilder.tsx): ScaleToFit
+    // below already centers/scales its content to fit the viewport exactly — any padding added
+    // here on top of its own h-screen box would push the total past 100vh and force a scroll.
+    <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
       <HomeButton onClick={() => router.push("/")} />
 
       <ScaleToFit>

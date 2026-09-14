@@ -8,7 +8,7 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 import ScaleToFit from '@/components/ScaleToFit'
 import {
     Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
-    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton, TitleBanner,
+    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton,
 } from '@/components/notebook/NotebookUI'
 
 type Card = CardFaceData & { qty: number }
@@ -200,25 +200,29 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
     return (
         <div
-            className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10"
+            className="h-screen w-full overflow-hidden"
             style={woodenTableBackground}
         >
             <HomeButton onClick={() => router.push('/')} />
 
-            {/* Same treatment as CollectionBook.tsx: banner + book + deck panel sit in one
-                fixed-size block that ScaleToFit scales to the window as a whole, so the banner
-                is no longer `fixed` — it shrinks along with the rest. */}
+            {/* Same treatment as CollectionBook.tsx: book + deck panel sit in one fixed-size
+                block that ScaleToFit scales to the window as a whole (h-screen + overflow-hidden,
+                no padding here — any padding added on top of ScaleToFit's own h-screen box would
+                push the total past 100vh and force a scroll to see the rest of the book). No
+                title banner either (removed so the book fits the viewport without scrolling). */}
             <ScaleToFit>
-                <div className="flex flex-col items-center gap-1">
-                    <TitleBanner width="w-[1250px]" className="z-20">DECK BUILDER</TitleBanner>
-
-                    <div className="flex h-225 items-stretch gap-4">
+                {/* pr-28: this whole block would otherwise be perfectly centered by ScaleToFit,
+                    putting the deck panel's top-right corner right where the (fixed) Home button
+                    sits — the padding is empty space added only on the right, so the visible
+                    content sits shifted left of true center, clear of the button. */}
+                <div className="flex flex-col items-center gap-1 pr-28">
+                    <div className="flex h-200 items-stretch gap-4">
                         <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
                 {/* Book: same pages/slots as the Collection (see NotebookUI), but clicking a card
                     adds it to the deck instead of opening a zoom — no Cards/Card Backs tabs here,
                     just the collection to browse. */}
-                <div className="relative flex h-225 w-290 flex-col">
+                <div className="relative flex h-200 w-260 flex-col">
                     <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
                         <div className="travelbook-page relative flex flex-1 flex-col p-3">
                             <div className="flex h-9 items-center justify-center">
@@ -288,9 +292,10 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
                 {/* Parchment panel: the deck being edited (name, stats, save) on top, the list of
                     all the player's decks below — a separate "Frame04a" frame (not the book
-                    pages), taller than the book row so it visibly overflows top and bottom
-                    (-my-10 offsets the extra height, no scroll added). */}
-                <div className="travelbook-frame4-panel relative z-30 -my-10 flex h-245 w-96 flex-col p-5">
+                    pages). Matches the book row's own height exactly (no more taller-than-row
+                    overflow trick): with everything now inside ScaleToFit's measured box, nothing
+                    at the top/bottom of the panel risks being clipped by its overflow-hidden. */}
+                <div className="travelbook-frame4-panel relative z-30 flex h-200 w-80 flex-col p-5">
                     {creating ? (
                         <>
                             <div className="relative mb-3 flex items-center justify-center">
@@ -453,7 +458,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
                             <button
                                 onClick={() => setCreating(true)}
-                                className="travelbook-slot03a mt-3 h-10 w-full font-display font-bold text-white
+                                className="travelbook-slot03a mt-4 h-14 w-full font-display text-lg font-bold text-white
                                     transition-transform active:scale-95"
                                 style={outlinedWhiteTextStyle}
                             >

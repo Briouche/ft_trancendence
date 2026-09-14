@@ -23,7 +23,7 @@ export default function ProfileInformation({ user }: { user: CurrentUser }) {
     const formattedDate = new Date(user.createdAt).toLocaleDateString()
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10" style={woodenTableBackground}>
+        <div className="min-h-screen flex flex-col items-center justify-start gap-4 p-6 md:p-10" style={woodenTableBackground}>
             <HomeButton onClick={() => router.push('/')} />
 
             <div className="flex flex-col items-center gap-1">

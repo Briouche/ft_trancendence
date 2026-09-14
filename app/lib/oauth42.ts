@@ -14,6 +14,17 @@ function getEnv(name: string): string {
     return value;
 }
 
+// The callback route needs the site's own public origin to build its redirect back into the
+// app — `request.url` can't be trusted for that: behind the dev nginx proxy (8080 -> app:3000)
+// it resolves to the app container's own address (localhost:3000) regardless of the Host header
+// the browser actually used, sending the user to a port nothing but the raw Next.js dev server
+// listens on. FT_REDIRECT_URI is already the one env var guaranteed to hold the real public
+// origin (set per environment — localhost:8080 in dev, the real domain in prod), so its origin
+// is reused here instead of introducing a second URL to keep in sync.
+export function getSiteOrigin(): string {
+    return new URL(getEnv("FT_REDIRECT_URI")).origin;
+}
+
 export function buildAuthorizeUrl(state: string): string {
     const params = new URLSearchParams({
         client_id:     getEnv("FT_CLIENT_ID"),

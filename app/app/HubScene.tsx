@@ -975,7 +975,7 @@ export default function HubScene({ username, cardCount, wins, cardBacks, active 
                 mounted (WebGL context/geometry never recreated when returning to "/") but its
                 render loop actually stops — torches/sparkles/moth don't spin for nothing while
                 on another page. */}
-            <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true }} frameloop={active ? 'always' : 'never'}>
+            <Canvas shadows="percentage" dpr={[1, 1.5]} gl={{ antialias: true }} frameloop={active ? 'always' : 'never'}>
                 {/* With no floor to manage, the camera is simple again: nearly level, looking
                     straight at the row of elements (as sketched) instead of hunting for a pitch
                     that balances a floor that no longer exists. */}

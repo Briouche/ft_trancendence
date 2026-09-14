@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { fetchFortyTwoProfile, findOrCreateUserFromFortyTwo } from "@/lib/oauth42";
+import { fetchFortyTwoProfile, findOrCreateUserFromFortyTwo, getSiteOrigin } from "@/lib/oauth42";
 import { createSession } from "@/lib/session";
 import { ROUTES } from "@/config/routes";
 import { STATE_COOKIE } from "../route";
@@ -17,8 +17,10 @@ export async function GET(request: NextRequest) {
     const expectedState = cookieStore.get(STATE_COOKIE)?.value;
     cookieStore.delete(STATE_COOKIE);
 
+    const siteOrigin = getSiteOrigin();
+
     if (!code || !state || !expectedState || state !== expectedState) {
-        return NextResponse.redirect(new URL(`${ROUTES.home}?error=oauth`, request.url));
+        return NextResponse.redirect(new URL(`${ROUTES.home}?error=oauth`, siteOrigin));
     }
 
     try {
@@ -27,8 +29,8 @@ export async function GET(request: NextRequest) {
         await createSession(user.id, user.username, user.tokenVersion);
     } catch (err) {
         console.error("42 OAuth callback failed:", err);
-        return NextResponse.redirect(new URL(`${ROUTES.home}?error=oauth`, request.url));
+        return NextResponse.redirect(new URL(`${ROUTES.home}?error=oauth`, siteOrigin));
     }
 
-    return NextResponse.redirect(new URL(ROUTES.home, request.url));
+    return NextResponse.redirect(new URL(ROUTES.home, siteOrigin));
 }
