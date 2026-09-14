@@ -39,7 +39,9 @@ const EFFECT_LABELS: Partial<Record<keyof clientEffect, string>> = {
     onDamage: "On Damage: triggers whenever this minion takes damage",
     battlecry: "Battlecry: triggers on play",
     rush: "Rush: when played, can attack immidiatly,\nbut can't attack heroes on it's first turn",
-    archi: "Archi: play all 6 to setup the ARCHI-exodia",
+    archimed: "Archimed: play all 6 to setup the ARCHI-exodia",
+    cleave: "Cleave: when attacking, also deals damage\nto the neighbors of the target",
+    regeneration: "Regeneration: heals back to full health\nat the end of the turn",
 };
 
 class CardPreview extends Phaser.GameObjects.Container

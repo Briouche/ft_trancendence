@@ -61,7 +61,9 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
     <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
       <HomeButton onClick={() => router.push("/")} />
 
-      <ScaleToFit>
+      {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up (compact
+          title + mode cards, not viewport-sized) — align="start" glues it to the top. */}
+      <ScaleToFit className="h-screen pt-10" maxScale={1.3} align="start">
         <div className="flex flex-col items-center gap-4">
           <TitleBanner width="w-[900px]">PLAY</TitleBanner>
 

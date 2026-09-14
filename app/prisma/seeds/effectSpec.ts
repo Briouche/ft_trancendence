@@ -40,7 +40,7 @@ export type EffectSpec =
     | { kind: "triggerDeathrattle"; resolver: ResolverSpec }
     | { kind: "triggerEndOfTurn"; resolver: ResolverSpec }
     | { kind: "timmy"; resolver: ResolverSpec }
-    | { kind: "archi"; resolver: ResolverSpec }
+    | { kind: "archimed"; resolver: ResolverSpec }
     | { kind: "equalHealth" }
     | { kind: "cleave" }
     | { kind: "regeneration" }

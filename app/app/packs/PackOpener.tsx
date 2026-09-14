@@ -9,6 +9,7 @@ import PackArt, { randomPackSkins, type PackSkin } from './PackArt'
 import CardBackArt from '@/components/CardBackArt'
 import type { CardFaceData } from '@/components/CardFace'
 import { HomeButton, TitleBanner, outlinedWhiteTextStyle, woodenTableBackground } from '@/components/notebook/NotebookUI'
+import ScaleToFit from '@/components/ScaleToFit'
 
 type Phase = 'choosing' | 'opening' | 'revealing'
 
@@ -162,63 +163,68 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     return (
         <div className="relative min-h-screen w-full" style={woodenTableBackground}>
         <HomeButton onClick={() => router.push('/')} />
-        {/* pointer-events-none: this container is full-screen (min-h-screen) even where there's
-            no visible content, so it must let clicks pass through to the packs/cards above it. */}
-        <div className="min-h-screen flex flex-col items-center justify-start p-6 md:p-10 gap-6 pointer-events-none">
-            <div className="pointer-events-auto">
-                <TitleBanner width="w-[700px]">PACK OPENING</TitleBanner>
-            </div>
-
-            <div className="pointer-events-auto text-center">
-                <p className="font-serif text-sm text-white" style={outlinedWhiteTextStyle}>
-                    {packsLeft} pack{packsLeft !== 1 ? 's' : ''} available
-                    {' · '}
-                    <span className="font-bold">
-                        {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
-                    </span>
-                </p>
-                {/* Temporary buttons pending a real way to earn packs through gameplay, and a
-                    real test/reset flow (clearing or fully unlocking the collection) */}
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                    <button
-                        onClick={grantFreePack}
-                        disabled={granting}
-                        className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
-                            text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
-                    >
-                        ✦ {granting ? 'Adding...' : 'Get a free pack (temporary)'}
-                    </button>
-                    <button
-                        onClick={clearCollection}
-                        disabled={clearing}
-                        className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
-                            text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
-                    >
-                        🗑 {clearing ? 'Clearing...' : 'Clear collection (temporary)'}
-                    </button>
-                    <button
-                        onClick={unlockAllCards}
-                        disabled={unlockingAll}
-                        className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
-                            text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
-                    >
-                        🔓 {unlockingAll ? 'Unlocking...' : 'Unlock all cards (temporary)'}
-                    </button>
+        {/* pointer-events-none: ScaleToFit's box spans the full viewport even where there's no
+            visible content, so it must let clicks pass through to the packs/cards above it. */}
+        {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up (this
+            content is nowhere near viewport-sized) — align="start" glues it to the top instead of
+            floating dead-center in the leftover space. */}
+        <ScaleToFit className="h-screen pt-10 pointer-events-none" maxScale={1.3} align="start">
+            <div className="flex flex-col items-center gap-6">
+                <div className="pointer-events-auto">
+                    <TitleBanner width="w-[700px]">PACK OPENING</TitleBanner>
                 </div>
 
-                {phase === 'choosing' && (
-                    <p className="mt-4 font-serif text-xs italic text-white/70" style={outlinedWhiteTextStyle}>
-                        {packsLeft > 0 ? 'Choose a pack to open it' : "No packs available — you'll still see what's on offer"}
+                <div className="pointer-events-auto text-center">
+                    <p className="font-serif text-sm text-white" style={outlinedWhiteTextStyle}>
+                        {packsLeft} pack{packsLeft !== 1 ? 's' : ''} available
+                        {' · '}
+                        <span className="font-bold">
+                            {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
+                        </span>
                     </p>
+                    {/* Temporary buttons pending a real way to earn packs through gameplay, and a
+                        real test/reset flow (clearing or fully unlocking the collection) */}
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                        <button
+                            onClick={grantFreePack}
+                            disabled={granting}
+                            className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
+                                text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
+                        >
+                            ✦ {granting ? 'Adding...' : 'Get a free pack (temporary)'}
+                        </button>
+                        <button
+                            onClick={clearCollection}
+                            disabled={clearing}
+                            className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
+                                text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
+                        >
+                            🗑 {clearing ? 'Clearing...' : 'Clear collection (temporary)'}
+                        </button>
+                        <button
+                            onClick={unlockAllCards}
+                            disabled={unlockingAll}
+                            className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
+                                text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
+                        >
+                            🔓 {unlockingAll ? 'Unlocking...' : 'Unlock all cards (temporary)'}
+                        </button>
+                    </div>
+
+                    {phase === 'choosing' && (
+                        <p className="mt-4 font-serif text-xs italic text-white/70" style={outlinedWhiteTextStyle}>
+                            {packsLeft > 0 ? 'Choose a pack to open it' : "No packs available — you'll still see what's on offer"}
+                        </p>
+                    )}
+                </div>
+
+                {error && <p className="pointer-events-auto font-serif text-red-400">{error}</p>}
+
+                {phase === 'choosing' && packChoices.length > 0 && (
+                    <PackChoice skins={packChoices} locked={packsLeft <= 0} onChoose={openPack} />
                 )}
             </div>
-
-            {error && <p className="pointer-events-auto font-serif text-red-400">{error}</p>}
-
-            {phase === 'choosing' && packChoices.length > 0 && (
-                <PackChoice skins={packChoices} locked={packsLeft <= 0} onChoose={openPack} />
-            )}
-        </div>
+        </ScaleToFit>
 
         {phase === 'opening' && chosenSkin && (
             <div className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center">

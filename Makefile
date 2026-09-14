@@ -1,6 +1,8 @@
 # Used to make sure there is a .env file
 include .env
 
+.PHONY: all dev prod clean fclean ffclean re
+
 # Default target
 all: dev
 

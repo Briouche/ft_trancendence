@@ -7,6 +7,7 @@ import { useState } from "react";
 import { registerUser } from "@/lib/auth";
 import { ROUTES } from "@/config/routes";
 import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
+import ScaleToFit from "@/components/ScaleToFit";
 
 export default function RegisterForm() {
   const [error, setError] = useState("");
@@ -66,7 +67,8 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-vertical">
+    // flex-1 (not the default h-screen): see SignInForm.tsx.
+    <ScaleToFit className="flex-1">
       {/* Same "parchment" frame (Frame04a) as Sign In — see SignInForm.tsx. */}
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
@@ -176,6 +178,6 @@ export default function RegisterForm() {
           </Link>
         </p>
       </div>
-    </div>
+    </ScaleToFit>
   );
 }

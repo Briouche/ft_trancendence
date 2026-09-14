@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera, RoundedBox, Sparkles, Html, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import Lantern from '@/components/library/Lantern'
@@ -938,6 +938,32 @@ function HallScene({ hoveredHref, onHoverChange, onArrive }: {
     )
 }
 
+// three.js's default PerspectiveCamera behavior holds the VERTICAL fov constant and derives the
+// horizontal fov from the canvas's aspect ratio — great for a landscape window (wider just shows
+// more), bad for a narrow/portrait one: the row of 5 hotspots (Collection...Manual, laid out
+// along the horizontal axis) starts losing its edges off-screen. This does the opposite: pick a
+// horizontal fov once (backed out from the original fov=56 at a 16:9 reference, so typical desktop
+// windows look unchanged) and hold THAT constant, deriving the vertical fov from the current
+// aspect instead — a narrow window shows more sky/floor margin instead of cropping the hotspots.
+const REFERENCE_ASPECT = 16 / 9
+const REFERENCE_VERTICAL_FOV_DEG = 56
+const HORIZONTAL_FOV_RAD = 2 * Math.atan(Math.tan((REFERENCE_VERTICAL_FOV_DEG * Math.PI / 180) / 2) * REFERENCE_ASPECT)
+// Clamped so extreme aspect ratios (very tall/narrow windows) can't turn the vertical fov into an
+// uncomfortable fisheye — beyond this the hotspots crop again, which is the lesser evil.
+const MIN_VERTICAL_FOV_DEG = 40
+const MAX_VERTICAL_FOV_DEG = 100
+
+function HubCamera() {
+    const { width, height } = useThree(state => state.size)
+    const aspect = width / height || REFERENCE_ASPECT
+    const verticalFovDeg = (2 * Math.atan(Math.tan(HORIZONTAL_FOV_RAD / 2) / aspect)) * 180 / Math.PI
+    const clampedFov = Math.min(MAX_VERTICAL_FOV_DEG, Math.max(MIN_VERTICAL_FOV_DEG, verticalFovDeg))
+
+    return (
+        <PerspectiveCamera makeDefault position={[0, 1.75, 3.0]} fov={clampedFov} onUpdate={c => c.lookAt(0, 1.6, -2.4)} />
+    )
+}
+
 export default function HubScene({ username, cardCount, wins, cardBacks, active = true }: {
     username:  string
     cardCount: number
@@ -978,8 +1004,10 @@ export default function HubScene({ username, cardCount, wins, cardBacks, active 
             <Canvas shadows="percentage" dpr={[1, 1.5]} gl={{ antialias: true }} frameloop={active ? 'always' : 'never'}>
                 {/* With no floor to manage, the camera is simple again: nearly level, looking
                     straight at the row of elements (as sketched) instead of hunting for a pitch
-                    that balances a floor that no longer exists. */}
-                <PerspectiveCamera makeDefault position={[0, 1.75, 3.0]} fov={56} onUpdate={c => c.lookAt(0, 1.6, -2.4)} />
+                    that balances a floor that no longer exists. Fov is computed by HubCamera
+                    (constant horizontal fov, not three.js's default constant vertical fov) so the
+                    row of hotspots stays framed the same regardless of window shape. */}
+                <HubCamera />
                 {/* TutoBoard loads its textures via useTexture (async, drei): without Suspense
                     here, that load crashes the whole R3F tree (nothing to catch it as a
                     fallback) — the entire scene unmounts, including the Html labels of the
@@ -990,7 +1018,12 @@ export default function HubScene({ username, cardCount, wins, cardBacks, active 
             </Canvas>
 
             <div className="pointer-events-none absolute inset-x-0 top-8 z-50 flex justify-center">
-                <h1 className="font-engraved tracking-wide text-8xl text-parchment-200 [text-shadow:0_3px_10px_rgba(0,0,0,0.9)]">
+                {/* clamp() (not a fixed text-8xl): plain DOM text, not 9-slice art, so it can
+                    scale continuously with the window instead of going through ScaleToFit. */}
+                <h1
+                    className="font-engraved tracking-wide text-parchment-200 [text-shadow:0_3px_10px_rgba(0,0,0,0.9)]"
+                    style={{ fontSize: 'clamp(2.5rem, 6vw, 6rem)' }}
+                >
                     ft_transcendence
                 </h1>
             </div>

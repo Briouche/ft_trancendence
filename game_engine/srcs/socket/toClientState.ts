@@ -1,6 +1,6 @@
 import { Card, MinionCard, SpellCard } from "../card";
 import { GameEngine } from "../gameEngine";
-import { Effect } from "../effect";
+import { Effect, cleaveEffect, regenerationEffect } from "../effect";
 import { ClientCard, ClientGameState, ClientHero, TargetOption, clientEffect } from "../shared/protocol";
 import { Targetable } from "../target";
 import { Player } from "../player";
@@ -66,7 +66,11 @@ export function toClientCard(card: Card): ClientCard
         if (card.effects.cannotAttack)
             clientCard.effects.cannotAttack = true;
         if (card.effects.archi)
-            clientCard.effects.archi = true;
+            clientCard.effects.archimed = true;
+        if (card.effects.onAttack instanceof cleaveEffect)
+            clientCard.effects.cleave = true;
+        if (card.effects.endOfTurnEffect instanceof regenerationEffect)
+            clientCard.effects.regeneration = true;
     }
 
     return clientCard;

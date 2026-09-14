@@ -43,7 +43,7 @@ export type EffectSpec =
     | { kind: "triggerDeathrattle"; resolver: ResolverSpec }
     | { kind: "triggerEndOfTurn"; resolver: ResolverSpec }
     | { kind: "timmy"; resolver: ResolverSpec }
-    | { kind: "archi"; resolver: ResolverSpec }
+    | { kind: "archimed"; resolver: ResolverSpec }
     | { kind: "equalHealth" }
     | { kind: "cleave" }
     | { kind: "regeneration" }
@@ -118,7 +118,7 @@ export function buildEffect(spec: EffectSpec | null | undefined): Effect | undef
             return new triggerEndOfTurnEffect(buildResolver(spec.resolver))
         case "timmy":
             return new timmyDamageEffect(buildResolver(spec.resolver))
-        case "archi":
+        case "archimed":
             return new archiDamageEffect(buildResolver(spec.resolver))
         case "equalHealth":
             return new equalHealthEffect()

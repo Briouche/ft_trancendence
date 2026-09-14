@@ -14,7 +14,9 @@ export interface clientEffect
     battlecry?: boolean;
     rush?: boolean;
     cannotAttack?: boolean;
-    archi?: boolean;
+    archimed?: boolean;
+    cleave?: boolean;
+    regeneration?: boolean;
 }
 
 export interface ClientCard

@@ -23,7 +23,7 @@ const KEYWORDS: { label: string; desc: string }[] = [
 ];
 
 const LEGENDARIES: { name: string; desc: string }[] = [
-  { name: "Archimed la maudite", desc: "Wins the game once you've played all 6 \"(archi card)\" family members (Haku, Neo, Po, Reborn, Ribgy, Zurg)." },
+  { name: "Archimed la maudite", desc: "Wins the game once you've played all 6 \"Archimed card\" family members (Haku, Neo, Po, Reborn, Ribgy, Zurg)." },
   { name: "Freddy, le fossoyeur de tombe", desc: "Summons a 1/1 skeleton every 4 minions that die." },
   { name: "Roi des rats", desc: "Triggers your end-of-turn effects an extra time every 3 turns." },
   { name: "Gertrude", desc: "Every 4th spell you cast goes back to your hand instead of to the graveyard." },
@@ -44,10 +44,15 @@ export default function ManualBook() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10" style={woodenTableBackground}>
+    // h-screen + overflow-hidden, no padding/centering here (see CollectionBook.tsx): ScaleToFit
+    // below already handles it — padding on top of its own h-screen box would push the total past
+    // 100vh and force a scroll.
+    <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
       <HomeButton onClick={() => router.push("/")} />
 
-      <ScaleToFit>
+      {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up (compact
+          title + panel, not viewport-sized) — align="start" glues it to the top. */}
+      <ScaleToFit className="h-screen pt-10" maxScale={1.3} align="start">
         <div className="flex flex-col items-center gap-4">
           <TitleBanner width="w-[700px]">TUTO</TitleBanner>
 

@@ -17,7 +17,12 @@ export default async function Header() {
       <div className="grid grid-cols-3 items-center gap-4 p-4">
         <div />
 
-        <h1 className="font-pixel text-8xl text-white hover:underline justify-self-center -translate-y-2">
+        {/* clamp() (not a fixed text-8xl): plain text, scales continuously with the window
+            instead of overflowing on narrow viewports. */}
+        <h1
+          className="font-pixel text-white hover:underline justify-self-center -translate-y-2"
+          style={{ fontSize: "clamp(2rem, 6vw, 6rem)" }}
+        >
           <Link href={ROUTES.home}>
             {english.appName}
           </Link>
