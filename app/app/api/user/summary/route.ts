@@ -18,6 +18,7 @@ export async function GET() {
             winsVsAiHard:      true,
             winsVsPlayer:      true,
             unlockedCardBacks: true,
+            elo:               true,
             cards:             { select: { qty: true } },
         },
     })
@@ -28,6 +29,7 @@ export async function GET() {
 
     return NextResponse.json({
         cardCount,
+        elo: user?.elo ?? 1000,
         wins: {
             vsAiEasy:   user?.winsVsAiEasy   ?? 0,
             vsAiMedium: user?.winsVsAiMedium ?? 0,

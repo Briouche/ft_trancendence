@@ -8,9 +8,10 @@ import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './Accoun
 // (GPU blocklisted, hardware acceleration disabled, missing driver permissions — see
 // supportsWebGL2 in HubBackground.tsx). Reuses MENU_ITEMS, the same source of truth as the
 // hall's 3D hotspots, so a new destination never needs adding in two places.
-export default function SimpleHubMenu({ username, cardCount, wins, cardBacks }: {
+export default function SimpleHubMenu({ username, cardCount, elo, wins, cardBacks }: {
     username:  string
     cardCount: number
+    elo:       number
     wins:      WinsBreakdown
     cardBacks: CardBacksSummary
 }) {
@@ -41,7 +42,7 @@ export default function SimpleHubMenu({ username, cardCount, wins, cardBacks }: 
                 ))}
             </nav>
 
-            <AccountMenu username={username} cardCount={cardCount} wins={wins} cardBacks={cardBacks} />
+            <AccountMenu username={username} cardCount={cardCount} elo={elo} wins={wins} cardBacks={cardBacks} />
         </div>
     )
 }

@@ -964,9 +964,10 @@ function HubCamera() {
     )
 }
 
-export default function HubScene({ username, cardCount, wins, cardBacks, active = true }: {
+export default function HubScene({ username, cardCount, elo, wins, cardBacks, active = true }: {
     username:  string
     cardCount: number
+    elo:       number
     wins:      WinsBreakdown
     cardBacks: CardBacksSummary
     active?:   boolean
@@ -1028,7 +1029,7 @@ export default function HubScene({ username, cardCount, wins, cardBacks, active 
                 </h1>
             </div>
 
-            <AccountMenu username={username} cardCount={cardCount} wins={wins} cardBacks={cardBacks} />
+            <AccountMenu username={username} cardCount={cardCount} elo={elo} wins={wins} cardBacks={cardBacks} />
         </div>
     )
 }

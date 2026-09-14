@@ -45,6 +45,9 @@ model User {
   winsVsAiMedium Int @default(0)
   winsVsAiHard   Int @default(0)
   winsVsPlayer   Int @default(0)
+  // Standard Elo rating (K-factor 32), updated only after PvP matches (never vs AI) — see
+  // recordEloUpdate (gameEngine cardLoader.ts), called from GameSession.recordResult.
+  elo Int @default(1000)
   // Index (0-7) into the cosmetic card-back catalog — see lib/cardBacks.ts.
   cardBack      Int        @default(0)
   // Unlocked card-back designs (indices 0-2 granted to everyone by default) — the remaining 5

@@ -36,7 +36,7 @@ function supportsWebGL2(): boolean {
 export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'
-    const [stats, setStats] = useState({ cardCount: 0, wins: EMPTY_WINS, cardBacks: EMPTY_CARD_BACKS })
+    const [stats, setStats] = useState({ cardCount: 0, elo: 1000, wins: EMPTY_WINS, cardBacks: EMPTY_CARD_BACKS })
     // null while unchecked (SSR / not yet mounted) — falls through to attempting HubScene, same
     // as before this check existed. Checked once on mount, not per-route: GPU capability doesn't
     // change while navigating.
@@ -52,7 +52,7 @@ export default function HubBackground({ username }: { username: string }) {
 
         fetch('/api/user/summary')
             .then(res => res.ok ? res.json() : null)
-            .then(data => { if (data && !cancelled) setStats({ cardCount: data.cardCount, wins: data.wins, cardBacks: data.cardBacks }) })
+            .then(data => { if (data && !cancelled) setStats({ cardCount: data.cardCount, elo: data.elo, wins: data.wins, cardBacks: data.cardBacks }) })
 
         return () => { cancelled = true }
     }, [isHome])
@@ -60,8 +60,8 @@ export default function HubBackground({ username }: { username: string }) {
     return (
         <div className={isHome ? '' : 'hidden'}>
             {webgl2Supported === false
-                ? <SimpleHubMenu username={username} cardCount={stats.cardCount} wins={stats.wins} cardBacks={stats.cardBacks} />
-                : <HubScene username={username} cardCount={stats.cardCount} wins={stats.wins} cardBacks={stats.cardBacks} active={isHome} />}
+                ? <SimpleHubMenu username={username} cardCount={stats.cardCount} elo={stats.elo} wins={stats.wins} cardBacks={stats.cardBacks} />
+                : <HubScene username={username} cardCount={stats.cardCount} elo={stats.elo} wins={stats.wins} cardBacks={stats.cardBacks} active={isHome} />}
         </div>
     )
 }

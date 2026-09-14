@@ -19,7 +19,9 @@ export default function FriendsInformation({ username }: { username: string }) {
         <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
             <HomeButton onClick={() => router.push('/')} />
 
-            <ScaleToFit>
+            {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up
+                (compact title + panel, not viewport-sized). */}
+            <ScaleToFit maxScale={1.3}>
                 <div className="flex flex-col items-center gap-1">
                     <TitleBanner width="w-[720px]" className="z-20">FRIENDS</TitleBanner>
 

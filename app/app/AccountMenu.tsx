@@ -60,9 +60,10 @@ function VolumeSlider({ channel, label, value, onChange }: {
 // Achievement shows win counts (winsVsAi{Easy,Medium,Hard}/winsVsPlayer on User). Quick stats live
 // here; full profile editing and friends management are on the separate /profile and /friends
 // pages linked below — card backs are still picked from the Collection (same API).
-export default function AccountMenu({ username, cardCount, wins, cardBacks }: {
+export default function AccountMenu({ username, cardCount, elo, wins, cardBacks }: {
     username:  string
     cardCount: number
+    elo:       number
     wins:      WinsBreakdown
     cardBacks: CardBacksSummary
 }) {
@@ -101,6 +102,9 @@ export default function AccountMenu({ username, cardCount, wins, cardBacks }: {
                     </p>
                     <p className="mt-0.5 font-serif text-sm text-ink-muted">
                         🎴 {cardBacks.unlocked}/{cardBacks.total} card backs unlocked
+                    </p>
+                    <p className="mt-0.5 font-serif text-sm text-ink-muted">
+                        🏆 Elo : {elo}
                     </p>
 
                     <div className="my-3 h-px bg-ink-muted/30" />

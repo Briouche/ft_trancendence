@@ -28,6 +28,7 @@ export type CurrentUser = {
   avatar: string | null;
   status: UserStatus;
   createdAt: Date;
+  elo: number;
 };
 
 async function encrypt(payload: SessionPayload) {
@@ -105,7 +106,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { username: true, email: true, avatar: true, status: true, createdAt: true },
+    select: { username: true, email: true, avatar: true, status: true, createdAt: true, elo: true },
   });
   if (!user) return null;
 

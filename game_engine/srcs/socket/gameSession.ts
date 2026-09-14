@@ -9,7 +9,7 @@ import { Targetable, EnemyCharacterResolver } from "../target";
 import { getBestAction } from "../ai/mcts";
 import { Action } from "../ai/types";
 import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
-import { recordWin, WinCategory } from "../cardImport/cardLoader";
+import { recordWin, recordEloUpdate, WinCategory } from "../cardImport/cardLoader";
 
 export type Seat = { kind: "human"; socket: Socket; userId: number | null } | { kind: "ai" };
 
@@ -170,6 +170,10 @@ export class GameSession
 
         const category: WinCategory = loserSeat.kind === "ai" ? DIFFICULTY_WIN_CATEGORY[this.difficulty] : "winsVsPlayer";
         recordWin(winnerSeat.userId, category).catch(err => console.error("Failed to record win:", err));
+
+        // Elo only moves for a real PvP match — an AI opponent has no rating of its own.
+        if (loserSeat.kind === "human" && loserSeat.userId !== null)
+            recordEloUpdate(winnerSeat.userId, loserSeat.userId).catch(err => console.error("Failed to record Elo update:", err));
     }
 
     private send(playerIndex: number, msg: ServerMessage): void

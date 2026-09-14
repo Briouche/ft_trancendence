@@ -219,6 +219,31 @@ async function unlockCardBackIfNeeded(userId: number, index: number): Promise<vo
     await prisma.user.update({ where: { id: userId }, data: { unlockedCardBacks: { set: [...user.unlockedCardBacks, index] } } })
 }
 
+// Standard Elo rating update, K-factor 32 — only called for PvP matches (see
+// GameSession.recordResult), never vs AI. expectedWinner is the winner's pre-match win
+// probability given both ratings; the loser's expected score is its complement (1 -
+// expectedWinner), so both deltas are derived from that single value.
+const ELO_K_FACTOR = 32
+
+export async function recordEloUpdate(winnerId: number, loserId: number): Promise<void>
+{
+    const [winner, loser] = await Promise.all([
+        prisma.user.findUnique({ where: { id: winnerId }, select: { elo: true } }),
+        prisma.user.findUnique({ where: { id: loserId }, select: { elo: true } }),
+    ])
+    if (!winner || !loser)
+        return
+
+    const expectedWinner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
+    const winnerDelta = Math.round(ELO_K_FACTOR * (1 - expectedWinner))
+    const loserDelta = Math.round(ELO_K_FACTOR * (0 - (1 - expectedWinner)))
+
+    await prisma.$transaction([
+        prisma.user.update({ where: { id: winnerId }, data: { elo: { increment: winnerDelta } } }),
+        prisma.user.update({ where: { id: loserId }, data: { elo: { increment: loserDelta } } }),
+    ])
+}
+
 function pickRandom<T>(arr: T[]): T
 {
     return arr[Math.floor(Math.random() * arr.length)]
