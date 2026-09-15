@@ -89,15 +89,86 @@ function rawToCard(raw: RawCard, playerPrefix = "", suffix = ""): Card
 type CardCatalog = { byId: Map<string, RawCard>; byName: Map<string, RawCard> }
 
 let catalogPromise: Promise<CardCatalog> | null = null
+let catalogLoadedAt = 0
+
+const CATALOG_REFRESH_COOLDOWN_MS = 30_000
+
+const SEED_SETTLE_MS = 1500
+const SEED_SETTLE_ATTEMPTS = 40
+
+// `prisma db seed` runs in the *app* container as a sequence of per-row upserts, and game_engine
+// only waits for the DB to be healthy (docker-compose.yml) — nothing tells it the seed finished.
+// So a cold `docker compose up` reliably reads the Card table while it is still filling: observed
+// 0 rows on one boot and 39 of 76 on the next. Since the catalog is cached for the process
+// lifetime, that snapshot is what every match then builds its decks from.
+//
+// There's no completion signal to wait on, so infer one: sample the row count until it stops
+// growing. Costs one extra COUNT and ~1.5s, paid once per process and absorbed by the boot
+// preload in index.ts — no player ever waits for it.
+async function waitForSettledCardCount(): Promise<number>
+{
+    let previous = -1
+
+    for (let attempt = 0; attempt < SEED_SETTLE_ATTEMPTS; attempt++)
+    {
+        const count = await prisma.card.count()
+        if (count > 0 && count === previous)
+            return count
+
+        if (previous !== -1 && count !== previous)
+            console.log(`Waiting for the card seed to finish (${previous} -> ${count} rows)`)
+
+        previous = count
+        await new Promise(resolve => setTimeout(resolve, SEED_SETTLE_MS))
+    }
+
+    return previous
+}
 
 async function loadCatalog(): Promise<CardCatalog>
 {
+    // An empty Card table is never a legitimate state for a running game, so don't cache it —
+    // throwing clears the memo (see ensureCatalogLoaded) and the next caller retries, rather than
+    // leaving the process building empty decks for the rest of its life.
+    if (await waitForSettledCardCount() === 0)
+        throw new Error("Card table is empty — the seed has not run yet")
+
     const rows = await prisma.card.findMany({ select: CARD_SELECT })
+    if (rows.length === 0)
+        throw new Error("Card table is empty — the seed has not run yet")
+
     console.log(`Card catalog loaded: ${rows.length} cards`)
+    catalogLoadedAt = Date.now()
     return {
         byId:   new Map(rows.map(c => [c.id, c])),
         byName: new Map(rows.map(c => [c.name, c])),
     }
+}
+
+// The seed upserts cards one row at a time, so a read can also land *mid*-seed and cache a
+// partial snapshot (and re-seeding a running stack leaves the cache stale the same way). A lookup
+// miss is the only signal available for that, so re-read once when one happens — rate-limited,
+// because the genuine name typos in aiDecks.ts miss on every single solo match and must not turn
+// into an extra query per match start.
+async function catalogFor(keys: string[], pick: (c: CardCatalog) => Map<string, RawCard>): Promise<Map<string, RawCard>>
+{
+    let map = pick(await ensureCatalogLoaded())
+
+    if (keys.every(k => map.has(k)) || Date.now() - catalogLoadedAt < CATALOG_REFRESH_COOLDOWN_MS)
+        return map
+
+    console.warn("Card catalog lookup miss — re-reading it in case the cached snapshot is stale")
+    catalogPromise = null
+    try
+    {
+        map = pick(await ensureCatalogLoaded())
+    }
+    catch (err)
+    {
+        // Keep serving the snapshot we already have rather than failing the match outright.
+        console.error("Card catalog refresh failed:", err)
+    }
+    return map
 }
 
 // The card catalog is content data (~76 rows) that only changes on a re-seed, so it's loaded once
@@ -123,7 +194,7 @@ export function ensureCatalogLoaded(): Promise<CardCatalog>
 // Build a deck from a specific list of card ids (for player-built decks later)
 export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Promise<Deck>
 {
-    const { byId } = await ensureCatalogLoaded()
+    const byId = await catalogFor(cardIds, c => c.byId)
 
     const gameCards: Card[] = []
     let counter = 0
@@ -132,6 +203,8 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
         const raw = byId.get(id)
         if (raw)
             gameCards.push(rawToCard(raw, playerPrefix, `_${counter++}`))
+        else
+            console.warn(`makeDeckFromIds: no card with id "${id}" in the catalog`)
     }
 
     return new Deck(gameCards)
@@ -140,7 +213,7 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
 // Build a deck from a flat list of card NAMES (aiDecks.ts) instead of ids — AI decks
 export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""): Promise<Deck>
 {
-    const { byName } = await ensureCatalogLoaded()
+    const byName = await catalogFor(cardNames, c => c.byName)
 
     const gameCards: Card[] = []
     let counter = 0
@@ -181,7 +254,18 @@ export async function makeDeckFromDeckId(deckId: number, ownerId: number, player
         for (let i = 0; i < dc.qty; i++)
             cardIds.push(dc.cardId)
 
-    return makeDeckFromIds(cardIds, playerPrefix)
+    const built = await makeDeckFromIds(cardIds, playerPrefix)
+
+    // The DeckCard rows exist but none of them resolved against the catalog — starting the match
+    // anyway would put the player on a board with no cards at all and no way to act. Returning
+    // null makes serverSocket.ts reject with "Deck introuvable ou vide." instead.
+    if (built.size() === 0)
+    {
+        console.error(`Deck ${deckId} resolved to 0 playable cards — catalog out of sync with the DB?`)
+        return null
+    }
+
+    return built
 }
 
 export type WinCategory = 'winsVsAiEasy' | 'winsVsAiMedium' | 'winsVsAiHard' | 'winsVsPlayer'
