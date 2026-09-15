@@ -18,11 +18,7 @@ type SavedDeck = {
   cards: { qty: number; card: { rarity: string; legendId: string } }[];
 };
 
-// Choice button (mode/difficulty): the golden frame (SelectHighlight) only shows for the active
-// choice — otherwise it looked identical to a plain hover and you couldn't tell which one was
-// really selected. Always static (animate=false, no shimmer): it's a plain fixed outline marking
-// the selection, not an animation. A hovered but non-active button only gets a slight brightness
-// bump, so it can't be mistaken for the actual active choice.
+// Mode/difficulty toggle: golden frame on the active choice, slight brightness on hover.
 function ToggleButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -34,19 +30,21 @@ function ToggleButton({ active, onClick, children }: { active: boolean; onClick:
         transition-transform active:scale-95 ${!active && hovered ? 'brightness-125' : ''}`}
       style={outlinedWhiteTextStyle}
     >
-      {/* -inset-3.5 (14px) = the frame's width (borderWidth:14 in SelectHighlight): the frame is
-          drawn just outside the button instead of covering its text. */}
       {active && <SelectHighlight className="-inset-3.5 z-10" animate={false} />}
       {children}
     </button>
   );
 }
 
-export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
+// Play screen: pick a mode (and AI difficulty), then a deck to start the match.
+export default function PlayModeSelector({ decks, elo }: { decks: SavedDeck[]; elo: number }) {
   const router = useRouter();
   const [mode, setMode] = useState<GameMode>("solo");
   const [difficulty, setDifficulty] = useState<Difficulty>("moyen");
   const [hoveredDeckId, setHoveredDeckId] = useState<number | null>(null);
+
+  // Packs a win grants for the selected mode/difficulty (none vs easy AI).
+  const packsForWin = mode === "multiplayer" ? 2 : difficulty === "difficile" ? 2 : difficulty === "moyen" ? 1 : 0;
 
   function chooseDeck(deckId: number) {
     const params = new URLSearchParams({ mode, deckId: String(deckId) });
@@ -55,18 +53,15 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10" style={woodenTableBackground}>
+    <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
       <HomeButton onClick={() => router.push("/")} />
 
-      <ScaleToFit>
+      <ScaleToFit className="h-screen pt-10" maxScale={1.3} align="start">
         <div className="flex flex-col items-center gap-4">
           <TitleBanner width="w-[900px]">PLAY</TitleBanner>
 
           <div className="flex h-[700px] items-stretch gap-6">
-            {/* Left: mode + difficulty. Frame04a (like the right-hand panel) rather than the
-                notebook's page texture (.travelbook-page): this isn't book content to leaf
-                through, just a choice panel — same distinction already made for the "My decks"
-                panel in DeckBuilder.tsx. */}
+            {/* Mode + difficulty, Elo (multiplayer), pack reward. */}
             <div className="travelbook-frame4-panel flex h-[700px] w-[480px] flex-col p-6">
               <p className="mb-4 text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
                 Game mode
@@ -88,11 +83,23 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
                   </div>
                 </>
               )}
+
+              {mode === "multiplayer" && (
+                <div className="flex flex-1 items-center justify-center">
+                  <p className="text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
+                    Your Elo: {elo}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-auto border-t border-white/20 pt-3">
+                <p className="text-center font-serif text-sm text-white" style={outlinedWhiteTextStyle}>
+                  Win this match : {packsForWin} pack{packsForWin !== 1 ? "s" : ""}
+                </p>
+              </div>
             </div>
 
-            {/* Right: same saved decks as DeckBuilder.tsx ("My decks"), without "Create deck" or
-                deletion — clicking a deck directly launches the game with the mode chosen on the
-                left. */}
+            {/* Saved decks; clicking one starts the match. */}
             <div className="travelbook-frame4-panel flex h-[700px] w-96 flex-col p-5">
               <p className="mb-3 text-center font-display text-4xl font-bold text-white" style={outlinedWhiteTextStyle}>
                 My decks

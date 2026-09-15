@@ -1,11 +1,6 @@
 import type { CSSProperties } from 'react'
 
-// "CardPacks" sprite sheet (unopened pack covers): 9 color tints (columns) × 20 patterns (rows)
-// = 180 designs, each a complete static illustration — despite the source file's name, there's no
-// animation sequence in it (checked frame by frame), so the opening effect (shake + burst) is a
-// hand-built CSS animation rather than asset frames. Provenance/license was not found alongside
-// the downloaded file — verify before any commercial use; add credits to the README once the
-// source is confirmed.
+// Pack cover sprite sheet: 9 tints (columns) × 20 patterns (rows).
 const SHEET_URL = '/textures/packs/card-packs.webp'
 const SHEET_W = 849
 const SHEET_H = 3143
@@ -14,8 +9,8 @@ const CELL_H = 154
 const COL_X = [3, 98, 193, 288, 383, 478, 573, 667, 762]
 const ROW_Y = [3, 160, 317, 474, 631, 788, 945, 1102, 1259, 1416, 1573, 1730, 1887, 2044, 2201, 2358, 2515, 2672, 2829, 2986]
 
-export const PACK_COLUMNS = COL_X.length
-export const PACK_ROWS = ROW_Y.length
+const PACK_COLUMNS = COL_X.length
+const PACK_ROWS = ROW_Y.length
 
 export type PackSkin = { col: number; row: number }
 
@@ -26,7 +21,7 @@ function randomPackSkin(): PackSkin {
     }
 }
 
-// `count` distinct designs (never the same cell twice) drawn from the 180 combinations.
+// `count` distinct pack designs.
 export function randomPackSkins(count: number): PackSkin[] {
     const seen = new Set<string>()
     const skins: PackSkin[] = []
@@ -40,6 +35,7 @@ export function randomPackSkins(count: number): PackSkin[] {
     return skins
 }
 
+// One pack cover cropped out of the sheet, `width` px wide.
 export default function PackArt({ skin, width, className = '', style }: {
     skin:      PackSkin
     width:     number

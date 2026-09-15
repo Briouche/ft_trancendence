@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Card } from "../objects/card/Card";
 
+// Pull back, lunge at the target (with a camera shake on impact), return.
 export function attackAnimation(scene: Phaser.Scene, attacker: Card, targetX: number, targetY: number): Promise<void>
 {
     return new Promise((resolve) =>
@@ -17,8 +18,6 @@ export function attackAnimation(scene: Phaser.Scene, attacker: Card, targetX: nu
             tweens: [
                 { x: backX, y: backY, duration: 300, ease: "back.out" },
                 {
-                    // attacker.active guard: skips the impact shake if the attacker died before
-                    // this fires (e.g. a simultaneous trade).
                     x: targetX, y: targetY, duration: 100, ease: "expo.in",
                     onComplete: () => { if (attacker.active) scene.cameras.main.shake(150, 0.01); },
                 },

@@ -5,7 +5,7 @@ import { computeXs } from "./BoardMath";
 
 const CARD_ASPECT_RATIO = 1.4;
 
-//handles both player's minion row, collection of useful methods
+// One side's row of minions on the board.
 export class CardRow
 {
     private cards: Card[] = [];
@@ -28,6 +28,7 @@ export class CardRow
         return this.cards.find((c) => c.cardData.id === id);
     }
 
+    // Slot index for a drop at `dropX`, or undefined when the row is full.
     findInsertIndex(dropX: number, height: number, centerX: number, slotSizeRatio: number): number | undefined
     {
         if (this.cards.length >= this.maxSlots)
@@ -58,6 +59,7 @@ export class CardRow
         return true;
     }
 
+    // Reconciles the row with the server's list: updates kept cards, creates new ones, destroys the rest.
     sync(dataList: CardData[], isMyTurn: boolean): void
     {
         const remaining = [...this.cards];
@@ -102,12 +104,13 @@ export class CardRow
         }
     }
 
+    // Opponent minions are hover-only; targeting them goes through their Target zone.
     private applyInteractivity(card: Card): void
     {
         card.off("pointerover");
         card.off("pointerout");
         if (this.side === 1)
-            card.setInteractive(); // hover only — attack/target still goes through Target.ts's own zones, not the card object
+            card.setInteractive();
         else
             card.setInteractive({ draggable: true, useHandCursor: true });
         attachCardPreviewHover(card);

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { checkCredentials } from "@/lib/auth";
 import { ROUTES } from "@/config/routes";
 import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
+import ScaleToFit from "@/components/ScaleToFit";
 
 export default function SignInForm() {
   const [error, setError] = useState("");
@@ -17,9 +18,6 @@ export default function SignInForm() {
     const username = (formData.get("username") as string | null)?.trim();
     const password = formData.get("password") as string | null;
 
-    // ==========================================
-    // CUSTOM JAVASCRIPT VALIDATION
-    // ==========================================
     if (!username || username.length < 3) {
       setError("Username must be at least 3 characters long.");
       return;
@@ -45,9 +43,7 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-vertical">
-      {/* Same "parchment" frame (Frame04a) as the Deck Builder panel — consistent with the rest
-          of the site sourced from the notebook pack, rather than the Essential Pack's popup.webp. */}
+    <ScaleToFit className="flex-1">
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
           className="text-center font-display text-5xl font-bold text-white"
@@ -132,6 +128,6 @@ export default function SignInForm() {
           </Link>
         </p>
       </div>
-    </div>
+    </ScaleToFit>
   );
 }

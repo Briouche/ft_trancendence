@@ -3,9 +3,7 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
-// Used by HubBackground to refresh cardCount/wins each time the hub is revisited, without ever
-// re-fetching username from the server (already in the session JWT, see layout.tsx) or
-// remounting the component that keeps the three-fiber Canvas alive across navigations.
+// Hub stats of the current user: card count, Elo, wins per opponent type, card backs.
 export async function GET() {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -18,16 +16,16 @@ export async function GET() {
             winsVsAiHard:      true,
             winsVsPlayer:      true,
             unlockedCardBacks: true,
+            elo:               true,
             cards:             { select: { qty: true } },
         },
     })
 
-    // Total cards owned (counting duplicates), not distinct cards owned — kept consistent with
-    // the count HomePage renders (see page.tsx).
     const cardCount = user?.cards.reduce((sum, c) => sum + c.qty, 0) ?? 0
 
     return NextResponse.json({
         cardCount,
+        elo: user?.elo ?? 1000,
         wins: {
             vsAiEasy:   user?.winsVsAiEasy   ?? 0,
             vsAiMedium: user?.winsVsAiMedium ?? 0,

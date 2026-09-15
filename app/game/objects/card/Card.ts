@@ -17,13 +17,7 @@ const BUFFED_STAT_COLOR = "#09d84e";
 const MAX_STAT_COLOR = "#fbfbfb";
 const STAT_COLOR = "#eb0a0a";
 
-// Ceiling on the description's font size, relative to its box height, so a single short word
-// can't grow into one giant line filling the whole box.
 const DESC_MAX_FONT_RATIO = 0.225;
-
-// Visual representation of one card, in hand or on the board — renders frame/art/text from
-// CardData and exposes resize()/updateData()/updateStats() for the server-driven sync layer to
-// call as state changes. Drag/drop and hover wiring live in InputController and animations/hover.ts.
 
 export interface CardData
 {
@@ -44,7 +38,7 @@ export interface CardData
     effects: clientEffect;
 }
 
-
+// Card data with its printed (base) stats, for previews.
 export function withStartingStats(data: CardData): CardData
 {
     if (data.baseAttack === undefined && data.baseHealth === undefined)
@@ -52,15 +46,17 @@ export function withStartingStats(data: CardData): CardData
     return { ...data, attack: data.baseAttack ?? data.attack, health: data.baseHealth ?? data.health, maxHealth: data.baseHealth ?? data.maxHealth };
 }
 
+// One card in hand or on the board: frame, art, texts, stat colors and effect icons.
+// Input and hover behavior are wired by InputController and animations/hover.ts.
 export class Card extends Phaser.GameObjects.Container
 {
     public cardData: CardData;
-    public startingAttack: number = 0;
-    public startingHealth: number = 0;
+    private startingAttack: number = 0;
+    private startingHealth: number = 0;
 
     public isDragging: boolean = false;
     public isHovering: boolean = false;
-    private hasBeenPLaced = false;
+    private hasBeenPlaced = false;
     private waitingTween: Phaser.Tweens.Tween | null = null;
     private frame: Phaser.GameObjects.Image;
     private art: Phaser.GameObjects.Image | null = null;
@@ -75,8 +71,6 @@ export class Card extends Phaser.GameObjects.Container
     private deathrattleSkull: Phaser.GameObjects.Graphics;
     private effectBolt: Phaser.GameObjects.Image;
     private attackGlow: Phaser.GameObjects.Graphics;
-
-    public  canAttack: boolean = false;
 
     private baseX = 0;
     private baseY = 0;
@@ -131,9 +125,6 @@ export class Card extends Phaser.GameObjects.Container
 
         this.setInteractive({ draggable: true, useHandCursor: true });
 
-        // Card art loads lazily on demand, so the texture may not be ready yet: use it immediately
-        // if cached, otherwise show the frame bare and swap the texture in once ensureCardArt's
-        // async load completes.
         const { key: artKey, needsAsyncLoad } = resolveInitialCardArt(scene, cardData.assetKey);
         if (artKey)
             this.setArtTexture(artKey);
@@ -222,10 +213,7 @@ export class Card extends Phaser.GameObjects.Container
         this.drawEffects(width, height);
     }
 
-    // Records the slot this card should sit at ("base") on every layout pass, but only snaps
-    // position/rotation/depth to it the first time — afterward, callers animate toward the new
-    // base themselves (e.g. returnToBase()), so a resize doesn't yank a mid-drag/mid-animation
-    // card to its new spot instantly.
+    // Records the card's slot; only the first call snaps to it, later moves are animated.
     setTransform(x: number, y: number, rotation: number, depth: number)
     {
         this.baseDepth = depth;
@@ -233,9 +221,9 @@ export class Card extends Phaser.GameObjects.Container
         this.baseX = x;
         this.baseY = y;
 
-        if (!this.hasBeenPLaced)
+        if (!this.hasBeenPlaced)
         {
-            this.hasBeenPLaced = true;
+            this.hasBeenPlaced = true;
             this.x = x;
             this.y = y;
             this.rotation = rotation;
@@ -254,13 +242,11 @@ export class Card extends Phaser.GameObjects.Container
         if (data.attack && data.health)
             this.updateStats(data.health, data.attack);
 
-        if (data.canAttack !== undefined)
-            this.canAttack = data.canAttack;
-
         this.refreshEffectVisibility();
         this.resize(this.width, this.height);
     }
 
+    // Stats colored green when above their printed value, red when below.
     updateStats(health: number, attack: number)
     {
         if (this.attackText && this.healthText && this.cardData.maxHealth)
@@ -285,6 +271,7 @@ export class Card extends Phaser.GameObjects.Container
         }
     }
 
+    // Bobbing animation while the server hasn't confirmed the play yet.
     setWaiting(active: boolean): void
     {
         if (!this.hasValidScene())
@@ -323,7 +310,7 @@ export class Card extends Phaser.GameObjects.Container
 
         this.deathrattleSkull.clear();
         this.deathrattleSkull.setPosition(0, iconY);
-        const s = iconSize * 0.8; // slightly smaller so it visibly sits "on" the shield
+        const s = iconSize * 0.8;
         this.deathrattleSkull.fillStyle(0xf5f5f0, 1);
         this.deathrattleSkull.lineStyle(1, 0x000000, 1);
         this.deathrattleSkull.fillCircle(0, -s * 0.05, s * 0.35);
@@ -358,6 +345,7 @@ export class Card extends Phaser.GameObjects.Container
         this.refreshEffectVisibility();
     }
 
+    // Effect icons show on the board; the glow marks a card that can attack or be played.
     private refreshEffectVisibility(): void
     {
         this.tauntShield.setVisible(this.onBoard && !!this.cardData.effects.taunt);

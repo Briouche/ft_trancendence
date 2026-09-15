@@ -11,9 +11,7 @@ interface NoticePageProps {
   data: NoticeData;
 }
 
-// Shared layout for the static legal pages (privacy, terms) — content passed via `data` (see
-// config/english.tsx for the actual copy) rather than hardcoded here, so both pages reuse the
-// same header/back-link/scrolling-body chrome.
+// Shared layout of the legal pages (privacy, terms): header, back link, scrolling body.
 export default function NoticePage({ data }: NoticePageProps) {
   const { title, lastUpdated, body } = data;
 
@@ -38,8 +36,6 @@ export default function NoticePage({ data }: NoticePageProps) {
       </header>
 
       <div className="w-full flex-1 min-h-0 rounded-card bg-background-secondary p-vertical overflow-y-auto">
-        {/* [@tailwindcss/typography] isn't installed, so "prose" carries no styling — not worth
-            adding the dependency for just these 2 pages, so <p> is styled directly instead. */}
         <div className="max-w-none text-ink-muted leading-relaxed [&_p]:mb-3">{body}</div>
       </div>
     </article>

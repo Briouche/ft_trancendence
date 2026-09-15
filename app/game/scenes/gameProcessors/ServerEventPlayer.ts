@@ -6,8 +6,7 @@ import { showCardPreview } from "@/game/objects/card/CardPreview";
 import { attackAnimation, battlecryAnimation, damageAnimation, healAnimation, buffAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
 import { MatchHistory } from "../../objects/history/MatchHistory";
 
-//handles the "GameEvent" signal
-// mostly runs the animations
+// Plays the animation of one server GameEvent and records it in the match history.
 export class ServerEventPlayer
 {
     constructor(private scene: Phaser.Scene, private board: Board, private getPlayerIndex: () => 0 | 1 | null, private deferUntilCardExists: (cardId: string, run: (card: Card) => void) => void, private history: MatchHistory)
@@ -40,8 +39,7 @@ export class ServerEventPlayer
 
         const resolved = target?.resolve();
         const targetName = resolved?.kind === "hero" ? resolved.hero.heroData.name : resolved?.kind === "minion" ? resolved.card.cardData.name : "?";
-        const attackerLabel = event.playerIndex === this.getPlayerIndex() ? "You" : "Opponent";
-        this.history.beginAttack(attackerLabel, attackerCard.cardData.name, targetName);
+        this.history.beginAttack(attackerCard.cardData.name, targetName);
 
         await attackAnimation(this.scene, attackerCard, zone.x, zone.y);
     }
@@ -145,6 +143,7 @@ export class ServerEventPlayer
         await turnBannerAnimation(this.scene, label);
     }
 
+    // The minion may not be on the board yet; then the animation waits for its summon.
     private async playEffectTriggered(event: Extract<GameEvent, { type: "effect" }>): Promise<void>
     {
         const existing = this.board.findCardById(event.minionId);
@@ -154,8 +153,6 @@ export class ServerEventPlayer
             await this.runEffectAnimation(event.trigger, existing);
             return;
         }
-        // The minion this effect belongs to isn't on the board yet (its own "summon" event hasn't
-        // been synced in) — defer the animation until StateSyncController.apply() materializes it.
         this.deferUntilCardExists(event.minionId, (card) =>
         {
             void this.runEffectAnimation(event.trigger, card);

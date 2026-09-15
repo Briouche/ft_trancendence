@@ -13,17 +13,11 @@ import { StateSyncController } from "./gameProcessors/StateSyncController";
 import { ServerEventPlayer } from "./gameProcessors/ServerEventPlayer";
 import { InputController } from "./gameProcessors/InputController";
 import { GameOverOverlay } from "../objects/GameOverOverlay";
-import { TargetArrow } from "../objects/TargetArrow";
-import { ResolvedTarget } from "../objects/Target";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 
-
-// The main gameplay scene, started once by BootScene for the whole match. Wires socket events
-// (via EventManager) to the sub-controllers below — GameFlowState (turn/prompt state),
-// AnimationQueue (animation ordering), StateSyncController (builds the board from server state),
-// ServerEventPlayer (plays one GameEvent's animation), InputController (drag/click handling) —
-// and owns the Phaser objects (Hand, Board, OpponentHand, history UI) once they're created.
+// Match scene: routes server events to the flow/animation/sync/input controllers and owns the
+// hand, board, opponent hand and history UI.
 export class GameScene extends Phaser.Scene
 {
     private flow = new GameFlowState();
@@ -85,9 +79,7 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:rejected", this.onRejectedHandler);
         EventManager.on("server:event", this.onEventHandler);
 
-        // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY, not
-        // the normal scene shutdown/stop events, so cleanup is hooked here rather than in a
-        // Scene.shutdown() lifecycle method.
+        // Game.destroy() only emits DESTROY, so cleanup hooks here.
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         if (this.mode === "solo")
@@ -141,10 +133,9 @@ export class GameScene extends Phaser.Scene
         this.historyStrip.layout();
     }
 
+    // States arriving mid-animation are held by the queue and applied once it drains.
     private onServerState(state: ClientGameState): void
     {
-        // Defer to AnimationQueue while animations are playing, so a state push can't make the
-        // board jump ahead of what's still being animated (see AnimationQueue.ts).
         if (this.animationQueue.isBusy)
         {
             this.animationQueue.queueState(state);
@@ -153,6 +144,7 @@ export class GameScene extends Phaser.Scene
         this.stateSync.apply(state);
     }
 
+    // A target captured during a drag answers the prompt directly; otherwise the player picks.
     private onServerPrompt(prompt: TargetPrompt): void
     {
         this.flow.pendingPrompt = prompt;
@@ -173,9 +165,6 @@ export class GameScene extends Phaser.Scene
     private onServerRejected(reason: string): void
     {
         console.warn("Server rejected action:", reason);
-        // input_ only exists once onTableCreated has run (after the first server state). A
-        // rejection can arrive before that — e.g. an empty/missing deck in serverSocket.ts, sent
-        // right on "readySolo"/"ready" — hence the optional chaining.
         this.input_?.clearWaitingState(true);
     }
 

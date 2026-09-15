@@ -1,7 +1,7 @@
-import { PrismaClient, Keyword } from '@prisma/client'
+import { Prisma, PrismaClient, Keyword } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
-import { EffectSpec } from '../../gameEngine/srcs/cardImport/effectFactory'
+import { EffectSpec } from './effectSpec'
 
 interface RawCard
 {
@@ -34,7 +34,7 @@ interface RawCard
 	keywords?: string[]
 }
 
-// Labels as written in the JSON -> Prisma enum value
+// Keyword label in the JSON → Prisma enum value.
 const KEYWORD_LABELS: Record<string, Keyword> = {
 	'Ruée':             Keyword.RUEE,
 	"Râle d'agonie":    Keyword.RALE_DAGONIE,
@@ -56,6 +56,7 @@ function parseKeywords(raw: string[] | undefined, cardId: string): Keyword[] {
 	})
 }
 
+// Upserts every card of data/tcg-collection.json, then deletes cards no longer in it.
 export async function seedCards(prisma: PrismaClient)
 {
 	const jsonPath = path.resolve(__dirname, './data/tcg-collection.json')
@@ -85,13 +86,13 @@ export async function seedCards(prisma: PrismaClient)
 			archi: card.archi,
 			spellpower: card.spellpower,
 
-			battlecry:         card.battlecry,
-			deathrattle:       card.deathrattle,
-			onAttack:          card.onAttack,
-			onDamage:          card.onDamage,
-			startOfTurnEffect: card.startOfTurnEffect,
-			endOfTurnEffect:   card.endOfTurnEffect,
-			spellEffect:       card.spellEffect,
+			battlecry:         card.battlecry         as Prisma.InputJsonValue | undefined,
+			deathrattle:       card.deathrattle       as Prisma.InputJsonValue | undefined,
+			onAttack:          card.onAttack          as Prisma.InputJsonValue | undefined,
+			onDamage:          card.onDamage          as Prisma.InputJsonValue | undefined,
+			startOfTurnEffect: card.startOfTurnEffect as Prisma.InputJsonValue | undefined,
+			endOfTurnEffect:   card.endOfTurnEffect   as Prisma.InputJsonValue | undefined,
+			spellEffect:       card.spellEffect       as Prisma.InputJsonValue | undefined,
 
 			keywords: parseKeywords(card.keywords, card.id),
 		}
@@ -106,10 +107,6 @@ export async function seedCards(prisma: PrismaClient)
 
 	console.log('✅ Cards successfully seeded.')
 
-	// upsert() above never deletes, so a card removed from the JSON would otherwise stay in the
-	// DB indefinitely. This syncs the deletion — UserCard/DeckCard first (Card has no
-	// onDelete: Cascade), then Card. Guard against an empty JSON: `notIn: []` would match every
-	// row and wipe the table.
 	const validIds = data.cards.map(c => c.id)
 	if (validIds.length > 0) {
 		const staleCount = await prisma.card.count({ where: { id: { notIn: validIds } } })

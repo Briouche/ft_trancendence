@@ -1,17 +1,18 @@
 import Phaser from "phaser";
 import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
-const MAX_ENERGY = 7;           // Hearthstone-style mana cap
-const ICON_SIZE_RATIO = 0.7;    // icon size relative to banner height
-const ICON_SPACING_RATIO = 1.1; // spacing between icon centers, relative to icon size
-const BANNER_PADDING_RATIO = 0.6; // breathing room around the pip row, relative to icon size
-const TEXT_GAP_RATIO = 0.4;       // gap between the "{mana}/{maxMana}" label and the banner's left edge, relative to banner height
+const MAX_ENERGY = 7;
+const ICON_SIZE_RATIO = 0.7;
+const ICON_SPACING_RATIO = 1.1;
+const BANNER_PADDING_RATIO = 0.6;
+const TEXT_GAP_RATIO = 0.4;
 
 const BANNER_LEFT_WIDTH = 7;
 const BANNER_RIGHT_WIDTH = 4;
 const BANNER_TOP_HEIGHT = 4;
 const BANNER_BOTTOM_HEIGHT = 4;
 
+// Mana pips on a banner, with a "mana/maxMana" label to its left.
 export class Manabar
 {
     private scene: Phaser.Scene;
@@ -102,9 +103,7 @@ export class Manabar
             this.icons.pop()?.destroy();
     }
 
-    // Positions pips/banner/text together. `width` (passed in from Board via resize()) is only a
-    // floor: the banner (a NineSlice, which stretches cleanly) grows beyond it whenever the pip
-    // row needs more room, rather than staying a fixed size regardless of maxMana.
+    // The banner widens beyond `width` when the pip row needs more room.
     private layout(): void
     {
         const count = this.icons.length;
@@ -125,8 +124,6 @@ export class Manabar
             icon.setPosition(startX + i * spacing, this.y);
         }
 
-        // Uses the text's own width, already measured by Phaser (not a fixed offset), so the label
-        // never overlaps the banner no matter how many digits it displays.
         this.text.setPosition(this.x - effectiveWidth / 2 - this.height * TEXT_GAP_RATIO - this.text.width / 2, this.y);
     }
 }

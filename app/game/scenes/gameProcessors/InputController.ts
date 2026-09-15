@@ -10,12 +10,8 @@ import { summonAnimation } from "../../animations";
 
 type ClickTargetMode = "attack" | "spell";
 
-// Handles all player input on cards/board, through two parallel schemes that both funnel into the
-// same finalize*/request* methods: drag-and-drop (dragstart/drag/drop/dragend) and click-to-select
-// then click-to-target (handleCardClick and the click* fields/methods). `targetingCard`/
-// `targetArrow` track an in-progress drag-based target selection; `clickTargetCard`/
-// `clickMovingCard` track the click-based equivalents. `dragOccurredThisPress` distinguishes an
-// actual click from the "gameobjectup" that also fires at the end of a drag release.
+// Player input on cards: drag-and-drop and click-to-select/click-to-target both end in the same
+// finalize*/request* methods. A spell is a card without attack stats.
 export class InputController
 {
     private targetingCard: Card | null = null;
@@ -63,8 +59,6 @@ export class InputController
                 return;
             }
 
-            // attack === undefined is how a spell card is told apart from a minion card here
-            // (minions always carry attack/health stats, spells never do).
             if (this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack === undefined)
             {
                 this.targetingCard = obj;
@@ -101,11 +95,11 @@ export class InputController
             }
             if (this.hand.containsCard(obj) && obj.cardData.requiresTarget && obj.cardData.attack !== undefined)
             {
-                this.handleMinionTargetedDrop(obj, zone, _p);
+                this.handleMinionTargetedDrop(obj, _p);
                 return;
             }
             if (this.hand.containsCard(obj))
-                this.handleCardDrop(obj, zone, _p);
+                this.handleCardDrop(obj, _p);
         });
 
         this.scene.input.on("dragend", (_p: Phaser.Input.Pointer, obj: Card) =>
@@ -173,7 +167,6 @@ export class InputController
         this.flow.awaitingTarget = true;
     }
 
-    //clicking methods - separate from drag and dropping
     private handleCardClick(obj: Card): void
     {
         if (this.clickTargetCard || this.clickMovingCard)
@@ -237,7 +230,7 @@ export class InputController
 
         if (card.cardData.requiresTarget && card.cardData.attack !== undefined)
         {
-            this.handleMinionTargetedDrop(card, this.board.getZone(), pointer);
+            this.handleMinionTargetedDrop(card, pointer);
             return;
         }
 
@@ -280,8 +273,7 @@ export class InputController
         this.board.clearTargetHighlights();
     }
 
-
-    private handleCardDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer): void
+    private handleCardDrop(card: Card, pointer?: Phaser.Input.Pointer): void
     {
         const isMinion = card.cardData.attack !== undefined;
         const index = isMinion ? this.board.findInsertIndex(card.x) : undefined;
@@ -313,7 +305,8 @@ export class InputController
         this.finalizeSpellTarget(card, resolvedTarget);
     }
 
-    private handleMinionTargetedDrop(card: Card, zone: Phaser.GameObjects.Zone, pointer?: Phaser.Input.Pointer): void
+    // Places the minion on the board right away, then aims its battlecry target with the arrow.
+    private handleMinionTargetedDrop(card: Card, pointer?: Phaser.Input.Pointer): void
     {
         if (!this.board.isPointOverBoard(pointer ?? { x: card.x, y: card.y }))
         {
@@ -365,11 +358,9 @@ export class InputController
         EventManager.emit("client:requestAttack", { attackerId: attacker.cardData.id, targetId: resolvedTarget.id });
     }
 
+    // The chosen target is kept to answer the server's target prompt automatically.
     private finalizeSpellTarget(card: Card, resolvedTarget: ResolvedTarget): void
     {
-        // playCard is sent without a target: the target chosen here is stashed in
-        // capturedTargetId so GameScene.onServerPrompt can answer the server's follow-up target
-        // prompt for this card automatically, without asking the player to pick again.
         this.flow.awaitingServer = true;
         this.flow.pendingPlayCardId = card.cardData.id;
         this.flow.capturedTargetId = resolvedTarget.id;
@@ -464,6 +455,7 @@ export class InputController
         this.flow.pendingPrompt = null;
     }
 
+    // Resets every in-flight interaction; `restorePendingCard` puts a rejected play back in hand.
     clearWaitingState(restorePendingCard = false): void
     {
         this.flow.awaitingServer = false;

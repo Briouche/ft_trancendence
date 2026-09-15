@@ -1,0 +1,39 @@
+// AI decks for solo mode, by card name (a repeated name = two copies). Resolved by
+// makeDeckFromNames in cardLoader.ts without any ownership check.
+
+// Aggro: low curve.
+const AGGRO_DECK: string[] = [
+    "Leon, le chien saucisse",
+    "le croupier", "le croupier", "Big mama hyena", "Big mama hyena",
+    "Diablotin du piment", "Diablotin du piment", "Critique culinaire", "Critique culinaire",
+    "Feed the troops", "Feed the troops", "Hyperactive cousin", "Hyperactive cousin",
+    "Soulevement de tombes", "une maman aimante", "une maman aimante", "Soulevement de tombes",
+    "Equal opportunity", "Equal opportunity", "Pyroblin", "Pyroblin",
+]
+
+// Control: spells + big late-game creatures.
+const CONTROL_DECK: string[] = [
+    "Roi des rats",
+    "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
+    "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportiny",
+    "cannibalisme", "Lecture de textes Anciencs", "Mixeur", "blackhole", "cat pack",
+    "cri du phoenix", "tremblement", "call the kraken", "Bombe H",
+    "Slime orthophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
+]
+
+// Archimede synergy: the 6 "archi" cards + Archimede.
+const ARCHI_DECK: string[] = [
+    "Archimed la maudite",
+    "Haku (archi card)", "Reborn (Archi card)", "Ribgy (Archi card)", "Neo (archi card)",
+    "Po (archi card)", "Zurg (archi card)", "Bertrand", "Le Phoenix",
+    "Goblinmikaze", "Flambeur de Dancefloor", "podophile", "CRS", "Client Mécontent",
+    "Feeder goblin", "Cactus dos Pimentos", "Le menestrel", "allie peureux",
+    "Bibliothequaire", "Pyroblin", "Jumeau Goblin",
+]
+
+const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]
+
+export function pickRandomAiDeck(): string[]
+{
+    return AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)]
+}

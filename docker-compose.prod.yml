@@ -1,4 +1,3 @@
-
 services:
   proxy:
     build:
@@ -14,17 +13,38 @@ services:
     volumes:
       - next_static:/var/www/html/_next/static:ro
       - next_public:/var/www/html/public:ro
+    depends_on:
+      static_assets:
+        condition: service_completed_successfully
     restart: always
 
   app:
     build:
       target: production
-    volumes:
-      - next_static:/app/.next/static
-      - next_public:/app/public
     restart: always
 
+  # Copies the built static files into the volumes nginx serves (root: the volumes are root-owned).
+  static_assets:
+    build:
+      context: ./app
+      target: production
+    user: root
+    entrypoint: ["sh", "-c", "cp -r /app/.next/static/. /next_static/ && cp -r /app/public/. /next_public/"]
+    volumes:
+      - next_static:/next_static
+      - next_public:/next_public
+
   game_engine:
+    build:
+      target: production
+    restart: always
+
+  socketio:
+    build:
+      target: production
+    restart: always
+
+  redis:
     restart: always
 
   db:

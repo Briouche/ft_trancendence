@@ -11,7 +11,7 @@
       "cost": "3",
       "atk": "1",
       "def": "4",
-      "desc": "battlecry: give -1 ATK to enemy creatures",
+      "desc": "Battlecry: give -1/0 to all enemy creatures",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -33,7 +33,7 @@
       "cost": "5",
       "atk": "5",
       "def": "5",
-      "desc": "LEG PASSIVE:\nyou can go above 20HP\n\nActive:\ndeal as much damage as you have extra HP",
+      "desc": "Passive effect: you can go above 20HP\nYou start the game with 25HP\nBattlecry: deal as much dmg as you have extra HP",
       "qty": 1,
       "legendId": "timmy",
       "battlecry": {
@@ -53,7 +53,7 @@
       "cost": "2",
       "atk": "2",
       "def": "4",
-      "desc": "taunt\ncannot attack",
+      "desc": "Taunt\nCannot attack",
       "qty": 2,
       "legendId": "",
       "taunt": true,
@@ -69,7 +69,7 @@
       "cost": "2",
       "atk": "3",
       "def": "1",
-      "desc": "Battlecry : Deal 1 dmg and give + 2 ATK to a minion",
+      "desc": "Battlecry: Deal 1 dmg and give +2/+0 to a minion",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -103,7 +103,7 @@
       "cost": "3",
       "atk": "2",
       "def": "2",
-      "desc": "battlecry: deal 3 damage",
+      "desc": "Battlecry: deal 3 dmg",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -116,14 +116,14 @@
     },
     {
       "id": "mqi2jqa4",
-      "name": "Reborn (Archi card)",
+      "name": "Reborn",
       "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "2",
       "atk": "2",
       "def": "2",
-      "desc": "give +1/+1 to another creature",
+      "desc": "Archimed\nBattlecry: give +1/+1 to another creature",
       "qty": 1,
       "legendId": "",
       "archi": true,
@@ -138,14 +138,14 @@
     },
     {
       "id": "mqi2k9ir",
-      "name": "Neo (archi card)",
+      "name": "Neo",
       "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "4",
       "atk": "4",
       "def": "4",
-      "desc": "rush",
+      "desc": "Archimed\nRush",
       "qty": 1,
       "legendId": "",
       "rush": true,
@@ -153,7 +153,7 @@
     },
     {
       "id": "mqib6m3f",
-      "name": "Haku (archi card)",
+      "name": "Haku",
       "assetKey": "haku",
       "artist": "Nalebrun",
       "type": "creature",
@@ -161,7 +161,7 @@
       "cost": "1",
       "atk": "1",
       "def": "1",
-      "desc": "draw a card",
+      "desc": "Archimed\nBattlecry: draw a card",
       "qty": 1,
       "legendId": "",
       "archi": true,
@@ -172,14 +172,14 @@
     },
     {
       "id": "mqibfh9p",
-      "name": "Zurg (archi card)",
+      "name": "Zurg",
       "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "6",
       "atk": "6",
       "def": "6",
-      "desc": "Deathrattle: summon 2 1/1 aliens",
+      "desc": "Archimed\nDeathrattle: summon 2 1/1 aliens",
       "qty": 1,
       "legendId": "",
       "archi": true,
@@ -208,14 +208,14 @@
     },
     {
       "id": "mqi2kthv",
-      "name": "Ribgy (Archi card)",
+      "name": "Ribgy",
       "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "3",
       "atk": "3",
       "def": "3",
-      "desc": "heal 3 HP",
+      "desc": "Archimed\nBattclecry: heal 3 HP",
       "qty": 1,
       "legendId": "",
       "archi": true,
@@ -229,14 +229,14 @@
     },
     {
       "id": "mqi31p8w",
-      "name": "Po (archi card)",
+      "name": "Po",
       "artist": "Brieuc",
       "type": "creature",
       "rarity": "Épique",
       "cost": "5",
       "atk": "5",
       "def": "5",
-      "desc": "taunt",
+      "desc": "Archimed\nTaunt",
       "qty": 1,
       "legendId": "",
       "taunt": true,
@@ -251,11 +251,11 @@
       "cost": "7",
       "atk": "7",
       "def": "7",
-      "desc": "LEG PASSIVE: Place the 4 jar members in your deck\n\nPlay the 4 other jar members to win the game",
+      "desc": "Play the 6 other bocal members to win the game",
       "qty": 1,
       "legendId": "archimede",
       "battlecry": {
-        "kind": "archi",
+        "kind": "archimed",
         "resolver": {
           "kind": "enemyHero"
         }
@@ -271,7 +271,7 @@
       "cost": "3",
       "atk": "3",
       "def": "1",
-      "desc": "Silence a creature",
+      "desc": "Battlecry: silence a creature",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -291,7 +291,7 @@
       "cost": "3",
       "atk": "2",
       "def": "5",
-      "desc": "passive: wounded creatures have +1 ATK - battlecry: deal 1 damage to its neighbors",
+      "desc": "Passive effect: wounded creatures have +1/0\nBattlecry: deal 1 damage to its neighbors",
       "qty": 1,
       "legendId": "jeffe",
       "battlecry": {
@@ -312,7 +312,7 @@
       "cost": "1",
       "atk": "3",
       "def": "2",
-      "desc": "deal 1 damage to its neighbors",
+      "desc": "Battlecry: deal 1 damage to its neighbors",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -332,7 +332,7 @@
       "cost": "2",
       "atk": "1",
       "def": "3",
-      "desc": "at the end of your turn summon a 1-1 baby hyena",
+      "desc": "End of your turn: summon a 1-1 baby hyena",
       "qty": 2,
       "legendId": "",
       "endOfTurnEffect": {
@@ -381,7 +381,7 @@
       "cost": "2",
       "atk": "",
       "def": "",
-      "desc": "Equal both heros HP to the hero that has the higher HP. Each player draws 1 card",
+      "desc": "Equal both heros HP to the hero that has the higher HP\nEach player draws 1 card",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -418,7 +418,7 @@
       "cost": "2",
       "atk": "",
       "def": "",
-      "desc": "Deal 1 dmg to everyone draw a card",
+      "desc": "Deal 1 dmg to everyone\nDraw a card",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -447,7 +447,7 @@
       "cost": "1",
       "atk": "-2 ATK to a creature",
       "def": "",
-      "desc": "Give -2 ATK to a creature",
+      "desc": "Give -2/0 to a creature",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -469,7 +469,7 @@
       "cost": "3",
       "atk": "",
       "def": "",
-      "desc": "Deal 3 dmg to a minion and draw 1 card",
+      "desc": "Deal 3 dmg to a minion\nDraw 1 card",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -498,7 +498,7 @@
       "cost": "7",
       "atk": "9",
       "def": "6",
-      "desc": "lifesteal",
+      "desc": "Lifesteal",
       "qty": 2,
       "legendId": "",
       "onAttack": {
@@ -515,7 +515,7 @@
       "cost": "4",
       "atk": "",
       "def": "",
-      "desc": "summon 3 2/1 cats with rush",
+      "desc": "Summon 3 2/1 cats with rush",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -562,7 +562,7 @@
       "cost": "5",
       "atk": "",
       "def": "",
-      "desc": "deal 2 dmg to all minions lifesteal",
+      "desc": "Deal 2 dmg to all minions\nLifesteal",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -650,7 +650,7 @@
       "cost": "6",
       "atk": "4",
       "def": "4",
-      "desc": "rush\ndeathrattle: summon a phoenix with -1/-1 stats",
+      "desc": "Rush\nDeathrattle: summon a phoenix with -1/-1 stats",
       "qty": 2,
       "legendId": "",
       "rush": true,
@@ -725,7 +725,7 @@
       "cost": "2",
       "atk": "2",
       "def": "2",
-      "desc": "when it takes damage, gain 3 ATK",
+      "desc": "When it takes damage, gain +3/0",
       "qty": 2,
       "legendId": "",
       "onDamage": {
@@ -747,7 +747,7 @@
       "cost": "3",
       "atk": "2",
       "def": "5",
-      "desc": "when it takes damage, gain 1 ATK",
+      "desc": "When it takes damage, gain +1/0",
       "qty": 2,
       "legendId": "mqi7p9nf",
       "onDamage": {
@@ -769,7 +769,7 @@
       "cost": "2",
       "atk": "2",
       "def": "2",
-      "desc": "Deal 1 damage to the entire board",
+      "desc": "Deal 1 dmg to the entire board",
       "qty": 2,
       "legendId": "mqi7p9nf",
       "battlecry": {
@@ -790,7 +790,7 @@
       "cost": "2",
       "atk": "1",
       "def": "3",
-      "desc": "start of turn: each player takes 3 damage",
+      "desc": "Start of turn: each player takes 3 dmg",
       "qty": 2,
       "legendId": "mqi7p9nf",
       "startOfTurnEffect": {
@@ -845,7 +845,7 @@
       "cost": "3",
       "atk": "2",
       "def": "4",
-      "desc": "If Bertrand is not dead at the end of the turn, restore all its HP",
+      "desc": "Regeneration",
       "qty": 2,
       "legendId": "",
       "endOfTurnEffect": {
@@ -861,7 +861,7 @@
       "cost": "3",
       "atk": "2",
       "def": "2",
-      "desc": "Summon a 2/2",
+      "desc": "Battlecry: summon a 2/2",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -888,7 +888,7 @@
       "cost": "2",
       "atk": "2",
       "def": "2",
-      "desc": "battlecry: +1 ATK to adjacent allies",
+      "desc": "Battlecry: +1/0 to adjacent allies",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -909,12 +909,12 @@
       "cost": "4",
       "atk": "",
       "def": "",
-      "desc": "deal 6 dmg",
+      "desc": "Deal 5 dmg",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
         "kind": "damage",
-        "amount": 6,
+        "amount": 5,
         "resolver": {
           "kind": "anyCharacter"
         }
@@ -930,7 +930,7 @@
       "cost": "1",
       "atk": "2",
       "def": "1",
-      "desc": "deathrattle: draw a card",
+      "desc": "Deathrattle: draw 1 card",
       "qty": 2,
       "legendId": "",
       "deathrattle": {
@@ -947,7 +947,7 @@
       "cost": "1",
       "atk": "2",
       "def": "1",
-      "desc": "deathrattle: deal 2 dmg to the enemy hero",
+      "desc": "Deathrattle: deal 2 dmg to the enemy hero",
       "qty": 2,
       "legendId": "",
       "deathrattle": {
@@ -967,7 +967,7 @@
       "cost": "2",
       "atk": "3",
       "def": "2",
-      "desc": "triggers a deathrattle",
+      "desc": "Battlecry: triggers a deathrattle",
       "qty": 2,
       "legendId": "mqi2u1aa",
       "battlecry": {
@@ -986,7 +986,7 @@
       "cost": "1",
       "atk": "0",
       "def": "2",
-      "desc": "when it takes damage, draw a card",
+      "desc": "When it takes damage, draw 1 card",
       "qty": 2,
       "legendId": "",
       "onDamage": {
@@ -1003,7 +1003,7 @@
       "cost": "4",
       "atk": "3",
       "def": "4",
-      "desc": "when this creature takes damage, throw two knives dealing 1 random damage each",
+      "desc": "When this creature takes damage, throw two knives dealing 1 dmg to a random enemy each",
       "qty": 2,
       "legendId": "mqi7p9nf",
       "onDamage": {
@@ -1039,7 +1039,7 @@
       "cost": "4",
       "atk": "",
       "def": "",
-      "desc": "destroy a creature",
+      "desc": "Destroy a creature",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -1171,7 +1171,7 @@
       "cost": "2",
       "atk": "",
       "def": "",
-      "desc": "deal 3 dmg",
+      "desc": "Deal 3 dmg",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -1192,7 +1192,7 @@
       "cost": "3",
       "atk": "4",
       "def": "2",
-      "desc": "rush\ndeathrattle: deal 2 dmg to 2 random enemies",
+      "desc": "Rush\nDeathrattle: deal 2 dmg to 2 random enemies",
       "qty": 2,
       "legendId": "mqi2u1aa",
       "rush": true,
@@ -1214,7 +1214,7 @@
       "cost": "5",
       "atk": "5",
       "def": "5",
-      "desc": "battlecry: +1/+1 to allied creatures",
+      "desc": "Battlecry: +1/+1 to allied creatures",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -1236,7 +1236,7 @@
       "cost": "2",
       "atk": "",
       "def": "",
-      "desc": "summon 2 1/1 zombies with deathrattle: summon a 1/1 zombie",
+      "desc": "Summon 2 1/1 zombies with deathrattle: summon a 1/1 zombie",
       "qty": 2,
       "legendId": "mqi2u1aa",
       "spellEffect": {
@@ -1250,7 +1250,7 @@
             "cost": "1",
             "atk": "1",
             "def": "1",
-            "desc": "Rale d'agonie : invoque un zombie 1-1",
+            "desc": "Deathrattle: summon a 1/1 zombie",
             "deathrattle": {
               "kind": "summon",
               "amount": 1,
@@ -1274,7 +1274,7 @@
             "cost": "1",
             "atk": "1",
             "def": "1",
-            "desc": "Rale d'agonie : invoque un zombie 1-1",
+            "desc": "Deathrattle: summon a 1/1 zombie",
             "deathrattle": {
               "kind": "summon",
               "amount": 1,
@@ -1303,7 +1303,7 @@
       "cost": "3",
       "atk": "",
       "def": "",
-      "desc": "deal 3 dmg, your hero heals 3HP.",
+      "desc": "deal 3 dmg\nLifesteal",
       "qty": 2,
       "legendId": "",
       "spellEffect": {
@@ -1364,7 +1364,7 @@
       "cost": "4",
       "atk": "3",
       "def": "5",
-      "desc": "taunt\nrestore 3 HP",
+      "desc": "Taunt\nBattlecry: restore 3 HP",
       "qty": 2,
       "legendId": "",
       "taunt": true,
@@ -1385,7 +1385,7 @@
       "cost": "3",
       "atk": "3",
       "def": "2",
-      "desc": "lifesteal\nrush",
+      "desc": "Lifesteal\nRush",
       "qty": 2,
       "legendId": "",
       "rush": true,
@@ -1402,7 +1402,7 @@
       "cost": "2",
       "atk": "2",
       "def": "3",
-      "desc": "electric shock",
+      "desc": "End of turn: deal 2 dmg to a random enemy",
       "qty": 2,
       "legendId": "",
       "endOfTurnEffect": {
@@ -1462,7 +1462,7 @@
       "cost": "6",
       "atk": "4",
       "def": "6",
-      "desc": "Battlecry: trigger the deathrattles of all your minions\n\nLeg Passive: every 4 creatures that die, summon a 1/1 zombie\n\nDeathrattles trigger twice",
+      "desc": "Passive effect: every 4 creatures that die, summon a 1/1 zombie\nBattlecry: trigger the deathrattles of all your minions",
       "battlecry": {
         "kind": "triggerDeathrattle",
         "resolver": {
@@ -1501,7 +1501,7 @@
       "cost": "1",
       "atk": "2",
       "def": "1",
-      "desc": "ping 1",
+      "desc": "Battlecry: deal 1 dmg to a enemy",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -1549,7 +1549,7 @@
       "cost": "3",
       "atk": "2",
       "def": "2",
-      "desc": "Spellpower +1 deathrattle : draw a card",
+      "desc": "Spellpower +1\nDeathrattle : draw 1 card",
       "qty": 2,
       "legendId": "mqi6l6i0",
       "spellpower": 1,
@@ -1567,7 +1567,7 @@
       "cost": "2",
       "atk": "1",
       "def": "2",
-      "desc": "gain +1/+1 for every other allied creature that you control",
+      "desc": "Battlecry: gain +1/+1 for every other allied creature that you control",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -1591,7 +1591,7 @@
       "cost": "3",
       "atk": "2",
       "def": "3",
-      "desc": "Taunt\ngain +1/+1 for each wounded allied minion",
+      "desc": "Taunt\nBattlecry: gain +1/+1 for each wounded allied minion",
       "qty": 2,
       "legendId": "mqi7p9nf",
       "taunt": true,
@@ -1616,7 +1616,7 @@
       "cost": "3",
       "atk": "3",
       "def": "2",
-      "desc": "Battlecry : give regeneration to an ally",
+      "desc": "Battlecry: give regeneration to an ally",
       "qty": 2,
       "legendId": "",
       "battlecry": {
@@ -1639,7 +1639,7 @@
       "cost": "4",
       "atk": "3",
       "def": "1",
-      "desc": "Cleave Rush",
+      "desc": "Cleave\nRush",
       "qty": 2,
       "legendId": "",
       "rush": true,
@@ -1656,7 +1656,7 @@
       "cost": "2",
       "atk": "3",
       "def": "3",
-      "desc": "Battlecry : Deal 5 dmg to the ennemy hero",
+      "desc": "Battlecry: Deal 5 dmg to the ennemy hero",
       "qty": 1,
       "legendId": "leon",
       "battlecry": {
@@ -1676,7 +1676,7 @@
       "cost": "4",
       "atk": "3",
       "def": "4",
-      "desc": "LEG PASSIVE:\nYour end of turn trigger one more time every 3 end of turn effects.\nActive: End of turn give your neighbouring ally +1/+1",
+      "desc": "Passive effecy: Your end of turn trigger one more time every 3 end of turn effects.\nEnd of turn: give your neighbouring ally +1/+1",
       "qty": 1,
       "legendId": "roidesrats",
       "endOfTurnEffect": {
@@ -1697,7 +1697,7 @@
       "cost": "2",
       "atk": "1",
       "def": "4",
-      "desc": "Passive: Every 4 spells that you use, the spell goes back in your hand.\n\nSpell power +1",
+      "desc": "Passive effect: Every 4 spells that you use, the spell goes back in your hand.\nSpellpower +1",
       "qty": 1,
       "legendId": "gertrude",
       "spellpower": 1
@@ -1711,7 +1711,7 @@
       "cost": "1",
       "atk": "2",
       "def": "1",
-      "desc": "End of turn : Give +1 to a random allied minion",
+      "desc": "End of turn: Give +1 to a random allied minion",
       "qty": 2,
       "legendId": "",
       "endOfTurnEffect": {
