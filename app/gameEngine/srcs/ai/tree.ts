@@ -101,6 +101,20 @@ export function expand(node: MCTSNode): MCTSNode {
   return child;
 }
 
+export function isWastedPlay(engine: GameEngine, action: Action): boolean {
+  if (action.type !== "playCard") return false;
+
+  const card = engine.activePlayer().hand.getCards()[action.cardIndex];
+  const effect = engine.getOnPlayEffect(card);
+  if (!effect || !effect.resolver) return false;
+
+  if (effect.resolver.requiresInput)
+    return action.targetIndex === undefined && engine.getOnPlayTargets(card).length === 0;
+
+  const context = { engine, owner: engine.activePlayer(), source: card };
+  return effect.resolver.resolve(context).length === 0;
+}
+
 // Plays a full game out to the end using random moves on both sides, just
 // to get a rough "did this path lead to a win or a loss" signal.
 
@@ -134,7 +148,9 @@ export function simulate(state: GameEngine, forPlayer: 0 | 1): number
   for (let d = 0; d < MAX_DEPTH && !s.isTerminal(); d++) 
   {
     const actions = s.getLegalActions();
-    s = applyAction(s, actions[Math.floor(Math.random() * actions.length)]);
+    const usefulActions = actions.filter(a => !isWastedPlay(s, a));
+    const pool = usefulActions.length > 0 ? usefulActions : actions;
+    s = applyAction(s, pool[Math.floor(Math.random() * pool.length)]);
   }
 
   if (s.isTerminal()) 

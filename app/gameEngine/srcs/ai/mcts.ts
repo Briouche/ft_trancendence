@@ -1,10 +1,4 @@
 
-// The only function other code needs to call. Given the current real game
-// state, runs many simulated games (see tree.ts) across several guessed
-// versions of the opponent's hand ("worlds" — see determinize.ts), then
-// returns whichever move won the most across all of them.
-
-
 import { GameEngine } from "../gameEngine";
 import { Action } from "./types";
 import { determinize } from "./determinize";

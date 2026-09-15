@@ -9,6 +9,7 @@ import { Player } from "../player";
 import { Hero } from "../hero";
 import { makeBasicDeck } from "../deck";
 import { getBestAction } from "./mcts";
+import { isWastedPlay } from "./tree";
 import { DIFFICULTY_PRESETS, Difficulty } from "./types";
 
 function makePlayer(index: 0 | 1, deckNo: number): Player {
@@ -24,6 +25,7 @@ interface GameStats {
   turnsWithAttackOpportunity: number;
   turnsWhereAttackWasSkipped: number;
   immediateEndTurnsWithOtherOptions: number;
+  wastedPlaysChosen: number;
   winner: 0 | 1 | null;
   log: string[];
 }
@@ -36,7 +38,7 @@ async function playOneGame(difficulty: Difficulty, verbose: boolean): Promise<Ga
   const stats: GameStats = {
     turns: 0, totalActions: 0, attacksMade: 0,
     turnsWithAttackOpportunity: 0, turnsWhereAttackWasSkipped: 0,
-    immediateEndTurnsWithOtherOptions: 0, winner: null, log: [],
+    immediateEndTurnsWithOtherOptions: 0, wastedPlaysChosen: 0, winner: null, log: [],
   };
 
   let isFirstActionOfTurn = true;
@@ -49,7 +51,12 @@ async function playOneGame(difficulty: Difficulty, verbose: boolean): Promise<Ga
     const attackOptionsAvailable = legal.some(a => a.type === "attack");
     if (attackOptionsAvailable) hadAttackOptionThisTurn = true;
 
+    const t0 = Date.now();
     const action = await getBestAction(engine, simulations, worlds);
+    const elapsedMs = Date.now() - t0;
+    if (process.env.AI_TIMING) {
+      console.error(`decision: legalActions=${legal.length} board=${engine.board.getMinions(0).length}+${engine.board.getMinions(1).length} hand=${engine.activePlayer().hand.size()} elapsedMs=${elapsedMs}`);
+    }
     stats.totalActions++;
 
     if (isFirstActionOfTurn && action.type === "endTurn" && legal.length > 1) {
@@ -60,6 +67,14 @@ async function playOneGame(difficulty: Difficulty, verbose: boolean): Promise<Ga
       );
     }
     isFirstActionOfTurn = false;
+
+    if (isWastedPlay(engine, action)) {
+      stats.wastedPlaysChosen++;
+      if (verbose) {
+        const card = engine.activePlayer().hand.getCards()[(action as { cardIndex: number }).cardIndex];
+        stats.log.push(`turn ${stats.turns} player ${engine.currentTurn}: chose to play "${card.name}" whose on-play effect has zero targets right now`);
+      }
+    }
 
     if (action.type === "attack") { stats.attacksMade++; attackedThisTurn = true; }
 
@@ -117,7 +132,7 @@ async function main() {
 
   console.log(`Running ${numGames} game(s) at difficulty=${difficulty}\n`);
 
-  const agg = { turns: 0, attacksMade: 0, turnsWithOpp: 0, turnsSkipped: 0, immediateEnds: 0 };
+  const agg = { turns: 0, attacksMade: 0, turnsWithOpp: 0, turnsSkipped: 0, immediateEnds: 0, wastedPlays: 0 };
 
   for (let g = 0; g < numGames; g++) {
     const stats = await playOneGame(difficulty, verbose);
@@ -126,10 +141,11 @@ async function main() {
     agg.turnsWithOpp += stats.turnsWithAttackOpportunity;
     agg.turnsSkipped += stats.turnsWhereAttackWasSkipped;
     agg.immediateEnds += stats.immediateEndTurnsWithOtherOptions;
+    agg.wastedPlays += stats.wastedPlaysChosen;
 
     console.log(`Game ${g}: turns=${stats.turns} totalActions=${stats.totalActions} attacksMade=${stats.attacksMade} ` +
       `turnsWithAttackOpportunity=${stats.turnsWithAttackOpportunity} turnsWhereAttackSkipped=${stats.turnsWhereAttackWasSkipped} ` +
-      `immediateEndTurnsWithOtherOptions=${stats.immediateEndTurnsWithOtherOptions} winner=${stats.winner}`);
+      `immediateEndTurnsWithOtherOptions=${stats.immediateEndTurnsWithOtherOptions} wastedPlaysChosen=${stats.wastedPlaysChosen} winner=${stats.winner}`);
     if (verbose) for (const line of stats.log) console.log("  " + line);
   }
 
@@ -140,6 +156,7 @@ async function main() {
   console.log(`turns where attack was available but skipped entirely: ${agg.turnsSkipped} ` +
     `(${agg.turnsWithOpp ? ((agg.turnsSkipped / agg.turnsWithOpp) * 100).toFixed(1) : 0}%)`);
   console.log(`immediate end-turns despite other options: ${agg.immediateEnds}`);
+  console.log(`plays chosen whose on-play effect had zero targets: ${agg.wastedPlays}`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

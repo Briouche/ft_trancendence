@@ -462,10 +462,26 @@ export class GameSession
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
             let action: Action;
-            
-            action = await getBestAction(this.engine, simulations, worlds);
-            
-            this.applyAiAction(action);
+
+            try
+            {
+                action = await getBestAction(this.engine, simulations, worlds);
+                this.applyAiAction(action);
+            }
+            catch (err)
+            {
+                console.error(`AI turn failed for player ${this.engine.currentTurn}, forcing endTurn to avoid a stuck game:`, err);
+                try
+                {
+                    this.applyAiAction({ type: "endTurn" });
+                }
+                catch (endTurnErr)
+                {
+                    console.error("Forced endTurn also failed, aborting AI loop for this game:", endTurnErr);
+                    break;
+                }
+                continue;
+            }
 
             if (action.type !== "endTurn")
                 await this.delay(1500);
@@ -507,10 +523,10 @@ export class GameSession
             case "attack":
             {
                 const target: Targetable = this.resolveAiTarget(action.targetIndex);
+                const attackerId = this.engine.board.getMinions(this.engine.currentTurn)[action.attackerIndex].id;
                 result = this.engine.attackWithMinion(action.attackerIndex, target);
-                let attacker = this.engine.board.getMinions(this.engine.currentTurn)[action.attackerIndex].id;
                 if (result.succes)
-                    this.broadcastEvent({ type: "attack", attackerId: attacker, targetId: target.id, playerIndex: this.engine.currentTurn });
+                    this.broadcastEvent({ type: "attack", attackerId, targetId: target.id, playerIndex: this.engine.currentTurn });
                 break;
             }
             case "endTurn":
