@@ -42,11 +42,15 @@ function ToggleButton({ active, onClick, children }: { active: boolean; onClick:
   );
 }
 
-export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
+export default function PlayModeSelector({ decks, elo }: { decks: SavedDeck[]; elo: number }) {
   const router = useRouter();
   const [mode, setMode] = useState<GameMode>("solo");
   const [difficulty, setDifficulty] = useState<Difficulty>("moyen");
   const [hoveredDeckId, setHoveredDeckId] = useState<number | null>(null);
+
+  // Packs granted for winning the match currently configured on the left — follows the mode
+  // and, for solo, the difficulty toggles live. Easy AI grants nothing.
+  const packsForWin = mode === "multiplayer" ? 2 : difficulty === "difficile" ? 2 : difficulty === "moyen" ? 1 : 0;
 
   function chooseDeck(deckId: number) {
     const params = new URLSearchParams({ mode, deckId: String(deckId) });
@@ -93,6 +97,20 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
                   </div>
                 </>
               )}
+
+              {mode === "multiplayer" && (
+                <div className="flex flex-1 items-center justify-center">
+                  <p className="text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
+                    Your Elo: {elo}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-auto border-t border-white/20 pt-3">
+                <p className="text-center font-serif text-sm text-white" style={outlinedWhiteTextStyle}>
+                  Win this match : {packsForWin} pack{packsForWin !== 1 ? "s" : ""}
+                </p>
+              </div>
             </div>
 
             {/* Right: same saved decks as DeckBuilder.tsx ("My decks"), without "Create deck" or

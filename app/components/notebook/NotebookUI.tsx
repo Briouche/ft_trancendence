@@ -2,26 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { getEffectiveVolume } from '@/lib/audioSettings'
 
 // Shared UI pieces used by every "notebook page" on the site (Collection, Deck Builder...) —
 // sourced from the notebook (03_NoteBook) asset in the Complete UI Book Styles Pack. Extracted
 // from CollectionBook.tsx to be reused as-is instead of duplicated.
-
-// Module-level instance reused on every page turn (PageArrow below) instead of a `new Audio()`
-// per click: avoids re-creating/re-loading the file on every call. `currentTime = 0` lets the
-// sound restart even if the previous click's playback hasn't finished (rapid clicks). Volume is
-// re-read on every play (not cached): reflects a Settings change made while the book is already
-// open immediately, with no need to subscribe to anything.
-let pageFlipAudio: HTMLAudioElement | null = null
-
-function playPageFlip(): void {
-    if (!pageFlipAudio)
-        pageFlipAudio = new Audio('/sounds/page-flip.m4a')
-    pageFlipAudio.volume = getEffectiveVolume('ambience')
-    pageFlipAudio.currentTime = 0
-    pageFlipAudio.play().catch(() => {})
-}
 
 // Cycles through `count` frames every `intervalMs`, as long as `playing` is true (falls back to
 // frame 1 otherwise) — used by every "Sprites Animated" notebook animation (selection, arrows)
@@ -252,7 +236,7 @@ const BUTTON_FRAMES = 4
 // (Sprites Animated ButtonHome01a/ButtonBack01a/ButtonManual01a/ButtonAbout01a/ButtonSetting01a/
 // ButtonAchievement01a): unlike "square", the icon is already painted into the texture itself —
 // no child needed for them.
-const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'music', 'achievement'] as const
+const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'achievement'] as const
 type AssetButtonVariant = 'square' | 'bar' | (typeof SELF_CONTAINED_VARIANTS)[number]
 
 const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
@@ -262,7 +246,6 @@ const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
     back:        '/textures/notebook/button-back',
     manual:      '/textures/notebook/button-manual',
     about:       '/textures/notebook/button-about',
-    music:       '/textures/notebook/button-music',
     achievement: '/textures/notebook/button-achievement',
 }
 
@@ -345,11 +328,6 @@ export function PageArrow({ direction, onClick, disabled }: {
     const [hovered, setHovered] = useState(false)
     const frame = useLoopFrame(4, 110, hovered && !disabled)
 
-    function handleClick() {
-        playPageFlip()
-        onClick()
-    }
-
     return (
         <div
             className="relative flex h-full shrink-0 items-stretch"
@@ -359,14 +337,14 @@ export function PageArrow({ direction, onClick, disabled }: {
             {/* Extended, invisible hit layer overlapping the page edge — doesn't move the icon,
                 just the zone that triggers hover/click. */}
             <button
-                onClick={disabled ? undefined : handleClick}
+                onClick={disabled ? undefined : onClick}
                 disabled={disabled}
                 aria-hidden="true"
                 tabIndex={-1}
                 className={`absolute top-0 z-30 h-full w-16 ${direction === 'prev' ? 'left-full' : 'right-full'}`}
             />
             <button
-                onClick={handleClick}
+                onClick={onClick}
                 disabled={disabled}
                 className="relative z-30 flex h-full w-20 shrink-0 items-center justify-center disabled:opacity-0"
             >

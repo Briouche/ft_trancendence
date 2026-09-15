@@ -33,7 +33,7 @@
       "cost": "5",
       "atk": "5",
       "def": "5",
-      "desc": "Passive effect: you can go above 20HP\nBattlecry: deal as much dmg as you have extra HP",
+      "desc": "Passive effect: you can go above 20HP\nYou start the game with 25HP\nBattlecry: deal as much dmg as you have extra HP",
       "qty": 1,
       "legendId": "timmy",
       "battlecry": {
