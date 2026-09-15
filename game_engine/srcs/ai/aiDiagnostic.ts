@@ -1,8 +1,5 @@
-// Standalone diagnostic script (not part of the app) — plays full AI-vs-AI games
-// through the real MCTS pipeline and instruments the two reported symptoms:
-//   1. AI ending its turn immediately despite other legal actions.
-//   2. AI having attackable minions but ending its turn without attacking.
-// Run with: npx ts-node srcs/ai/aiDiagnostic.ts <difficulty> <numGames>
+// Standalone script: plays AI-vs-AI games and counts turns ended without attacking or with
+// other options available. Run: npx ts-node srcs/ai/aiDiagnostic.ts <difficulty> <numGames> [--verbose]
 
 import { GameEngine } from "../gameEngine";
 import { Player } from "../player";

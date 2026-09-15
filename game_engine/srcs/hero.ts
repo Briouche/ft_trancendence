@@ -1,6 +1,4 @@
-// A player's hero: just a health pool that's also a valid combat Targetable (see target.ts).
-// Kept separate from Player (which owns hand/deck/mana) since heroes, unlike players, can be
-// targeted and damaged/healed the same way minions are.
+// A player's health pool; a Targetable like minions (see target.ts).
 export class Hero
 {
     public readonly name: string;
@@ -34,13 +32,6 @@ export class Hero
     {
         return this.currentHealth > 0;
     }
-
-    toString(): string
-    {
-        return this.name + " (" + this.currentHealth + "/" + this.maxHealth + " HP)";
-    }
-
-    //-----
 
     clone(): Hero
     {

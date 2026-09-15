@@ -4,10 +4,12 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
 import { jwtVerify } from "jose";
 
+// Chat/presence socket.io server: authenticates with the Next.js session cookie, tracks online
+// users in Redis, relays chat messages.
+
 const PORT = process.env.PORT || 4000;
 const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379";
 
-// Initialize Redis clients for pub/sub and direct database commands
 const pubClient = new Redis(REDIS_URL);
 const subClient = pubClient.duplicate();
 const redis = new Redis(REDIS_URL);
@@ -22,8 +24,7 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
-// Distinct from game_engine's socket.io path (default "/socket.io/") — nginx forwards the
-// incoming request URI unchanged, so this must match the location block that proxies here.
+// Path must match the nginx location proxying here (game_engine uses the default one).
 const io = new Server(server, {
   path: "/chat-socket.io/",
   cors: {
@@ -36,12 +37,10 @@ const io = new Server(server, {
 
 io.adapter(createAdapter(pubClient, subClient));
 
-// Authenticate via Next.js session cookie
 io.use(async (socket, next) => {
   try {
     const rawCookies = socket.handshake.headers.cookie || "";
 
-    // Natively parse the cookie string into an object
     const parsedCookies = rawCookies
       .split(";")
       .reduce((acc, cookieString) => {
@@ -97,17 +96,12 @@ io.on("connection", async (socket) => {
   const userKey = `user_sockets:${id}`;
 
   try {
-    // 1. Add this tab's socket ID atomically to the set
     await redis.sadd(userKey, socket.id);
-
-    // 2. Store basic user metadata for global display lists
     await redis.hset(
       "online_users_meta",
       id.toString(),
       JSON.stringify({ id, username })
     );
-
-    // 3. Broadcast updated presence list
     await broadcastPresence();
   } catch (err) {
     console.error(`[Socket] Error connecting user ${id}:`, err);
@@ -122,13 +116,10 @@ io.on("connection", async (socket) => {
     console.log(`[Socket] Client disconnected (${socket.id}): ${reason}`);
 
     try {
-      // 1. Remove only this specific socket ID atomically
       await redis.srem(userKey, socket.id);
 
-      // 2. Check remaining tabs for this user
+      // A user is offline once their last tab disconnects.
       const remainingSockets = await redis.scard(userKey);
-
-      // 3. If zero active tabs remain, remove from metadata hash
       if (remainingSockets === 0) {
         await redis.hdel("online_users_meta", id.toString());
       }

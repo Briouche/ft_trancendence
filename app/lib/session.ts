@@ -6,15 +6,11 @@ import { cookies } from "next/headers";
 import type { UserStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-function getEncodedKey() {
-  const secretKey = process.env.JWT_SECRET;
-  if (!secretKey) throw new Error("JWT_SECRET env var is not set");
-  return new TextEncoder().encode(secretKey);
-}
+// JWT session cookie: create, delete, read (with tokenVersion check) and current user lookup.
 
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type SessionPayload = {
+type SessionPayload = {
   userId: number;
   username: string;
   tokenVersion: number;
@@ -31,6 +27,12 @@ export type CurrentUser = {
   elo: number;
 };
 
+function getEncodedKey() {
+  const secretKey = process.env.JWT_SECRET;
+  if (!secretKey) throw new Error("JWT_SECRET env var is not set");
+  return new TextEncoder().encode(secretKey);
+}
+
 async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
@@ -39,7 +41,7 @@ async function encrypt(payload: SessionPayload) {
     .sign(getEncodedKey());
 }
 
-export async function decrypt(token: string | undefined = "") {
+async function decrypt(token: string | undefined = "") {
   try {
     const { payload } = await jwtVerify(token, getEncodedKey(), {
       algorithms: ["HS256"],
@@ -78,9 +80,8 @@ export async function deleteSession() {
   cookieStore.delete("session");
 }
 
-// Wrapped in React's cache() so multiple calls within the same request
-// (e.g. from both Header and a page component) only verify the JWT once
-// (and only look up the current tokenVersion once).
+// Session payload, or null when the cookie is missing, invalid or issued before the user's
+// tokenVersion was bumped. Cached per request.
 export const getSession = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
@@ -89,8 +90,6 @@ export const getSession = cache(async () => {
   const payload = await decrypt(token);
   if (!payload) return null;
 
-  // Reject sessions issued before a logout-everywhere, password change, or
-  // suspected compromise bumped the user's tokenVersion in the DB.
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
     select: { tokenVersion: true },

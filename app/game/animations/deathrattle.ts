@@ -4,6 +4,7 @@ import { Card } from "../objects/card/Card";
 const GROW_SCALE = 4.2;
 const DURATION = 700;
 
+// The card's skull icon grows and fades, then is restored.
 export function deathrattleAnimation(scene: Phaser.Scene, card: Card): Promise<void>
 {
     return new Promise((resolve) =>
@@ -22,8 +23,6 @@ export function deathrattleAnimation(scene: Phaser.Scene, card: Card): Promise<v
             ease: "Sine.Out",
             onComplete: () =>
             {
-                // The skull is the card's persistent deathrattle icon (not a one-off sprite), so
-                // its transform is restored afterward rather than left blown-up/invisible.
                 skull.setScale(originalScaleX, originalScaleY);
                 skull.setAlpha(originalAlpha);
                 resolve();

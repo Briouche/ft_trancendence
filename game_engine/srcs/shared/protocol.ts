@@ -1,8 +1,5 @@
-// Wire protocol between this server and the Phaser client — ClientMessage/ServerMessage are the
-// only two message shapes exchanged over the socket (see socket/serverSocket.ts and
-// socket/gameSession.ts). This file is mirrored BY HAND at app/game/shared/protocol.ts on the
-// client side; the two are not imported from a shared package, so a change here needs the same
-// change made there or the two sides will silently disagree on message shapes.
+// Wire protocol with the Phaser client. Mirrored by hand in app/game/shared/protocol.ts:
+// keep both files identical.
 export interface clientEffect
 {
     taunt?: boolean;
@@ -50,7 +47,7 @@ export interface ClientHero
     cardBack: number;
 }
 
-export interface ClientGameState 
+export interface ClientGameState
 {
     yourTurn: boolean;
     playerHero: ClientHero;
@@ -83,7 +80,6 @@ export type TargetOption = { type: "hero"; id: string; }
     | { type: "minion"; id: string; }
 
 export type Difficulty = "facile" | "moyen" | "difficile";
-
 
 export interface TargetPrompt
 {

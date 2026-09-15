@@ -5,9 +5,7 @@ import { createSession } from "@/lib/session";
 import { ROUTES } from "@/config/routes";
 import { STATE_COOKIE } from "../route";
 
-// 42 redirects back here after authorization: verify the state we set earlier (CSRF guard),
-// exchange the code for a profile, find-or-create the local account, then open the same
-// session as email+password login (createSession) — the rest of the app needs to know nothing more.
+// 42 OAuth return: checks the anti-CSRF state, then signs the matching account in.
 export async function GET(request: NextRequest) {
     const url   = new URL(request.url);
     const code  = url.searchParams.get("code");

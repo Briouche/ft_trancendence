@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 
+// Another user matching this username exactly (case-insensitive); null for self or no match.
 export async function searchUserByUsername(usernameRaw: string) {
   const currentUser = await getCurrentUser();
   if (!currentUser) return null;

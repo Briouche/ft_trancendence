@@ -28,6 +28,8 @@ type Props = {
     initialDeck?: Record<string, DeckEntry>
 }
 
+// Notebook of the player's collection (left) next to the deck being built and the list of
+// saved decks (right). Left-click adds a card, right-click removes it.
 export default function DeckBuilder({ cards, decks, totalCardCount, deckId, initialName = '', initialDeck = {} }: Props) {
     const router = useRouter()
     const [deck, setDeck]             = useState<Record<string, DeckEntry>>(initialDeck)
@@ -43,6 +45,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
     const [hoveredDeckId, setHoveredDeckId] = useState<number | null>(null)
     const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
 
+    // Cost filter 1 also covers 0-mana cards.
     const filteredCards = useMemo(() => {
         const query = normalize(search.trim())
         let matches = query === ''
@@ -50,8 +53,6 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
             : cards.filter(c => normalize(c.name).includes(query) || normalize(c.desc).includes(query))
 
         if (costFilter !== null) {
-            // Same rule as the Collection: the first bolt (cost 1) also absorbs cost 0, with no
-            // dedicated bolt for it.
             matches = costFilter === 1
                 ? matches.filter(c => parseCost(c.cost) <= 1)
                 : matches.filter(c => parseCost(c.cost) === costFilter)
@@ -116,8 +117,6 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
     function addCard(card: Card) {
         if (!canAdd(card)) return
-        // Picking a card before clicking "Create deck" starts creation on the fly, so the card
-        // doesn't silently land in a deck the "My decks" panel isn't showing yet.
         if (!creating) setCreating(true)
         setDeck(prev => ({ ...prev, [card.id]: { card, qty: (prev[card.id]?.qty ?? 0) + 1 } }))
     }
@@ -168,8 +167,6 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
         setDeletingDeckId(id)
         const res = await fetch(`/api/decks/${id}`, { method: 'DELETE' })
         setDeletingDeckId(null)
-        // The deck being edited may be the one just deleted — go back to "My decks" instead of
-        // leaving an edit form pointing at a deck that no longer exists.
         if (res.ok && deckId === id) router.push('/deck/new')
         else router.refresh()
     }
@@ -177,9 +174,6 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
     function renderSlot(card: Card | null, slotIndex: number) {
         if (card === null) return <Slot key={`empty-${slotIndex}`} />
         const inDeck = deck[card.id]?.qty ?? 0
-        // Blocked for a reason other than "no more copies owned" (e.g. legendary cap reached):
-        // the whole stack still grays out, even if none of THIS card is in the deck yet —
-        // otherwise it would look available when it isn't.
         const blocked = !canAdd(card)
         return (
             <Slot
@@ -205,23 +199,11 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
         >
             <HomeButton onClick={() => router.push('/')} />
 
-            {/* Same treatment as CollectionBook.tsx: book + deck panel sit in one fixed-size
-                block that ScaleToFit scales to the window as a whole (h-screen + overflow-hidden,
-                no padding here — any padding added on top of ScaleToFit's own h-screen box would
-                push the total past 100vh and force a scroll to see the rest of the book). No
-                title banner either (removed so the book fits the viewport without scrolling). */}
             <ScaleToFit>
-                {/* pr-28: this whole block would otherwise be perfectly centered by ScaleToFit,
-                    putting the deck panel's top-right corner right where the (fixed) Home button
-                    sits — the padding is empty space added only on the right, so the visible
-                    content sits shifted left of true center, clear of the button. */}
                 <div className="flex flex-col items-center gap-1 pr-28">
                     <div className="flex h-200 items-stretch gap-4">
                         <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
-                {/* Book: same pages/slots as the Collection (see NotebookUI), but clicking a card
-                    adds it to the deck instead of opening a zoom — no Cards/Card Backs tabs here,
-                    just the collection to browse. */}
                 <div className="relative flex h-200 w-260 flex-col">
                     <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
                         <div className="travelbook-page relative flex flex-1 flex-col p-3">
@@ -290,11 +272,6 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
                 <PageArrow direction="next" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1} />
 
-                {/* Parchment panel: the deck being edited (name, stats, save) on top, the list of
-                    all the player's decks below — a separate "Frame04a" frame (not the book
-                    pages). Matches the book row's own height exactly (no more taller-than-row
-                    overflow trick): with everything now inside ScaleToFit's measured box, nothing
-                    at the top/bottom of the panel risks being clipped by its overflow-hidden. */}
                 <div className="travelbook-frame4-panel relative z-30 flex h-200 w-80 flex-col p-5">
                     {creating ? (
                         <>

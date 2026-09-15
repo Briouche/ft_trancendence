@@ -11,9 +11,7 @@ const STATUS_DOT: Record<FriendLike['status'], string> = {
     OFFLINE: 'bg-ink-muted/50',
 }
 
-// Shared presentational row for FriendsList/FriendsRequestsList/PendingRequestsList — the three
-// source components only differed in which field of the payload they read (friend/requester/
-// addressee), so a single row takes the resolved person directly instead of being duplicated.
+// One user line: presence dot + username.
 export default function FriendRow({ person }: { person: FriendLike }) {
     return (
         <div className="travelbook-slot flex w-full items-center gap-3 bg-transparent px-3 py-2">

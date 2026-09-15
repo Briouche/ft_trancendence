@@ -18,19 +18,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     )
 }
 
+// Profile page: account details, switchable to the edit form.
 export default function ProfileInformation({ user }: { user: CurrentUser }) {
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const formattedDate = new Date(user.createdAt).toLocaleDateString()
 
     return (
-        // h-screen + overflow-hidden, no padding: see CollectionBook.tsx — ScaleToFit below
-        // already centers/scales its content to fit the viewport exactly.
         <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
             <HomeButton onClick={() => router.push('/')} />
 
-            {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up
-                (compact title + panel, not viewport-sized). */}
             <ScaleToFit maxScale={1.3}>
                 <div className="flex flex-col items-center gap-1">
                     <TitleBanner width="w-[720px]" className="z-20">PROFILE</TitleBanner>

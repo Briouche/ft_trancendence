@@ -5,15 +5,20 @@ import { ensureCardFontLoaded } from "@/game/objects/gameFonts";
 import { GAME_FONT_FAMILY_KEY } from "@/game/objects/gameFontRegistry";
 import { CARD_BACK_COUNT } from "@/lib/cardBacks";
 
-// First scene to run (see GameConfig.ts's preBoot). Preloads static gameplay assets (per-card art
-// is loaded lazily instead — see CardAssetLoader.ts), waits for the custom font to be usable, then
-// hands off to GameScene with the match config received from the page that mounted Phaser.
+// Preloads the static assets (card art loads lazily, see CardAssetLoader), waits for the
+// font, then starts GameScene with the match params.
 export class BootScene extends Phaser.Scene
 {
     private mode!: GameMode;
     private difficulty!: Difficulty;
     private deckId!: number;
     private cardBack!: number;
+
+    // Pixel-art textures rendered with nearest-neighbor filtering.
+    private static readonly PIXELATED_TEXTURE_KEYS = [
+        "banner", "emptyEnergy", "fullEnergy", "heroFrame", "opponentHeroFrame",
+        ...Array.from({ length: CARD_BACK_COUNT }, (_, i) => `cardBack_${i}`),
+    ];
 
     constructor()
     {
@@ -29,8 +34,6 @@ export class BootScene extends Phaser.Scene
     }
 
     preload() {
-        // Load assets here :
-        this.load.image("placeholder_card", "/gameAssets/cards/placeholder_card.png");
         this.load.image("shield_taunt", "/gameAssets/shield_taunt.webp");
         this.load.image("effect_lightning", "/gameAssets/lightning_bolt.webp");
         this.load.image("history_attack", "/gameAssets/attackSword.webp");
@@ -46,18 +49,9 @@ export class BootScene extends Phaser.Scene
         this.load.image("frame_epique", "/textures/cards/frame/frame-epique.webp");
         this.load.image("frame_legendaire", "/textures/cards/frame/frame-legendaire.webp");
 
-
         for (let i = 0; i < CARD_BACK_COUNT; i++)
             this.load.image(`cardBack_${i}`, `/textures/cards/backs/${i}.webp`);
     }
-
-
-    // These are pixel-art assets: Phaser's default bilinear filtering would blur them when
-    // scaled, so force nearest-neighbor filtering to keep edges crisp.
-    private static readonly PIXELATED_TEXTURE_KEYS = [
-        "banner", "emptyEnergy", "fullEnergy", "heroFrame", "opponentHeroFrame",
-        ...Array.from({ length: CARD_BACK_COUNT }, (_, i) => `cardBack_${i}`),
-    ];
 
     async create()
     {

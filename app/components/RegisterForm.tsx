@@ -22,24 +22,17 @@ export default function RegisterForm() {
     const password = formData.get("password") as string | null;
     const confirmPassword = formData.get("confirmPassword") as string | null;
 
-    // ==========================================
-    // CUSTOM JAVASCRIPT VALIDATION
-    // ==========================================
-
-    // 1. Username checks
     if (!username || username.length < 3) {
       setError("Username must be at least 3 characters long.");
       return;
     }
 
-    // 2. Additional Email Regex check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       setError("Please provide a valid email address.");
       return;
     }
 
-    // 3. Password Complexity (1 uppercase, 1 lowercase, 1 number)
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!password || password.length > 128 || !passwordRegex.test(password)) {
       setError(
@@ -48,7 +41,6 @@ export default function RegisterForm() {
       return;
     }
 
-    // 4. Password Match check
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -67,9 +59,7 @@ export default function RegisterForm() {
   };
 
   return (
-    // flex-1 (not the default h-screen): see SignInForm.tsx.
     <ScaleToFit className="flex-1">
-      {/* Same "parchment" frame (Frame04a) as Sign In — see SignInForm.tsx. */}
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
           className="text-center font-display text-5xl font-bold text-white"

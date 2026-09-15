@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 
+// Accepted friendships of the current user, as the list of other people.
 export async function GET() {
   const session = await getSession();
   if (!session) {
@@ -19,7 +20,6 @@ export async function GET() {
     },
   });
 
-  // Collapse each Friendship row down to "the other person"
   const friends = friendships.map((f) =>
     f.requesterId === session.userId ? f.addressee : f.requester
   );

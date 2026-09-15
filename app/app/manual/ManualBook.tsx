@@ -14,9 +14,7 @@ import {
 } from "@/lib/cardLayout";
 import PackArt from "@/app/packs/PackArt";
 
-// The 11 effects the real in-game card preview lists as a keyword sidebar — copied from
-// EFFECT_LABELS in game/objects/card/CardPreview.ts, the authoritative source (shown to players
-// on hover), not the DB's cosmetic Keyword enum used only for bolding card text.
+// Keyword glossary, mirroring EFFECT_LABELS in game/objects/card/CardPreview.ts.
 const KEYWORDS: { label: string; desc: string }[] = [
   { label: "Taunt", desc: "You must attack this minion before others." },
   { label: "Rush", desc: "Can attack immediately, but not the enemy hero on its first turn." },
@@ -37,9 +35,7 @@ const CARD_ANATOMY: { n: number; label: string; desc: string }[] = [
   { n: 5, label: "Health", desc: "on the drop, bottom-right." },
 ];
 
-// The 5 legendaries whose card text has a "Passive effect:" line (prisma/seeds/data/
-// tcg-collection.json) — Archimed la maudite and Leon have a strong Battlecry instead, not a
-// passive, so they're left out of this list.
+// Legendaries with a passive effect (see prisma/seeds/data/tcg-collection.json).
 const LEGENDARIES: { name: string; legendId: string; short: string; desc: string }[] = [
   { name: "Timmy, the planetsucker", legendId: "timmy", short: "Timmy", desc: "Can go above 20 HP — starts the game at 25." },
   { name: "Joël el Jeffe", legendId: "jeffe", short: "Jeffe", desc: "Wounded creatures get +1/0." },
@@ -48,10 +44,7 @@ const LEGENDARIES: { name: string; legendId: string; short: string; desc: string
   { name: "Gertrude", legendId: "gertrude", short: "Gertrude", desc: "Every 4th spell cast returns to your hand; +1 spellpower." },
 ];
 
-// Two real cards (copied from prisma/seeds/data/tcg-collection.json) used purely as tutorial
-// illustrations — rendered through ScaledCardFace, the same component the Collection/Deck Builder
-// use, so they look exactly like what a player sees there. No DB round-trip needed just to show
-// what a card looks like.
+// Real cards (from tcg-collection.json) used as illustrations.
 const EXAMPLE_CARD: CardFaceData = {
   id: "manual-example-golem",
   name: "Golem endormi",
@@ -80,9 +73,7 @@ const KEYWORD_EXAMPLE_CARD: CardFaceData = {
   artist: "Brieuc",
 };
 
-// Small pixel-art icon rendered from a background-image (same technique as CardFace.tsx) rather
-// than next/image: these are tiny source sprites (some as small as 10×12px) blown up several
-// times over — `imageRendering: pixelated` keeps the hard edges instead of a blurry upscale.
+// Pixel-art icon, upscaled without smoothing.
 function Icon({ src, className = "" }: { src: string; className?: string }) {
   return (
     <div
@@ -96,10 +87,7 @@ function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-center text-xs uppercase tracking-wide text-ink-muted">{children}</p>;
 }
 
-// Real screenshots (public/gameAssets/tutorial/) rather than a redrawn mockup — `unoptimized`
-// like every other next/image usage on the site (CardBackArt.tsx, PageArrow): the production
-// image relies on next/image's on-the-fly optimizer, which needs `sharp`, not installed in the
-// slim Docker image these run in.
+// Screenshot from public/gameAssets/tutorial/, cropped to the given aspect ratio.
 function ScreenshotImage({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
   return (
     <div className={`relative overflow-hidden rounded-sm border border-leather-800/50 ${className}`}>
@@ -108,9 +96,7 @@ function ScreenshotImage({ src, alt, className = "" }: { src: string; alt: strin
   );
 }
 
-// Numbered callout pinned at a %-position (a card zone from lib/cardLayout.ts, or a hand-picked
-// spot on the board screenshot) — half hanging off the artwork, like a tag on a diagram, so it
-// never sits on top of whatever it's pointing at.
+// Numbered badge pinned at a %-position over an illustration.
 function Callout({ x, y, n, size = "h-6 w-6 text-xs" }: { x: number; y: number; n: number; size?: string }) {
   return (
     <div
@@ -131,9 +117,7 @@ const CARD_CALLOUTS: { x: number; y: number; n: number }[] = [
   { x: CARD_HEALTH_BOX.left, y: CARD_HEALTH_BOX.top, n: 5 },
 ];
 
-// Hand-picked spots on board-overview.png (1867×915) — history log far left, decks left of each
-// row (NOT bottom-right: that was a stale guess the screenshot disproves), the shared lanes
-// between them, the player's hand fanned at the bottom, and the hero/board-count corner.
+// Callout positions on board-overview.png.
 const BOARD_ANATOMY: { n: number; x: number; y: number; label: string; desc: string }[] = [
   { n: 1, x: 4, y: 48, label: "History", desc: "Icon log of recent actions — attacks, turns ended..." },
   { n: 2, x: 17, y: 62, label: "Deck", desc: "If you deck is empty you take damage when drawing (fatigue: 1, then 2, then 3...)." },
@@ -221,17 +205,12 @@ function LegendaryIcons() {
   );
 }
 
-// `image`/`caption` sit in a fixed-width column next to the prose, alternating sides
-// (`reverse`) from one section to the next — image-left/text-right, then image-right/text-left,
-// and so on down the page.
+// Section with an image column beside the text (`reverse` swaps sides) or above it (`fullWidth`).
 function IllustratedSection({ title, image, reverse, imgWidth = "w-44", fullWidth, children }: {
   title: string
   image: React.ReactNode
   reverse?: boolean
   imgWidth?: string
-  // Image spans the whole content width, stacked above the text, instead of sitting in a
-  // fixed-width side column — used for "The board", whose screenshot needs real estate the
-  // side-by-side layout can't give it.
   fullWidth?: boolean
   children: React.ReactNode
 }) {
@@ -259,14 +238,9 @@ export default function ManualBook() {
   const router = useRouter();
 
   return (
-    // h-screen + overflow-hidden, no padding/centering here (see CollectionBook.tsx): ScaleToFit
-    // below already handles it — padding on top of its own h-screen box would push the total past
-    // 100vh and force a scroll.
     <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
       <HomeButton onClick={() => router.push("/")} />
 
-      {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up (compact
-          title + panel, not viewport-sized) — align="start" glues it to the top. */}
       <ScaleToFit className="h-screen pt-10" maxScale={1.3} align="start">
         <div className="flex flex-col items-center gap-4">
           <TitleBanner width="w-[700px]">TUTO</TitleBanner>

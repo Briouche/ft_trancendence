@@ -2,14 +2,12 @@ import { Server, Socket } from "socket.io";
 import { Player } from "../player";
 import { Hero } from "../hero";
 import { Deck } from "../deck";
-import { Hand } from "../hand";
 import { GameSession, Seat } from "./gameSession";
 import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId, makeDeckFromNames, getUsernameForDeck, getUserIdForDeck } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 
-// Keep in sync with app/lib/cardBacks.ts (Next.js) — same deliberate duplication as the rest of
-// shared/protocol.ts; this process has no access to that alias.
+// Keep in sync with app/lib/cardBacks.ts.
 const CARD_BACK_COUNT = 8;
 
 function clampCardBack(value: number): number
@@ -24,12 +22,11 @@ function randomCardBack(): number
 
 type WaitingPlayer = { socket: Socket; deckId: number; cardBack: number };
 
+// Socket.IO server: solo games start immediately against the AI, multiplayer pairs the first
+// two players in the queue. Live sessions are kept so a reconnecting socket finds its game.
 export function createGameServer(port: number): void
 {
-    // Same-origin in practice: nginx proxies /socket.io/ straight through (see proxy/dev.conf
-    // and proxy/prod.conf.template), so the Origin header is whatever the page's real origin
-    // is (localhost:8080 in dev, the prod domain in prod) — never a fixed value. Mirrors
-    // socket-server/index.js's CORS handling for the same reason.
+    // Same-origin through the nginx proxy, so any Origin is accepted.
     const io = new Server(port, { cors: { origin: (origin, callback) => callback(null, true) }, connectionStateRecovery: {} });
 
     const waiting: WaitingPlayer[] = [];
@@ -46,7 +43,6 @@ export function createGameServer(port: number): void
     {
         console.log("client connected:", socket.id);
 
-        // Same socket id as an already-live game
         const existingGame: GameSession | undefined = liveGames.find(g => g.hasSocket(socket.id));
         if (existingGame)
         {
@@ -65,14 +61,10 @@ export function createGameServer(port: number): void
         {
             if (msg.type === "readySolo")
             {
-                // Never spin up a second game for a socket that already has a live one.
                 if (liveGames.some(g => g.hasSocket(socket.id)))
                     return;
 
-                // Player's deck = whatever they chose in the menu (deck builder) — no more
-                // hardcoded deck or random pull from the collection, see PlayModeSelector.tsx.
-                // AI's deck = one of the 3 hand-written decks in aiDecks.ts, picked at random —
-                // not tied to any account, so the AI can play cards the human player doesn't own.
+                // Player: the deck chosen in the menu. AI: a random hand-written deck (aiDecks.ts).
                 const [playerDeck, aiDeck, username, userId]: [Deck | null, Deck, string | null, number | null] = await Promise.all([
                     makeDeckFromDeckId(msg.deckId, "hey"),
                     makeDeckFromNames(pickRandomAiDeck(), "hola"),
@@ -86,7 +78,7 @@ export function createGameServer(port: number): void
                     return;
                 }
 
-                // Coin flip: don't let the human always go first against the AI.
+                // Coin flip for who goes first.
                 const humanIndex: 0 | 1 = Math.random() < 0.5 ? 0 : 1;
                 const aiIndex: 0 | 1 = humanIndex === 0 ? 1 : 0;
 
@@ -120,7 +112,7 @@ export function createGameServer(port: number): void
                 const w0: WaitingPlayer = waiting.shift()!;
                 const w1: WaitingPlayer = waiting.shift()!;
 
-                // Coin flip: don't let whoever queued first always go first.
+                // Coin flip for who goes first.
                 const [first, second]: [WaitingPlayer, WaitingPlayer] = Math.random() < 0.5 ? [w0, w1] : [w1, w0];
 
                 const [deck0, deck1, username0, username1, userId0, userId1] = await Promise.all([

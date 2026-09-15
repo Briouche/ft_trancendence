@@ -1,4 +1,4 @@
-import { ActionResult, AnimationEvent, GameEngine } from "../gameEngine";
+import { Action, ActionResult, AnimationEvent, GameEngine } from "../gameEngine";
 import { Socket } from "socket.io";
 import { Player } from "../player";
 import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent } from "../shared/protocol";
@@ -7,21 +7,19 @@ import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
 import { getBestAction } from "../ai/mcts";
-import { Action } from "../ai/types";
 import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
 import { recordWin, recordEloUpdate, WinCategory } from "../cardImport/cardLoader";
 
 export type Seat = { kind: "human"; socket: Socket; userId: number | null } | { kind: "ai" };
 
-// Which counter (User.winsVsAi{Easy,Medium,Hard}) to credit based on the game's difficulty — only
-// used when the loser is the AI; winsVsPlayer (a real human opponent) is wired separately, see
-// recordResult.
+// User counter credited for a win against the AI at each difficulty.
 const DIFFICULTY_WIN_CATEGORY: Record<Difficulty, WinCategory> = {
     facile:    "winsVsAiEasy",
     moyen:     "winsVsAiMedium",
     difficile: "winsVsAiHard",
 }
 
+// A card play waiting for the player to pick a target.
 interface PendingTarget
 {
     id: string;
@@ -31,6 +29,8 @@ interface PendingTarget
     optionsById: Map<string, Targetable>;
 }
 
+// One match: validates client messages, applies them to the engine, broadcasts events/state,
+// runs the AI's turns, records the result.
 export class GameSession
 {
     private static readonly RECONNECT_GRACE_MS = 30000;
@@ -60,18 +60,12 @@ export class GameSession
         this.runAiTurnLoop();
     }
 
-    // True if `socketId` belongs to one of this session's human seats — used both to route a
-    // reconnecting socket back to its own game and to refuse spinning up a second game for a
-    // socket that's already live in one (see serverSocket.ts).
     hasSocket(socketId: string): boolean
     {
         return this.seats.some(seat => seat.kind === "human" && seat.socket.id === socketId);
     }
 
-    // Called when a socket carrying an id already known to this session reconnects (same
-    // Socket.IO connection-state-recovery id, new Socket object). Rebinds the seat to the new
-    // socket, re-attaches its message handler (the old socket's listener died with it), cancels
-    // any pending forfeit timer, and resends state so the client can rehydrate.
+    // Rebinds a recovered socket to its seat, cancels the forfeit timer and resends the state.
     reconnect(socket: Socket): 0 | 1 | -1
     {
         const idx = this.seats.findIndex(seat => seat.kind === "human" && seat.socket.id === socket.id);
@@ -130,13 +124,13 @@ export class GameSession
 
         switch (msg.type)
         {
-            case "playCard": 
+            case "playCard":
                 return this.handlePlayCard(playerIndex, msg.cardId, msg.boardIndex);
-            case "attack": 
+            case "attack":
                 return this.handleAttack(playerIndex, msg.attackerId, msg.targetId);
-            case "endTurn": 
+            case "endTurn":
                 return this.handleEndTurn();
-            case "targetChoice": 
+            case "targetChoice":
                 return this.handleTargetChoice(playerIndex, msg.targetId);
         }
     }
@@ -157,9 +151,9 @@ export class GameSession
         this.send(1 - winnerIndex, { type: "gameOver", winner: "opponent" });
         this.recordResult(winnerIndex);
         this.onGameEnd();
-        return ;
     }
 
+    // Win counter for any human winner; Elo only for PvP.
     private recordResult(winnerIndex: 0 | 1): void
     {
         const winnerSeat = this.seats[winnerIndex];
@@ -171,7 +165,6 @@ export class GameSession
         const category: WinCategory = loserSeat.kind === "ai" ? DIFFICULTY_WIN_CATEGORY[this.difficulty] : "winsVsPlayer";
         recordWin(winnerSeat.userId, category).catch(err => console.error("Failed to record win:", err));
 
-        // Elo only moves for a real PvP match — an AI opponent has no rating of its own.
         if (loserSeat.kind === "human" && loserSeat.userId !== null)
             recordEloUpdate(winnerSeat.userId, loserSeat.userId).catch(err => console.error("Failed to record Elo update:", err));
     }
@@ -201,6 +194,7 @@ export class GameSession
         this.send(1, { type: "state", state: toClientState(this.engine, 1) });
     }
 
+    // Plays the card directly, or opens a target prompt when its effect needs one.
     private async handlePlayCard(playerIndex: 0 | 1, cardId: string, boardIndex?: number): Promise<void>
     {
         const player: Player = this.engine.players[playerIndex];
@@ -222,8 +216,7 @@ export class GameSession
             }
         }
 
-        const effects: Effect[] =
-            this.getOnPlayEffects(card);
+        const effects: Effect[] = this.getOnPlayEffects(card);
 
         for (const effect of effects)
         {
@@ -233,6 +226,7 @@ export class GameSession
             const context = { engine: this.engine, owner: this.engine.players[playerIndex], source: card };
             const validTargets: Targetable[] = effect.resolver.resolve(context);
 
+            // No legal target: a spell is rejected, a battlecry no-ops.
             if (validTargets.length === 0)
             {
                 if (card instanceof SpellCard)
@@ -244,7 +238,6 @@ export class GameSession
             }
 
             this.beginTargeting(playerIndex, card, effect, validTargets, boardIndex);
-
             return;
         }
 
@@ -254,7 +247,7 @@ export class GameSession
             targets.set(effect, null);
 
         const result = this.engine.playCard(cardIndex, targets, boardIndex);
-        if (!result.succes)
+        if (!result.success)
         {
             this.reject(playerIndex, "unable to play card");
             return;
@@ -284,6 +277,7 @@ export class GameSession
         this.send(1 - playerIndex, { type: "state", state: toClientState( this.engine, (1 - playerIndex) as 0 | 1) });
     }
 
+    // null target: cancels a spell, plays a minion without its battlecry.
     private handleTargetChoice(playerIndex: 0 | 1, targetId: string | null): void
     {
         const pending: PendingTarget | null = this.pending;
@@ -323,7 +317,6 @@ export class GameSession
                 this.reject(playerIndex, "target selection cancelled");
                 return;
             }
-            // minion battlecry: proceed without a target, the battlecry will no-op
         }
         else
         {
@@ -361,7 +354,7 @@ export class GameSession
         this.pending = null;
 
         const result = this.engine.playCard(cardIndex, targets, pending.boardIndex);
-        if (!result.succes)
+        if (!result.success)
         {
             this.reject(playerIndex, "unable to play card");
             return;
@@ -409,7 +402,7 @@ export class GameSession
         }
 
         const result = this.engine.attackWithMinion(attackerIndex, target);
-        if (!result.succes)
+        if (!result.success)
         {
             this.reject(playerIndex, "unsuccesful attack");
             return;
@@ -433,8 +426,7 @@ export class GameSession
         return effects;
     }
 
-    // Doesn't end the game immediately — starts a grace period so the same player can rejoin
-    // (see reconnect()) after a transient drop. Only forfeits if they don't come back in time.
+    // Starts the forfeit timer; reconnect() cancels it.
     handleDisconnect(socket: Socket): void
     {
         if (this.gameOver)
@@ -490,10 +482,8 @@ export class GameSession
 
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
-            let action: Action;
-            
-            action = await getBestAction(this.engine, simulations, worlds);
-            
+            const action: Action = await getBestAction(this.engine, simulations, worlds);
+
             this.applyAiAction(action);
 
             if (action.type !== "endTurn")
@@ -541,7 +531,7 @@ export class GameSession
                 }
 
                 result = this.engine.playCard(action.cardIndex, targets);
-                if (result.succes)
+                if (result.success)
                     this.broadcastEvent({ type: "cardPlayed", cardId: card.id, playerIndex, card: toClientCard(card), targetId: target ? this.targetToOption(target).id : undefined });
                 break;
             }
@@ -550,7 +540,7 @@ export class GameSession
                 const target: Targetable = this.resolveAiTarget(action.targetIndex);
                 const attackerId = this.engine.board.getMinions(this.engine.currentTurn)[action.attackerIndex]?.id;
                 result = this.engine.attackWithMinion(action.attackerIndex, target);
-                if (result.succes && attackerId !== undefined)
+                if (result.success && attackerId !== undefined)
                     this.broadcastEvent({ type: "attack", attackerId, targetId: this.targetToOption(target).id, playerIndex: this.engine.currentTurn });
                 break;
             }
@@ -561,6 +551,7 @@ export class GameSession
         this.checkGameOver();
     }
 
+    // targetIndex -1 is the enemy hero.
     private resolveAiTarget(targetIndex: number): Targetable
     {
         const opponentIndex: 0 | 1 = (1 - this.engine.currentTurn) as 0 | 1;

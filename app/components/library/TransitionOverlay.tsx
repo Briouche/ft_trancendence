@@ -3,8 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-// Hides the Canvas being (re)created on every navigation behind a fade to black: you "enter"
-// the next room from darkness instead of seeing the page recompose all at once.
+// Fade from black on every route change.
 export default function TransitionOverlay() {
     const pathname = usePathname()
     const [covering, setCovering] = useState(true)

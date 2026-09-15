@@ -2,28 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Same idea as ScaledCardFace (see that file): the content (the book, the banner...) keeps its
-// "design" dimensions in fixed pixels — never touched, so all the notebook art's pixel-perfect
-// alignment stays valid — and a single transform scale, measured against its natural size
-// (ResizeObserver, unaffected by the transform we apply ourselves) relative to the space actually
-// available, is what makes it fill any screen size (portrait 1080×1920 included) while staying
-// readable — scaling up on large windows too, not just down on small ones.
-//
-// Scale is measured against the outer wrapper's own box (a second ResizeObserver), not
-// window.innerWidth/innerHeight: callers that aren't full-viewport (e.g. an auth form sharing the
-// page with a Header/Footer, via className="h-full" instead of the default h-screen) need the
-// scale computed from the space they actually have, not the whole window.
-//
-// maxScale caps how far content can grow past its own design size. Fine to leave unbounded (the
-// default) for content designed to fill the whole viewport (the Collection/Deck Builder "book",
-// sized close to a full window already) — but a compact design (e.g. Pack Opening's title + a
-// couple of buttons, nowhere near viewport-sized) would otherwise get blown up to cover the whole
-// screen, ballooning its text/buttons far past a comfortable reading size on a large monitor.
+// Renders fixed-size content and scales it as one block to fit the available space
+// (up to `maxScale`), so pixel-perfect layouts work at any viewport size.
 export default function ScaleToFit({ children, className = 'h-screen', maxScale = Infinity, align = 'center' }: {
     children: React.ReactNode
     className?: string
     maxScale?: number
-    // 'start' pins content flush to the top of the container instead of vertically centering it.
     align?: 'center' | 'start'
 }) {
     const outerRef = useRef<HTMLDivElement>(null)
@@ -64,10 +48,6 @@ export default function ScaleToFit({ children, className = 'h-screen', maxScale 
 
     return (
         <div ref={outerRef} className={`flex w-full justify-center overflow-hidden ${align === 'start' ? 'items-start' : 'items-center'} ${className}`}>
-            {/* transformOrigin follows align: with items-start, the flex box already pins the
-                element's (unscaled) top edge to the container's top — origin "top" then makes
-                the scale grow downward from that same edge instead of the default center-out
-                growth, which would push the scaled-up top back above the container and clip it. */}
             <div ref={innerRef} style={{ transform: `scale(${scale})`, transformOrigin: align === 'start' ? 'top' : 'center' }}>
                 {children}
             </div>

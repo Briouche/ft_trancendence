@@ -6,6 +6,7 @@ import { legendary } from "./legendary";
 
 const MAX_MANA: number = 7;
 
+// One seat: hero, deck, hand, mana, fatigue and the legendary passive counters.
 export class Player
 {
     public hero:          Hero;
@@ -21,9 +22,7 @@ export class Player
     public archimedeCount: number = 0;
     public roiDesRatsCount: number = 0;
     public gertrudeCount: number = 0;
-    // Cosmetic card back (catalog shared with the Collection/profile pages on the Next.js side,
-    // see app/lib/cardBacks.ts) — sent by the client for a human player, picked at random for the
-    // AI (see serverSocket.ts). Purely visual, never affects game rules.
+    // Cosmetic only; index into the card back catalog (app/lib/cardBacks.ts).
     public cardBack: number;
 
     constructor(hero: Hero, deck: Deck, id: string, index: 0 | 1, cardBack: number = 0)
@@ -54,6 +53,7 @@ export class Player
         return true;
     }
 
+    // Empty deck: fatigue damage instead, increasing each time.
     drawCard(): boolean
     {
         if (this.deck.isEmpty())
@@ -67,6 +67,7 @@ export class Player
         return true;
     }
 
+    // A deck holds at most one legendary; its passive is active for the whole game.
     checkDeckForLeg()
     {
         const deck: Card[] = this.deck.getCards();
@@ -81,16 +82,6 @@ export class Player
             }
         }
     }
-
-    toString(): string
-    {
-        return this.hero.toString()
-            + " | Mana: " + this.currentMana + "/" + this.maxMana
-            + " | Deck: " + this.deck.size()
-            + " | Hand: " + this.hand.size();
-    }
-
-    //-----
 
     clone(): Player
     {

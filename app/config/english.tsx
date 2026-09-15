@@ -1,14 +1,16 @@
+import { NoticeData } from "@/components/NoticePage";
+import { NoticeSection } from "@/components/styles/NoticeSection";
+
+// UI copy and legal page content (English).
+
 export const english = {
-  // home page
   appName: "ft_transcendence",
   copyright: "ft_transcendence. All rights reserved.",
   privacyPolicy: "Privacy Policy",
   termsOfService: "Terms of Service",
 
-  // notice page
   lastUpdated: "Last Updated",
 
-  // profile & friends pages
   profile: "Profile",
   friends: "Friends",
   editProfile: "Edit profile",
@@ -17,9 +19,6 @@ export const english = {
   back: "Back",
   addFriend: "Add a friend",
 }
-
-import { NoticeData } from "@/components/NoticePage";
-import { NoticeSection } from "@/components/styles/NoticeSection";
 
 export const enPrivacyContent: NoticeData = {
   title: "Privacy Policy",
@@ -30,44 +29,7 @@ export const enPrivacyContent: NoticeData = {
         <p>We collect information you provide directly to us...</p>
       </NoticeSection>
       <NoticeSection title="2. How We Use Information">
-        <p>
-          We use the information to provide our services...
-          I will write a very long text to see how the scrollable content works.
-          This is another very long line just for the sake of long lines.
-          bla-bla-bla there is no content in this line but some characters anyways.
-        </p>
-      </NoticeSection>
-      <NoticeSection title="2. How We Use Information">
-        <p>
-          We use the information to provide our services...
-          I will write a very long text to see how the scrollable content works.
-          This is another very long line just for the sake of long lines.
-          bla-bla-bla there is no content in this line but some characters anyways.
-        </p>
-      </NoticeSection>
-      <NoticeSection title="2. How We Use Information">
-        <p>
-          We use the information to provide our services...
-          I will write a very long text to see how the scrollable content works.
-          This is another very long line just for the sake of long lines.
-          bla-bla-bla there is no content in this line but some characters anyways.
-        </p>
-      </NoticeSection>
-      <NoticeSection title="2. How We Use Information">
-        <p>
-          We use the information to provide our services...
-          I will write a very long text to see how the scrollable content works.
-          This is another very long line just for the sake of long lines.
-          bla-bla-bla there is no content in this line but some characters anyways.
-        </p>
-      </NoticeSection>
-      <NoticeSection title="2. How We Use Information">
-        <p>
-          We use the information to provide our services...
-          I will write a very long text to see how the scrollable content works.
-          This is another very long line just for the sake of long lines.
-          bla-bla-bla there is nocontent in this line but some characters anyways.
-        </p>
+        <p>We use the information to provide our services...</p>
       </NoticeSection>
     </>
   ),

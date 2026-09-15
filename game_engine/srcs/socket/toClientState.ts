@@ -1,9 +1,10 @@
 import { Card, MinionCard, SpellCard } from "../card";
 import { GameEngine } from "../gameEngine";
 import { Effect, cleaveEffect, regenerationEffect } from "../effect";
-import { ClientCard, ClientGameState, ClientHero, TargetOption, clientEffect } from "../shared/protocol";
-import { Targetable } from "../target";
+import { ClientCard, ClientGameState, ClientHero, clientEffect } from "../shared/protocol";
 import { Player } from "../player";
+
+// Engine state → the per-player view sent over the socket (shared/protocol.ts).
 
 function getOnPlayEffects(card: Card): Effect[]
 {
@@ -20,7 +21,7 @@ function getOnPlayEffects(card: Card): Effect[]
 
 function requiresTarget(card: Card): boolean
 {
-    return getOnPlayEffects(card).some((effect: Effect) => 
+    return getOnPlayEffects(card).some((effect: Effect) =>
         effect.resolver !== null && effect.resolver.requiresInput === true);
 }
 
@@ -78,7 +79,6 @@ export function toClientCard(card: Card): ClientCard
 
 function toClientHero(player: Player): ClientHero
 {
-    // Use the hero's own id and name so the client receives full hero identity emitted by the engine
     let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth, cardBack: player.cardBack };
     if (player.legPassive == "archimede")
         data.archi = player.archimedeCount;

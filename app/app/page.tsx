@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignInForm from "@/components/SignInForm";
 
+// Sign-in page for visitors; signed-in users see the hub mounted by the root layout instead.
 export default async function HomePage() {
   const session = await getSession();
 
@@ -16,8 +17,5 @@ export default async function HomePage() {
     );
   }
 
-  // The hub itself is rendered by HubBackground in the root layout (mounted once, never
-  // unmounted between visits to "/" — see layout.tsx and HubBackground.tsx): this page has
-  // nothing left to render for a logged-in user.
   return null;
 }

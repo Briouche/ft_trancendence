@@ -11,9 +11,7 @@ import {
     CARD_ART_BOX, CARD_DESC_BOX, CARD_DESC_BOX_SPELL, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, isSpellRarity,
 } from "@/lib/cardLayout";
 
-// A large, readable rendition of one card, shown either on hover (attachCardPreviewHover, e.g.
-// over small board/hand cards) or briefly when a card is played (showCardPreview). Also lists the
-// card's active keyword effects (taunt, rush, etc.) as an explanatory sidebar.
+// Large card view shown on long hover or when a card is played, with its keywords listed beside it.
 
 const PREVIEW_DEPTH = 3200;
 const PREVIEW_HEIGHT_RATIO = 1 / 2.5;
@@ -22,7 +20,6 @@ const LEFT_MARGIN_RATIO = 0.07;
 const HOVER_DELAY_MS = 2000;
 const PLAYED_DURATION_MS = 3000;
 
-// Ceiling on the description's font size, relative to its box height — see Card.ts.
 const DESC_MAX_FONT_RATIO = 0.225;
 
 const KEYWORD_GAP_RATIO = 0.03;
@@ -157,6 +154,7 @@ class CardPreview extends Phaser.GameObjects.Container
 
 const previewCleanups = new WeakMap<Card, () => void>();
 
+// Shows the preview after hovering a card for HOVER_DELAY_MS.
 export function attachCardPreviewHover(card: Card): void
 {
     detachCardPreviewHover(card);
@@ -185,10 +183,7 @@ export function attachCardPreviewHover(card: Card): void
     previewCleanups.set(card, clear);
 }
 
-// Must be called before stripping/replacing a card's listeners (e.g. moving it
-// between hand and board) so a pending delayed preview can't fire after the
-// hover that requested it has already been torn down — that preview would
-// then have no pointerout/destroy handler left to clear it.
+// Cancels a pending/open preview before the card's listeners are replaced.
 export function detachCardPreviewHover(card: Card): void
 {
     const clear = previewCleanups.get(card);

@@ -20,6 +20,8 @@ import {
   USERNAME_REGEX,
 } from "@/lib/constants";
 
+// Server actions: login, registration, logout.
+
 export async function checkCredentials(formData: FormData) {
   const usernameRaw = getStringField(formData, "username");
   const passwordRaw = formData.get("password");
@@ -42,13 +44,9 @@ export async function checkCredentials(formData: FormData) {
   });
 
   if (!user || !user.password) {
-    // Run a dummy verify so this path costs roughly the same as the
-    // "user found, wrong password" path below.
-    // Note that with remote authentication, there is no password
     try {
       await verify(DUMMY_HASH, password);
     } catch {
-      // ignore - dummy hash mismatch is expected
     }
     return { error: "Invalid username or password." };
   }
@@ -63,7 +61,6 @@ export async function checkCredentials(formData: FormData) {
     return { error: "Invalid username or password." };
   }
 
-  // JWT/session cookie
   await createSession(user.id, user.username, user.tokenVersion);
 
   return { error: null };
@@ -111,16 +108,10 @@ export async function registerUser(formData: FormData) {
       },
     });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      const target = err.meta?.target as string[] | undefined;
-      if (target?.includes("email")) {
-        return { error: "Cound not create account." };
-      }
-      return { error: "Cound not create account." };
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) {
+      console.error("registerUser: unexpected error creating user", err);
     }
-
-    console.error("registerUser: unexpected error creating user", err);
-    return { error: "Cound not create account." };
+    return { error: "Could not create account." };
   }
 
   await createSession(user.id, user.username, user.tokenVersion);

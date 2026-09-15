@@ -9,18 +9,15 @@ import FriendsRequestsList from './FriendsRequestsList'
 import PendingRequestsList from './PendingRequestsList'
 import FriendsList from './FriendsList'
 
+// Friends page: search/add, received requests, sent requests, friends.
 export default function FriendsInformation({ username }: { username: string }) {
     const router = useRouter()
     const [isAdding, setIsAdding] = useState(false)
 
     return (
-        // h-screen + overflow-hidden, no padding: see CollectionBook.tsx — ScaleToFit below
-        // already centers/scales its content to fit the viewport exactly.
         <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
             <HomeButton onClick={() => router.push('/')} />
 
-            {/* maxScale capped well below the Collection/Deck Builder book's unbounded scale-up
-                (compact title + panel, not viewport-sized). */}
             <ScaleToFit maxScale={1.3}>
                 <div className="flex flex-col items-center gap-1">
                     <TitleBanner width="w-[720px]" className="z-20">FRIENDS</TitleBanner>

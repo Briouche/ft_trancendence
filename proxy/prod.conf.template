@@ -1,4 +1,3 @@
-# 1. WebSocket mapping (Allowed in http block scope)
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      close;
@@ -16,7 +15,7 @@ upstream socketio_upstream {
     server socketio:4000;
 }
 
-# 2. HTTP to HTTPS Redirect
+# HTTP → HTTPS
 server {
     listen 80;
     listen [::]:80;
@@ -27,7 +26,6 @@ server {
     }
 }
 
-# 3. HTTPS Server Block
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
@@ -48,7 +46,7 @@ server {
     add_header X-Content-Type-Options "nosniff";
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
-    # Reusable proxy target fallback
+    # Next.js app
     location @nextjs {
         proxy_pass http://nextjs_upstream;
         proxy_http_version 1.1;
@@ -58,7 +56,7 @@ server {
         proxy_set_header X-Forwarded-Proto   $scheme;
     }
 
-    # Serve Next.js Immutable Static Files directly from disk
+    # Immutable build assets, served from disk
     location /_next/static/ {
         alias /var/www/html/_next/static/;
         expires 1y;
@@ -67,17 +65,13 @@ server {
         try_files $uri $uri/ @nextjs;
     }
 
-    # Dynamic Next.js Routes, SSR, and public/ assets (favicon.ico, images/, robots.txt, etc.)
-    # Next.js serves public/ contents at the URL root, so we check the mounted
-    # public/ volume first for any path, and fall back to Next.js if it's not
-    # a static file (i.e. it's an actual route).
+    # public/ files from disk, everything else to Next.js
     location / {
         root /var/www/html;
         try_files /public$uri @nextjs;
     }
 
-    # WebSocket connections — the game server (gameEngine/, its own Node process, not the
-    # Next.js app) speaks socket.io on its own port; proxied here under the same origin.
+    # Game server (game_engine) socket.io
     location /socket.io/ {
         proxy_pass http://game_engine_upstream;
         proxy_http_version 1.1;
@@ -90,9 +84,7 @@ server {
         proxy_send_timeout 86400s;
     }
 
-    # Chat/presence Socket.io — separate process (socket-server/) from game_engine, kept on
-    # its own path since both speak socket.io on the same default path otherwise. Must match
-    # the `path` the socketio server itself listens on (socket-server/index.js).
+    # Chat/presence server (socket-server) socket.io
     location /chat-socket.io/ {
         proxy_pass http://socketio_upstream;
         proxy_http_version 1.1;

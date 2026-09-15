@@ -1,12 +1,7 @@
 import { ClientGameState } from "../../shared/protocol";
 
-// Serializes GameEvent animations via run() so they always play in the exact order the server
-// sent them, never overlapping (e.g. a draw animation firing mid-attack would look wrong even
-// though the two events are logically independent). While animations are in flight, incoming
-// state pushes are held in `queuedState` instead of applied immediately (see
-// queueState/GameScene.onServerState) — only the latest is kept, since older ones are superseded
-// and applying one mid-animation would let the board visually jump ahead. Flushed once the queue
-// fully drains.
+// Plays event animations one after another in server order; a state received meanwhile is
+// applied (latest only) once the queue is empty.
 export class AnimationQueue
 {
     private pendingAnimations = 0;

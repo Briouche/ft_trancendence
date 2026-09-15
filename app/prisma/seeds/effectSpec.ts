@@ -1,9 +1,5 @@
-// Shape of the JSON stored in Card's battlecry/deathrattle/onAttack/etc. columns (schema.prisma),
-// used here only to type-check tcg-collection.json while seeding. This is mirrored BY HAND from
-// game_engine/srcs/cardImport/effectFactory.ts's ResolverSpec/EffectSpec — not imported from there
-// directly, since the app image's Docker build context (./app) never includes game_engine/srcs (see
-// game_engine/srcs/shared/protocol.ts for the same convention on the client/server wire protocol).
-// A change to the effect spec shape on the game_engine side needs the same change made here.
+// Shape of the effect JSON stored on Card rows. Hand-mirrored from
+// game_engine/srcs/cardImport/effectFactory.ts; keep both in sync.
 export type ResolverSpec =
     | { kind: "anyCharacter" }
     | { kind: "enemyCharacter" }

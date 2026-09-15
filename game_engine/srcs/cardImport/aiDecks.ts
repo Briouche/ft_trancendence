@@ -1,10 +1,7 @@
-// AI decks for solo mode — hand-written here (card names, not opaque ids), so they're directly
-// editable without going through an account/deck builder. A name repeated twice = two copies,
-// exactly like a normal deck. serverSocket.ts picks one at random for each solo game — see
-// makeDeckFromNames in cardLoader.ts, which resolves these names without checking who owns the
-// card: the AI can play cards the human player has never unlocked.
+// AI decks for solo mode, by card name (a repeated name = two copies). Resolved by
+// makeDeckFromNames in cardLoader.ts without any ownership check.
 
-// Aggro deck: low curve, pressure from the start.
+// Aggro: low curve.
 const AGGRO_DECK: string[] = [
     "Leon, le chien saucisse",
     "le croupier", "le croupier", "Big mama hyena", "Big mama hyena",
@@ -14,7 +11,7 @@ const AGGRO_DECK: string[] = [
     "Equal opportunity", "Equal opportunity", "Pyroblin", "Pyroblin",
 ]
 
-// Control deck: all the (Rare) spells + a few big creatures to hold out for the late game.
+// Control: spells + big late-game creatures.
 const CONTROL_DECK: string[] = [
     "Roi des rats",
     "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
@@ -24,8 +21,7 @@ const CONTROL_DECK: string[] = [
     "Slime orthophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
 ]
 
-// Archimede synergy deck: the 6 "jar" members (Epic) + Archimede himself, filled out with
-// mid-curve commons — see the "archi" counter mechanic (Player.archimedeCount, player.ts).
+// Archimede synergy: the 6 "archi" cards + Archimede.
 const ARCHI_DECK: string[] = [
     "Archimed la maudite",
     "Haku (archi card)", "Reborn (Archi card)", "Ribgy (Archi card)", "Neo (archi card)",
@@ -35,7 +31,7 @@ const ARCHI_DECK: string[] = [
     "Bibliothequaire", "Pyroblin", "Jumeau Goblin",
 ]
 
-export const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]
+const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]
 
 export function pickRandomAiDeck(): string[]
 {

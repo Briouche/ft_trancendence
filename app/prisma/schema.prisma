@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   adapter  = "@prisma/adapter-pg"
@@ -12,19 +9,17 @@ datasource db {
 
 model User {
   id       Int    @id @default(autoincrement())
-  // lower case all email addresses and usernames when using them
+  // Stored lower-cased.
   email    String @unique
   username String @unique
 
-  // Nullable because OAuth-only accounts never set one
+  // Null for OAuth-only accounts.
   password String?
 
-  // 42 intra user id — set once the account is linked via "Sign in with 42".
-  // Nullable/unique: most accounts won't have one, but no two can share the same.
+  // 42 intra id, set by "Sign in with 42".
   fortyTwoId Int? @unique
 
-  // Used to logout-everywhere, password change, or suspected compromise
-  // A JWT is only accepted if its embedded tokenVersion matches this value
+  // A JWT is only accepted if its tokenVersion matches (bump to log out everywhere).
   tokenVersion Int @default(0)
 
   avatar String?
@@ -38,22 +33,16 @@ model User {
   cards         UserCard[]
   unopenedPacks Int        @default(0)
   pityCounter   Int        @default(0)
-  // Tracked separately per opponent type — see GameSession.recordResult (gameEngine), which
-  // increments the right counter at the end of each game based on the opposing seat (AI + its
-  // difficulty, or a real player).
+  // Win counters per opponent type (GameSession.recordResult).
   winsVsAiEasy   Int @default(0)
   winsVsAiMedium Int @default(0)
   winsVsAiHard   Int @default(0)
   winsVsPlayer   Int @default(0)
-  // Standard Elo rating (K-factor 32), updated only after PvP matches (never vs AI) — see
-  // recordEloUpdate (gameEngine cardLoader.ts), called from GameSession.recordResult.
+  // Elo rating, PvP only (K = 32).
   elo Int @default(1000)
-  // Index (0-7) into the cosmetic card-back catalog — see lib/cardBacks.ts.
-  cardBack      Int        @default(0)
-  // Unlocked card-back designs (indices 0-2 granted to everyone by default) — the remaining 5
-  // (3-7) are each tied to a specific achievement, never granted by default or drawn from a pack
-  // (see ACHIEVEMENT_CARD_BACKS in lib/cardBacks.ts and packs.ts).
-  unlockedCardBacks Int[]  @default([0, 1, 2])
+  // Selected / unlocked card backs, indices into lib/cardBacks.ts.
+  cardBack          Int   @default(0)
+  unlockedCardBacks Int[] @default([0, 1, 2])
 }
 
 enum UserStatus {
@@ -98,10 +87,7 @@ enum Keyword {
   SILENCE
 }
 
-// ─────────────────────────────────────────────
-// Game Component Models
-// ─────────────────────────────────────────────
-
+// Card catalog; effect columns hold JSON specs (game_engine cardImport/effectFactory.ts).
 model Card {
   id       String     @id
   assetKey String     @default("placeholder_card")
@@ -130,13 +116,12 @@ model Card {
   startOfTurnEffect Json?
   endOfTurnEffect   Json?
   spellEffect       Json?
-  
+
   keywords Keyword[] @default([])
   owners   UserCard[]
 }
 
-// Card(s) owned by a player. qty is capped by Card.qty (the max number of copies a player is
-// allowed to own of this card).
+// Copies owned by a player, capped by Card.qty.
 model UserCard {
   userId Int
   cardId String
@@ -146,7 +131,6 @@ model UserCard {
 
   @@id([userId, cardId])
 }
-
 
 model Deck {
   id        Int        @id @default(autoincrement())

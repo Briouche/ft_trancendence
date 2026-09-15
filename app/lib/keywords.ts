@@ -1,4 +1,5 @@
-export const KEYWORD_LABELS: Record<string, string> = {
+// Keyword enum value → label bolded inside card text.
+const KEYWORD_LABELS: Record<string, string> = {
     RUEE:          'Ruée',
     RALE_DAGONIE:  "Râle d'agonie",
     CRI_DE_GUERRE: 'Cri de guerre',
@@ -10,14 +11,14 @@ export const KEYWORD_LABELS: Record<string, string> = {
     SILENCE:       'Silence',
 }
 
+type TextSegment = { text: string; bold: boolean }
+
 function normalize(value: string): string {
-    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-export type TextSegment = { text: string; bold: boolean }
-
-// Splits `desc` into segments, bolding the passages that match the card's keyword labels
-// (case/accent-insensitive search, but the displayed text keeps its original casing/accents).
+// Splits a card description into plain/bold segments around its keyword labels
+// (matched without case or accents, displayed as written).
 export function splitKeywordSegments(desc: string, keywords: string[]): TextSegment[] {
     if (keywords.length === 0) return [{ text: desc, bold: false }]
 
@@ -44,7 +45,7 @@ export function splitKeywordSegments(desc: string, keywords: string[]): TextSegm
     const segments: TextSegment[] = []
     let cursor = 0
     for (const [start, end] of ranges) {
-        if (start < cursor) continue // skip overlaps
+        if (start < cursor) continue
         if (start > cursor) segments.push({ text: desc.slice(cursor, start), bold: false })
         segments.push({ text: desc.slice(start, end), bold: true })
         cursor = end

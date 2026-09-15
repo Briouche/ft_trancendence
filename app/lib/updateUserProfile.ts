@@ -19,6 +19,7 @@ import {
   USERNAME_REGEX,
 } from "@/lib/constants";
 
+// Server action: updates username/email and optionally the password, then refreshes the session.
 export async function updateUserProfile(formData: FormData) {
   const session = await getSession();
   if (!session) {

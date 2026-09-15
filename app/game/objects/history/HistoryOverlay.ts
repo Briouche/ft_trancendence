@@ -3,7 +3,7 @@ import { GAME_FONT_FAMILY_KEY } from "../gameFontRegistry";
 import { MatchHistory } from "./MatchHistory";
 import { createHistoryIcon } from "./historyIcons";
 
-const OVERLAY_DEPTH = 2500; // above turnBanner (2000)/EndTurn (500), below GameOverOverlay (3000)
+const OVERLAY_DEPTH = 2500;
 const DIM_COLOR = 0x000000;
 const DIM_ALPHA = 0.75;
 const PANEL_WIDTH_RATIO = 0.5;
@@ -13,9 +13,7 @@ const DETAIL_ROW_HEIGHT_RATIO = 0.045;
 const ICON_SIZE_RATIO = 0.045;
 const SCROLL_SPEED = 0.5;
 
-// Full readable match log, opened by clicking the HistoryStrip. Mirrors GameOverOverlay's
-// container/dim/resize/depth pattern, but renders a scrollable list of grouped entries instead of
-// a single centered message — hand-built scrolling since no UI plugin exists in this codebase.
+// Scrollable full match log, newest entry first.
 export class HistoryOverlay extends Phaser.GameObjects.Container
 {
     private dim: Phaser.GameObjects.Rectangle;
@@ -76,7 +74,7 @@ export class HistoryOverlay extends Phaser.GameObjects.Container
 
     show(): void
     {
-        this.scrollY = 0; // always open scrolled to the newest entry, at the top
+        this.scrollY = 0;
         this.rebuildRows();
         this.setVisible(true);
     }

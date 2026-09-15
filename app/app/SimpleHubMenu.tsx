@@ -4,10 +4,7 @@ import Link from 'next/link'
 import { MENU_ITEMS } from './menu'
 import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './AccountMenu'
 
-// Plain HTML nav shown instead of the 3D hall when the browser can't create a WebGL2 context
-// (GPU blocklisted, hardware acceleration disabled, missing driver permissions — see
-// supportsWebGL2 in HubBackground.tsx). Reuses MENU_ITEMS, the same source of truth as the
-// hall's 3D hotspots, so a new destination never needs adding in two places.
+// Text menu shown instead of the 3D hall when WebGL2 is unavailable.
 export default function SimpleHubMenu({ username, cardCount, elo, wins, cardBacks }: {
     username:  string
     cardCount: number

@@ -1,18 +1,14 @@
-// MCTS tree mechanics: selection, expansion, simulation, backprop.
+// MCTS: selection (UCB1), expansion, random rollout, backpropagation.
 
-import { GameEngine } from "../gameEngine";
+import { Action, GameEngine } from "../gameEngine";
 import { Targetable } from "../target";
-import { Action } from "./types";
 import { MinionCard } from "../card";
 import { Effect } from "../effect";
 
-// √2 is the standard UCB1 exploration constant for rewards normalized to [0,1] (Kocsis &
-// Szepesvári, 2006) — balances trying under-explored moves against exploiting known-good ones.
+// UCB1 exploration constant for rewards in [0, 1].
 const UCB1_C = Math.SQRT2;
 
-// A single point in the "tree" of possible futures the AI is exploring.
-// Each node = one possible game state, reached by one possible move.
-
+// One reachable game state and the move that led to it.
 export interface MCTSNode {
   state:          GameEngine;
   parent:         MCTSNode | null;
@@ -24,10 +20,8 @@ export interface MCTSNode {
   ownerIndex:     0 | 1;
 }
 
-// Takes a move and plays it out on a COPY of the game, so the real match
-// is never touched. Every simulated move goes through this.
-
-export function applyAction(engine: GameEngine, action: Action): GameEngine {
+// Plays `action` on a clone; the real match is never touched.
+function applyAction(engine: GameEngine, action: Action): GameEngine {
   const clone = engine.clone();
 
   switch (action.type) {
@@ -62,9 +56,6 @@ export function applyAction(engine: GameEngine, action: Action): GameEngine {
   return clone;
 }
 
-// Creates a new node for the tree: a snapshot of the game at this point,
-// plus the list of moves not yet explored from here.
-
 export function createNode(state: GameEngine, parent: MCTSNode | null, action: Action | null): MCTSNode {
   return {
     state,
@@ -78,23 +69,16 @@ export function createNode(state: GameEngine, parent: MCTSNode | null, action: A
   };
 }
 
-// Scores how "worth exploring" a move is — balances trying moves that have
-// worked well so far vs. trying moves that haven't been tested much yet.
-// This is the formula that makes MCTS smarter than pure random guessing.
-
 function ucb1(node: MCTSNode, parentVisits: number): number {
   if (node.visits === 0) return Infinity;
   return (node.wins / node.visits) + UCB1_C * Math.sqrt(Math.log(parentVisits) / node.visits);
 }
 
-// Picks the most promising move to explore next, based on the score above.
-
 export function selectBestChild(node: MCTSNode): MCTSNode {
   return node.children.reduce((best, c) => ucb1(c, node.visits) > ucb1(best, node.visits) ? c : best);
 }
 
-// Tries one move that hasn't been tested yet from this point in the tree.
-
+// Expands one random untried action into a child node.
 export function expand(node: MCTSNode): MCTSNode {
   const idx    = Math.floor(Math.random() * node.untriedActions.length);
   const action = node.untriedActions.splice(idx, 1)[0];
@@ -103,7 +87,8 @@ export function expand(node: MCTSNode): MCTSNode {
   return child;
 }
 
-// Heuristic score for a rollout that hit MAX_DEPTH without a winner (see simulate() below).
+// Heuristic score in [0, 1] for a rollout that hit MAX_DEPTH: hero HP first, board and hand
+// as tie-breakers.
 function evaluate(state: GameEngine, forPlayer: 0 | 1): number
 {
   const oppPlayer = forPlayer === 0 ? 1 : 0;
@@ -120,29 +105,25 @@ function evaluate(state: GameEngine, forPlayer: 0 | 1): number
 
   const handDiff = me.hand.size() - opp.hand.size();
 
-  // Hero HP dominates the score; board/hand are minor tie-breakers when HP is close. These exact
-  // weights are hand-tuned by feel, not derived from anything documented — treat them as knobs
-  // to revisit, not settled constants.
   const W_HP = 1.0, W_BOARD = 0.05, W_HAND = 0.1;
   const raw = W_HP * hpDiff + W_BOARD * boardDiff + W_HAND * handDiff;
 
   return 0.5 + 0.5 * Math.tanh(raw);
 }
 
-// Plays a full game out using random moves on both sides, capped at MAX_DEPTH plies so a rollout
-// always terminates — falls back to the heuristic evaluate() above if the game hasn't ended by then.
+// Random playout, capped at MAX_DEPTH plies.
 export function simulate(state: GameEngine, forPlayer: 0 | 1): number
 {
   let s = state;
   const MAX_DEPTH = 60;
 
-  for (let d = 0; d < MAX_DEPTH && !s.isTerminal(); d++) 
+  for (let d = 0; d < MAX_DEPTH && !s.isTerminal(); d++)
   {
     const actions = s.getLegalActions();
     s = applyAction(s, actions[Math.floor(Math.random() * actions.length)]);
   }
 
-  if (s.isTerminal()) 
+  if (s.isTerminal())
   {
     const winner = s.getWinner();
     if (winner === forPlayer) return 1;
@@ -153,12 +134,10 @@ export function simulate(state: GameEngine, forPlayer: 0 | 1): number
   return evaluate(s, forPlayer);
 }
 
-// After a simulated game ends, walks back up the tree updating each node's
-// win/loss record — this is how the AI "learns" which early moves were good.
-
-export function backpropagate(node: MCTSNode | null, result: number, forPlayer: 0 | 1): void 
+// Each node's wins are counted from the perspective of the player to move at that node.
+export function backpropagate(node: MCTSNode | null, result: number, forPlayer: 0 | 1): void
 {
-  for (let n = node; n !== null; n = n.parent) 
+  for (let n = node; n !== null; n = n.parent)
   {
     n.visits++;
     n.wins += n.ownerIndex === forPlayer ? result : 1 - result;

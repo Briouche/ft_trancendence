@@ -6,6 +6,7 @@ export class Hand
 {
     private cards: Card[] = [];
 
+    // Returns false (card lost) when the hand is full.
     add(card: Card): boolean
     {
         if (this.cards.length >= MAX_HAND_SIZE)
@@ -37,19 +38,6 @@ export class Hand
     {
         return [...this.cards];
     }
-
-    toString(): string
-    {
-        if (this.cards.length === 0)
-            return "Hand is empty.";
-
-        let result: string = "";
-        for (let i = 0; i < this.cards.length; i++)
-            result += "  [" + i + "] " + this.cards[i].toString() + "\n";
-        return result;
-    }
-
-    //-----
 
     clone(): Hand
     {

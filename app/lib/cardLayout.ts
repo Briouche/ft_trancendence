@@ -1,6 +1,4 @@
-// Text regions hand-measured on the 4 card frames (public/textures/cards/frame/frame-*.webp) —
-// single source of truth shared between CardFace.tsx (DOM rendering) and the in-game Phaser
-// rendering (Card.ts, CardPreview.ts) so both stay aligned on the same visuals.
+// Card zones in % of the card size, shared by CardFace (DOM) and the Phaser card renderers.
 export interface CardBox
 {
     left: number;
@@ -21,14 +19,9 @@ export const CARD_DESC_BOX_SPELL: CardBox = { left: 5.4, top: 57.1, width: 89.2,
 export const CARD_ATTACK_BOX: CardBox = { left: 4.5, top: 86, width: 18, height: 11 };
 export const CARD_HEALTH_BOX: CardBox = { left: 80, top: 86, width: 18, height: 11 };
 
-// The actual hole cut into the frame (the PNG's transparent area) where card artwork sits behind
-// the frame — measured off the shared alpha channel (x=21-368 of 390px wide, y=81-317 of 573px
-// tall). Wider than the legendary-portrait area in CardFace.tsx, which is a deliberately small,
-// centered badge rather than a fill for the whole hole.
+// Cutout window of the frame where the illustration sits.
 export const CARD_ART_BOX: CardBox = { left: 5.4, top: 14.1, width: 89, height: 41.2 };
 
-// The "Rare" frame (spells) has no swords or blood drop: its bottom text box is taller and its
-// gem sits in a different spot (see CardFace.tsx) — every spell is filed under this rarity, which
-// therefore is never a creature.
-export const SPELL_RARITIES = new Set(["Rare"]);
+// Spells all carry the "Rare" rarity; their frame has no attack/health slots.
+const SPELL_RARITIES = new Set(["Rare"]);
 export const isSpellRarity = (rarity: string) => SPELL_RARITIES.has(rarity);

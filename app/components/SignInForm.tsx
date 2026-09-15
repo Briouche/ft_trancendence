@@ -18,9 +18,6 @@ export default function SignInForm() {
     const username = (formData.get("username") as string | null)?.trim();
     const password = formData.get("password") as string | null;
 
-    // ==========================================
-    // CUSTOM JAVASCRIPT VALIDATION
-    // ==========================================
     if (!username || username.length < 3) {
       setError("Username must be at least 3 characters long.");
       return;
@@ -46,11 +43,7 @@ export default function SignInForm() {
   };
 
   return (
-    // flex-1 (not the default h-screen): this form shares the page with Header/Footer, so
-    // ScaleToFit must fill whatever space is left between them, not the whole viewport.
     <ScaleToFit className="flex-1">
-      {/* Same "parchment" frame (Frame04a) as the Deck Builder panel — consistent with the rest
-          of the site sourced from the notebook pack, rather than the Essential Pack's popup.webp. */}
       <div className="travelbook-frame4-panel flex w-96 flex-col p-7">
         <h2
           className="text-center font-display text-5xl font-bold text-white"

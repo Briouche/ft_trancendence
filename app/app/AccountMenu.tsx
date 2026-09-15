@@ -21,11 +21,7 @@ export type CardBacksSummary = {
 
 type Panel = 'account' | 'trophy' | null
 
-// Account/trophy dropdown — the only account UI now that the Hub is navigated entirely in 3D.
-// Icons are the 01_TravelBook set (ButtonAbout01a/ButtonAchievement01a, via AssetButton).
-// Achievement shows win counts (winsVsAi{Easy,Medium,Hard}/winsVsPlayer on User). Quick stats live
-// here; full profile editing and friends management are on the separate /profile and /friends
-// pages linked below — card backs are still picked from the Collection (same API).
+// Top-right dropdowns of the hub: account summary + links, and win counts.
 export default function AccountMenu({ username, cardCount, elo, wins, cardBacks }: {
     username:  string
     cardCount: number

@@ -5,7 +5,7 @@ import FriendRow, { type FriendLike } from './FriendRow'
 
 type SentRequest = { friendshipId: number; addressee: FriendLike; createdAt: string }
 
-// Requests the current user sent (pending, awaiting the addressee).
+// Friend requests the current user sent and that are still pending.
 export default function PendingRequestsList() {
     const [requests, setRequests] = useState<SentRequest[] | null>(null)
     const [error, setError] = useState<string | null>(null)

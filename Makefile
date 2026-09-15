@@ -1,21 +1,21 @@
-# Used to make sure there is a .env file
 include .env
 
 .PHONY: all dev prod clean fclean ffclean re
 
-# Default target
 all: dev
 
+# docker-compose.yml + docker-compose.override.yml: bind mounts, hot reload
 dev:
 	docker compose up --build
 
-# Production Setup
+# production images, nginx with TLS
 prod:
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
 clean:
 	docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.prod.yml down
 
+# also drops the db/redis volumes
 fclean: clean
 	docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.prod.yml down -v
 
@@ -24,5 +24,4 @@ ffclean: fclean
 	docker volume prune -f
 	docker system prune -af
 
-# Full fresh run
 re: fclean all

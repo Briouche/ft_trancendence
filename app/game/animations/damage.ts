@@ -6,6 +6,7 @@ const SHAKE_PER_DAMAGE = 2.5;
 const MIN_SCALE_DIP = 0.05;
 const SCALE_DIP_PER_DAMAGE = 0.01;
 
+// Shake and squash scaled by the damage amount, with a floating "-N".
 export function damageAnimation(scene: Phaser.Scene, target: Phaser.GameObjects.Container, damage: number): Promise<void>
 {
     return new Promise((resolve) =>
@@ -28,11 +29,6 @@ export function damageAnimation(scene: Phaser.Scene, target: Phaser.GameObjects.
             ],
         });
 
-        spawnDamageNumber(scene, target.x, target.y, damage, magnitude);
+        spawnFloatingNumber(scene, target.x, target.y, `-${damage}`, NEGATIVE_COLOR, magnitude);
     });
-}
-
-function spawnDamageNumber(scene: Phaser.Scene, x: number, y: number, damage: number, magnitude: number)
-{
-    spawnFloatingNumber(scene, x, y, `-${damage}`, NEGATIVE_COLOR, magnitude);
 }

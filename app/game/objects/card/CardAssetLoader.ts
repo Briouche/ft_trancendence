@@ -1,8 +1,6 @@
 import Phaser from "phaser";
 
-// Card art loads on demand (per assetKey) rather than all upfront in BootScene, since a match
-// only ever shows a fraction of all cards. `loadingKeys` dedupes concurrent requests for the same
-// key (e.g. two copies of the same minion drawn at once) to avoid queuing duplicate loader entries.
+// Card illustrations load on demand; `loadingKeys` dedupes concurrent requests for one key.
 const loadingKeys = new Set<string>();
 
 const RARITY_FRAME_KEYS: Record<string, string> = {
@@ -17,6 +15,7 @@ export function resolveCardFrameKey(rarity: string): string
     return RARITY_FRAME_KEYS[rarity] ?? "frame_commune";
 }
 
+// "placeholder_card" is the DB default for cards without an illustration.
 function hasCardArt(assetKey: string): boolean
 {
     return !!assetKey && assetKey !== "placeholder_card";
