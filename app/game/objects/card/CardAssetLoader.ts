@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+// Card illustrations load on demand; `loadingKeys` dedupes concurrent requests for one key.
 const loadingKeys = new Set<string>();
 
 const RARITY_FRAME_KEYS: Record<string, string> = {
@@ -14,6 +15,7 @@ export function resolveCardFrameKey(rarity: string): string
     return RARITY_FRAME_KEYS[rarity] ?? "frame_commune";
 }
 
+// "placeholder_card" is the DB default for cards without an illustration.
 function hasCardArt(assetKey: string): boolean
 {
     return !!assetKey && assetKey !== "placeholder_card";

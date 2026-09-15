@@ -6,8 +6,7 @@ export type MenuItem = {
     available:   boolean
 }
 
-// Source unique : chaque entrée devient un corridor dans le hall 3D ET une ligne dans le
-// menu simple (accessibilité / mobile / repli).
+// Hub destinations, shared by the 3D hall hotspots and the fallback text menu.
 export const MENU_ITEMS: MenuItem[] = [
     {
         href:        '/collection',

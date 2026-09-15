@@ -6,10 +6,7 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 
 type Card = CardFaceData & { ownedQty: number }
 
-// Zoom plein écran d'une carte, en DOM plat (pas dans la scène 3D) : bien plus net, et évite de
-// refaire tout le calage caméra/distanceFactor qui a déjà donné du fil à retordre côté livre.
-// La légère bascule qui suit la souris (parallaxe) est un simple transform CSS, amorti par une
-// transition plutôt qu'un vrai ressort — suffisant pour l'effet recherché ici.
+// Full-screen card view with a mouse-following tilt; closes on click outside or Escape.
 export default function CardZoom({ card, onClose }: { card: Card | null; onClose: () => void }) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 })
     const cardRef = useRef<HTMLDivElement>(null)
@@ -48,17 +45,21 @@ export default function CardZoom({ card, onClose }: { card: Card | null; onClose
             className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 backdrop-blur-sm"
             onClick={onClose}
         >
-            <div
-                ref={cardRef}
-                onClick={e => e.stopPropagation()}
-                className="w-[340px] transition-transform duration-150 ease-out will-change-transform"
-                style={{
-                    transform: `perspective(900px) rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 12}deg) scale(1.04)`,
-                }}
-            >
-                {/* stackQty=1 : le zoom montre toujours une seule carte (avec son badge xN), pas
-                    l'effet de pile à deux calques utilisé dans la grille de la Collection. */}
-                <ScaledCardFace card={card} ownedQty={card.ownedQty} stackQty={1} />
+            <div className="flex flex-col items-center gap-10">
+                <div
+                    ref={cardRef}
+                    onClick={e => e.stopPropagation()}
+                    className="w-85 transition-transform duration-150 ease-out will-change-transform"
+                    style={{
+                        transform: `perspective(900px) rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 12}deg) scale(1.04)`,
+                    }}
+                >
+                    <ScaledCardFace card={card} ownedQty={card.ownedQty} stackQty={1} />
+                </div>
+
+                {card.artist && (
+                    <p className="font-serif text-2xl italic text-parchment-300/70">{card.artist}</p>
+                )}
             </div>
         </div>
     )

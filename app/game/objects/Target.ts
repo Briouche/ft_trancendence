@@ -6,6 +6,7 @@ export type ResolvedTarget = { kind: "hero"; hero: Hero; id: string } | { kind: 
 
 const HIGHLIGHT_DEPTH = 1500;
 
+// A targetable hero or minion slot: drop zone + highlight ring.
 export class Target
 {
     private zone: Phaser.GameObjects.Zone;
@@ -41,11 +42,7 @@ export class Target
         return this.zone;
     }
 
-    /**
-     * Repositions/resizes the drop zone. A minion slot with no card gets a 0-size
-     * zone (same trick as before - can't drop onto nothing); a hero zone is always valid.
-     * Must be called every layout pass, same rule as Board's player dropzone.
-     */
+    // An empty minion slot gets a zero-size zone so nothing can be dropped on it.
     layout(x: number, y: number, width: number, height: number, highlightScale: number = 1)
     {
         this.zone.setPosition(x , y);

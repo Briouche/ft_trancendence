@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Target, ResolvedTarget } from "../Target";
 
+// All targets of the board (minion slots and heroes), looked up by zone or id.
 export class TargetRegistry
 {
     private targets: Target[] = [];

@@ -3,14 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import CardFace, { type CardFaceData } from './CardFace'
 
-// Largeur "de conception" de CardFace : ses tailles de police (emoji, description, stats...)
-// sont fixes et calibrées pour un affichage à peu près à cette taille (celle de la grille de la
-// Collection). La rendre plus petite qu'à sa largeur naturelle casse la mise en page (texte de
-// description qui n'a plus de place, emoji disproportionné) — donc au lieu de la contraindre
-// directement dans une cellule de grille étroite, on la rend à sa taille naturelle puis on
-// réduit le tout avec un seul transform scale mesuré sur la largeur réelle disponible.
+// Width CardFace's fixed font sizes are calibrated for.
 const NATURAL_WIDTH = 400
 
+// Renders CardFace at its natural width, then scales it down to the container's width.
 function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: number }) {
     const outerRef = useRef<HTMLDivElement>(null)
     const [scale, setScale] = useState(0)
@@ -34,15 +30,8 @@ function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: numb
     )
 }
 
-// `stackQty` pilote uniquement l'effet de pile (une deuxième carte collée derrière, décalée sur
-// la gauche) — séparé de `ownedQty` (qui pilote le badge "x2" dessiné par CardFace) car le Deck
-// Builder n'a pas besoin de ce badge (il grise plutôt les calques eux-mêmes, voir `dimFront`/
-// `dimBack`). Par défaut `stackQty` retombe sur `ownedQty` pour la Collection, qui n'a besoin que
-// d'un seul des deux props.
-//
-// `dimFront`/`dimBack` : un exemplaire ajouté au deck grise d'abord la carte de derrière (feedback
-// visuel immédiat dès le premier clic), un deuxième ajout grise aussi celle de devant (dernière
-// restante, plus aucun exemplaire disponible).
+// Card sized to its container; `stackQty` > 1 draws a second copy behind it, `dimFront`/`dimBack`
+// gray out each layer.
 export default function ScaledCardFace({ card, ownedQty, stackQty, dimFront, dimBack }: {
     card: CardFaceData
     ownedQty?: number

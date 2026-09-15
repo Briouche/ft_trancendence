@@ -1,5 +1,7 @@
 import { ClientGameState } from "../../shared/protocol";
 
+// Plays event animations one after another in server order; a state received meanwhile is
+// applied (latest only) once the queue is empty.
 export class AnimationQueue
 {
     private pendingAnimations = 0;

@@ -4,10 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 
-// Grand plan d'une carte déjà révélée du paquet, avec la même bascule qui suit la souris
-// (parallaxe) que le zoom de la Collection. Le retournement se joue désormais directement dans
-// le cercle (PackCardCircle) — ce zoom n'est plus qu'un "regarder de plus près" volontaire,
-// ouvert par un second clic sur une carte déjà retournée, fermé par un clic à côté.
+// Close-up of a revealed pack card with a mouse-following tilt; closes on click outside or Escape.
 export default function PackCardZoom({
     card, onClose,
 }: {
@@ -47,11 +44,6 @@ export default function PackCardZoom({
     if (!card) return null
 
     return (
-        // pointer-events-auto : `pointer-events` est hérité, et le conteneur racine de
-        // PackOpener est passé en pointer-events-none pour laisser les clics atteindre les
-        // paquets/cartes affichés par-dessus — sans ce reset explicite ici, ce plein écran
-        // hériterait ce "none" et deviendrait entièrement inerte (aucun clic, ni sur la carte
-        // ni sur le fond pour fermer).
         <div
             className="pointer-events-auto fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-ink-950/70 backdrop-blur-lg"
             onClick={onClose}
@@ -59,13 +51,17 @@ export default function PackCardZoom({
             <div
                 ref={cardRef}
                 onClick={e => e.stopPropagation()}
-                className="w-[300px] transition-transform duration-150 ease-out will-change-transform"
+                className="w-75 transition-transform duration-150 ease-out will-change-transform"
                 style={{
                     transform: `perspective(900px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 10}deg) scale(1.04)`,
                 }}
             >
                 <ScaledCardFace card={card} />
             </div>
+
+            {card.artist && (
+                <p className="font-serif text-2xl italic text-parchment-300/70">{card.artist}</p>
+            )}
 
             <p className="font-serif text-sm italic text-parchment-300/50">Click outside to close</p>
         </div>

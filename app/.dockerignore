@@ -1,54 +1,25 @@
-# Dependency directories
 node_modules*
-
-# Next.js build output
 .next
 out
+build
 
-# Version control
 .git
+.gitignore
 
-# Environment variables
 .env
-.env.example
-.env.*.local
-.env.local
-.env.development
-.env.production
+.env.*
+!.env.example
 
-# Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Docker-related files
-Dockerfile
+Dockerfile*
 .dockerignore
 docker-compose*.yml
 
-# OS/Editor files
 .DS_Store
 .vscode/
 .zed
-# Dependencies and local build outputs
-node_modules
-.next
-out
-
-# Logs and environment variables
-*.log
-npm-debug.log*
-.env*
-!.env.example
-
-# OS / Editor clutter
-.DS_Store
-.vscode
-
-# Git and Docker build context
-.git
-.gitignore
-.dockerignore
-Dockerfile*

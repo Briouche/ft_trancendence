@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { isValidCardBack } from '@/lib/cardBacks'
 
+// Equips one of the user's unlocked card backs.
 export async function POST(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

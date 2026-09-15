@@ -4,11 +4,7 @@ import PackArt, { type PackSkin } from './PackArt'
 
 const PACK_WIDTH = 170
 
-// Les 3 paquets proposés doivent être choisis avant de voir l'animation d'ouverture — pas de
-// clic direct sur un coffre comme avant, un vrai choix cosmétique parmi 3 designs différents.
-// `locked` (0 paquet en stock) garde les 3 paquets visibles — juste grisés (grayscale) et non
-// cliquables — plutôt que de faire disparaître toute la rangée, pour ne pas donner l'impression
-// que la page est cassée/vide quand le joueur n'a temporairement rien à ouvrir.
+// The 3 pack designs on offer; grayed out and inert when `locked`.
 export default function PackChoice({ skins, locked, onChoose }: { skins: PackSkin[]; locked?: boolean; onChoose: (skin: PackSkin) => void }) {
     return (
         <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-16">

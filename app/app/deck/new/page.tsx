@@ -24,7 +24,7 @@ export default async function DeckPage() {
         prisma.card.aggregate({ _sum: { qty: true } }),
     ])
 
-    // qty ici = nombre d'exemplaires possédés par le joueur (utilisé comme plafond dans DeckBuilder)
+    // qty = copies owned, the per-card cap in the builder.
     const cards = owned.map(({ card, qty }) => ({ ...card, qty }))
 
     return <DeckBuilder cards={cards} decks={decks} totalCardCount={totalCopies._sum.qty ?? 0} />

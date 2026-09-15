@@ -2,11 +2,12 @@ import Phaser from "phaser";
 import { EventManager } from "../EventManager";
 import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
-const OVERLAY_DEPTH = 3000; // above turnBanner (2000) and EndTurn (500)
+const OVERLAY_DEPTH = 3000;
 const DIM_COLOR = 0x000000;
 const DIM_ALPHA = 0.6;
 const CLICK_DELAY_MS = 2000;
 
+// Full-screen result banner; becomes clickable after a delay and then navigates home.
 export class GameOverOverlay extends Phaser.GameObjects.Container
 {
     private dim: Phaser.GameObjects.Rectangle;

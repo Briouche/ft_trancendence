@@ -37,9 +37,12 @@ const COUNTER_GAP = 2;
 const HOVER_DELAY_MS = 2000;
 const TOOLTIP_PADDING = 6;
 
-const COUNTER_INFO: Record<"freddy" | "archi" | "roiDesRats" | "gertrude", { divisor: number; description: string }> = {
+type CounterType = "freddy" | "archi" | "roiDesRats" | "gertrude";
+
+// Legendary passive counters: progress shown as value/divisor, with a tooltip.
+const COUNTER_INFO: Record<CounterType, { divisor: number; description: string }> = {
     freddy: { divisor: 4, description: "Every 4 minions that die,\nfreddy summons a 1/1 skeleton." },
-    archi: { divisor: 6, description: "Once you have played\nall 6 bocal memebrs,\nplay Archimede to win the game." },
+    archi: { divisor: 6, description: "Once you have played\nall 6 bocal members,\nplay Archimede to win the game." },
     roiDesRats: { divisor: 3, description: "Every 3 end of turns,\nyour end-of-turn effects\ntrigger one extra time." },
     gertrude: { divisor: 4, description: "Every 4th spell you cast\ngoes back to your hand." },
 };
@@ -57,6 +60,7 @@ export interface HeroData
     cardBack: number;
 }
 
+// A hero: portrait frame, name, health, and the passive counter badge when the deck has one.
 export class Hero extends Phaser.GameObjects.Container
 {
     public heroData: HeroData;
@@ -68,13 +72,13 @@ export class Hero extends Phaser.GameObjects.Container
     private isOpponent: boolean;
     private fontFamily: string | undefined;
 
-    private counterType?: "freddy" | "archi" | "roiDesRats" | "gertrude";
+    private counterType?: CounterType;
     private counterCircle?: Phaser.GameObjects.Arc;
     private counterText?: Phaser.GameObjects.Text;
     private tooltipBg?: Phaser.GameObjects.Rectangle;
     private tooltipText?: Phaser.GameObjects.Text;
     private hoverTimer?: Phaser.Time.TimerEvent;
-    private counterRawValues: Partial<Record<"freddy" | "archi" | "roiDesRats" | "gertrude", number>> = {};
+    private counterRawValues: Partial<Record<CounterType, number>> = {};
     private glowRings: Phaser.GameObjects.Arc[] = [];
 
     constructor(scene: Phaser.Scene, heroData: HeroData, size: number = DEFAULT_SIZE, isOpponent: boolean = false)
@@ -162,6 +166,7 @@ export class Hero extends Phaser.GameObjects.Container
             this.healthText.setPosition(frameOffset.x + halfFrame + offsetX, frameOffset.y - halfFrame + offsetY);
     }
 
+    // Counters other than archi wrap around their divisor (progress to the next trigger).
     setHeroData(heroData: HeroData)
     {
         this.checkCounterTrigger("freddy", heroData.freddy);
@@ -180,7 +185,8 @@ export class Hero extends Phaser.GameObjects.Container
         this.updateCounter();
     }
 
-    private checkCounterTrigger(type: "freddy" | "archi" | "roiDesRats" | "gertrude", newValue: number | undefined): void
+    // Glows when the counter crosses a multiple of its divisor.
+    private checkCounterTrigger(type: CounterType, newValue: number | undefined): void
     {
         if (newValue === undefined)
             return;
@@ -249,7 +255,7 @@ export class Hero extends Phaser.GameObjects.Container
             this.counterText.setText(`${value}/${COUNTER_INFO[this.counterType].divisor}`);
     }
 
-    private createCounter(type: "freddy" | "archi" | "roiDesRats" | "gertrude"): void
+    private createCounter(type: CounterType): void
     {
         this.counterType = type;
         const value = this.heroData[type];

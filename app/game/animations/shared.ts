@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 
+// Floating numbers and glow pulses shared by the effect animations.
+
 export const MAX_MAGNITUDE = 40;
 export const POSITIVE_COLOR = "#09d84e";
 export const NEGATIVE_COLOR = "#ff4d4d";

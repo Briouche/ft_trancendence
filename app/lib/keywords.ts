@@ -1,4 +1,5 @@
-export const KEYWORD_LABELS: Record<string, string> = {
+// Keyword enum value → label bolded inside card text.
+const KEYWORD_LABELS: Record<string, string> = {
     RUEE:          'Ruée',
     RALE_DAGONIE:  "Râle d'agonie",
     CRI_DE_GUERRE: 'Cri de guerre',
@@ -10,15 +11,14 @@ export const KEYWORD_LABELS: Record<string, string> = {
     SILENCE:       'Silence',
 }
 
+type TextSegment = { text: string; bold: boolean }
+
 function normalize(value: string): string {
-    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-export type TextSegment = { text: string; bold: boolean }
-
-// Découpe `desc` en segments, en mettant en gras les passages qui correspondent
-// aux libellés des mots-clés de la carte (recherche insensible à la casse/accents,
-// mais le texte affiché garde la casse/accentuation d'origine).
+// Splits a card description into plain/bold segments around its keyword labels
+// (matched without case or accents, displayed as written).
 export function splitKeywordSegments(desc: string, keywords: string[]): TextSegment[] {
     if (keywords.length === 0) return [{ text: desc, bold: false }]
 
@@ -45,7 +45,7 @@ export function splitKeywordSegments(desc: string, keywords: string[]): TextSegm
     const segments: TextSegment[] = []
     let cursor = 0
     for (const [start, end] of ranges) {
-        if (start < cursor) continue // ignore les chevauchements
+        if (start < cursor) continue
         if (start > cursor) segments.push({ text: desc.slice(cursor, start), bold: false })
         segments.push({ text: desc.slice(start, end), bold: true })
         cursor = end

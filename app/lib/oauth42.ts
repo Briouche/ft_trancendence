@@ -2,17 +2,29 @@ import "server-only";
 
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { USERNAME_MAX_LENGTH } from "@/lib/constants";
+
+// "Sign in with 42" OAuth flow: authorize URL, code exchange, profile fetch, account lookup.
 
 const AUTHORIZE_URL = "https://api.intra.42.fr/oauth/authorize";
 const TOKEN_URL = "https://api.intra.42.fr/oauth/token";
 const ME_URL = "https://api.intra.42.fr/v2/me";
 
-const USERNAME_MAX_LENGTH = 30; // aligné avec lib/auth.ts
+interface FortyTwoProfile {
+    id:    number;
+    login: string;
+    email: string;
+}
 
 function getEnv(name: string): string {
     const value = process.env[name];
     if (!value) throw new Error(`${name} env var is not set`);
     return value;
+}
+
+// Public origin of the site, taken from FT_REDIRECT_URI.
+export function getSiteOrigin(): string {
+    return new URL(getEnv("FT_REDIRECT_URI")).origin;
 }
 
 export function buildAuthorizeUrl(state: string): string {
@@ -43,12 +55,6 @@ async function exchangeCodeForToken(code: string): Promise<string> {
     return data.access_token as string;
 }
 
-interface FortyTwoProfile {
-    id:    number;
-    login: string;
-    email: string;
-}
-
 async function fetchProfile(accessToken: string): Promise<FortyTwoProfile> {
     const res = await fetch(ME_URL, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -63,9 +69,8 @@ export async function fetchFortyTwoProfile(code: string): Promise<FortyTwoProfil
     return fetchProfile(accessToken);
 }
 
-// Retrouve le compte déjà lié à ce login 42, ou en crée un. Le login 42 est unique côté 42,
-// mais peut entrer en collision avec un compte local (email/mot de passe) qui aurait choisi
-// le même username en premier — dans ce cas on suffixe jusqu'à trouver un nom libre.
+// Account linked to this 42 login, created with a unique username if it doesn't exist yet;
+// an existing local account with the same email gets linked instead.
 export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
     const existing = await prisma.user.findUnique({ where: { fortyTwoId: profile.id } });
     if (existing) return existing;
@@ -87,8 +92,6 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
             },
         });
     } catch (err) {
-        // Cas rare : un compte local possède déjà cet email -> on y rattache le fortyTwoId
-        // plutôt que d'échouer, pour permettre à un utilisateur existant de lier son compte 42.
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
             return prisma.user.update({
                 where: { email: profile.email.toLocaleLowerCase() },

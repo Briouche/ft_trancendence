@@ -5,13 +5,13 @@ import { ROUTES } from '@/config/routes'
 import DeckBuilder from "../new/DeckBuilder";
 
 export default async function EditDeckPage({
-  params,
+    params,
 }: {
-  params: Promise<{ id: string }>;
+    params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const session = await getSession()
-  if (!session) redirect(ROUTES.home)
+    const { id } = await params;
+    const session = await getSession()
+    if (!session) redirect(ROUTES.home)
 
     const [deck, owned, decks, totalCopies] = await Promise.all([
         prisma.deck.findUnique({
@@ -31,16 +31,14 @@ export default async function EditDeckPage({
         prisma.card.aggregate({ _sum: { qty: true } }),
     ])
 
-    // Un deck d'un autre joueur (ou inexistant) ne doit ni s'afficher ni fuiter son contenu.
     if (!deck || deck.userId !== session.userId) notFound()
 
-    // qty ici = nombre d'exemplaires possédés par le joueur (utilisé comme plafond dans DeckBuilder)
+    // qty = copies owned, the per-card cap in the builder.
     const cards = owned.map(({ card, qty }) => ({ ...card, qty }))
 
-  // Convertit les cartes du deck au format attendu par DeckBuilder
-  const initialDeck = Object.fromEntries(
-    deck.cards.map((dc) => [dc.cardId, { card: dc.card, qty: dc.qty }]),
-  );
+    const initialDeck = Object.fromEntries(
+        deck.cards.map((dc) => [dc.cardId, { card: dc.card, qty: dc.qty }]),
+    );
 
     return (
         <DeckBuilder

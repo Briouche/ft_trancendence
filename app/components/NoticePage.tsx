@@ -11,6 +11,7 @@ interface NoticePageProps {
   data: NoticeData;
 }
 
+// Shared layout of the legal pages (privacy, terms): header, back link, scrolling body.
 export default function NoticePage({ data }: NoticePageProps) {
   const { title, lastUpdated, body } = data;
 
@@ -35,8 +36,6 @@ export default function NoticePage({ data }: NoticePageProps) {
       </header>
 
       <div className="w-full flex-1 min-h-0 rounded-card bg-background-secondary p-vertical overflow-y-auto">
-        {/* [@tailwindcss/typography] n'est pas installé : "prose" n'a plus de style. On
-            n'ajoute pas la dépendance pour ces 2 pages, on stylise les <p> directement. */}
         <div className="max-w-none text-ink-muted leading-relaxed [&_p]:mb-3">{body}</div>
       </div>
     </article>

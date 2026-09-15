@@ -6,25 +6,17 @@ import * as THREE from 'three'
 import { LANTERN } from './theme'
 
 type Props = (
-    // Accrochée à la caméra : utilisée dans le hall en FPS, où la souris EST la direction du
-    // regard (pointer lock) — la lanterne suit donc le regard sans calcul supplémentaire.
+    // 'attached': aims straight ahead of the camera. 'mouse-track': aims where the mouse points,
+    // on a plane facing the camera.
     | { mode: 'attached' }
-    // Suit la souris à travers le cadre de la caméra, sur un plan perpendiculaire à son axe
-    // de vue (et non le sol) : reste stable et couvre tout l'écran quel que soit l'angle de
-    // la caméra — une projection sur le sol devient dégénérée dès que la caméra vise à
-    // l'horizontale (le rayon ne croise plus jamais le plan y=0 dans la moitié haute de l'écran).
     | { mode: 'mouse-track'; distance?: number; spreadX?: number; spreadY?: number }
 ) & {
-    // Surcharges optionnelles du faisceau (par défaut les constantes LANTERN) : une pièce plus
-    // large qu'une salle de table (le hall) a besoin d'un faisceau plus étroit/moins intense
-    // pour rester une flaque de lumière crédible plutôt qu'un lavage general du sol.
     lightIntensity?: number
     lightAngle?:     number
     lightDistance?:  number
 }
 
-// La lanterne : unique source de lumière chaude et mobile de chaque scène, tout le reste
-// n'étant éclairé qu'en pénombre par l'ambient light d'Atmosphere.
+// The scene's single moving warm spotlight, carried by the camera.
 export default function Lantern(props: Props) {
     const { lightIntensity = LANTERN.intensity, lightAngle = LANTERN.angle, lightDistance = LANTERN.distance } = props
     const lightRef = useRef<THREE.SpotLight>(null)

@@ -4,6 +4,7 @@ import { Card } from "../objects/card/Card";
 const GLOW_COLOR = 0xfff066;
 const PULSE_DURATION = 220;
 
+// Glow pulse on the card's lightning icon (shader glow under WebGL, a ring on Canvas).
 export function passiveEffectAnimation(scene: Phaser.Scene, card: Card): Promise<void>
 {
     return new Promise((resolve) =>

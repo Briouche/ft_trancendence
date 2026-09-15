@@ -2,14 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
-  /* Stops Turbopack from breaking Prisma client generation */
   serverExternalPackages: ["@prisma/client"],
-  /* Pastille "Next.js DevTools" en bas de l'écran, visible uniquement en dev */
   devIndicators: false,
-  /* The app is reached through the nginx dev proxy (localhost:8080), not directly on the
-     Next.js dev server's own port — without this, Next blocks the HMR websocket as
-     cross-origin and the browser silently keeps serving the last bundle it loaded. */
+  // Origins the dev server is reached through (nginx proxy), for HMR.
   allowedDevOrigins: ["localhost:8080", "nginx_proxy", "nextjs_app"],
 };
 

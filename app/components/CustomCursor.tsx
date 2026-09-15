@@ -2,37 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Pointe de la flèche dans chaque sprite (mesurée au pixel près, à l'échelle native du fichier
-// — DISPLAY_SCALE la corrige ensuite) : c'est ce point-là, pas le coin de l'image, qui doit
-// coïncider avec la position réelle de la souris.
+// Arrow tip position inside each sprite, at native scale.
 const DEFAULT_TIP = { x: 4, y: 0 }
 const CLICK_TIP    = { x: 16, y: 16 }
 const CLICK_FRAME_MS = 45
-
-// Sprites affichés à moitié de leur taille native (déjà upscalée ×4 depuis la source pixel-art) :
-// un curseur plus discret. Les offsets de pointe ci-dessus sont mis à l'échelle en même temps,
-// sinon la pointe de la flèche se déconnecte de la position réelle de la souris.
 const DISPLAY_SCALE = 0.6
 
 type Frame = 'default' | 1 | 2 | 3 | 4
 
-// Remplace le curseur natif par celui du "Complete UI Book Styles Pack" (Crusenho), avec une
-// petite animation au clic (4 frames) — impossible avec `cursor: url()` seul, qui n'accepte
-// qu'une image statique, d'où ce composant : un <img> positionné à la main qui suit la souris.
+// Sprite cursor following the mouse, with a 4-frame click animation.
 export default function CustomCursor() {
     const imgRef = useRef<HTMLImageElement>(null)
     const [frame, setFrame] = useState<Frame>('default')
     const revealed = useRef(false)
-    // Dernière position connue de la souris : un clic sans bouger la souris ne déclenche aucun
-    // "mousemove", donc reposition() a besoin d'une position à réutiliser hors de cet event.
     const lastMouse = useRef({ x: 0, y: 0 })
 
-    // scale() après translate() : avec transform-origin à 0 0 (top-left), le point de la pointe
-    // (déjà compensé ci-dessous) reste sous la souris quelle que soit l'échelle. Sortie de
-    // l'effet mousemove pour pouvoir aussi être appelée directement au changement de frame (voir
-    // plus bas) : sinon l'animation de clic restait affichée à la position calculée pour la
-    // pointe PAR DÉFAUT (le mousemove suivant, souvent bien après la fin de l'anim, la corrigeait
-    // trop tard) — décalage visible entre le clic réel et l'anim.
     function reposition(clientX: number, clientY: number, currentFrame: Frame) {
         const el = imgRef.current
         if (!el) return
@@ -78,8 +62,8 @@ export default function CustomCursor() {
     }, [])
 
     const src = frame === 'default'
-        ? '/textures/book/cursor/default.png'
-        : `/textures/book/cursor/click-${frame}.png`
+        ? '/textures/book/cursor/default.webp'
+        : `/textures/book/cursor/click-${frame}.webp`
 
     return (
         <img

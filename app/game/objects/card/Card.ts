@@ -1,11 +1,13 @@
 import Phaser from "phaser";
 import { clientEffect } from "../../shared/protocol";
 import { ensureCardArt, resolveCardFrameKey, resolveInitialCardArt } from "./CardAssetLoader";
-import { boxCenterOffset, layoutBoxImage, layoutBoxText, maximizeTextToBox, maximizeWrappedTextToBox } from "./cardTextLayout";
+import {
+    boxCenterOffset, layoutBoxImage, layoutBoxText, maximizeTextToBox, maximizeWrappedTextToBox,
+    GAME_ATTACK_BOX, GAME_COST_BOX, GAME_COST_BOX_SPELL, GAME_HEALTH_BOX,
+} from "./cardTextLayout";
 import { GAME_FONT_FAMILY_KEY } from "./../gameFontRegistry";
 import {
-    CARD_ART_BOX, CARD_ATTACK_BOX, CARD_COST_BOX, CARD_COST_BOX_SPELL, CARD_DESC_BOX, CARD_DESC_BOX_SPELL,
-    CARD_HEALTH_BOX, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, isSpellRarity,
+    CARD_ART_BOX, CARD_DESC_BOX, CARD_DESC_BOX_SPELL, CARD_NAME_BOX, CARD_NAME_BOX_SPELL, isSpellRarity,
 } from "@/lib/cardLayout";
 
 const DEFAULT_WIDTH = 120;
@@ -15,9 +17,6 @@ const BUFFED_STAT_COLOR = "#09d84e";
 const MAX_STAT_COLOR = "#fbfbfb";
 const STAT_COLOR = "#eb0a0a";
 
-// Plafond de la police de la description, relatif à la hauteur de sa case — sans lui, un texte
-// très court (ex: un seul mot) grandirait jusqu'à remplir toute la hauteur de la case sur une
-// seule ligne géante.
 const DESC_MAX_FONT_RATIO = 0.225;
 
 export interface CardData
@@ -39,7 +38,7 @@ export interface CardData
     effects: clientEffect;
 }
 
-
+// Card data with its printed (base) stats, for previews.
 export function withStartingStats(data: CardData): CardData
 {
     if (data.baseAttack === undefined && data.baseHealth === undefined)
@@ -47,15 +46,17 @@ export function withStartingStats(data: CardData): CardData
     return { ...data, attack: data.baseAttack ?? data.attack, health: data.baseHealth ?? data.health, maxHealth: data.baseHealth ?? data.maxHealth };
 }
 
+// One card in hand or on the board: frame, art, texts, stat colors and effect icons.
+// Input and hover behavior are wired by InputController and animations/hover.ts.
 export class Card extends Phaser.GameObjects.Container
 {
     public cardData: CardData;
-    public startingAttack: number = 0;
-    public startingHealth: number = 0;
+    private startingAttack: number = 0;
+    private startingHealth: number = 0;
 
     public isDragging: boolean = false;
     public isHovering: boolean = false;
-    private hasBeenPLaced = false;
+    private hasBeenPlaced = false;
     private waitingTween: Phaser.Tweens.Tween | null = null;
     private frame: Phaser.GameObjects.Image;
     private art: Phaser.GameObjects.Image | null = null;
@@ -71,8 +72,6 @@ export class Card extends Phaser.GameObjects.Container
     private effectBolt: Phaser.GameObjects.Image;
     private attackGlow: Phaser.GameObjects.Graphics;
 
-    public  canAttack: boolean = false;
-
     private baseX = 0;
     private baseY = 0;
     private baseRot = 0;
@@ -82,6 +81,7 @@ export class Card extends Phaser.GameObjects.Container
     private onBoard: boolean = false;
     private myTurn: boolean = false;
     private ownSide: boolean = true;
+    private availableMana: number = 0;
 
     constructor(scene: Phaser.Scene, cardData: CardData, width: number = DEFAULT_WIDTH, height: number = DEFAULT_HEIGHT)
     {
@@ -186,7 +186,7 @@ export class Card extends Phaser.GameObjects.Container
 
         const isSpell = isSpellRarity(this.cardData.rarity);
         const nameBox = isSpell ? CARD_NAME_BOX_SPELL : CARD_NAME_BOX;
-        const costBox = isSpell ? CARD_COST_BOX_SPELL : CARD_COST_BOX;
+        const costBox = isSpell ? GAME_COST_BOX_SPELL : GAME_COST_BOX;
 
         const nameBoxWidthPx = (nameBox.width / 100) * width;
         const nameBoxHeightPx = (nameBox.height / 100) * height;
@@ -206,13 +206,14 @@ export class Card extends Phaser.GameObjects.Container
 
         if (this.attackText && this.healthText)
         {
-            layoutBoxText(this.attackText, CARD_ATTACK_BOX, width, height, 0.2);
-            layoutBoxText(this.healthText, CARD_HEALTH_BOX, width, height, 0.2);
+            layoutBoxText(this.attackText, GAME_ATTACK_BOX, width, height, 0.2);
+            layoutBoxText(this.healthText, GAME_HEALTH_BOX, width, height, 0.2);
         }
 
         this.drawEffects(width, height);
     }
 
+    // Records the card's slot; only the first call snaps to it, later moves are animated.
     setTransform(x: number, y: number, rotation: number, depth: number)
     {
         this.baseDepth = depth;
@@ -220,9 +221,9 @@ export class Card extends Phaser.GameObjects.Container
         this.baseX = x;
         this.baseY = y;
 
-        if (!this.hasBeenPLaced)
+        if (!this.hasBeenPlaced)
         {
-            this.hasBeenPLaced = true;
+            this.hasBeenPlaced = true;
             this.x = x;
             this.y = y;
             this.rotation = rotation;
@@ -241,21 +242,19 @@ export class Card extends Phaser.GameObjects.Container
         if (data.attack && data.health)
             this.updateStats(data.health, data.attack);
 
-        if (data.canAttack !== undefined)
-            this.canAttack = data.canAttack;
-
         this.refreshEffectVisibility();
         this.resize(this.width, this.height);
     }
 
+    // Stats colored green when above their printed value, red when below.
     updateStats(health: number, attack: number)
     {
         if (this.attackText && this.healthText && this.cardData.maxHealth)
         {
             this.attackText.setText(`${attack}`);
             this.healthText.setText(`${health}`);
-            layoutBoxText(this.attackText, CARD_ATTACK_BOX, this.width, this.height, 0.16);
-            layoutBoxText(this.healthText, CARD_HEALTH_BOX, this.width, this.height, 0.16);
+            layoutBoxText(this.attackText, GAME_ATTACK_BOX, this.width, this.height, 0.16);
+            layoutBoxText(this.healthText, GAME_HEALTH_BOX, this.width, this.height, 0.16);
             if (attack > this.startingAttack)
                 this.attackText.setColor(BUFFED_STAT_COLOR);
             else if (attack < this.startingAttack)
@@ -272,6 +271,7 @@ export class Card extends Phaser.GameObjects.Container
         }
     }
 
+    // Bobbing animation while the server hasn't confirmed the play yet.
     setWaiting(active: boolean): void
     {
         if (!this.hasValidScene())
@@ -310,7 +310,7 @@ export class Card extends Phaser.GameObjects.Container
 
         this.deathrattleSkull.clear();
         this.deathrattleSkull.setPosition(0, iconY);
-        const s = iconSize * 0.8; // slightly smaller so it visibly sits "on" the shield
+        const s = iconSize * 0.8;
         this.deathrattleSkull.fillStyle(0xf5f5f0, 1);
         this.deathrattleSkull.lineStyle(1, 0x000000, 1);
         this.deathrattleSkull.fillCircle(0, -s * 0.05, s * 0.35);
@@ -323,7 +323,7 @@ export class Card extends Phaser.GameObjects.Container
 
         const glowWidth = width;
         const glowHeight = height;
-        const glowColor = this.cardData.effects.rush ? 0x9b30ff : 0x00ff88; // purple while rush-restricted (can't attack hero yet), else green
+        const glowColor = (this.onBoard && this.cardData.effects.rush) ? 0x9b30ff : 0x00ff88;
         this.attackGlow.clear();
         this.attackGlow.lineStyle(6, glowColor, 0.25);
         this.attackGlow.strokeRoundedRect(-glowWidth / 2 - 4, -glowHeight / 2 - 4, glowWidth + 8, glowHeight + 8, 8);
@@ -339,12 +339,22 @@ export class Card extends Phaser.GameObjects.Container
         this.refreshEffectVisibility();
     }
 
+    setAvailableMana(mana: number): void
+    {
+        this.availableMana = mana;
+        this.refreshEffectVisibility();
+    }
+
+    // Effect icons show on the board; the glow marks a card that can attack or be played.
     private refreshEffectVisibility(): void
     {
         this.tauntShield.setVisible(this.onBoard && !!this.cardData.effects.taunt);
         this.deathrattleSkull.setVisible(this.onBoard && !!this.cardData.effects.deathrattle);
         this.effectBolt.setVisible(this.onBoard && (!!this.cardData.effects.endOfTurn || !!this.cardData.effects.startOfTurn || !!this.cardData.effects.onAttack || !!this.cardData.effects.onDamage));
-        this.attackGlow.setVisible(this.onBoard && this.ownSide && this.myTurn && !!this.cardData.canAttack);
+
+        const canAttack = this.onBoard && this.ownSide && this.myTurn && !!this.cardData.canAttack;
+        const canPlay = !this.onBoard && this.ownSide && this.myTurn && this.cardData.cost <= this.availableMana;
+        this.attackGlow.setVisible(canAttack || canPlay);
     }
 
     getEffectBolt(): Phaser.GameObjects.Image

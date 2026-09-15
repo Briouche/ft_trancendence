@@ -1,6 +1,6 @@
 import { Card } from "../objects/card/Card";
-import { OpponentCard } from "../objects/OpponentCard";
 
+// Card flies from the deck, is held enlarged for a second, then settles into the hand.
 export function drawCardAnimation(scene: Phaser.Scene, card: Card, fromX: number, fromY: number): Promise<void>
 {
     return new Promise((resolve) =>

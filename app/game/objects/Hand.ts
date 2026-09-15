@@ -12,11 +12,13 @@ const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
 const FIRST_CARD_DEPTH = 200;
 
-
+// The player's hand, laid out as a fanned arc at the bottom of the screen.
 export class Hand
 {
     private scene: Phaser.Scene;
     private cards: Card[] = [];
+    private isMyTurn: boolean = false;
+    private mana: number = 0;
 
     constructor(scene: Phaser.Scene)
     {
@@ -29,7 +31,8 @@ export class Hand
         const cardWidth = cardHeight / CARD_ASPECT_RATIO;
 
         const card: Card = new Card(this.scene, data, cardWidth, cardHeight);
-        card.setCardContext(false, false, true);
+        card.setCardContext(false, this.isMyTurn, true);
+        card.setAvailableMana(this.mana);
         attachCardHover(card);
         this.cards.push(card);
         this.layout();
@@ -76,7 +79,7 @@ export class Hand
         {
             const card = this.cards[i];
             const offsetFromCenter = i - mid;
-    
+
             let norm = 0;
             if (mid !== 0)
                 norm = offsetFromCenter / mid;
@@ -93,8 +96,11 @@ export class Hand
         }
     }
 
-    syncHandFromState(cards: CardData[]): void
+    syncHandFromState(cards: CardData[], isMyTurn: boolean, mana: number): void
     {
+        this.isMyTurn = isMyTurn;
+        this.mana = mana;
+
         const incomingIds: Set<string> = new Set(cards.map((c) => c.id));
         const current: Card[] = this.getCards();
 
@@ -111,7 +117,8 @@ export class Hand
             if (existing)
             {
                 existing.updateData(data);
-                existing.setCardContext(false, false, true);
+                existing.setCardContext(false, this.isMyTurn, true);
+                existing.setAvailableMana(this.mana);
             }
             else
                 this.addCard(data);
@@ -125,6 +132,7 @@ export class Hand
         return (this.cards.find((card) => card.cardData.id === id));
     }
 
+    // Removes the card from the hand without destroying it (it moves to the board).
     extractCard(card: Card): void
     {
         const index = this.cards.indexOf(card);
@@ -133,11 +141,13 @@ export class Hand
         this.layout();
     }
 
+    // Puts a card back in hand (a play was cancelled or rejected).
     returnCard(card: Card): void
     {
         if (!this.cards.includes(card))
             this.cards.push(card);
-        card.setCardContext(false, false, true);
+        card.setCardContext(false, this.isMyTurn, true);
+        card.setAvailableMana(this.mana);
         detachCardPreviewHover(card);
         card.off("pointerover");
         card.off("pointerout");

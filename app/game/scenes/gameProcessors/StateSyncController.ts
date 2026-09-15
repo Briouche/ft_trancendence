@@ -3,8 +3,9 @@ import { Card } from "@/game/objects/card/Card";
 import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
+import { MatchHistory } from "../../objects/history/MatchHistory";
 import { ClientGameState } from "../../shared/protocol";
-import { summonAnimation, drawCardAnimation } from "../../animations";
+import { drawCardAnimation } from "../../animations";
 import { GameFlowState } from "./GameFlowState";
 
 interface TableRefs
@@ -12,15 +13,17 @@ interface TableRefs
     hand: Hand;
     board: Board;
     opponentHand: OpponentHand;
+    history: MatchHistory;
 }
- 
+
 interface DeferredCardAnimation
 {
     cardId: string;
     run: (card: Card) => void;
 }
 
-//syncs with serverstate, use apply on every recieved state from the server
+// Applies each server state to the table objects (creating them on the first state), plays
+// draw animations for new hand cards, and runs animations deferred until their card exists.
 export class StateSyncController
 {
     private previousState: ClientGameState | null = null;
@@ -44,8 +47,9 @@ export class StateSyncController
             const hand = new Hand(this.scene);
             const board = new Board(this.scene, 6, state.playerHero, state.opponentHero);
             const opponentHand = new OpponentHand(this.scene, state.opponentHero.cardBack);
+            const history = new MatchHistory();
 
-            this.table = { hand, board, opponentHand };
+            this.table = { hand, board, opponentHand, history };
             this.onTableCreated(this.table);
         }
 
@@ -55,7 +59,7 @@ export class StateSyncController
 
         board.syncBoardFromState(state.playerBoard, state.opponentBoard, state);
         opponentHand.setCount(state.opponentHandCount);
-        hand.syncHandFromState(state.playerHand);
+        hand.syncHandFromState(state.playerHand, state.yourTurn, state.mana);
 
         board.playerHero.setHeroData(state.playerHero);
         board.opponentHero.setHeroData(state.opponentHero);
@@ -106,7 +110,6 @@ export class StateSyncController
 
     private detectDraws(state: ClientGameState): void
     {
-        //add mulligan here in future
         if (this.previousState === null)
             return;
 

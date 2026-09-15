@@ -3,15 +3,9 @@ import { io } from "socket.io-client";
 import type { ClientMessage, ServerMessage } from "@/game/shared/protocol";
 import type { Difficulty } from "@/game/shared/protocol";
 
-// The game server (gameEngine/) is its own Node process, separate from the Next.js app, but
-// reachable under the SAME origin — nginx proxies /socket.io/ to it (see proxy/dev.conf and
-// proxy/prod.conf.template) so the client never needs to know its actual host/port. Connecting
-// to a hardcoded host:port here would only work from whichever machine happens to have that
-// port reachable (e.g. bypassing the proxy entirely), breaking for anyone else.
-
-//socket connects to engine and eventmanager connects to phaser
-//socket.on ==> socket listens to message from server and emits on phaser with eventmanager
-//eventmanager.on ==> listens to phaser for requests from the player to send to the socket
+// Bridge between the socket.io connection to the game server and Phaser:
+// server messages are re-emitted as "server:*" events, "client:*" events are sent to the server.
+// The socket targets the page's own origin; nginx proxies /socket.io/ to the game server.
 
 export const EventManager = new EventEmitter();
 const socket = io();

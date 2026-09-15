@@ -2,42 +2,53 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Même principe que ScaledCardFace (voir ce fichier) : le contenu (le livre, la bannière...) garde
-// ses dimensions "de conception" en pixels fixes — jamais retouchées, tout l'alignement pixel-perfect
-// de l'art du notebook reste valable — et c'est un seul transform scale, mesuré sur sa taille
-// naturelle (ResizeObserver, non affecté par le transform qu'on applique nous-mêmes) rapportée à la
-// fenêtre, qui le fait tenir dans n'importe quelle taille d'écran (portrait 1080×1920 compris).
-export default function ScaleToFit({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+// Renders fixed-size content and scales it as one block to fit the available space
+// (up to `maxScale`), so pixel-perfect layouts work at any viewport size.
+export default function ScaleToFit({ children, className = 'h-screen', maxScale = Infinity, align = 'center' }: {
+    children: React.ReactNode
+    className?: string
+    maxScale?: number
+    align?: 'center' | 'start'
+}) {
+    const outerRef = useRef<HTMLDivElement>(null)
     const innerRef = useRef<HTMLDivElement>(null)
     const naturalSize = useRef({ width: 0, height: 0 })
+    const containerSize = useRef({ width: 0, height: 0 })
     const [scale, setScale] = useState(0)
 
     useEffect(() => {
+        const outer = outerRef.current
         const inner = innerRef.current
-        if (!inner) return
+        if (!outer || !inner) return
 
         const recompute = () => {
             const { width, height } = naturalSize.current
-            if (!width || !height) return
-            setScale(Math.min(1, window.innerWidth / width, window.innerHeight / height))
+            const { width: cw, height: ch } = containerSize.current
+            if (!width || !height || !cw || !ch) return
+            setScale(Math.min(maxScale, cw / width, ch / height))
         }
 
-        const observer = new ResizeObserver(([entry]) => {
+        const innerObserver = new ResizeObserver(([entry]) => {
             naturalSize.current = { width: entry.contentRect.width, height: entry.contentRect.height }
             recompute()
         })
-        observer.observe(inner)
+        innerObserver.observe(inner)
 
-        window.addEventListener('resize', recompute)
+        const outerObserver = new ResizeObserver(([entry]) => {
+            containerSize.current = { width: entry.contentRect.width, height: entry.contentRect.height }
+            recompute()
+        })
+        outerObserver.observe(outer)
+
         return () => {
-            observer.disconnect()
-            window.removeEventListener('resize', recompute)
+            innerObserver.disconnect()
+            outerObserver.disconnect()
         }
-    }, [])
+    }, [maxScale])
 
     return (
-        <div className={`flex h-screen w-full items-center justify-center overflow-hidden ${className}`}>
-            <div ref={innerRef} style={{ transform: `scale(${scale})` }}>
+        <div ref={outerRef} className={`flex w-full justify-center overflow-hidden ${align === 'start' ? 'items-start' : 'items-center'} ${className}`}>
+            <div ref={innerRef} style={{ transform: `scale(${scale})`, transformOrigin: align === 'start' ? 'top' : 'center' }}>
                 {children}
             </div>
         </div>

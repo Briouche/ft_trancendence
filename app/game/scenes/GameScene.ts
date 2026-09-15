@@ -2,6 +2,9 @@ import Phaser from "phaser";
 import { Hand } from "../objects/Hand";
 import { Board } from "../objects/board/Board";
 import { OpponentHand } from "../objects/OpponentHand";
+import { MatchHistory } from "../objects/history/MatchHistory";
+import { HistoryStrip } from "../objects/history/HistoryStrip";
+import { HistoryOverlay } from "../objects/history/HistoryOverlay";
 import { EventManager } from "../EventManager";
 import { ClientGameState, TargetPrompt, GameEvent } from "../shared/protocol";
 import { GameFlowState } from "./gameProcessors/GameFlowState";
@@ -10,12 +13,11 @@ import { StateSyncController } from "./gameProcessors/StateSyncController";
 import { ServerEventPlayer } from "./gameProcessors/ServerEventPlayer";
 import { InputController } from "./gameProcessors/InputController";
 import { GameOverOverlay } from "../objects/GameOverOverlay";
-import { TargetArrow } from "../objects/TargetArrow";
-import { ResolvedTarget } from "../objects/Target";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 
-
+// Match scene: routes server events to the flow/animation/sync/input controllers and owns the
+// hand, board, opponent hand and history UI.
 export class GameScene extends Phaser.Scene
 {
     private flow = new GameFlowState();
@@ -27,6 +29,9 @@ export class GameScene extends Phaser.Scene
     private hand!: Hand;
     private board!: Board;
     private opponentHand!: OpponentHand;
+    private history!: MatchHistory;
+    private historyStrip!: HistoryStrip;
+    private historyOverlay!: HistoryOverlay;
 
     private background!: Phaser.GameObjects.Image;
 
@@ -74,7 +79,7 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:rejected", this.onRejectedHandler);
         EventManager.on("server:event", this.onEventHandler);
 
-        // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY,
+        // Game.destroy() only emits DESTROY, so cleanup hooks here.
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         if (this.mode === "solo")
@@ -100,13 +105,17 @@ export class GameScene extends Phaser.Scene
         );
     }
 
-    private onTableCreated(table: { hand: Hand; board: Board; opponentHand: OpponentHand }): void
+    private onTableCreated(table: { hand: Hand; board: Board; opponentHand: OpponentHand; history: MatchHistory }): void
     {
         this.hand = table.hand;
         this.board = table.board;
         this.opponentHand = table.opponentHand;
+        this.history = table.history;
 
-        this.eventPlayer = new ServerEventPlayer(this, this.board, () => this.flow.playerIndex, (cardId, run) => this.stateSync.deferUntilCardExists(cardId, run));
+        this.eventPlayer = new ServerEventPlayer(this, this.board, () => this.flow.playerIndex, (cardId, run) => this.stateSync.deferUntilCardExists(cardId, run), this.history);
+
+        this.historyOverlay = new HistoryOverlay(this, this.history);
+        this.historyStrip = new HistoryStrip(this, this.history, () => this.historyOverlay.show());
 
         this.input_ = new InputController(this, this.board, this.hand, this.flow);
         this.input_.register();
@@ -121,8 +130,10 @@ export class GameScene extends Phaser.Scene
         this.hand.layout();
         this.board.layout();
         this.opponentHand.layout();
+        this.historyStrip.layout();
     }
 
+    // States arriving mid-animation are held by the queue and applied once it drains.
     private onServerState(state: ClientGameState): void
     {
         if (this.animationQueue.isBusy)
@@ -133,6 +144,7 @@ export class GameScene extends Phaser.Scene
         this.stateSync.apply(state);
     }
 
+    // A target captured during a drag answers the prompt directly; otherwise the player picks.
     private onServerPrompt(prompt: TargetPrompt): void
     {
         this.flow.pendingPrompt = prompt;
@@ -153,9 +165,6 @@ export class GameScene extends Phaser.Scene
     private onServerRejected(reason: string): void
     {
         console.warn("Server rejected action:", reason);
-        // input_ n'existe que depuis onTableCreated (état reçu du serveur) — un rejet peut
-        // maintenant arriver AVANT ça (ex: deck introuvable/vide côté serverSocket.ts, envoyé dès
-        // "readySolo"/"ready"), ce qui plantait ici auparavant.
         this.input_?.clearWaitingState(true);
     }
 
@@ -174,7 +183,11 @@ export class GameScene extends Phaser.Scene
 
     private onServerEvent(event: GameEvent): void
     {
-        this.animationQueue.run(() => this.eventPlayer!.play(event));
+        this.animationQueue.run(async () =>
+        {
+            await this.eventPlayer!.play(event);
+            this.historyStrip.refresh();
+        });
     }
 
     shutdown()

@@ -4,9 +4,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-// Bougie partagée par toutes les salles : même flamme qui vacille (scale bruité en boucle)
-// et même pointLight chaude, pour que chaque source de lumière ponctuelle de la bibliothèque
-// se ressemble. `scale` permet de la réutiliser pour une torche murale plus large.
+// Candle with a flickering flame and a warm point light; `scale` turns it into a wall torch.
 export default function Candle({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
     const flameRef = useRef<THREE.Mesh>(null)
 

@@ -1,9 +1,5 @@
-// Phaser dessine son texte sur son propre <canvas> : avoir la police chargée pour le CSS de la
-// page (globals.css / layout.tsx, via next/font) ne suffit pas — le navigateur doit l'avoir
-// réellement parsée avant qu'un Text Phaser soit créé avec ce fontFamily, sinon ça retombe
-// silencieusement sur la police par défaut. --font-pixel-game (posée sur <html> par next/font,
-// voir layout.tsx) porte le nom généré (haché) de la police : on le lit puis on force son
-// chargement via la Font Loading API avant de démarrer GameScene (voir BootScene.ts).
+// Resolves the site font's generated family name (--font-pixel-game) and makes sure the browser
+// has loaded it before Phaser draws any text.
 const FONT_FAMILY_VAR = "--font-pixel-game";
 const FALLBACK_FAMILY = "sans-serif";
 
@@ -25,7 +21,6 @@ export function ensureCardFontLoaded(): Promise<string>
         }
         catch
         {
-            // Tant pis, on retombe sur la police par défaut de Phaser plutôt que de bloquer le boot.
         }
 
         return family;

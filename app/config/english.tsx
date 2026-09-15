@@ -1,16 +1,24 @@
+import { NoticeData } from "@/components/NoticePage";
+import { NoticeSection } from "@/components/styles/NoticeSection";
+
+// UI copy and legal page content (English).
+
 export const english = {
-  // home page
   appName: "ft_transcendence",
   copyright: "ft_transcendence. All rights reserved.",
   privacyPolicy: "Privacy Policy",
   termsOfService: "Terms of Service",
 
-  // notice page
-  lastUpdated: "Last Updated"
-}
+  lastUpdated: "Last Updated",
 
-import { NoticeData } from "@/components/NoticePage";
-import { NoticeSection } from "@/components/styles/NoticeSection";
+  profile: "Profile",
+  friends: "Friends",
+  editProfile: "Edit profile",
+  save: "Save",
+  cancel: "Cancel",
+  back: "Back",
+  addFriend: "Add a friend",
+}
 
 export const enPrivacyContent: NoticeData = {
   title: "Privacy Policy",

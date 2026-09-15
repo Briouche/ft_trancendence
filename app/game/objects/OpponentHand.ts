@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { OpponentCard } from "./OpponentCard";
 
-const HAND_Y_RATIO = 0.12;          // distance from the TOP of the canvas
+const HAND_Y_RATIO = 0.12;
 const CARD_HEIGHT_RATIO = 0.2;
 const CARD_ASPECT_RATIO = 1.4;
 const OVERLAP_RATIO = 0.55;
@@ -9,6 +9,7 @@ const MAX_HAND_SPAN_RATIO = 0.5;
 const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
 
+// The opponent's hand: face-down card backs fanned at the top, one per card they hold.
 export class OpponentHand
 {
     private scene: Phaser.Scene;
@@ -32,16 +33,6 @@ export class OpponentHand
         while (this.cards.length > count)
             this.cards.pop()?.destroy();
         this.layout();
-    }
-
-    getCount(): number
-    {
-        return this.cards.length;
-    }
-
-    getObject(index: number): OpponentCard
-    {
-        return this.cards[index];
     }
 
     layout(widthCanvas = this.scene.scale.width, heightCanvas = this.scene.scale.height)
