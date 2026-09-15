@@ -1,6 +1,3 @@
-// Wire format shared between this client renderer and the gameEngine server (socket.io messages
-// carry these shapes as JSON). The server is authoritative for rules/state; this file only
-// describes what the client can send/receive, so it must stay in sync with the server's own copy.
 
 export interface clientEffect
 {
@@ -93,6 +90,7 @@ export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
                             | { type: "attack"; attackerId: string; targetId: string; }
                             | { type: "targetChoice"; targetId: string | null }
                             | { type: "endTurn" }
+                            | { type: "resume" }
                             | { type: "quit" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
@@ -100,4 +98,6 @@ export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "event"; event: GameEvent }
     | { type: "prompt"; prompt: TargetPrompt }
     | { type: "rejected"; reason: string }
+    | { type: "opponentDisconnected"; secondsRemaining: number }
+    | { type: "opponentReconnected" }
     | { type: "gameOver"; winner: "you" | "opponent" };

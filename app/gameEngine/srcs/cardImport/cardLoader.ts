@@ -8,13 +8,10 @@ import { lifestealEffect } from '../effect'
 import { ARCHIMEDE_ID, BATTLECRY_OVERRIDES, DEATHRATTLE_OVERRIDES, SPELL_EFFECT_OVERRIDES, NoOpEffect } from './keywordEffects'
 import { buildEffect, EffectSpec } from './effectFactory'
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, max: 10 })
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, max: 15, idleTimeoutMillis: 60000 })
 const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+export const prisma = new PrismaClient({ adapter })
 
-// Only the columns rawToCard/rawToMinionCard actually read — `artist` and `qty` are unused here
-// (qty only matters for collection/ownership limits, handled elsewhere), so skip fetching them on
-// every match start.
 const CARD_SELECT = {
     id: true, assetKey: true, name: true, type: true, rarity: true, cost: true, atk: true,
     def: true, desc: true, legendId: true, taunt: true, rush: true, cannotAttack: true,
@@ -27,20 +24,11 @@ export type RawCard = Prisma.CardGetPayload<{ select: typeof CARD_SELECT }>
 
 const LEGENDARY_PASSIVES: legendary[] = ["jeffe", "timmy", "archimede", "freddy", "roidesrats", "gertrude"]
 
-// legendId doubles as the legendaryPassive slot for a legendary card itself (e.g. "timmy"),
-// while on non-legendary cards it's a family-grouping reference to another card's id (e.g. the
-// "(archi card)" creatures point at Archimede's own id, see ARCHIMEDE_ID in keywordEffects.ts) —
-// only recognize it as a passive when it's one of the implemented legendary types.
 function resolveLegendaryPassive(legendId: string): legendary | undefined
 {
     return LEGENDARY_PASSIVES.find(l => l === legendId)
 }
 
-// cost/atk/def are Strings in the DB (see schema.prisma) — normally numeric, except for the rare
-// cards with variable cost/stats ("X", not scripted here yet). Number("") already evaluates to 0
-// (not NaN), so spells' empty fields (no atk/def) pass through fine; only "X" needs this net,
-// otherwise NaN would propagate through the whole engine (mana >= NaN is always false: the card
-// becomes silently unplayable instead of throwing a real error).
 function safeNumber(value: string): number
 {
     const n = Number(value)
@@ -98,45 +86,45 @@ function rawToCard(raw: RawCard, playerPrefix = "", suffix = ""): Card
         return rawToMinionCard(raw, playerPrefix, suffix)
 }
 
-export async function loadAllCards(): Promise<RawCard[]>
+type CardCatalog = { byId: Map<string, RawCard>; byName: Map<string, RawCard> }
+
+let catalogPromise: Promise<CardCatalog> | null = null
+
+async function loadCatalog(): Promise<CardCatalog>
 {
-    return prisma.card.findMany()
+    const rows = await prisma.card.findMany({ select: CARD_SELECT })
+    console.log(`Card catalog loaded: ${rows.length} cards`)
+    return {
+        byId:   new Map(rows.map(c => [c.id, c])),
+        byName: new Map(rows.map(c => [c.name, c])),
+    }
 }
 
-// Build a deck from the full collection: 1 legendary + 20 random commons = 21
-export async function makeCollectionDeck(playerPrefix = ""): Promise<Deck>
+// The card catalog is content data (~76 rows) that only changes on a re-seed, so it's loaded once
+// per process instead of being re-queried on every match start — see index.ts, which kicks this
+// off at boot so it's warm before the first player arrives (and doubles as the Prisma warm-up).
+// Memoized the same way as ensureCardFontLoaded in app/game/objects/gameFonts.ts: concurrent
+// callers share one in-flight load, and a failure clears the memo so the next call retries rather
+// than leaving the process permanently unable to start a game.
+// Caveat: re-seeding while this process is running leaves the cache stale until it restarts.
+export function ensureCatalogLoaded(): Promise<CardCatalog>
 {
-    const allCards = await loadAllCards()
-
-    const legendaries = allCards.filter(c => c.rarity === 'Légendaire')
-    const commons     = allCards.filter(c => c.rarity !== 'Légendaire')
-
-    const legend = pickRandom(legendaries)
-    const picked = shuffle(commons).slice(0, 20)
-
-    // Every card built for a player's deck gets a unique, incrementing postfix on top of the
-    // player prefix — otherwise two copies of the same card (or, here, an unlucky reshuffle)
-    // would collide on id, since rawToCard/rawToMinionCard build it deterministically from
-    // playerPrefix + raw.id alone.
-    let counter = 0
-    const gameCards: Card[] = [
-        rawToCard(legend, playerPrefix, `_${counter++}`),
-        ...picked.map(c => rawToCard(c, playerPrefix, `_${counter++}`)),
-    ]
-
-    return new Deck(gameCards)
+    if (!catalogPromise)
+    {
+        catalogPromise = loadCatalog().catch(err =>
+        {
+            catalogPromise = null
+            throw err
+        })
+    }
+    return catalogPromise
 }
 
 // Build a deck from a specific list of card ids (for player-built decks later)
 export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Promise<Deck>
 {
-    const rows = await prisma.card.findMany({ where: { id: { in: cardIds } }, select: CARD_SELECT })
-    const byId = new Map(rows.map(c => [c.id, c]))
+    const { byId } = await ensureCatalogLoaded()
 
-    // Duplicate copies of the same card share the same `id` occurrence here, so a plain
-    // playerPrefix isn't enough to keep them distinct within one deck (findIndex/Map lookups by
-    // card id would then silently collide) — the per-card counter guarantees uniqueness even
-    // when the same card appears more than once.
     const gameCards: Card[] = []
     let counter = 0
     for (const id of cardIds)
@@ -149,14 +137,10 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
     return new Deck(gameCards)
 }
 
-// Build a deck from a flat list of card NAMES (aiDecks.ts) instead of ids — lets the AI's decks
-// live as plain, hand-editable text in code, with no Deck/DeckCard rows and no ownership check
-// (the human player doesn't need to own — or even have unlocked — any of these cards). A name
-// repeated twice in the list yields two copies, same convention as makeDeckFromIds below.
+// Build a deck from a flat list of card NAMES (aiDecks.ts) instead of ids — AI decks
 export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""): Promise<Deck>
 {
-    const rows = await prisma.card.findMany({ where: { name: { in: cardNames } }, select: CARD_SELECT })
-    const byName = new Map(rows.map(c => [c.name, c]))
+    const { byName } = await ensureCatalogLoaded()
 
     const gameCards: Card[] = []
     let counter = 0
@@ -172,37 +156,32 @@ export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""):
     return new Deck(gameCards)
 }
 
-// Build a deck from a player's saved Deck (deck builder) — DeckCard only stores one row per
-// card id with a qty, so a card added twice needs to appear twice in the flat id list handed to
-// makeDeckFromIds (which draws one game Card per id occurrence). Returns null for a deck that
-// doesn't exist (deleted between selection and match start) or was saved empty, so the caller
-// can reject the match instead of silently starting one with zero cards.
-export async function makeDeckFromDeckId(deckId: number, playerPrefix = ""): Promise<Deck | null>
+// Build a deck from a player's saved Deck
+export async function makeDeckFromDeckId(deckId: number, ownerId: number, playerPrefix = ""): Promise<Deck | null>
 {
-    const deckCards = await prisma.deckCard.findMany({ where: { deckId } })
-    if (deckCards.length === 0)
+    // Prisma loads the `cards` relation with a second SELECT rather than a join (its
+    // relationLoadStrategy option isn't available under the pg driver adapter), so this is 2 round
+    // trips — still the only DB work left on the match-start path now that cards come from memory.
+    const deck = await prisma.deck.findUnique({
+        where: { id: deckId },
+        select: { userId: true, cards: { select: { cardId: true, qty: true } } },
+    })
+
+    if (!deck || deck.cards.length === 0)
         return null
 
+    if (deck.userId !== ownerId)
+    {
+        console.warn(`Deck ${deckId} requested by user ${ownerId} but owned by ${deck.userId} — rejected`)
+        return null
+    }
+
     const cardIds: string[] = []
-    for (const dc of deckCards)
+    for (const dc of deck.cards)
         for (let i = 0; i < dc.qty; i++)
             cardIds.push(dc.cardId)
 
     return makeDeckFromIds(cardIds, playerPrefix)
-}
-
-
-export async function getUsernameForDeck(deckId: number): Promise<string | null>
-{
-    const deck = await prisma.deck.findUnique({ where: { id: deckId }, select: { user: { select: { username: true } } } })
-    return deck?.user.username ?? null
-}
-
-
-export async function getUserIdForDeck(deckId: number): Promise<number | null>
-{
-    const deck = await prisma.deck.findUnique({ where: { id: deckId }, select: { userId: true } })
-    return deck?.userId ?? null
 }
 
 export type WinCategory = 'winsVsAiEasy' | 'winsVsAiMedium' | 'winsVsAiHard' | 'winsVsPlayer'
@@ -228,20 +207,4 @@ async function unlockCardBackIfNeeded(userId: number, index: number): Promise<vo
     if (!user || user.unlockedCardBacks.includes(index))
         return
     await prisma.user.update({ where: { id: userId }, data: { unlockedCardBacks: { set: [...user.unlockedCardBacks, index] } } })
-}
-
-function pickRandom<T>(arr: T[]): T
-{
-    return arr[Math.floor(Math.random() * arr.length)]
-}
-
-function shuffle<T>(arr: T[]): T[]
-{
-    const out = [...arr]
-    for (let i = out.length - 1; i > 0; i--)
-    {
-        const j = Math.floor(Math.random() * (i + 1));
-        [out[i], out[j]] = [out[j], out[i]]
-    }
-    return out
 }

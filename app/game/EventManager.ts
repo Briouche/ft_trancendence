@@ -3,22 +3,19 @@ import { io } from "socket.io-client";
 import type { ClientMessage, ServerMessage } from "@/game/shared/protocol";
 import type { Difficulty } from "@/game/shared/protocol";
 
-// The game server (gameEngine/) is its own Node process, separate from the Next.js app, but
-// reachable under the SAME origin — nginx proxies /socket.io/ to it (see proxy/dev.conf and
-// proxy/prod.conf.template) so the client never needs to know its actual host/port. Connecting
-// to a hardcoded host:port here would only work from whichever machine happens to have that
-// port reachable (e.g. bypassing the proxy entirely), breaking for anyone else.
-
-//socket connects to engine and eventmanager connects to phaser
-//socket.on ==> socket listens to message from server and emits on phaser with eventmanager
-//eventmanager.on ==> listens to phaser for requests from the player to send to the socket
-
 export const EventManager = new EventEmitter();
 const socket = io();
 
 socket.on("connect", () =>
 {
     EventManager.emit("client:connected");
+});
+
+socket.on("connect_error", (err: Error) =>
+{
+    EventManager.emit("server:rejected", err.message === "unauthenticated"
+        ? "Session expirée — reconnecte-toi."
+        : "Connexion au serveur de jeu impossible.");
 });
 
 socket.on("message", (msg: ServerMessage) =>
@@ -35,6 +32,10 @@ socket.on("message", (msg: ServerMessage) =>
         EventManager.emit("server:gameOver", msg.winner);
     else if (msg.type === "event")
         EventManager.emit("server:event", msg.event);
+    else if (msg.type === "opponentDisconnected")
+        EventManager.emit("server:opponentDisconnected", msg.secondsRemaining);
+    else if (msg.type === "opponentReconnected")
+        EventManager.emit("server:opponentReconnected");
 });
 
 EventManager.on("client:readySolo", (source: { difficulty: Difficulty; deckId: number; cardBack: number }) =>
@@ -46,6 +47,12 @@ EventManager.on("client:readySolo", (source: { difficulty: Difficulty; deckId: n
 EventManager.on("client:ready", (source: { deckId: number; cardBack: number }) =>
 {
     const msg: ClientMessage = { type: "ready", deckId: source.deckId, cardBack: source.cardBack };
+    socket.emit("message", msg);
+});
+
+EventManager.on("client:resume", () =>
+{
+    const msg: ClientMessage = { type: "resume" };
     socket.emit("message", msg);
 });
 

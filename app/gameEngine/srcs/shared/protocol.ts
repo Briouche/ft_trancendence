@@ -1,8 +1,4 @@
-// Wire protocol between this server and the Phaser client — ClientMessage/ServerMessage are the
-// only two message shapes exchanged over the socket (see socket/serverSocket.ts and
-// socket/gameSession.ts). This file is mirrored BY HAND at app/game/shared/protocol.ts on the
-// client side; the two are not imported from a shared package, so a change here needs the same
-// change made there or the two sides will silently disagree on message shapes.
+
 export interface clientEffect
 {
     taunt?: boolean;
@@ -95,6 +91,7 @@ export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
     | { type: "attack"; attackerId: string; targetId: string; }
     | { type: "targetChoice"; targetId: string | null }
     | { type: "endTurn" }
+    | { type: "resume" }
     | { type: "quit" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
@@ -102,4 +99,6 @@ export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "event"; event: GameEvent }
     | { type: "prompt"; prompt: TargetPrompt }
     | { type: "rejected"; reason: string }
+    | { type: "opponentDisconnected"; secondsRemaining: number }
+    | { type: "opponentReconnected" }
     | { type: "gameOver"; winner: "you" | "opponent" };

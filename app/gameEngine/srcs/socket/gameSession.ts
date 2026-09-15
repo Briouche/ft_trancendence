@@ -11,7 +11,15 @@ import { Action } from "../ai/types";
 import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
 import { recordWin, WinCategory } from "../cardImport/cardLoader";
 
-export type Seat = { kind: "human"; socket: Socket; userId: number | null } | { kind: "ai" };
+// userId is always present for a human seat: the socket is authenticated from the session cookie
+// before any message is handled (see auth/session.ts), so a seat is tied to an account rather than
+// to a connection that changes id on every reconnect.
+export type Seat = { kind: "human"; socket: Socket; userId: number } | { kind: "ai" };
+
+// How long a dropped human seat is held open before it forfeits. Long enough to survive the kind
+// of brief blip that socket.io reconnects through on its own (flaky wifi, a laptop sleeping for a
+// moment, a dev-server hiccup) without handing the opponent a free win.
+const RECONNECT_GRACE_MS = 30_000;
 
 // Which counter (User.winsVsAi{Easy,Medium,Hard}) to credit based on the game's difficulty — only
 // used when the loser is the AI; winsVsPlayer (a real human opponent) is wired separately, see
@@ -39,6 +47,9 @@ export class GameSession
     private gameOver : boolean = false;
     private difficulty: Difficulty;
     private readonly onGameEnd: () => void;
+    // seatIndex -> pending forfeit timer, set while that seat is disconnected and inside its
+    // reconnect grace window.
+    private disconnectTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
     constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen", onGameEnd: () => void = () => {})
     {
@@ -64,6 +75,50 @@ export class GameSession
         return this.seats.some(seat => seat.kind === "human" && seat.socket.id === socketId);
     }
 
+    // Identity-based counterpart to hasSocket. A socket.io reconnect hands the same player a brand
+    // new socket id, so anything that needs to recognise a returning player (rejoining a match,
+    // refusing a second concurrent game) has to match on the authenticated user instead.
+    hasUser(userId: number): boolean
+    {
+        return this.seats.some(seat => seat.kind === "human" && seat.userId === userId);
+    }
+
+    // Swaps a returning player's new socket onto their existing seat and resumes the match:
+    // cancels the forfeit timer, rebinds message handlers, and pushes the current state so the
+    // client can rebuild its board. Nothing about the game is reloaded — the engine, both decks
+    // and all board state stayed in memory the whole time.
+    reattach(userId: number, socket: Socket): boolean
+    {
+        if (this.gameOver)
+            return false;
+
+        const found = this.seats.findIndex(seat => seat.kind === "human" && seat.userId === userId);
+        if (found === -1)
+            return false;
+
+        const seatIndex = found as 0 | 1;
+        const seat = this.seats[seatIndex];
+        if (seat.kind !== "human")
+            return false;
+
+        const timer = this.disconnectTimers.get(seatIndex);
+        if (timer)
+        {
+            clearTimeout(timer);
+            this.disconnectTimers.delete(seatIndex);
+        }
+
+        seat.socket = socket;
+        socket.on("message", (msg: ClientMessage) => this.handle(seatIndex, msg));
+
+        this.send(seatIndex, { type: "assigned", playerIndex: seatIndex });
+        this.send(seatIndex, { type: "state", state: toClientState(this.engine, seatIndex) });
+        this.send(1 - seatIndex, { type: "opponentReconnected" });
+
+        console.log(`user ${userId} reattached to seat ${seatIndex}`);
+        return true;
+    }
+
     private bindHandlers(): void
     {
         this.seats.forEach((seat, playerIndex) =>
@@ -78,8 +133,6 @@ export class GameSession
         if (this.gameOver)
             return ;
 
-        // Allowed regardless of whose turn it is — quitting on the opponent's turn must still
-        // forfeit, not get rejected by the turn-order check below.
         if (msg.type === "quit")
         {
             this.forfeit(playerIndex);
@@ -122,6 +175,7 @@ export class GameSession
             return;
 
         this.gameOver = true;
+        this.clearDisconnectTimers();
         const winnerIndex: 0 | 1 = alive[0] ? 0 : 1;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(1 - winnerIndex, { type: "gameOver", winner: "opponent" });
@@ -135,7 +189,7 @@ export class GameSession
         const winnerSeat = this.seats[winnerIndex];
         const loserSeat = this.seats[1 - winnerIndex];
 
-        if (winnerSeat.kind !== "human" || winnerSeat.userId === null)
+        if (winnerSeat.kind !== "human")
             return;
 
         const category: WinCategory = loserSeat.kind === "ai" ? DIFFICULTY_WIN_CATEGORY[this.difficulty] : "winsVsPlayer";
@@ -289,7 +343,6 @@ export class GameSession
                 this.reject(playerIndex, "target selection cancelled");
                 return;
             }
-            // minion battlecry: proceed without a target, the battlecry will no-op
         }
         else
         {
@@ -399,7 +452,6 @@ export class GameSession
         return effects;
     }
 
-    // No reconnect grace period — a dropped human seat forfeits immediately.
     handleDisconnect(socket: Socket): void
     {
         if (this.gameOver)
@@ -412,7 +464,25 @@ export class GameSession
         if (seatIndex === -1)
             return;
 
-        this.forfeit(seatIndex as 0 | 1);
+        if (this.disconnectTimers.has(seatIndex))
+            return;
+
+        const timer = setTimeout(() =>
+        {
+            this.disconnectTimers.delete(seatIndex);
+            console.log(`seat ${seatIndex} did not reconnect within ${RECONNECT_GRACE_MS}ms — forfeiting`);
+            this.forfeit(seatIndex as 0 | 1);
+        }, RECONNECT_GRACE_MS);
+
+        this.disconnectTimers.set(seatIndex, timer);
+        this.send(1 - seatIndex, { type: "opponentDisconnected", secondsRemaining: RECONNECT_GRACE_MS / 1000 });
+    }
+
+    private clearDisconnectTimers(): void
+    {
+        for (const timer of this.disconnectTimers.values())
+            clearTimeout(timer);
+        this.disconnectTimers.clear();
     }
 
     private forfeit(loserIndex: 0 | 1): void
@@ -421,6 +491,7 @@ export class GameSession
             return;
 
         this.gameOver = true;
+        this.clearDisconnectTimers();
         const winnerIndex: 0 | 1 = loserIndex === 0 ? 1 : 0;
         this.send(winnerIndex, { type: "gameOver", winner: "you" });
         this.send(loserIndex, { type: "gameOver", winner: "opponent" });

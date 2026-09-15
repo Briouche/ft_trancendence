@@ -8,7 +8,10 @@ const prismaClientSingleton = () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     connectionTimeoutMillis: 5000,
-    max: 10
+    max: 10,
+    // Raised past pg's 10s default so a connection survives normal gaps between requests instead
+    // of being torn down and re-established (full TCP + Postgres auth handshake) on the next one.
+    idleTimeoutMillis: 60000
   });
   const adapter = new PrismaPg(pool);
 
