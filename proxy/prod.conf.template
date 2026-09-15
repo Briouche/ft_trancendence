@@ -52,6 +52,10 @@ server {
         proxy_set_header X-Real-IP           $remote_addr;
         proxy_set_header X-Forwarded-For     $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto   $scheme;
+
+        # A bit more headroom than nginx's 60s default for slow/low-core hardware.
+        proxy_read_timeout 90s;
+        proxy_send_timeout 90s;
     }
 
     # Serve Next.js Immutable Static Files directly from disk

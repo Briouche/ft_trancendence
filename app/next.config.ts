@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@prisma/client"],
   /* Hides the "Next.js DevTools" badge that otherwise shows in a corner during dev */
   devIndicators: false,
+  experimental: {
+    /* Defaults to true. On slow/low-core hardware this cache's periodic background writes
+       ("Finished writing to filesystem cache" / "filesystem cache database compaction" in the
+       dev server log) can block the whole process for 30+ seconds at unpredictable times —
+       including mid-session, not just at startup — which was observed freezing an in-progress
+       match and dropping its Postgres connection. Dev-only: has no effect on `next build`. */
+    turbopackFileSystemCacheForDev: false,
+  },
   /* The app is reached through the nginx dev proxy (localhost:8080), not directly on the
      Next.js dev server's own port, so these origins must be allowlisted for the dev HMR
      websocket to be treated as same-origin. */
