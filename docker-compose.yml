@@ -3,6 +3,7 @@ services:
     container_name: nginx_proxy
     depends_on:
       - app
+      - socketio
     networks:
       - frontend
     deploy:
@@ -20,8 +21,11 @@ services:
       FT_CLIENT_ID: ${FT_CLIENT_ID}
       FT_CLIENT_SECRET: ${FT_CLIENT_SECRET}
       FT_REDIRECT_URI: ${FT_REDIRECT_URI}
+      REDIS_URL: redis://redis:6379
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - frontend
@@ -31,15 +35,45 @@ services:
         limits:
           memory: 768M
 
+  socketio:
+    container_name: socketio_server
+    build:
+      context: ./socket-server
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+
+  redis:
+    container_name: redis_server
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+
   game_engine:
     container_name: game_engine
     build:
-      context: ./app
-      dockerfile: gameEngine/Dockerfile
+      context: .
+      dockerfile: game_engine/Dockerfile
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
       # Same secret as the app: this process verifies the session cookie the app issued, so the
-      # socket can be tied to an authenticated account (see gameEngine/srcs/auth/session.ts).
+      # socket can be tied to an authenticated account (see game_engine/srcs/auth/session.ts).
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db:
@@ -81,3 +115,4 @@ networks:
 
 volumes:
   db_data:
+  redis_data:

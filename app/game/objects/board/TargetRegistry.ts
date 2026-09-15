@@ -1,8 +1,7 @@
 import Phaser from "phaser";
 import { Target, ResolvedTarget } from "../Target";
 
-// Flat list of every Target (minion slots + both heroes) on the board, so callers can resolve a
-// drop zone or id to its target, or bulk-set highlight state, without knowing the board's layout.
+// All targets of the board (minion slots and heroes), looked up by zone or id.
 export class TargetRegistry
 {
     private targets: Target[] = [];

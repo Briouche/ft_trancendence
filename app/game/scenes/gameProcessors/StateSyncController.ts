@@ -5,7 +5,7 @@ import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
 import { MatchHistory } from "../../objects/history/MatchHistory";
 import { ClientGameState } from "../../shared/protocol";
-import { summonAnimation, drawCardAnimation } from "../../animations";
+import { drawCardAnimation } from "../../animations";
 import { GameFlowState } from "./GameFlowState";
 
 interface TableRefs
@@ -15,18 +15,15 @@ interface TableRefs
     opponentHand: OpponentHand;
     history: MatchHistory;
 }
- 
+
 interface DeferredCardAnimation
 {
     cardId: string;
     run: (card: Card) => void;
 }
 
-// Syncs the board/hand/hero objects to the latest server state — call apply() on every state
-// received from the server (see GameScene/AnimationQueue). Builds the Hand/Board/OpponentHand the
-// first time it's called. `pendingCardAnimations` mirrors ServerEventPlayer's defer pattern: an
-// animation tied to a card id that doesn't exist on the board yet waits here until a later
-// apply() call materializes it.
+// Applies each server state to the table objects (creating them on the first state), plays
+// draw animations for new hand cards, and runs animations deferred until their card exists.
 export class StateSyncController
 {
     private previousState: ClientGameState | null = null;
@@ -113,7 +110,6 @@ export class StateSyncController
 
     private detectDraws(state: ClientGameState): void
     {
-        //add mulligan here in future
         if (this.previousState === null)
             return;
 

@@ -21,10 +21,7 @@ const spectorStubAbsolute = path.resolve(__dirname, "game/phaserVendor/phaser3sp
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
-  /* Stops Turbopack from breaking Prisma client generation */
   serverExternalPackages: ["@prisma/client"],
-  /* Hides the "Next.js DevTools" badge that otherwise shows in a corner during dev */
   devIndicators: false,
   experimental: {
     /* Defaults to true. On slow/low-core hardware this cache's periodic background writes

@@ -1,17 +1,15 @@
-export type HistoryIconKind = "cardPlayed" | "attack" | "turnEnded";
+type HistoryIconKind = "cardPlayed" | "attack" | "turnEnded";
 
 export interface HistoryEntry
 {
     id: number;
-    icon: { kind: HistoryIconKind; assetKey?: string };  // assetKey set only for "cardPlayed"
+    icon: { kind: HistoryIconKind; assetKey?: string };
     headline: string;
     details: string[];
 }
 
-// Groups the raw GameEvent stream into a readable match log: only cardPlayed/summon, attack, and
-// turnEnded start a new top-level entry — everything else (damage/heal/buff/death/effect triggers)
-// nests as a detail under whichever of those is currently open, since they're direct consequences
-// of it rather than separate facts worth their own row.
+// Match log: card plays, attacks and turn ends open an entry; damage/heal/buff/death/effect
+// events are appended as details of the open entry.
 export class MatchHistory
 {
     private entries: HistoryEntry[] = [];
@@ -33,7 +31,7 @@ export class MatchHistory
         this.openCardId = cardId;
     }
 
-    beginAttack(attackerLabel: string, attackerName: string, targetLabel: string): void
+    beginAttack(attackerName: string, targetLabel: string): void
     {
         this.begin({ kind: "attack" }, `${attackerName} attacked ${targetLabel}`);
         this.openCardId = null;
@@ -50,9 +48,7 @@ export class MatchHistory
         this.openEntry?.details.push(text);
     }
 
-    // A summon matching the card just opened by beginCardPlayed is redundant confirmation of that
-    // same headline, not a separate fact — swallow it. A summon for any other card id (a
-    // battlecry/spell-summoned token) is a real detail worth recording.
+    // The summon of the card just played repeats its own headline.
     isRedundantSummon(minionId: string): boolean
     {
         return this.openCardId === minionId;

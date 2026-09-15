@@ -2,35 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Arrow tip within each sprite (measured pixel-precise, at the file's native scale —
-// DISPLAY_SCALE corrects it afterwards): it's this point, not the image's corner, that must
-// coincide with the mouse's actual position.
+// Arrow tip position inside each sprite, at native scale.
 const DEFAULT_TIP = { x: 4, y: 0 }
 const CLICK_TIP    = { x: 16, y: 16 }
 const CLICK_FRAME_MS = 45
-
-// Sprites displayed at roughly half their native size (already upscaled ×4 from the pixel-art
-// source): a more discreet cursor. The tip offsets above are scaled at the same time, otherwise
-// the arrow tip drifts away from the mouse's actual position.
 const DISPLAY_SCALE = 0.6
 
 type Frame = 'default' | 1 | 2 | 3 | 4
 
-// Replaces the native cursor with the one from the "Complete UI Book Styles Pack" (Crusenho),
-// with a small click animation (4 frames) — impossible with `cursor: url()` alone, which only
-// accepts a static image, hence this component: a manually positioned <img> that follows the mouse.
+// Sprite cursor following the mouse, with a 4-frame click animation.
 export default function CustomCursor() {
     const imgRef = useRef<HTMLImageElement>(null)
     const [frame, setFrame] = useState<Frame>('default')
     const revealed = useRef(false)
-    // Last known mouse position: a click without moving the mouse fires no "mousemove" at all,
-    // so reposition() needs a position to reuse outside of that event.
     const lastMouse = useRef({ x: 0, y: 0 })
 
-    // scale() after translate(): with transform-origin at 0 0 (top-left), the tip offset stays
-    // correct under the mouse regardless of scale. Kept outside the mousemove effect so the
-    // click animation can also reposition itself directly on each frame change, rather than
-    // waiting on the next mousemove to correct its position.
     function reposition(clientX: number, clientY: number, currentFrame: Frame) {
         const el = imgRef.current
         if (!el) return

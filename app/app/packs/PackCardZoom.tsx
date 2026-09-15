@@ -4,10 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 
-// Close-up of an already-revealed pack card, with the same mouse-following tilt (parallax) as
-// the Collection's zoom. The flip itself now plays directly in the circle (PackCardCircle) — this
-// zoom is just a deliberate "look closer", opened by a second click on an already-flipped card,
-// closed by clicking outside it.
+// Close-up of a revealed pack card with a mouse-following tilt; closes on click outside or Escape.
 export default function PackCardZoom({
     card, onClose,
 }: {
@@ -47,8 +44,6 @@ export default function PackCardZoom({
     if (!card) return null
 
     return (
-        // pointer-events-auto: PackOpener's root is pointer-events-none (so clicks reach the
-        // packs/cards above it), and that inherits — reset it here or this overlay stays inert.
         <div
             className="pointer-events-auto fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-ink-950/70 backdrop-blur-lg"
             onClick={onClose}
@@ -56,7 +51,7 @@ export default function PackCardZoom({
             <div
                 ref={cardRef}
                 onClick={e => e.stopPropagation()}
-                className="w-[300px] transition-transform duration-150 ease-out will-change-transform"
+                className="w-75 transition-transform duration-150 ease-out will-change-transform"
                 style={{
                     transform: `perspective(900px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 10}deg) scale(1.04)`,
                 }}
@@ -64,8 +59,6 @@ export default function PackCardZoom({
                 <ScaledCardFace card={card} />
             </div>
 
-            {/* Illustrator signature, below the card — absent until `artist` is set for this
-                card (see tcg-collection.json). */}
             {card.artist && (
                 <p className="font-serif text-2xl italic text-parchment-300/70">{card.artist}</p>
             )}

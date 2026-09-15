@@ -9,8 +9,7 @@ interface RawUser {
   password: string;
 }
 
-// Seeds dev/test accounts from a JSON fixture (plaintext passwords in the fixture, hashed here
-// before insert) — not used to provision real/prod accounts.
+// Dev/test accounts from data/users-collection.json (passwords hashed on insert).
 export async function seedUsers(prisma: PrismaClient) {
   const jsonPath = path.resolve(__dirname, "./data/users-collection.json");
   const raw = fs.readFileSync(jsonPath, "utf-8");

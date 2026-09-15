@@ -3,9 +3,6 @@ import { Card, CardData } from "./card/Card";
 import { attachCardHover } from "../animations";
 import { detachCardPreviewHover } from "./card/CardPreview";
 
-// Owns the local player's hand: holds the Card instances, and lays them out in a fanned arc
-// (see layout()) that re-flows whenever cards are added/removed or the canvas resizes.
-
 const HAND_Y_RATIO = 0.14;
 const CARD_HEIGHT_RATIO = 0.26;
 const CARD_ASPECT_RATIO = 1.4;
@@ -15,7 +12,7 @@ const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
 const FIRST_CARD_DEPTH = 200;
 
-
+// The player's hand, laid out as a fanned arc at the bottom of the screen.
 export class Hand
 {
     private scene: Phaser.Scene;
@@ -82,7 +79,7 @@ export class Hand
         {
             const card = this.cards[i];
             const offsetFromCenter = i - mid;
-    
+
             let norm = 0;
             if (mid !== 0)
                 norm = offsetFromCenter / mid;
@@ -135,6 +132,7 @@ export class Hand
         return (this.cards.find((card) => card.cardData.id === id));
     }
 
+    // Removes the card from the hand without destroying it (it moves to the board).
     extractCard(card: Card): void
     {
         const index = this.cards.indexOf(card);
@@ -143,6 +141,7 @@ export class Hand
         this.layout();
     }
 
+    // Puts a card back in hand (a play was cancelled or rejected).
     returnCard(card: Card): void
     {
         if (!this.cards.includes(card))

@@ -19,8 +19,8 @@ import { ResolvedTarget } from "../objects/Target";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 
-
-// The main gameplay scene, started once by BootScene for the whole match
+// Match scene: routes server events to the flow/animation/sync/input controllers and owns the
+// hand, board, opponent hand and history UI.
 export class GameScene extends Phaser.Scene
 {
     private flow = new GameFlowState();
@@ -90,6 +90,7 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:opponentDisconnected", this.onOpponentDisconnectedHandler);
         EventManager.on("server:opponentReconnected", this.onOpponentReconnectedHandler);
 
+        // Game.destroy() only emits DESTROY, so cleanup hooks here.
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
         this.sendReady();
@@ -148,6 +149,7 @@ export class GameScene extends Phaser.Scene
         this.historyStrip.layout();
     }
 
+    // States arriving mid-animation are held by the queue and applied once it drains.
     private onServerState(state: ClientGameState): void
     {
         if (this.animationQueue.isBusy)
@@ -158,6 +160,7 @@ export class GameScene extends Phaser.Scene
         this.stateSync.apply(state);
     }
 
+    // A target captured during a drag answers the prompt directly; otherwise the player picks.
     private onServerPrompt(prompt: TargetPrompt): void
     {
         this.flow.pendingPrompt = prompt;

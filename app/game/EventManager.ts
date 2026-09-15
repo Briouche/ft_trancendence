@@ -3,6 +3,10 @@ import { io } from "socket.io-client";
 import type { ClientMessage, ServerMessage } from "@/game/shared/protocol";
 import type { Difficulty } from "@/game/shared/protocol";
 
+// Bridge between the socket.io connection to the game server and Phaser:
+// server messages are re-emitted as "server:*" events, "client:*" events are sent to the server.
+// The socket targets the page's own origin; nginx proxies /socket.io/ to the game server.
+
 export const EventManager = new EventEmitter();
 const socket = io();
 

@@ -1,3 +1,5 @@
+// Wire format between this client and the game server; keep in sync with
+// game_engine/srcs/shared/protocol.ts.
 
 export interface clientEffect
 {
@@ -10,7 +12,9 @@ export interface clientEffect
     battlecry?: boolean;
     rush?: boolean;
     cannotAttack?: boolean;
-    archi?: boolean;
+    archimed?: boolean;
+    cleave?: boolean;
+    regeneration?: boolean;
 }
 
 export interface ClientCard
@@ -44,7 +48,7 @@ export interface ClientHero
     cardBack: number;
 }
 
-export interface ClientGameState 
+export interface ClientGameState
 {
     yourTurn: boolean;
     playerHero: ClientHero;
@@ -76,13 +80,13 @@ export type GameEvent = { type: "attack"; attackerId: string; targetId: string; 
 export type TargetOption = { type: "hero"; id: string; }
     | { type: "minion"; id: string; }
 
+export type Difficulty = "facile" | "moyen" | "difficile";
+
 export interface TargetPrompt
 {
     forCardId: string;
     options: TargetOption[];
 }
-
-export type Difficulty = "facile" | "moyen" | "difficile";
 
 export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
                             | { type: "readySolo"; difficulty: Difficulty; deckId: number; cardBack: number }

@@ -3,10 +3,7 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { DEFAULT_UNLOCKED_CARD_BACKS } from '@/lib/cardBacks'
 
-// Temporary route standing in for a real test/reset flow — wipes the user's card collection
-// (unopened packs and the pity counter are untouched) and resets card backs and the equipped
-// cardBack to a fresh account's defaults, since achievement-earned backs are tied to the
-// collection that was just cleared.
+// Test tool: empties the user's collection and resets card backs to a fresh account's.
 export async function POST() {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

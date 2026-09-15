@@ -1,16 +1,5 @@
 import Phaser from "phaser";
 
-// Card art loads on demand (per assetKey) rather than all upfront in BootScene, since a match
-// only ever shows a fraction of all cards. The per-key set dedupes concurrent requests for the
-// same key (e.g. two copies of the same minion drawn at once) to avoid queuing duplicate loader
-// entries.
-//
-// Keyed by Phaser.Game rather than module-global on purpose: the texture cache these entries
-// shadow lives on the game instance, so a module-global set outlives it. A key still in flight
-// when the game is destroyed (GameLauncher.tsx unmount) never fires its filecomplete handler, and
-// would then stay in the set forever — making the next game on the same page skip that load and
-// render the card with no art at all. A WeakMap entry dies with its game, so each match starts
-// with a clean slate and nothing needs explicit teardown.
 const loadingKeysByGame = new WeakMap<Phaser.Game, Set<string>>();
 
 function inFlightKeys(scene: Phaser.Scene): Set<string>
@@ -36,6 +25,7 @@ export function resolveCardFrameKey(rarity: string): string
     return RARITY_FRAME_KEYS[rarity] ?? "frame_commune";
 }
 
+// "placeholder_card" is the DB default for cards without an illustration.
 function hasCardArt(assetKey: string): boolean
 {
     return !!assetKey && assetKey !== "placeholder_card";
