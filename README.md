@@ -244,6 +244,58 @@ visual representation or description of the database structure with tables and t
 
 ## Features List
 
+### Containerised solution - Core Module
+The containers are the foundation on which we build the rest of the features. We know that we want two different builds, one for development and one for production. That's why we use three docker-compose files. `docker-compose.yml` and `docker-compose.override.yml` get merged to build the development environment. For production, it is `docker-compose.yml` and `docker-compose.prod.yml` that merge.
+As said before, our Docker infrastructure has six services. The first one is the **nginx proxy**. It has a different config file for development and production. These config files are in the `proxy` directory. We use a `.conf.template` for production so we can insert an environment variable's value. The main difference between the two is that in development, the proxy takes HTTP requests, but in production, it only takes HTTPS requests — the SSL keys are baked into the container.
+The next two services are Redis, our in-memory store, and Postgres, our database. We present them together because they don't require any config outside of the docker-compose files. The database is connected to the app with Prisma. Redis is currently only used by the socketio service — the app receives a `REDIS_URL` too, but doesn't use it yet.
+We then have the socketio service, a standalone Socket.IO server separate from the game engine's own Socket.IO instance. It authenticates clients using the Next.js session JWT, uses Redis to track which users are online and broadcast that presence, and relays chat messages between clients. Its code and Dockerfile live in the `socket-server` directory; dev vs prod is just a different build target in that same Dockerfile, with the dev override mounting the source as a volume for hot-reload via nodemon.
+And the last two services are the game engine and the app. The game engine is its own Node/TypeScript process that runs games between players and the AI, sharing the app's Prisma schema instead of duplicating it. Its code and Dockerfile are in the `game_engine` directory, though its build context is the repo root so it can copy `app/prisma`. The app is the Next.js service itself, handling pages, API routes, and authentication; its code and Dockerfile are in the `app` directory, again with development and production as separate build targets. In production, an extra short-lived `static_assets` container (also built from `app`) copies the compiled static files into shared volumes so the proxy can serve them directly instead of routing them through Next.js.
+
+### Next.js with Prisma - Framework + ORM Modules
+The second step is building the Next.js app and connecting it to the database with Prisma. To create the app, in the app directory we run
+
+```bash
+npx create-next-app@latest
+```
+
+We add a Dockerfile to make two different builds: one for development and one for production; the production build compiles the files for better performance.
+
+With the Next.js app and its App Router, we can already make some basic web pages. We now need to add Prisma to connect to the database. When creating the app container, we make sure to pass it a `DATABASE_URL` environment variable. Then we download Prisma and Prisma Client, used to communicate with the database.
+
+```bash
+npm install -D prisma
+npm install @prisma/client
+npx prisma init
+```
+
+The last command creates a `prisma` directory in our app. In it there is the `schema.prisma` file where we write our models. When we make a new model or edit an existing one, we run `npx prisma migrate dev --name <name>` in the app container connected to the database to create a new migration file. These files are applied each time the container starts (see `app/package.json`) with `prisma migrate deploy`.
+
+#### data seeding
+We want to add a sample of users and our game cards to our database. This happens at the same time as when we apply the migration, in the `app/package.json` file used when the container starts, with `prisma db seed`. This command runs the file given in `prisma.config.ts`.
+
+#### prisma client
+The Prisma Client is how we communicate with the database. We use `pg`'s pool rather than Prisma's own bundled query engine for Prisma 7. In development, because we use Hot Module Replacement, we need a check for an existing pool. If we were to do nothing, each time it refreshes, it re-executes modules like the Prisma Client and we would end up with too many clients. See `app/lib/prisma.ts`.
+
+### Log in and Register, components and server actions - Core and Custom Design Modules
+To log in the app we use a JWT cookie. This cookie is made up of the user's 
+
+
+
+
+
+
+### Server-side rendering
+...
+
+### Track connected users - Real-time features
+...
+
+### user interactions
+...
+
+### standard user management
+...
+
 ---
 complete list of implemented features, which team member(s) worked on each feature and a brief description of each feature's functionality
 
@@ -255,60 +307,60 @@ The first module is the mandatory part.
 The project must be a web app with a frontend, backend, and a database. The frontend must be clear and accessible across all devices. The use of a CSS framework or styling solution is mandatory. Git must be used with meaningful commit messages from all team members. The deployment must use a containerised solution. The website must be compatible with the latest version of Chrome and show no warnings or errors about Javascript code in the browser console. Lastly, the project must include accessible Privacy Policy and Terms of Service pages with relevant content.
 Credentials must be stored in a local `.env` file that is ignored by Git and you must provide an `.env.example` file. All forms and user inputs must be properly validated in both the frontend and the backend. Any connection to the backend must use HTTPS.
 
-We must also have a basic management system. Users must be able to sign up and log in securely. This will be done in other modules.
+We must also have a basic management system. Users must be able to sign up and log in securely.
 
 ### Major: use a framework for both the frontend and backend
 We use Next.js for a full-stack app. It is important to document both the frontend and backend features.
 	
-### Major: Implement real-time features using WebSockets or similar technology
+### Major: implement real-time features using WebSockets or similar technology
 real-time updates across clients, handle connection/disconnection gracefully, efficient message broadcasting
 
-### Minor: Use an ORM for the database
+### Minor: use an ORM for the database
 To connect to the database in the app, we use Prisma.
 
-### Minor: Server-Side Rendering (SSR) for improved performance and SEO
+### Minor: server-Side Rendering (SSR) for improved performance and SEO
 Not documented yet.
 
-### Minor: Custom-made design system with reusable components
+### Minor: custom-made design system with reusable components
 including a proper colour palette, typography, and icons (minimum 10 reusable components)
 
 
-### Major: Allow users to interact with other users
+### Major: allow users to interact with other users
 a basic chat system, a profile system, a friend system
 
-### Major: Standard user management and authentication
+### Major: standard user management and authentication
 users can update their profile information, can upload an avatar with a default one if none provided, can add other users as friends and see their online status, have a profile page displaying their information.
 
-### Minor: Implement remote authentication with OAuth 2.0
+### Minor: implement remote authentication with OAuth 2.0
 
-### Major: Implement a complete web-based game
+### Major: implement a complete web-based game
 
-### Major: Introduce an AI Opponent for games
+### Major: introduce an AI Opponent for games
 
 
 16 points
 
 on peut éventuellement ajouter l'un de ces modules
 
-#### Minor: Implement a complete 2FA system for the users
+#### Minor: implement a complete 2FA system for the users
 
-#### Minor: Implement advanced search functionality
+#### Minor: implement advanced search functionality
 filters, sorting, and pagination. We could add that when we look at cards or decks or idk
 
-#### Minor: Game statistics and match history
+#### Minor: game statistics and match history
 track user game statistics (wins, loses, ranking, level, etc), display match history, show achievements and progression, leaderboard integration
 Il faut quand même ajouter quelques trucs mais c'est toujours faisable
 
 19 points
 
-#### Major: Remote players
+#### Major: remote players
 enable two players on separate computers to play the same game in real-time. Handle network latency and disconnection gracefully, provide a smooth user experience for remote gameplay, implement a reconnection logic.
 Il faudra beaucoup ajouter dans les redis.
 
-#### Minor: Advanced chat features
+#### Minor: advanced chat features
 ability to block users from messaging you, invite users to play games directly from chat, game/tournament notifications in chat, access to user profiles from chat interface, chat history persistence, typing indicators and read receipts
 
-#### Minor: Game customisation options
+#### Minor: game customisation options
 power-ups, attacks, or special abilities, different maps or themes, customisable game settings, default options must be available
 
 #### Minor: implement spectator mode for games
