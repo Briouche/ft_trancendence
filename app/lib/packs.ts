@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { ACHIEVEMENT_CARD_BACKS } from "./cardBacks";
 
 const CARDS_PER_PACK = 8;
@@ -126,12 +126,18 @@ export async function openPack(prisma: PrismaClient, userId: number) {
       select: { unopenedPacks: true, pityCounter: true },
     });
 
-    for (const [cardId, count] of countByCard) {
-      await tx.userCard.upsert({
-        where: { userId_cardId: { userId, cardId } },
-        update: { qty: { increment: count } },
-        create: { userId, cardId, qty: count },
-      });
+    // One bulk upsert instead of one sequential round trip per distinct drawn card (up to
+    // CARDS_PER_PACK) — keeps this transaction's row locks held for as little time as possible.
+    if (countByCard.size > 0) {
+      const rows = Prisma.join(
+        [...countByCard].map(([cardId, count]) => Prisma.sql`(${userId}, ${cardId}, ${count})`)
+      );
+      await tx.$executeRaw`
+        INSERT INTO "UserCard" ("userId", "cardId", "qty")
+        VALUES ${rows}
+        ON CONFLICT ("userId", "cardId")
+        DO UPDATE SET "qty" = "UserCard"."qty" + EXCLUDED."qty"
+      `;
     }
 
     const cardsById = new Map(allCards.map((c) => [c.id, c]));

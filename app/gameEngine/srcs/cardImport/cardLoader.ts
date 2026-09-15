@@ -1,4 +1,4 @@
-import { PrismaClient, Card as DbCard } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { MinionCard, SpellCard, Card } from '../card'
@@ -8,11 +8,22 @@ import { lifestealEffect } from '../effect'
 import { ARCHIMEDE_ID, BATTLECRY_OVERRIDES, DEATHRATTLE_OVERRIDES, SPELL_EFFECT_OVERRIDES, NoOpEffect } from './keywordEffects'
 import { buildEffect, EffectSpec } from './effectFactory'
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000 })
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, max: 10 })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
-export type RawCard = DbCard
+// Only the columns rawToCard/rawToMinionCard actually read — `artist` and `qty` are unused here
+// (qty only matters for collection/ownership limits, handled elsewhere), so skip fetching them on
+// every match start.
+const CARD_SELECT = {
+    id: true, assetKey: true, name: true, type: true, rarity: true, cost: true, atk: true,
+    def: true, desc: true, legendId: true, taunt: true, rush: true, cannotAttack: true,
+    archi: true, spellpower: true, battlecry: true, deathrattle: true, onAttack: true,
+    onDamage: true, startOfTurnEffect: true, endOfTurnEffect: true, spellEffect: true,
+    keywords: true,
+} as const
+
+export type RawCard = Prisma.CardGetPayload<{ select: typeof CARD_SELECT }>
 
 const LEGENDARY_PASSIVES: legendary[] = ["jeffe", "timmy", "archimede", "freddy", "roidesrats", "gertrude"]
 
@@ -119,7 +130,7 @@ export async function makeCollectionDeck(playerPrefix = ""): Promise<Deck>
 // Build a deck from a specific list of card ids (for player-built decks later)
 export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Promise<Deck>
 {
-    const rows = await prisma.card.findMany({ where: { id: { in: cardIds } } })
+    const rows = await prisma.card.findMany({ where: { id: { in: cardIds } }, select: CARD_SELECT })
     const byId = new Map(rows.map(c => [c.id, c]))
 
     // Duplicate copies of the same card share the same `id` occurrence here, so a plain
@@ -144,7 +155,7 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
 // repeated twice in the list yields two copies, same convention as makeDeckFromIds below.
 export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""): Promise<Deck>
 {
-    const rows = await prisma.card.findMany({ where: { name: { in: cardNames } } })
+    const rows = await prisma.card.findMany({ where: { name: { in: cardNames } }, select: CARD_SELECT })
     const byName = new Map(rows.map(c => [c.name, c]))
 
     const gameCards: Card[] = []

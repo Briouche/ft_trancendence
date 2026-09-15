@@ -54,12 +54,25 @@ export function createGameServer(port: number): void
                 // hardcoded deck or random pull from the collection, see PlayModeSelector.tsx.
                 // AI's deck = one of the 3 hand-written decks in aiDecks.ts, picked at random —
                 // not tied to any account, so the AI can play cards the human player doesn't own.
-                const [playerDeck, aiDeck, username, userId]: [Deck | null, Deck, string | null, number | null] = await Promise.all([
-                    makeDeckFromDeckId(msg.deckId, "hey"),
-                    makeDeckFromNames(pickRandomAiDeck(), "hola"),
-                    getUsernameForDeck(msg.deckId),
-                    getUserIdForDeck(msg.deckId),
-                ]);
+                let playerDeck: Deck | null, aiDeck: Deck, username: string | null, userId: number | null;
+                try
+                {
+                    [playerDeck, aiDeck, username, userId] = await Promise.all([
+                        makeDeckFromDeckId(msg.deckId, "hey"),
+                        makeDeckFromNames(pickRandomAiDeck(), "hola"),
+                        getUsernameForDeck(msg.deckId),
+                        getUserIdForDeck(msg.deckId),
+                    ]);
+                }
+                catch (err)
+                {
+                    // A DB hiccup here must not crash the whole process — that would drop every
+                    // other live game too. Fail just this one match start instead.
+                    console.error("readySolo: failed to load deck(s):", err);
+                    const rejection: ServerMessage = { type: "rejected", reason: "Erreur serveur, réessaie." };
+                    socket.emit("message", rejection);
+                    return;
+                }
                 if (!playerDeck)
                 {
                     const rejection: ServerMessage = { type: "rejected", reason: "Deck introuvable ou vide." };
@@ -116,14 +129,28 @@ export function createGameServer(port: number): void
                 // Coin flip: don't let whoever queued first always go first.
                 const [first, second]: [WaitingPlayer, WaitingPlayer] = Math.random() < 0.5 ? [w0, w1] : [w1, w0];
 
-                const [deck0, deck1, username0, username1, userId0, userId1] = await Promise.all([
-                    makeDeckFromDeckId(first.deckId, "hero_0"),
-                    makeDeckFromDeckId(second.deckId, "hero_1"),
-                    getUsernameForDeck(first.deckId),
-                    getUsernameForDeck(second.deckId),
-                    getUserIdForDeck(first.deckId),
-                    getUserIdForDeck(second.deckId),
-                ]);
+                let deck0: Deck | null, deck1: Deck | null, username0: string | null, username1: string | null, userId0: number | null, userId1: number | null;
+                try
+                {
+                    [deck0, deck1, username0, username1, userId0, userId1] = await Promise.all([
+                        makeDeckFromDeckId(first.deckId, "hero_0"),
+                        makeDeckFromDeckId(second.deckId, "hero_1"),
+                        getUsernameForDeck(first.deckId),
+                        getUsernameForDeck(second.deckId),
+                        getUserIdForDeck(first.deckId),
+                        getUserIdForDeck(second.deckId),
+                    ]);
+                }
+                catch (err)
+                {
+                    // Same reasoning as readySolo above: a DB hiccup must fail this match start,
+                    // not take down the process (and every other live game with it).
+                    console.error("ready: failed to load deck(s):", err);
+                    const rejection: ServerMessage = { type: "rejected", reason: "Erreur serveur, réessaie." };
+                    first.socket.emit("message", rejection);
+                    second.socket.emit("message", rejection);
+                    return;
+                }
 
                 if (!deck0 || !deck1)
                 {

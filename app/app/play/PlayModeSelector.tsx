@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Difficulty } from "@/game/shared/protocol";
 import type { GameMode } from "@/game/GameConfig";
+import { BOOT_IMAGE_ASSETS } from "@/game/scenes/bootAssets";
 import ScaleToFit from "@/components/ScaleToFit";
 import {
   HomeButton, TitleBanner, NotebookScrollArea, SelectHighlight,
@@ -48,11 +49,28 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
   const [difficulty, setDifficulty] = useState<Difficulty>("moyen");
   const [hoveredDeckId, setHoveredDeckId] = useState<number | null>(null);
 
-  function chooseDeck(deckId: number) {
+  function gameUrl(deckId: number): string {
     const params = new URLSearchParams({ mode, deckId: String(deckId) });
     if (mode === "solo") params.set("difficulty", difficulty);
-    router.push(`/play/game?${params.toString()}`);
+    return `/play/game?${params.toString()}`;
   }
+
+  function chooseDeck(deckId: number) {
+    router.push(gameUrl(deckId));
+  }
+
+  // The user always spends at least a few seconds here choosing a mode/deck, so use that idle
+  // time to warm up what launching a match needs instead of paying for all of it serially after
+  // the click: GameLauncher pulls in Phaser (a large bundle) and, transitively, EventManager.ts
+  // whose module-level `io()` call opens the socket — see EventManager.ts. Both currently only
+  // start once the user is already on /play/game with nothing rendered yet.
+  useEffect(() => {
+    void import("@/components/game/GameLauncher");
+    // Gets BootScene's card-back/frame/UI images into the browser's HTTP cache in parallel with
+    // the Phaser chunk above instead of only starting once Phaser has booted and BootScene runs.
+    for (const { path } of BOOT_IMAGE_ASSETS)
+      new window.Image().src = path;
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 md:p-10" style={woodenTableBackground}>
@@ -126,7 +144,7 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
                       tabIndex={0}
                       onClick={() => chooseDeck(d.id)}
                       onKeyDown={e => { if (e.key === 'Enter') chooseDeck(d.id) }}
-                      onMouseEnter={() => setHoveredDeckId(d.id)}
+                      onMouseEnter={() => { setHoveredDeckId(d.id); router.prefetch(gameUrl(d.id)); }}
                       onMouseLeave={() => setHoveredDeckId(null)}
                       className="travelbook-deck-frame relative mb-2 flex w-full cursor-pointer items-center gap-2 px-2 py-2"
                     >

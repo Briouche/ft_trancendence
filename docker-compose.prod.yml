@@ -25,6 +25,8 @@ services:
     restart: always
 
   game_engine:
+    build:
+      target: production
     restart: always
 
   db:

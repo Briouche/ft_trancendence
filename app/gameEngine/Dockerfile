@@ -21,3 +21,29 @@ COPY gameEngine .
 
 EXPOSE 4000
 CMD ["npm", "run", "dev"]
+
+# --- STAGE 3: Build stage (compiles TS to dist/, no ts-node at runtime) ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY gameEngine .
+
+RUN npm run build
+
+# --- STAGE 4: Production stage (plain node, matches app/Dockerfile's pattern) ---
+FROM node:20-alpine AS production
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 gameengine
+
+COPY --from=builder --chown=gameengine:nodejs /app/dist ./dist
+COPY --from=builder --chown=gameengine:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=gameengine:nodejs /app/package.json ./package.json
+
+USER gameengine
+
+EXPOSE 4000
+CMD ["npm", "run", "start"]

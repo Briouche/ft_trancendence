@@ -5,6 +5,11 @@ services:
       - app
     networks:
       - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
 
   app:
     container_name: nextjs_app
@@ -22,6 +27,11 @@ services:
     networks:
       - frontend
       - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
 
   game_engine:
     container_name: game_engine
@@ -37,6 +47,11 @@ services:
     networks:
       - frontend
       - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
   db:
     container_name: postgres_db
@@ -54,6 +69,11 @@ services:
       - backend
     volumes:
       - db_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
 
 networks:
   backend:

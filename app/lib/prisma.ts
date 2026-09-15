@@ -6,7 +6,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 // edit) doesn't spin up a fresh Pool/PrismaClient each time and exhaust DB connections.
 const prismaClientSingleton = () => {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL,
+    connectionTimeoutMillis: 5000,
+    max: 10
   });
   const adapter = new PrismaPg(pool);
 

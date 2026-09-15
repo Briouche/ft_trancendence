@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
@@ -11,12 +12,14 @@ export async function POST() {
 
     const cards = await prisma.card.findMany({ select: { id: true, qty: true } })
 
+    // One bulk upsert instead of one round trip per card in the whole catalog (was a full N+1).
     await prisma.$transaction([
-        ...cards.map(card => prisma.userCard.upsert({
-            where:  { userId_cardId: { userId: session.userId, cardId: card.id } },
-            create: { userId: session.userId, cardId: card.id, qty: card.qty },
-            update: { qty: card.qty },
-        })),
+        ...(cards.length > 0 ? [prisma.$executeRaw`
+            INSERT INTO "UserCard" ("userId", "cardId", "qty")
+            VALUES ${Prisma.join(cards.map(card => Prisma.sql`(${session.userId}, ${card.id}, ${card.qty})`))}
+            ON CONFLICT ("userId", "cardId")
+            DO UPDATE SET "qty" = EXCLUDED."qty"
+        `] : []),
         prisma.user.update({
             where: { id: session.userId },
             data:  { unlockedCardBacks: Array.from({ length: CARD_BACK_COUNT }, (_, i) => i) },
