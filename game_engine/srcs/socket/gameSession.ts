@@ -482,9 +482,27 @@ export class GameSession
 
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
-            const action: Action = await getBestAction(this.engine, simulations, worlds);
+            let action: Action;
 
-            this.applyAiAction(action);
+            try
+            {
+                action = await getBestAction(this.engine, simulations, worlds);
+                this.applyAiAction(action);
+            }
+            catch (err)
+            {
+                console.error(`AI turn failed for player ${this.engine.currentTurn}, forcing endTurn to avoid a stuck game:`, err);
+                try
+                {
+                    this.applyAiAction({ type: "endTurn" });
+                }
+                catch (endTurnErr)
+                {
+                    console.error("Forced endTurn also failed, aborting AI loop for this game:", endTurnErr);
+                    break;
+                }
+                continue;
+            }
 
             if (action.type !== "endTurn")
                 await this.delay(1500);
@@ -496,7 +514,7 @@ export class GameSession
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    private applyAiAction(action: Action): void
+private applyAiAction(action: Action): void
     {
         if (action.type === "endTurn")
         {
