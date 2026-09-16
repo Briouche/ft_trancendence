@@ -6,10 +6,6 @@ services:
       - socketio
     networks:
       - frontend
-    deploy:
-      resources:
-        limits:
-          memory: 128M
 
   app:
     container_name: nextjs_app
@@ -30,10 +26,6 @@ services:
     networks:
       - frontend
       - backend
-    deploy:
-      resources:
-        limits:
-          memory: 768M
 
   socketio:
     container_name: socketio_server
@@ -56,7 +48,7 @@ services:
     container_name: redis_server
     image: redis:7-alpine
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -82,21 +74,17 @@ services:
     networks:
       - frontend
       - backend
-    deploy:
-      resources:
-        limits:
-          memory: 512M
 
   db:
     container_name: postgres_db
     image: postgres:16-alpine
-    command: ["postgres", "-c", "log_min_duration_statement=200"]
+    command: [ "postgres", "-c", "log_min_duration_statement=200" ]
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-myuser} -d $${POSTGRES_DB:-mydb}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-myuser} -d $${POSTGRES_DB:-mydb}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -104,10 +92,6 @@ services:
       - backend
     volumes:
       - db_data:/var/lib/postgresql/data
-    deploy:
-      resources:
-        limits:
-          memory: 1G
 
 networks:
   backend:
