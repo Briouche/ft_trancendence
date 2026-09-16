@@ -47,8 +47,6 @@ export class GameSession
     private gameOver : boolean = false;
     private difficulty: Difficulty;
     private readonly onGameEnd: () => void;
-    // seatIndex -> pending forfeit timer, set while that seat is disconnected and inside its
-    // reconnect grace window.
     private disconnectTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
     constructor(seat0: Seat, seat1: Seat, player0: Player, player1: Player, difficulty: Difficulty = "moyen", onGameEnd: () => void = () => {})
@@ -120,7 +118,7 @@ export class GameSession
         }
 
         this.send(seatIndex, { type: "assigned", playerIndex: seatIndex });
-        this.send(seatIndex, { type: "state", state: toClientState(this.engine, seatIndex) });
+        this.send(seatIndex, { type: "state", state: toClientState(this.engine, seatIndex, this.promptFor(seatIndex)) });
         this.send(1 - seatIndex, { type: "opponentReconnected" });
 
         console.log(`user ${userId} reattached to seat ${seatIndex}`);
@@ -228,8 +226,8 @@ export class GameSession
 
     private broadcastState(): void
     {
-        this.send(0, { type: "state", state: toClientState(this.engine, 0) });
-        this.send(1, { type: "state", state: toClientState(this.engine, 1) });
+        this.send(0, { type: "state", state: toClientState(this.engine, 0, this.promptFor(0)) });
+        this.send(1, { type: "state", state: toClientState(this.engine, 1, this.promptFor(1)) });
     }
 
     // Plays the card directly, or opens a target prompt when its effect needs one.
@@ -312,7 +310,8 @@ export class GameSession
         this.pending = { playerIndex, id: card.id, boardIndex, effect, optionsById };
 
         this.send(playerIndex, { type: "prompt", prompt });
-        this.send(1 - playerIndex, { type: "state", state: toClientState( this.engine, (1 - playerIndex) as 0 | 1) });
+        const opponentIndex: 0 | 1 = (1 - playerIndex) as 0 | 1;
+        this.send(opponentIndex, { type: "state", state: toClientState(this.engine, opponentIndex, this.promptFor(opponentIndex)) });
     }
 
     // null target: cancels a spell, plays a minion without its battlecry.
@@ -629,6 +628,28 @@ private applyAiAction(action: Action): void
             return this.engine.players[opponentIndex].hero;
 
         return this.engine.board.getMinions(opponentIndex)[targetIndex];
+    }
+
+    // The prompt a seat currently owes an answer to, if any — rebuilt so it can ride along with
+    // the state instead of only existing in the one-shot "prompt" message, which is lost with the
+    // connection that received it (see toClientState).
+    //
+    // Replayed from the options captured when the prompt was raised rather than re-resolved:
+    // handleTargetChoice only accepts ids still in `optionsById`, so building this list from
+    // anywhere else could offer a target the server would then turn around and reject. Dead
+    // targets are dropped because there is no point highlighting something that can't be picked.
+    private promptFor(playerIndex: 0 | 1): TargetPrompt | undefined
+    {
+        const pending: PendingTarget | null = this.pending;
+
+        if (pending === null || pending.playerIndex !== playerIndex)
+            return undefined;
+
+        const options: TargetOption[] = [...pending.optionsById.values()]
+            .filter((target: Targetable) => target.isAlive())
+            .map((target: Targetable) => this.targetToOption(target));
+
+        return { forCardId: pending.id, options };
     }
 
     private targetToOption(target: Targetable): TargetOption

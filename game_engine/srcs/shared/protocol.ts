@@ -100,7 +100,7 @@ export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }
     | { type: "event"; event: GameEvent }
     | { type: "prompt"; prompt: TargetPrompt }
-    | { type: "rejected"; reason: string }
+    | { type: "rejected"; reason: string; fatal?: boolean }
     | { type: "opponentDisconnected"; secondsRemaining: number }
     | { type: "opponentReconnected" }
     | { type: "gameOver"; winner: "you" | "opponent" };

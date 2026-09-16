@@ -14,7 +14,9 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
     private message: Phaser.GameObjects.Text;
     private hint: Phaser.GameObjects.Text;
 
-    constructor(scene: Phaser.Scene, text: string, color: string)
+    // fontSize is overridable because the default is sized for "YOU WIN!!", not for a sentence —
+    // a fatal rejection reuses this overlay to explain why the match is gone.
+    constructor(scene: Phaser.Scene, text: string, color: string, options: { fontSize?: string } = {})
     {
         super(scene, 0, 0);
 
@@ -23,7 +25,7 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
 
         this.dim = scene.add.rectangle(width / 2, height / 2, width, height, DIM_COLOR, DIM_ALPHA);
         this.message = scene.add.text(width / 2, height / 2, text,
-            { fontFamily, fontSize: "128px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
+            { fontFamily, fontSize: options.fontSize ?? "128px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
         this.hint = scene.add.text(width / 2, height / 2 + 60, "Click anywhere to continue",
             { fontFamily, fontSize: "40px", color: "#ffffff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 
