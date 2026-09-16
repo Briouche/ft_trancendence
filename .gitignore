@@ -1,6 +1,5 @@
 # dependencies
-/node_modules
-/game_engine/node_modules
+node_modules
 
 # next.js
 /.next/
