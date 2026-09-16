@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { logoutUser } from '@/lib/auth'
+import { logoutUser } from '@/lib/auth/formActions'
 import { AssetButton } from '@/components/notebook/NotebookUI'
 import { ROUTES } from '@/config/routes'
 import { english } from '@/config/english'

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 
 // Creates a new deck owned by the current session user. No ownership check is needed here
 // (unlike PUT/DELETE in [id]/route.ts) since a freshly created deck is always the caller's own.

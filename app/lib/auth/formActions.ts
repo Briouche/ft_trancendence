@@ -5,19 +5,20 @@ import { redirect } from "next/navigation";
 import { hash, verify } from "@node-rs/argon2"
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { createSession, deleteSession } from "@/lib/session";
+
+import { createSession, deleteSession } from "@/lib/auth/cookieSession";
 import { ROUTES } from "@/config/routes";
 import {
-  ARGON2_OPTIONS,
-  DUMMY_HASH,
-  EMAIL_MAX_LENGTH,
-  EMAIL_REGEX,
-  getStringField,
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_REGEX,
+  USERNAME_REGEX,
   USERNAME_MAX_LENGTH,
   USERNAME_MIN_LENGTH,
-  USERNAME_REGEX,
+  PASSWORD_REGEX,
+  PASSWORD_MAX_LENGTH,
+  EMAIL_MAX_LENGTH,
+  EMAIL_REGEX,
+  ARGON2_OPTIONS,
+  DUMMY_HASH,
+  getStringField,
 } from "@/lib/constants";
 
 export async function checkCredentials(formData: FormData) {
@@ -30,9 +31,9 @@ export async function checkCredentials(formData: FormData) {
     typeof passwordRaw !== "string" ||
     passwordRaw.length === 0 ||
     passwordRaw.length > PASSWORD_MAX_LENGTH
-  ) {
-    return { error: "Invalid username or password." };
-  }
+    ) {
+      return { error: "Invalid username or password." };
+    }
 
   const username = usernameRaw.toLocaleLowerCase();
   const password = passwordRaw;
@@ -80,9 +81,9 @@ export async function registerUser(formData: FormData) {
     username.length < USERNAME_MIN_LENGTH ||
     username.length > USERNAME_MAX_LENGTH ||
     !USERNAME_REGEX.test(username)
-  ) {
-    return { error: "Username must be 3-30 characters and contain only letters, numbers, and underscores." };
-  }
+    ) {
+      return { error: "Username must be 3-30 characters and contain only letters and numbers." };
+    }
 
   if (!email || email.length > EMAIL_MAX_LENGTH || !EMAIL_REGEX.test(email)) {
     return { error: "Please provide a valid email address." };
@@ -90,8 +91,9 @@ export async function registerUser(formData: FormData) {
 
   if (typeof password !== "string" || password.length > PASSWORD_MAX_LENGTH || !PASSWORD_REGEX.test(password)) {
     return {
-      error:
-        "Password must be 8-128 characters long and include an uppercase letter, a lowercase letter, and a number.",
+    error:
+      "Password must be 8-128 characters long, include an uppercase letter, a lowercase letter, and a number, " +
+      "and contain only letters, numbers, and the symbols !@#$%^&*_+-=.,?~",
     };
   }
 
@@ -114,13 +116,13 @@ export async function registerUser(formData: FormData) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       const target = err.meta?.target as string[] | undefined;
       if (target?.includes("email")) {
-        return { error: "Cound not create account." };
+        return { error: "Could not create account." };
       }
-      return { error: "Cound not create account." };
+      return { error: "This username is already taken." };
     }
 
     console.error("registerUser: unexpected error creating user", err);
-    return { error: "Cound not create account." };
+    return { error: "Could not create account." };
   }
 
   await createSession(user.id, user.username, user.tokenVersion);
@@ -132,3 +134,5 @@ export async function logoutUser() {
   await deleteSession();
   redirect(ROUTES.home);
 }
+
+

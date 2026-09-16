@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { isValidCardBack } from '@/lib/cardBacks'
 
 export async function POST(request: Request) {

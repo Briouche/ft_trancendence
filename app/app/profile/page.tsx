@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/session'
+import { getCurrentUser } from '@/lib/currentUser'
 import { ROUTES } from '@/config/routes'
 import ProfileInformation from './ProfileInformation'
 

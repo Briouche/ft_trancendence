@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 import prisma from "@/lib/prisma";
 
 export async function GET() {

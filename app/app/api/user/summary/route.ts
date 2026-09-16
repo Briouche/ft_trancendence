@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
 // Used by HubBackground to refresh cardCount/wins each time the hub is revisited, without ever

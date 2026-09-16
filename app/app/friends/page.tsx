@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import FriendsInformation from './FriendsInformation'
 

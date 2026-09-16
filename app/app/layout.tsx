@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
 import CustomCursor from "@/components/CustomCursor";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 import HubBackground from "./HubBackground";
 import "./globals.css";
 

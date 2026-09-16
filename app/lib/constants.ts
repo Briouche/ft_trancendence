@@ -7,10 +7,14 @@ export const ARGON2_OPTIONS = {
   parallelism: 1,
 };
 
-export const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/;
+export const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// At least 8 characters, one uppercase, one lowercase, one digit.
-export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+// At least 8 characters, one uppercase, one lowercase, one digit, and only
+// characters from a safe allowlist (no brackets, quotes, backslashes, etc).
+export const PASSWORD_ALLOWED_CHARS = "A-Za-z0-9!@#$%^&*_+\\-=.,?~";
+export const PASSWORD_REGEX = new RegExp(
+  `^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[${PASSWORD_ALLOWED_CHARS}]{8,}$`
+);
 
 export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 30;

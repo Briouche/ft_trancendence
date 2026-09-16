@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { CurrentUser } from '@/lib/session'
+import type { CurrentUser } from '@/lib/currentUser'
 import { HomeButton, TitleBanner, woodenTableBackground, outlinedWhiteTextStyle } from '@/components/notebook/NotebookUI'
 import EditProfileForm from './EditProfileForm'
 

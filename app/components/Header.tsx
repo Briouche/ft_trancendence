@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { english } from "@/config/english";
 import { ROUTES } from "@/config/routes";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 
 import LogoutButton from "./elements/LogoutButton";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { logoutUser } from "@/lib/auth";
+import { logoutUser } from "@/lib/auth/formActions";
 
 import FormButton from "./FormButton";
 

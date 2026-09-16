@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { DEFAULT_UNLOCKED_CARD_BACKS } from '@/lib/cardBacks'
 
 // Temporary route standing in for a real test/reset flow — wipes the user's card collection

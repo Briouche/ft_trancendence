@@ -277,12 +277,9 @@ We want to add a sample of users and our game cards to our database. This happen
 The Prisma Client is how we communicate with the database. We use `pg`'s pool rather than Prisma's own bundled query engine for Prisma 7. In development, because we use Hot Module Replacement, we need a check for an existing pool. If we were to do nothing, each time it refreshes, it re-executes modules like the Prisma Client and we would end up with too many clients. See `app/lib/prisma.ts`.
 
 ### Log in and Register, components and server actions - Core and Custom Design Modules
-To log in the app we use a JWT cookie. This cookie is made up of the user's 
-
-
-
-
-
+To log in the app we use a JWT cookie. This cookie is made up of the user's id, username, and token version stored in the database. All this is signed by our JWT secret to make sure we are the ones who actually made the cookie. We also add an expiry date of seven days. 
+To check whether a user is signed in, we use the `getSession` function from `app/lib/auth/cookieSession.ts`. It checks whether the user has a valid session cookie. If they do not, they need to create one by signing in or registering. In this file, we also find functions related to the handling of the session cookie.
+To sign in and register, there are two custom components the `SignInForm` and `RegisterForm`. Both take the user input, make some checks in the front end, then send the data via `FormData`. We then have two server actions in `app/lib/auth/formActions.ts` that check the input again and do the necessary work with the database.
 
 ### Server-side rendering
 ...
@@ -290,10 +287,10 @@ To log in the app we use a JWT cookie. This cookie is made up of the user's
 ### Track connected users - Real-time features
 ...
 
-### user interactions
+### User interactions
 ...
 
-### standard user management
+### Standard user management
 ...
 
 ---

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
 // Temporary route standing in for a real test/reset flow — unlocks the user's entire

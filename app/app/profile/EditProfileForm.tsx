@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { CurrentUser } from '@/lib/session'
+import type { CurrentUser } from '@/lib/currentUser'
 import { updateUserProfile } from '@/lib/updateUserProfile'
 import { outlinedWhiteTextStyle } from '@/components/notebook/NotebookUI'
 

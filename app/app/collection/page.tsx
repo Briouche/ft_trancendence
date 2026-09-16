@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import CollectionBook from './CollectionBook'
 

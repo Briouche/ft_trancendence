@@ -6,7 +6,7 @@ import { hash } from "@node-rs/argon2";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-import { createSession, getSession } from "@/lib/session";
+import { createSession, getSession } from "@/lib/auth/cookieSession";
 import {
   ARGON2_OPTIONS,
   EMAIL_MAX_LENGTH,

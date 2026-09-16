@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 
 // Temporary route standing in for a real way to earn packs (playing games, rewards, etc).
 export async function POST() {

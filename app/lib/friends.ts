@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser } from "@/lib/currentUser";
 
 export async function searchUserByUsername(usernameRaw: string) {
   const currentUser = await getCurrentUser();
