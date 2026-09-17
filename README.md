@@ -282,7 +282,8 @@ To check whether a user is signed in, we use the `getSession` function from `app
 To sign in and register, there are two custom components the `SignInForm` and `RegisterForm`. Both take the user input, make some checks in the front end, then send the data via `FormData`. We then have two server actions in `app/lib/auth/formActions.ts` that check the input again and do the necessary work with the database.
 
 ### Server-side rendering
-...
+By default, React renders components on the server and ships only the resulting HTML to the client, keeping the JavaScript bundle small and giving a fast first paint that's fully indexable by search engines. If a component needs to be interactive — hold state, react to clicks, or use hooks like `useState` — we add `'use client';` at the top of the file to signal that. This doesn't turn SSR off: Next.js still renders the component on the server for the initial HTML, but it also ships that component's JavaScript to the browser so it can be *hydrated* and become interactive afterwards.
+`SignInForm` and `RegisterForm` are good examples: they're marked `'use client';` because they hold local state (`error`, `pending`) and need to react to user input immediately, but they're still server-rendered on first load like any other page content.
 
 ### Track connected users - Real-time features
 ...
