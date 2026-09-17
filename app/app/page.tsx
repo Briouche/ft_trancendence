@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth/cookieSession";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import SignInForm from "@/components/Forms/SignInForm";
+import Header from "@/components/auth-forms/Header";
+import Footer from "@/components/auth-forms/Footer";
+import SignInForm from "@/components/auth-forms/SignInForm";
 
 export default async function HomePage() {
   const session = await getSession();

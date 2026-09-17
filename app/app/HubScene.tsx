@@ -9,7 +9,7 @@ import Lantern from '@/components/library/Lantern'
 import Candle from '@/components/library/Candle'
 import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
 import { MENU_ITEMS, type MenuItem } from './menu'
-import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './AccountMenu'
+import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from '../components/account-menu/AccountMenu'
 
 // The hall: a real room in three-fiber, enclosed by a ring of bookshelves. No visible floor
 // plane — just furniture and doors placed in the dark/fog, like a row of lit elements rather

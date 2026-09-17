@@ -2,13 +2,8 @@ import Link from "next/link"
 
 import { english } from "@/config/english";
 import { ROUTES } from "@/config/routes";
-import { getSession } from "@/lib/auth/cookieSession";
-
-import LogoutButton from "./elements/LogoutButton";
 
 export default async function Header() {
-  const session = await getSession();
-
   return (
     <header className="py-2 text-center">
       {/* 3-column grid with an empty left cell balancing the logout button's column on the
@@ -24,11 +19,7 @@ export default async function Header() {
         </h1>
 
         <div className="justify-self-end px-4">
-          {session ? (
-            <LogoutButton />
-          ) : (
-            <></>
-          )}
+
         </div>
       </div>
     </header>
