@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { removeFriend } from '@/lib/friends'
+import { useActiveUserIds } from '@/app/presence'
 import { outlinedWhiteTextStyle } from '@/components/notebook/NotebookUI'
 import FriendRow, { RowActionButton, type FriendLike } from './FriendRow'
 
@@ -14,6 +15,7 @@ export default function FriendsList({ refreshKey }: { refreshKey: number }) {
     const [error, setError] = useState<string | null>(null)
     const [pendingRemove, setPendingRemove] = useState<Friend | null>(null)
     const [isRemoving, startRemoving] = useTransition()
+    const onlineUserIds = useActiveUserIds()
 
     useEffect(() => {
         let cancelled = false
@@ -57,7 +59,15 @@ export default function FriendsList({ refreshKey }: { refreshKey: number }) {
                     {friends.map(friend => (
                         <FriendRow
                             key={friend.friendshipId}
-                            person={friend}
+                            person={{
+                                ...friend,
+                                // Live presence (socket-server) overrides the DB's ONLINE/OFFLINE, which
+                                // nothing currently keeps in sync — IN_GAME isn't tracked over sockets yet,
+                                // so it still comes straight from the DB.
+                                status: friend.status === 'IN_GAME'
+                                    ? 'IN_GAME'
+                                    : onlineUserIds.has(friend.id) ? 'ONLINE' : 'OFFLINE',
+                            }}
                             action={
                                 <RowActionButton
                                     label="Remove friend"

@@ -3,32 +3,32 @@
     {
       "email": "alex.vanguard@shadowrealm.com",
       "username": "AlexVanguard",
-      "password": "test1"
+      "password": "Testtest1"
     },
     {
       "email": "elena.spellweaver@mythos.gg",
       "username": "ElenaSpellweaver",
-      "password": "test2"
+      "password": "Testtest2"
     },
     {
       "email": "kai.cyberblade@neoncity.io",
       "username": "KaiCyberblade",
-      "password": "test3"
+      "password": "Testtest3"
     },
     {
       "email": "mira.nightshade@shadowrealm.com",
       "username": "MiraNightshade",
-      "password": "test4"
+      "password": "Testtest4"
     },
     {
       "email": "theo.ironclad@mythos.gg",
       "username": "TheoIronclad",
-      "password": "test5"
+      "password": "Testtest5"
     },
     {
       "email": "nova.starforge@neoncity.io",
       "username": "NovaStarforge",
-      "password": "test6"
+      "password": "Testtest6"
     }
   ],
   "friendships": [

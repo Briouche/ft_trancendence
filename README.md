@@ -82,7 +82,7 @@ The order in which we implemented and integrated these parts is detailed in the 
 how the team organised the work, which tools and channels were used for the project management
 
 ## Technical Stack
-The website is built on Next.js, using Prisma as the ORM and Socket.IO for WebSocket communication. A Redis service tracks online users and backs rate-limiting **(we could use it to cache game-engine state but not yet implemented)**. Our database is PostgreSQL.
+The website is built on Next.js, using Prisma as the ORM and Socket.IO for WebSocket communication. A Redis service tracks online users for the real-time presence feature **(we could also use it to cache game-engine state, but that isn't implemented yet)**. Our database is PostgreSQL.
 
 For styling we use React components with Tailwind CSS, and ... for the 3D graphics ...
 
@@ -286,7 +286,10 @@ By default, React renders components on the server and ships only the resulting 
 `SignInForm` and `RegisterForm` are good examples: they're marked `'use client';` because they hold local state (`error`, `pending`) and need to react to user input immediately, but they're still server-rendered on first load like any other page content.
 
 ### Track connected users - Real-time features
-...
+To track connected users, there are two new services: `socket-server`, a dedicated Sockeet.io server and a redis service.
+`socket-server` authenticates each socket with the JWT session cookie. Once authenticated, it tracks each user's connected sockets in Redis: a `user_sockets:<userId>` set per user (they may have several tabs or devices open) and an `online_users_meta` hash of `{userId, username}` (in `socket-server/presence.js`). On every connect and disconnect it re-reads that data and broadcasts a `presence:update` event with the full list of online users to every connected client (`socket-server/handlers/connection.js`). Redis is also what backs `@socket.io/redis-adapter` (`socket-server/redis.js`), so that broadcast would still reach every client even if `socket-server` was scaled to several replicas later.
+For the app, we add a React context near root layout for each session (`PresenceProvider` in `app/app/presence.tsx`). 
+It opens a single Socket.IO connection to `socket-server` on the `/chat-socket.io/` path and listens for `presence:update`, exposing the resulting set of online user ids through a `useActiveUserIds()` hook. `FriendsList` (`app/app/friends/FriendsList.tsx`) is the first consumer: for each friend it reads from the database, it overrides the status dot to ONLINE when that friend's id is in the live set, and to OFFLINE otherwise — except `IN_GAME`, which still comes straight from the database since sockets don't carry game state (yet).
 
 ### User interactions
 ...

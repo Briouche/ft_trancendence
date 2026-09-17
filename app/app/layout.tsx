@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
 import CustomCursor from "@/components/CustomCursor";
 import { getSession } from "@/lib/auth/cookieSession";
+import { PresenceProvider } from "@/app/presence";
 import HubBackground from "./HubBackground";
 import "./globals.css";
 
@@ -50,7 +51,7 @@ export default async function RootLayout({
             geometry) never gets rebuilt from scratch when coming back to the hub — see
             HubBackground.tsx. */}
         {session && <HubBackground username={session.username} />}
-        {children}
+        {session ? <PresenceProvider>{children}</PresenceProvider> : children}
       </body>
     </html>
   );
