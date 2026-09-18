@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 import CardBackArt from '@/components/CardBackArt'
-import { AssetButton } from '@/components/notebook/NotebookUI'
+import { AssetButton } from '@/components/notebook/AssetButton'
 
 // Sizes are in vmin rather than fixed pixels, so the circle keeps the same proportion of the
 // page at any viewport size. The radius/width ratio keeps neighboring cards from touching: the

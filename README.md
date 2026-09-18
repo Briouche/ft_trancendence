@@ -291,11 +291,11 @@ To track connected users, there are two new services: `socket-server`, a dedicat
 For the app, we add a React context near root layout for each session (`PresenceProvider` in `app/app/presence.tsx`). 
 It opens a single Socket.IO connection to `socket-server` on the `/chat-socket.io/` path and listens for `presence:update`, exposing the resulting set of online user ids through a `useActiveUserIds()` hook. `FriendsList` (`app/app/friends/FriendsList.tsx`) is the first consumer: for each friend it reads from the database, it overrides the status dot to ONLINE when that friend's id is in the live set, and to OFFLINE otherwise — except `IN_GAME`, which still comes straight from the database since sockets don't carry game state (yet).
 
-### User interactions
-...
+### User interactions and management
+We need to make a profile page, with friends, and a basic chat system. For the user management part, we need to let users edit their info, upload an avatar, add friends and see their online status with a profile page.
 
-### Standard user management
-...
+The profile page fetches the user's information and displays it in read-only mode. The same profile page is used for the user and their friends' information. For our own profile, it is possible to edit our information and upload an avatar.
+There is also a friends page where we can see all the requests we've received, those we've sent, and a list of our friends. With each friend, there is a basic chat saved to the database. The same socket that is used for the chat is used to track active users and display their status to their profile page.
 
 ---
 complete list of implemented features, which team member(s) worked on each feature and a brief description of each feature's functionality

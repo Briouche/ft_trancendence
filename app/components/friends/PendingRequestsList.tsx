@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { cancelFriendRequest } from '@/lib/friends'
-import FriendRow, { RowActionButton, type FriendLike } from './FriendRow'
-
-type SentRequest = { friendshipId: number; addressee: FriendLike; createdAt: string }
+import { useRouter } from 'next/navigation'
+import { cancelFriendRequest } from '@/lib/user-and-friends/friends'
+import { ROUTES } from '@/config/routes'
+import SentRequestRow, { type SentRequest } from './SentRequestRow'
 
 // Requests the current user sent (pending, awaiting the addressee). See FriendsRequestsList for
 // the refreshKey/onChange sync pattern.
@@ -13,6 +13,7 @@ export default function PendingRequestsList({ refreshKey, onChange }: { refreshK
     const [error, setError] = useState<string | null>(null)
     const [pendingId, setPendingId] = useState<number | null>(null)
     const [isCancelling, startCancelling] = useTransition()
+    const router = useRouter()
 
     useEffect(() => {
         let cancelled = false
@@ -35,9 +36,11 @@ export default function PendingRequestsList({ refreshKey, onChange }: { refreshK
     function handleCancel(friendshipId: number) {
         setPendingId(friendshipId)
         startCancelling(async () => {
-            const response = await cancelFriendRequest(friendshipId)
+            await cancelFriendRequest(friendshipId)
             setPendingId(null)
-            if (!response.error) onChange()
+            // Refetch even on error: "not found" means the request changed under us (cancelled,
+            // already answered), so this list is stale either way.
+            onChange()
         })
     }
 
@@ -48,17 +51,12 @@ export default function PendingRequestsList({ refreshKey, onChange }: { refreshK
     return (
         <div className="flex w-full flex-col gap-2">
             {requests.map(request => (
-                <FriendRow
+                <SentRequestRow
                     key={request.friendshipId}
-                    person={request.addressee}
-                    action={
-                        <RowActionButton
-                            label="Cancel request"
-                            tone="negative"
-                            disabled={isCancelling && pendingId === request.friendshipId}
-                            onClick={() => handleCancel(request.friendshipId)}
-                        />
-                    }
+                    request={request}
+                    onClick={() => router.push(ROUTES.profileOf(request.addressee.username))}
+                    disabled={isCancelling && pendingId === request.friendshipId}
+                    onCancel={() => handleCancel(request.friendshipId)}
                 />
             ))}
         </div>

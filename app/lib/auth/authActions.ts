@@ -19,7 +19,7 @@ import {
   ARGON2_OPTIONS,
   DUMMY_HASH,
   getStringField,
-} from "@/lib/constants";
+} from "@/lib/auth/requirements";
 
 export async function checkCredentials(formData: FormData) {
   const usernameRaw = getStringField(formData, "username");

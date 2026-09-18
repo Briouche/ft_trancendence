@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AssetButton } from '@/components/notebook/NotebookUI'
+import { AssetButton } from '@/components/notebook/AssetButton'
 import { getVolume, setVolume, type VolumeChannel } from '@/lib/audioSettings'
 import AccountPanel, { type CardBacksSummary } from './AccountPanel'
 import SettingsPanel from './SettingsPanel'

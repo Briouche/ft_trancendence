@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { respondToFriendRequest } from '@/lib/friends'
-import FriendRow, { RowActionButton, type FriendLike } from './FriendRow'
-
-type IncomingRequest = { friendshipId: number; requester: FriendLike; createdAt: string }
+import { useRouter } from 'next/navigation'
+import { respondToFriendRequest } from '@/lib/user-and-friends/friends'
+import { ROUTES } from '@/config/routes'
+import RequestRow, { type IncomingRequest } from './RequestRow'
 
 // Requests received (pending, addressed to the current user). `refreshKey` bumps to refetch
 // after any mutation elsewhere in the Friends page (send/accept/refuse/cancel); `onChange` bumps
@@ -14,6 +14,7 @@ export default function FriendsRequestsList({ refreshKey, onChange }: { refreshK
     const [error, setError] = useState<string | null>(null)
     const [pendingId, setPendingId] = useState<number | null>(null)
     const [isResponding, startResponding] = useTransition()
+    const router = useRouter()
 
     useEffect(() => {
         let cancelled = false
@@ -36,9 +37,11 @@ export default function FriendsRequestsList({ refreshKey, onChange }: { refreshK
     function handleRespond(friendshipId: number, accept: boolean) {
         setPendingId(friendshipId)
         startResponding(async () => {
-            const response = await respondToFriendRequest(friendshipId, accept)
+            await respondToFriendRequest(friendshipId, accept)
             setPendingId(null)
-            if (!response.error) onChange()
+            // Refetch even on error: "not found" means the request changed under us (cancelled,
+            // already answered), so this list is stale either way.
+            onChange()
         })
     }
 
@@ -49,25 +52,13 @@ export default function FriendsRequestsList({ refreshKey, onChange }: { refreshK
     return (
         <div className="flex w-full flex-col gap-2">
             {requests.map(request => (
-                <FriendRow
+                <RequestRow
                     key={request.friendshipId}
-                    person={request.requester}
-                    action={
-                        <div className="flex shrink-0 items-center gap-1">
-                            <RowActionButton
-                                label="Accept"
-                                tone="positive"
-                                disabled={isResponding && pendingId === request.friendshipId}
-                                onClick={() => handleRespond(request.friendshipId, true)}
-                            />
-                            <RowActionButton
-                                label="Refuse"
-                                tone="negative"
-                                disabled={isResponding && pendingId === request.friendshipId}
-                                onClick={() => handleRespond(request.friendshipId, false)}
-                            />
-                        </div>
-                    }
+                    request={request}
+                    onClick={() => router.push(ROUTES.profileOf(request.requester.username))}
+                    disabled={isResponding && pendingId === request.friendshipId}
+                    onAccept={() => handleRespond(request.friendshipId, true)}
+                    onRefuse={() => handleRespond(request.friendshipId, false)}
                 />
             ))}
         </div>

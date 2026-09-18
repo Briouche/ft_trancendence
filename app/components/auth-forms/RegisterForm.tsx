@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import FormBox from "./FormBox";
-import FormTextField from "./FormTextField";
+import TextField from "@/components/notebook/TextField";
 import FormButton from "./FormButton";
 import { ROUTES } from "@/config/routes";
 import { registerUser } from "@/lib/auth/authActions";
@@ -61,7 +61,7 @@ export default function RegisterForm() {
       error={error}
     >
 
-      <FormTextField
+      <TextField
         label="Username"
         name="username"
         autoComplete="username"
@@ -73,7 +73,7 @@ export default function RegisterForm() {
         patternTitle="Only letters and numbers are allowed."
       />
 
-      <FormTextField
+      <TextField
         label="Email"
         name="email"
         autoComplete="email"
@@ -84,7 +84,7 @@ export default function RegisterForm() {
         patternTitle="Enter a valid email."
       />
 
-      <FormTextField
+      <TextField
         label="Password"
         name="password"
         type="password"
@@ -96,7 +96,7 @@ export default function RegisterForm() {
         patternTitle={"Must include an uppercase letter, a lowercase letter, and a number, and contain only letters, numbers, and the symbols " + PASSWORD_ALLOWED_CHARS}
       />
 
-      <FormTextField
+      <TextField
         label="Confirm Password"
         name="confirmPassword"
         type="password"

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { logoutUser } from '@/lib/auth/authActions'
-import { AssetButton } from '@/components/notebook/NotebookUI'
+import { AssetButton } from '@/components/notebook/AssetButton'
 import { ROUTES } from '@/config/routes'
 import { english } from '@/config/english'
 
@@ -31,7 +31,7 @@ export default function AccountPanel({ username, cardCount, cardBacks, onClose }
                 href={ROUTES.profile}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-serif text-sm text-ink-muted transition-colors hover:bg-ink-900/10"
             >
-                👤 Full profile
+                👤 Profile
             </Link>
             <Link
                 href={ROUTES.friends}

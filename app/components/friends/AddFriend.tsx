@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { searchUserByUsername, sendFriendRequest } from '@/lib/friends'
-import FriendRow from './FriendRow'
+import { searchUserByUsername, sendFriendRequest } from '@/lib/user-and-friends/friends'
+import Row from './Row'
 
 export default function AddFriend({ onSent }: { onSent: () => void }) {
     const [query, setQuery] = useState('')
@@ -56,7 +56,7 @@ export default function AddFriend({ onSent }: { onSent: () => void }) {
             {isPending && <p className="font-serif text-xs text-ink-muted">Searching…</p>}
             {!isPending && notFound && <p className="font-serif text-xs text-ink-muted">No user found.</p>}
             {!isPending && result && (
-                <FriendRow
+                <Row
                     person={result}
                     action={
                         sent ? (

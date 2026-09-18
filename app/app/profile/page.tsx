@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/currentUser'
+import { getUserInfo } from '@/lib/user-and-friends/getUserInfo'
 import { ROUTES } from '@/config/routes'
-import ProfileInformation from './ProfileInformation'
+import ProfileInformation from '@/components/profile/ProfileInformation'
 
 export default async function ProfilePage() {
-    const user = await getCurrentUser()
+    const user = await getUserInfo()
     if (!user) redirect(ROUTES.home)
 
     return <ProfileInformation user={user} />

@@ -33,6 +33,9 @@ model User {
   friendshipsSent     Friendship[] @relation("FriendshipRequester")
   friendshipsReceived Friendship[] @relation("FriendshipAddressee")
 
+  messagesSent     Message[] @relation("MessageSender")
+  messagesReceived Message[] @relation("MessageReceiver")
+
   createdAt     DateTime   @default(now())
   decks         Deck[]
   cards         UserCard[]
@@ -81,6 +84,24 @@ model Friendship {
   @@unique([requesterId, addresseeId])
   @@index([requesterId])
   @@index([addresseeId])
+}
+
+// 1:1 chat between friends (see lib/messages.ts) — no separate "conversation" model, a pair's
+// history is just every row where they're sender/receiver in either direction.
+model Message {
+  id Int @id @default(autoincrement())
+
+  senderId Int
+  sender   User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId Int
+  receiver   User @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([senderId, receiverId])
+  @@index([receiverId, senderId])
 }
 
 enum Keyword {

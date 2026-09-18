@@ -2,7 +2,7 @@ import "server-only";
 
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { USERNAME_MAX_LENGTH } from "@/lib/constants";
+import { USERNAME_MAX_LENGTH } from "@/lib/auth/requirements";
 
 const AUTHORIZE_URL = "https://api.intra.42.fr/oauth/authorize";
 const TOKEN_URL = "https://api.intra.42.fr/oauth/token";

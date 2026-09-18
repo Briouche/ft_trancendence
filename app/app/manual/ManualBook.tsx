@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import ScaleToFit from "@/components/ScaleToFit";
 import {
-  HomeButton, TitleBanner, NotebookScrollArea,
+  NotebookScrollArea,
   woodenTableBackground, outlinedWhiteTextStyle,
 } from "@/components/notebook/NotebookUI";
+import { HomeButton } from "@/components/notebook/AssetButton";
+import { TitleBanner } from "@/components/notebook/PageLayout";
 
 // These are the real KEYWORD_LABELS (lib/keywords.ts) as shown bolded in card text — but only
 // Taunt/Rush/Battlecry/Deathrattle/Lifesteal/Silence have an actual generic rule on the engine

@@ -1,13 +1,11 @@
 'use client';
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
-
 import FormBox from "./FormBox";
-import FormTextField from "./FormTextField";
+import TextField from "@/components/notebook/TextField";
+import BoxedButton from "@/components/notebook/BoxedButton";
 import FormButton from "./FormButton";
 import { ROUTES } from "@/config/routes";
 import { checkCredentials } from "@/lib/auth/authActions";
@@ -54,7 +52,7 @@ export default function SignInForm() {
       action={handleSubmit}
       error={error}
     >
-      <FormTextField
+      <TextField
         label="Username"
         name="username"
         autoComplete="username"
@@ -65,7 +63,7 @@ export default function SignInForm() {
         patternTitle="Only letters and numbers are allowed."
       />
 
-      <FormTextField
+      <TextField
         label="Password"
         name="password"
         type="password"
@@ -86,14 +84,9 @@ export default function SignInForm() {
         <span className="h-px flex-1 bg-ink-muted/30" />
       </div>
 
-      <Link
-        href="/api/auth/42"
-        className="travelbook-slot03a flex h-11 w-full items-center justify-center
-        font-display text-lg font-bold text-white transition-transform active:scale-95"
-        style={outlinedWhiteTextStyle}
-      >
+      <BoxedButton href="/api/auth/42" className="h-11 w-full text-lg">
         Sign in with 42
-      </Link>
+      </BoxedButton>
     </FormBox>
   );
 }

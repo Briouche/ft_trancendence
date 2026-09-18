@@ -1,12 +1,11 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { removeFriend } from '@/lib/friends'
-import { useActiveUserIds } from '@/app/presence'
-import { outlinedWhiteTextStyle } from '@/components/notebook/NotebookUI'
-import FriendRow, { RowActionButton, type FriendLike } from './FriendRow'
-
-type Friend = FriendLike & { friendshipId: number }
+import { useRouter } from 'next/navigation'
+import { removeFriend } from '@/lib/user-and-friends/friends'
+import { ROUTES } from '@/config/routes'
+import BoxedButton from '@/components/notebook/BoxedButton'
+import FriendRow, { type Friend } from './FriendRow'
 
 // `refreshKey` bumps to refetch after a request is accepted elsewhere on the page — see
 // FriendsRequestsList for the sync pattern.
@@ -15,7 +14,7 @@ export default function FriendsList({ refreshKey }: { refreshKey: number }) {
     const [error, setError] = useState<string | null>(null)
     const [pendingRemove, setPendingRemove] = useState<Friend | null>(null)
     const [isRemoving, startRemoving] = useTransition()
-    const onlineUserIds = useActiveUserIds()
+    const router = useRouter()
 
     useEffect(() => {
         let cancelled = false
@@ -59,22 +58,10 @@ export default function FriendsList({ refreshKey }: { refreshKey: number }) {
                     {friends.map(friend => (
                         <FriendRow
                             key={friend.friendshipId}
-                            person={{
-                                ...friend,
-                                // Live presence (socket-server) overrides the DB's ONLINE/OFFLINE, which
-                                // nothing currently keeps in sync — IN_GAME isn't tracked over sockets yet,
-                                // so it still comes straight from the DB.
-                                status: friend.status === 'IN_GAME'
-                                    ? 'IN_GAME'
-                                    : onlineUserIds.has(friend.id) ? 'ONLINE' : 'OFFLINE',
-                            }}
-                            action={
-                                <RowActionButton
-                                    label="Remove friend"
-                                    tone="negative"
-                                    onClick={() => setPendingRemove(friend)}
-                                />
-                            }
+                            friend={friend}
+                            onClick={() => router.push(ROUTES.profileOf(friend.username))}
+                            onChat={() => router.push(ROUTES.chatWith(friend.id))}
+                            onRemove={() => setPendingRemove(friend)}
                         />
                     ))}
                 </div>
@@ -96,21 +83,12 @@ export default function FriendsList({ refreshKey }: { refreshKey: number }) {
                             “{pendingRemove.username}” will be removed from your friends.
                         </p>
                         <div className="flex w-full gap-4">
-                            <button
-                                onClick={() => setPendingRemove(null)}
-                                disabled={isRemoving}
-                                className="travelbook-slot03a h-14 flex-1 font-display text-lg font-bold text-ink-text transition-transform active:scale-95 disabled:opacity-30"
-                            >
+                            <BoxedButton onClick={() => setPendingRemove(null)} disabled={isRemoving} tone="ink" className="h-14 flex-1 text-lg">
                                 Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmRemove}
-                                disabled={isRemoving}
-                                className="travelbook-slot03a h-14 flex-1 font-display text-lg font-bold text-white transition-transform active:scale-95 disabled:opacity-30"
-                                style={outlinedWhiteTextStyle}
-                            >
+                            </BoxedButton>
+                            <BoxedButton onClick={handleConfirmRemove} disabled={isRemoving} className="h-14 flex-1 text-lg">
                                 {isRemoving ? 'Removing…' : 'Remove'}
-                            </button>
+                            </BoxedButton>
                         </div>
                     </div>
                 </div>

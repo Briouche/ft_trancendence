@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Difficulty } from "@/game/shared/protocol";
 import type { GameMode } from "@/game/GameConfig";
 import ScaleToFit from "@/components/ScaleToFit";
 import {
-  HomeButton, TitleBanner, NotebookScrollArea, SelectHighlight,
+  NotebookScrollArea, SelectHighlight,
   woodenTableBackground, outlinedWhiteTextStyle,
 } from "@/components/notebook/NotebookUI";
+import { HomeButton } from "@/components/notebook/AssetButton";
+import { TitleBanner } from "@/components/notebook/PageLayout";
+import BoxedButton from "@/components/notebook/BoxedButton";
 
 type SavedDeck = {
   id: number;
@@ -107,13 +109,9 @@ export default function PlayModeSelector({ decks }: { decks: SavedDeck[] }) {
                     <p className="text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>
                       You don&apos;t have a deck yet.
                     </p>
-                    <Link
-                      href="/deck/new"
-                      className="travelbook-slot03a flex h-10 w-full items-center justify-center font-display font-bold text-white"
-                      style={outlinedWhiteTextStyle}
-                    >
+                    <BoxedButton href="/deck/new" className="h-10 w-full">
                       Create a deck
-                    </Link>
+                    </BoxedButton>
                   </div>
                 )}
                 {decks.map(d => {
