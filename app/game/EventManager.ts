@@ -10,16 +10,27 @@ import type { Difficulty } from "@/game/shared/protocol";
 export const EventManager = new EventEmitter();
 const socket = io();
 
+// socket.io retries a failed connection forever with backoff, and every single attempt fires
+// connect_error. Reporting all of them would flood the scene with rejections — and each one
+// resets the player's in-flight interaction, including a target prompt restored on reconnect —
+// so only the first failure of a streak is surfaced, and the next successful connect re-arms it.
+let connectErrorReported = false;
+
 socket.on("connect", () =>
 {
+    connectErrorReported = false;
     EventManager.emit("client:connected");
 });
 
 socket.on("connect_error", (err: Error) =>
 {
+    if (connectErrorReported)
+        return;
+    connectErrorReported = true;
+
     EventManager.emit("server:rejected", err.message === "unauthenticated"
         ? "Session expirée — reconnecte-toi."
-        : "Connexion au serveur de jeu impossible.");
+        : "Connexion au serveur de jeu impossible.", false);
 });
 
 socket.on("message", (msg: ServerMessage) =>
@@ -31,7 +42,7 @@ socket.on("message", (msg: ServerMessage) =>
     else if (msg.type === "prompt")
         EventManager.emit("server:prompt", msg.prompt);
     else if (msg.type === "rejected")
-        EventManager.emit("server:rejected", msg.reason);
+        EventManager.emit("server:rejected", msg.reason, msg.fatal === true);
     else if (msg.type === "gameOver")
         EventManager.emit("server:gameOver", msg.winner);
     else if (msg.type === "event")

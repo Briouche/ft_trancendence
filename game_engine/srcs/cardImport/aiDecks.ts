@@ -26,8 +26,8 @@ const ARCHI_DECK: string[] = [
     "Archimed la maudite",
     "Haku", "Reborn", "Ribgy", "Neo",
     "Po", "Zurg", "Bertrand", "Le Phoenix",
-    "Goblinmikaze", "Flambeur de Dancefloor", "podophile", "CRS", "Client Mécontent",
-    "Feeder goblin", "Cactus dos Pimentos", "Le menestrel", "allie peureux",
+    "Goblinmikaze", "Flambeur de Dancefloor", "le gros pied puant", "CRS", "Client Mécontent",
+    "Feeder goblin", "Cactus dos Pimentos", "Le menestrel", "tortue encourageante",
     "Bibliothequaire", "Pyroblin", "Jumeau Goblin",
 ]
 

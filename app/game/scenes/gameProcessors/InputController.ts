@@ -149,7 +149,13 @@ export class InputController
                 return;
             }
 
-            if (!this.aimingCard || !this.flow.awaitingTarget || this.flow.pendingPrompt === null)
+            // No aimingCard requirement: a prompt restored after a reconnect (see
+            // StateSyncController) has no card being aimed, because the pending card is still in
+            // the player's hand server-side and the resync puts it back there — there is nothing
+            // on the board to aim from. awaitingTarget + pendingPrompt is the real condition, and
+            // both branches below already tolerate a null aimingCard. Ordinary clicks can't be
+            // swallowed by this: handleCardClick bails on flow.awaitingTarget anyway.
+            if (!this.flow.awaitingTarget || this.flow.pendingPrompt === null)
                 return;
 
             const hit = this.findTargetAt(p);

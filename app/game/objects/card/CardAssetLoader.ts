@@ -40,7 +40,7 @@ export function resolveInitialCardArt(scene: Phaser.Scene, assetKey: string): { 
     return { key: alreadyLoaded ? assetKey : null, needsAsyncLoad: !alreadyLoaded };
 }
 
-export function ensureCardArt(scene: Phaser.Scene, assetKey: string, onLoaded: (key: string) => void): void
+export function ensureCardArt(scene: Phaser.Scene, assetKey: string, onLoaded: (key: string) => void, onFailed?: () => void): void
 {
     if (scene.textures.exists(assetKey))
     {
@@ -48,21 +48,39 @@ export function ensureCardArt(scene: Phaser.Scene, assetKey: string, onLoaded: (
         return;
     }
 
-    scene.load.once(`filecomplete-image-${assetKey}`, () => onLoaded(assetKey));
-
     const loadingKeys = inFlightKeys(scene);
+
+    // Every waiter is told the outcome exactly once, whichever way it goes, so both listeners are
+    // removed as soon as either fires. "loaderror" in particular is a single, non-keyed event
+    // fired for *every* failing file, so each waiter has to filter for its own key and stay
+    // subscribed otherwise — a `once` here gets consumed by whichever file happens to error
+    // first, which is how a failed fetch could leave this key stuck in `loadingKeys` and block
+    // every retry of that card's art for the rest of the match.
+    const onComplete = () =>
+    {
+        scene.load.off("loaderror", onError);
+        onLoaded(assetKey);
+    };
+
+    const onError = (file: Phaser.Loader.File) =>
+    {
+        if (file.key !== assetKey)
+            return;
+
+        scene.load.off(`filecomplete-image-${assetKey}`, onComplete);
+        scene.load.off("loaderror", onError);
+        loadingKeys.delete(assetKey);
+        onFailed?.();
+    };
+
+    scene.load.once(`filecomplete-image-${assetKey}`, onComplete);
+    scene.load.on("loaderror", onError);
+
     if (!loadingKeys.has(assetKey))
     {
         loadingKeys.add(assetKey);
         scene.load.image(assetKey, `/textures/cards/images/${assetKey}.webp`);
         scene.load.once(`filecomplete-image-${assetKey}`, () => loadingKeys.delete(assetKey));
-        // Clear on failure too, otherwise one failed fetch (a blip mid-match) would permanently
-        // block any retry of that card's art for the rest of the game.
-        scene.load.once(`loaderror`, (file: Phaser.Loader.File) =>
-        {
-            if (file.key === assetKey)
-                loadingKeys.delete(assetKey);
-        });
         if (!scene.load.isLoading())
             scene.load.start();
     }

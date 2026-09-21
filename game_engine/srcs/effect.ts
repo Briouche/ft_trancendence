@@ -431,7 +431,7 @@ export class timmyDamageEffect extends Effect
     }
 }
 
-// Archimede's battlecry: 50 damage once 6 "archi" cards have been played.
+// Archimede's battlecry: 100 damage once 6 "archi" cards have been played.
 export class archiDamageEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -443,7 +443,7 @@ export class archiDamageEffect extends Effect
     {
         if (context.owner.archimedeCount >= 6)
         {
-            let effect = new DamageEffect(50, this.resolver)
+            let effect = new DamageEffect(1000000000000, this.resolver)
             effect.execute(context);
         }
     }

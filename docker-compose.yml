@@ -23,6 +23,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # Same policy as game_engine below. Without it a single exit of `next dev` — for any reason,
+    # clean or not — blackholes the whole site until someone re-runs `make`: nginx keeps the
+    # cached IP for `valid=10s` and refuses connections, then can't resolve `app` at all and 502s
+    # everything (including /textures/cards/images/*.webp mid-match), and the socket.io reconnect
+    # that would have resumed a live match never gets a page to run in.
+    restart: unless-stopped
     networks:
       - frontend
       - backend
@@ -40,6 +46,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: unless-stopped
     networks:
       - frontend
       - backend

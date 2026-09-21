@@ -4,7 +4,7 @@ import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
 import { MatchHistory } from "../../objects/history/MatchHistory";
-import { ClientGameState } from "../../shared/protocol";
+import { ClientGameState, TargetPrompt } from "../../shared/protocol";
 import { drawCardAnimation } from "../../animations";
 import { GameFlowState } from "./GameFlowState";
 
@@ -32,7 +32,7 @@ export class StateSyncController
 
     private table: TableRefs | null = null;
 
-    constructor(private scene: Phaser.Scene, private flow: GameFlowState, private onTableCreated: (table: TableRefs) => void, private onWaitingCleared: () => void)
+    constructor(private scene: Phaser.Scene, private flow: GameFlowState, private onTableCreated: (table: TableRefs) => void, private onWaitingCleared: () => void, private onPromptRestored: (prompt: TargetPrompt) => void)
     {}
 
     deferUntilCardExists(cardId: string, run: (card: Card) => void): void
@@ -95,6 +95,15 @@ export class StateSyncController
             this.onWaitingCleared();
             return;
         }
+
+        // The server says this player still owes a target choice. On a normal play the UI is
+        // already up — the "prompt" message raised it and flow.pendingPrompt is set. It is null
+        // here only when the client that saw that message is gone (a reconnect, a page reload),
+        // and the state is then the only place the prompt still exists. Without this the seat is
+        // soft-locked: reattach() has already cancelled the forfeit timer, and the server rejects
+        // every message except targetChoice.
+        if (this.flow.pendingPrompt === null)
+            this.onPromptRestored(state.pendingPrompt);
 
         if (this.flow.pendingPlayCardId !== null)
         {

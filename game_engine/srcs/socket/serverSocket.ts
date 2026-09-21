@@ -47,22 +47,13 @@ export function createGameServer(port: number): void
             liveGames.splice(idx, 1);
     };
 
-    const reject = (socket: Socket, reason: string): void =>
+    const reject = (socket: Socket, reason: string, fatal: boolean = false): void =>
     {
-        const rejection: ServerMessage = { type: "rejected", reason };
+        const rejection: ServerMessage = { type: "rejected", reason, fatal };
         socket.emit("message", rejection);
     };
 
-    // Hands a socket back the live game its account already holds, if any. Returns false when there
-    // is nothing to go back to, so the caller can start a new match instead.
-    //
-    // This backs "ready"/"readySolo" as well as "resume", because the client can't reliably tell
-    // the two apart: GameScene tracks whether it's already in a match with an in-memory `matched`
-    // flag, which any page load wipes. A socket blip within one page sends "resume", but an F5, a
-    // navigation away and back, or a restored tab all come back as a plain "ready" for a brand new
-    // match — the far more common case. Answering those with a bare `return` (the old one-game-per-
-    // account guard) left the client waiting on a reply that was never coming, stuck on the loading
-    // screen for the rest of the match.
+    // Hands a socket back the live game
     const resumeExisting = (socket: Socket, userId: number): boolean =>
     {
         const game = liveGames.find(g => g.hasUser(userId));
@@ -71,16 +62,12 @@ export function createGameServer(port: number): void
 
         // Found the game but can't rejoin it (it's finishing): still an answer, not silence.
         if (!game.reattach(userId, socket))
-            reject(socket, "Partie déjà en cours.");
+            reject(socket, "Partie déjà en cours.", true);
 
         return true;
     };
 
-    // Authenticate once per connection, before any game message is handled: the browser sends the
-    // same httpOnly session cookie the Next.js app set (socket.io is proxied under the same origin
-    // by nginx), so the seat can be tied to a real account instead of to a socket id. Doing it here
-    // rather than per-message also keeps the tokenVersion lookup off the match-start path — the
-    // socket is opened while the player is still browsing decks (see PlayModeSelector.tsx).
+    // Authenticate once per connection, before any game message is handled
     io.use(async (socket, next) =>
     {
         try
@@ -112,22 +99,15 @@ export function createGameServer(port: number): void
                 // connection to the seat their account already holds. No deck is re-read and no
                 // session is rebuilt — the match kept running in memory the whole time.
                 if (!resumeExisting(socket, identity.userId))
-                    reject(socket, "Partie introuvable.");
+                    reject(socket, "Partie introuvable.", true);
                 return;
             }
 
             if (msg.type === "readySolo")
             {
-                // One live game per account, keyed on the user rather than the socket — so this is
-                // also how a reconnect after a page load lands back in its match instead of
-                // starting a second one.
                 if (resumeExisting(socket, identity.userId))
                     return;
 
-                // Player's deck = whatever they chose in the menu (deck builder), verified to
-                // actually belong to them. AI's deck = one of the 3 hand-written decks in
-                // aiDecks.ts, picked at random — not tied to any account, so the AI can play cards
-                // the human player doesn't own.
                 let playerDeck: Deck | null, aiDeck: Deck;
                 try
                 {
@@ -138,8 +118,6 @@ export function createGameServer(port: number): void
                 }
                 catch (err)
                 {
-                    // A DB hiccup here must not crash the whole process — that would drop every
-                    // other live game too. Fail just this one match start instead.
                     console.error("readySolo: failed to load deck(s):", err);
                     reject(socket, "Erreur serveur, réessaie.");
                     return;

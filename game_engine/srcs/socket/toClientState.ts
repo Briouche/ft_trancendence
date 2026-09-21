@@ -1,7 +1,7 @@
 import { Card, MinionCard, SpellCard } from "../card";
 import { GameEngine } from "../gameEngine";
 import { Effect, cleaveEffect, regenerationEffect } from "../effect";
-import { ClientCard, ClientGameState, ClientHero, clientEffect } from "../shared/protocol";
+import { ClientCard, ClientGameState, ClientHero, clientEffect, TargetPrompt } from "../shared/protocol";
 import { Player } from "../player";
 
 // Engine state → the per-player view sent over the socket (shared/protocol.ts).
@@ -91,7 +91,8 @@ function toClientHero(player: Player): ClientHero
     return data;
 }
 
-export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGameState
+// pendingPrompt is supplied by the caller (GameSession owns the pending target, not the engine).
+export function toClientState(engine: GameEngine, playerIndex: 0 | 1, pendingPrompt?: TargetPrompt): ClientGameState
 {
     const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
 
@@ -108,6 +109,11 @@ export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGam
         opponentMana: engine.players[opponentIndex].currentMana,
         opponentMaxMana: engine.players[opponentIndex].maxMana,
         playerDeck: engine.players[playerIndex].deck.size(),
-        opponentDeck: engine.players[opponentIndex].deck.size()
+        opponentDeck: engine.players[opponentIndex].deck.size(),
+        // Set only while this player owes the server a target choice. The one-shot "prompt"
+        // message that normally raises the target UI died with the connection that received it,
+        // so a client reconnecting mid-prompt has no other way to learn it still has to answer —
+        // and GameSession.handle() rejects everything except targetChoice until it does.
+        pendingPrompt
     };
 }
