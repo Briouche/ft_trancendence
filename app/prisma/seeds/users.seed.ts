@@ -7,6 +7,7 @@ interface RawUser {
   email: string;
   username: string;
   password: string;
+  unlockAllCards?: boolean;
 }
 
 interface RawFriendship {
@@ -48,6 +49,28 @@ export async function seedUsers(prisma: PrismaClient) {
   }
 
   console.log("✅ Users successfully seeded.");
+
+  // Same as the unlock-all route (app/api/collection/unlock-all): every card at its max qty.
+  // Relies on seedCards() having run first so the Card table is populated.
+  const unlockAllUsers = data.users.filter((u) => u.unlockAllCards);
+  if (unlockAllUsers.length > 0) {
+    const cards = await prisma.card.findMany({ select: { id: true, qty: true } });
+
+    for (const user of unlockAllUsers) {
+      const userId = userIdByUsername.get(user.username.toLowerCase())!;
+
+      await prisma.$transaction(
+        cards.map((card) =>
+          prisma.userCard.upsert({
+            where: { userId_cardId: { userId, cardId: card.id } },
+            create: { userId, cardId: card.id, qty: card.qty },
+            update: { qty: card.qty },
+          })
+        )
+      );
+      console.log(`🃏 Unlocked all ${cards.length} cards for ${user.username}.`);
+    }
+  }
 
   const friendships = data.friendships ?? [];
   console.log(`🤝 Seeding ${friendships.length} friendships...`);

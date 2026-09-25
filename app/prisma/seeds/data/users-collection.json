@@ -3,12 +3,14 @@
     {
       "email": "alex.vanguard@shadowrealm.com",
       "username": "AlexVanguard",
-      "password": "Testtest1"
+      "password": "Testtest1",
+      "unlockAllCards": true
     },
     {
       "email": "elena.spellweaver@mythos.gg",
       "username": "ElenaSpellweaver",
-      "password": "Testtest2"
+      "password": "Testtest2",
+	  "unlockAllCards": true
     },
     {
       "email": "kai.cyberblade@neoncity.io",

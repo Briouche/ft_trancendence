@@ -4,6 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { seedCards } from './seeds/cards.seed'
 import { seedUsers } from './seeds/users.seed'
+import { seedDecks } from './seeds/decks.seed'
 
 // 1. Set up the native pg Pool pointing to your database URL
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -22,6 +23,9 @@ async function main() {
 
 	// Run sub-seeds in order
 	await seedUsers(prisma)
+
+	// Needs both cards and users to exist
+	await seedDecks(prisma)
 
 	console.log('🏁 Database seeding completed successfully!')
 }
