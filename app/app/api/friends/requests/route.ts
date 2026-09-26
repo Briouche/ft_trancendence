@@ -19,17 +19,24 @@ export async function GET() {
 
 const sendSchema = z.object({ username: usernameSchema });
 
-// HTTP status and message for each outcome of sendFriendRequest.
-const OUTCOMES: Record<SendRequestResult, [number, string]> = {
-  sent: [201, "Friend request sent."],
-  accepted: [200, "You are now friends."],
-  self: [400, "You can't add yourself."],
-  not_found: [404, "No player with that username."],
-  already_friends: [409, "You are already friends."],
-  already_sent: [409, "Request already sent."],
+// Message and success flag for each outcome of sendFriendRequest.
+const OUTCOMES: Record<SendRequestResult, { ok: boolean; message: string }> = {
+  sent: { ok: true, message: "Friend request sent." },
+  accepted: { ok: true, message: "You are now friends." },
+  self: { ok: false, message: "You can't add yourself." },
+  not_found: { ok: false, message: "No player with that username." },
+  already_friends: { ok: false, message: "You are already friends." },
+  already_sent: { ok: false, message: "Request already sent." },
 };
 
-/** POST /api/friends/requests { username } — sends a friend request (or accepts theirs). */
+/**
+ * POST /api/friends/requests { username } — sends a friend request (or accepts theirs).
+ *
+ * Every *expected* outcome, including "no such player" or "already friends", is a 200 with
+ * `{ ok, result, message }`: they are normal answers to what the user typed, and a 4xx would be
+ * printed as an error in the browser console on every typo. Real errors keep their status
+ * (400 malformed body, 401 signed out, 429 rate limited).
+ */
 export async function POST(request: Request) {
   const auth = await requireSession();
   if (auth instanceof NextResponse) return auth;
@@ -42,6 +49,6 @@ export async function POST(request: Request) {
   }
 
   const result = await sendFriendRequest(auth.userId, body.username);
-  const [status, message] = OUTCOMES[result];
-  return status >= 400 ? jsonError(status, message) : NextResponse.json({ result, message }, { status });
+  const { ok, message } = OUTCOMES[result];
+  return NextResponse.json(ok ? { ok, result, message } : { ok, result, error: message });
 }

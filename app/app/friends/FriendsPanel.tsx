@@ -18,6 +18,15 @@ type Data = { friends: UserSummary[]; incoming: Request[]; outgoing: Request[] }
 
 const EMPTY: Data = { friends: [], incoming: [], outgoing: [] }
 
+/** Friends and pending requests of the current user, or null if a request failed. */
+async function loadFriendsData(): Promise<Data | null> {
+    const [friendsRes, requestsRes] = await Promise.all([fetch('/api/friends'), fetch('/api/friends/requests')])
+    if (!friendsRes.ok || !requestsRes.ok) return null
+    const { friends } = await friendsRes.json()
+    const { incoming, outgoing } = await requestsRes.json()
+    return { friends, incoming, outgoing }
+}
+
 /** Error message of a failed API call (`{ error }` body), or a generic one. */
 async function errorOf(res: Response): Promise<string> {
     const body: { error?: string } | null = await res.json().catch(() => null)
@@ -36,16 +45,21 @@ export default function FriendsPanel() {
     const [error, setError] = useState('')
     const toast = useToast()
 
-    const refresh = useCallback(async () => {
-        const [friendsRes, requestsRes] = await Promise.all([fetch('/api/friends'), fetch('/api/friends/requests')])
-        if (!friendsRes.ok || !requestsRes.ok) return
-        const { friends } = await friendsRes.json()
-        const { incoming, outgoing } = await requestsRes.json()
-        setData({ friends, incoming, outgoing })
+    const refresh = useCallback(() => loadFriendsData().then(next => {
+        if (!next) return
+        setData(next)
         setLoaded(true)
-    }, [])
+    }), [])
 
-    useEffect(() => { void refresh() }, [refresh])
+    useEffect(() => {
+        let cancelled = false
+        loadFriendsData().then(next => {
+            if (!next || cancelled) return
+            setData(next)
+            setLoaded(true)
+        })
+        return () => { cancelled = true }
+    }, [])
     useRealtimeEvent(CHAT_EVENTS.friendsChanged, () => { void refresh() })
 
     const everyone = useMemo(
@@ -81,8 +95,8 @@ export default function FriendsPanel() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: parsed.data }),
         })
-        const body = await res.json().catch(() => null)
-        if (res.ok) toast(body?.message ?? 'Done.', 'success')
+        const body: { ok?: boolean; message?: string; error?: string } | null = await res.json().catch(() => null)
+        if (res.ok && body?.ok) toast(body.message ?? 'Done.', 'success')
         else setError(body?.error ?? 'Something went wrong.')
         await refresh()
         setBusy(false)

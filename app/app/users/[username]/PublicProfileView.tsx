@@ -38,9 +38,10 @@ export default function PublicProfileView({ profile }: { profile: PublicProfile 
     async function call(url: string, init: RequestInit, success: string) {
         setBusy(true)
         const res = await fetch(url, { ...init, headers: { 'Content-Type': 'application/json' } })
-        const body = await res.json().catch(() => null)
+        const body: { ok?: boolean; message?: string; error?: string } | null = await res.json().catch(() => null)
         setBusy(false)
-        toast(res.ok ? body?.message ?? success : body?.error ?? 'Something went wrong.', res.ok ? 'success' : 'info')
+        const succeeded = res.ok && body?.ok !== false
+        toast(succeeded ? body?.message ?? success : body?.error ?? 'Something went wrong.', succeeded ? 'success' : 'info')
         router.refresh()
     }
 
