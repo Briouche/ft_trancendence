@@ -77,7 +77,7 @@ export class GameEngine
                 minion.effects.rush = false;
             if (minion.effects.startOfTurnEffect !== undefined)
             {
-                let context: GameContext = { engine: this, owner: this.activePlayer(), source: minion, target: undefined };
+                const context: GameContext = { engine: this, owner: this.activePlayer(), source: minion, target: undefined };
                 this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "passive" });
                 minion.effects.startOfTurnEffect.execute(context);
                 this.processDeaths();
@@ -156,7 +156,7 @@ export class GameEngine
                 this.players[this.currentTurn].archimedeCount++;
             if (card.effects.battlecry)
             {
-                let context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
+                const context: GameContext = {engine: this, owner: this.activePlayer(), source: card, target: targets.get(card.effects.battlecry) ?? undefined};
                 this.recordAnimationChain({ kind: "effect", sourceId: card.id, trigger: "battlecry" });
                 card.effects.battlecry.execute(context);
             }
@@ -167,7 +167,7 @@ export class GameEngine
         {
             const spellpower = this.board.getMinions(this.currentTurn)
                 .reduce((sum, m) => sum + (m.effects.spellpower ?? 0), 0);
-            let context: GameContext = {engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined, bonusDamage: spellpower};
+            const context: GameContext = {engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined, bonusDamage: spellpower};
             card.effect.execute(context);
 
             // Gertrude: every 4th spell returns to hand.
@@ -195,7 +195,7 @@ export class GameEngine
 
         if (attacker.effects.onAttack && (!attacker.effects.onAttack.resolver || !attacker.effects.onAttack.resolver.requiresInput))
         {
-            let context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker, target: target };
+            const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: attacker, target: target };
             this.recordAnimationChain({ kind: "effect", sourceId: attacker.id, trigger: "passive" });
             attacker.effects.onAttack.execute(context);
         }

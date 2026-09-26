@@ -27,7 +27,7 @@ function requiresTarget(card: Card): boolean
 
 export function toClientCard(card: Card): ClientCard
 {
-    let effects: clientEffect = {};
+    const effects: clientEffect = {};
 
     const clientCard: ClientCard = {
         id: card.id,
@@ -79,7 +79,7 @@ export function toClientCard(card: Card): ClientCard
 
 function toClientHero(player: Player): ClientHero
 {
-    let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth, cardBack: player.cardBack };
+    const data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth, cardBack: player.cardBack };
     if (player.legPassive == "archimede")
         data.archi = player.archimedeCount;
     else if (player.legPassive == "freddy")

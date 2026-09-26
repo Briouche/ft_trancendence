@@ -51,7 +51,7 @@ export class AnyCharacterResolver extends TargetResolver
 
     resolve(context: GameContext) : Targetable[]
     {
-        let targets: Targetable[] = [];
+        const targets: Targetable[] = [];
 
         targets.push(...context.engine.board.getMinions(0));
         targets.push(...context.engine.board.getMinions(1));
@@ -257,7 +257,7 @@ export class OtherAlliedMinionsResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        let targets: Targetable[] = [];
+        const targets: Targetable[] = [];
 
         for (const minion of context.engine.board.getMinions(context.owner.index))
         {
@@ -329,7 +329,7 @@ export class NeighboringMinionsResolver extends TargetResolver
 
     resolve(context: GameContext): Targetable[]
     {
-        let neighbors: Targetable[] = [];
+        const neighbors: Targetable[] = [];
         if (context.source instanceof MinionCard)
         {
             const board = context.engine.board.getMinions(context.owner.index);

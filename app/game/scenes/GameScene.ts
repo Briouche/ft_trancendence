@@ -14,8 +14,6 @@ import { ServerEventPlayer } from "./gameProcessors/ServerEventPlayer";
 import { InputController } from "./gameProcessors/InputController";
 import { GameOverOverlay } from "../objects/GameOverOverlay";
 import { GAME_FONT_FAMILY_KEY } from "../objects/gameFontRegistry";
-import { TargetArrow } from "../objects/TargetArrow";
-import { ResolvedTarget } from "../objects/Target";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 

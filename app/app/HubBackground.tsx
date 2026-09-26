@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import SceneLoading from '@/components/library/SceneLoading'
@@ -13,14 +13,21 @@ const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: Scen
 const EMPTY_WINS: WinsBreakdown = { vsAiEasy: 0, vsAiMedium: 0, vsAiHard: 0, vsPlayer: 0 }
 const EMPTY_CARD_BACKS: CardBacksSummary = { unlocked: 1, total: 1 }
 
+let webgl2Support: boolean | undefined
+
+// Probed once per page load (creating a WebGL context is not free), then cached.
 function supportsWebGL2(): boolean {
-    try {
-        const canvas = document.createElement('canvas')
-        return !!canvas.getContext('webgl2')
-    } catch {
-        return false
+    if (webgl2Support === undefined) {
+        try {
+            webgl2Support = !!document.createElement('canvas').getContext('webgl2')
+        } catch {
+            webgl2Support = false
+        }
     }
+    return webgl2Support
 }
+
+const noSubscription = () => () => {}
 
 // Hub mounted once by the root layout and only hidden on other routes, so its WebGL scene is
 // never rebuilt. Stats are refetched every time the user comes back to "/". Falls back to a
@@ -29,12 +36,9 @@ export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'
     const [stats, setStats] = useState({ cardCount: 0, elo: 1000, wins: EMPTY_WINS, cardBacks: EMPTY_CARD_BACKS })
-    const [webgl2Supported, setWebgl2Supported] = useState<boolean | null>(null)
+    // null during server rendering (no DOM to probe), the real answer in the browser.
+    const webgl2Supported = useSyncExternalStore<boolean | null>(noSubscription, supportsWebGL2, () => null)
     const toast = useToast()
-
-    useEffect(() => {
-        setWebgl2Supported(supportsWebGL2())
-    }, [])
 
     useEffect(() => {
         if (!isHome) return

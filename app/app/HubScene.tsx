@@ -707,7 +707,8 @@ function Brazier({ position }: { position: [number, number, number] }) {
 // Moth circling the brazier.
 function Moth({ center }: { center: [number, number, number] }) {
     const ref = useRef<THREE.Group>(null)
-    const phase = useMemo(() => Math.random() * Math.PI * 2, [])
+    // Deterministic per position (render must stay pure), still different for each moth.
+    const phase = useMemo(() => pseudoRandom(center[0] * 13.7 + center[2] * 7.3) * Math.PI * 2, [center])
 
     useFrame(({ clock }) => {
         if (!ref.current) return

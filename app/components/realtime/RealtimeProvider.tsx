@@ -20,9 +20,15 @@ type RealtimeContextValue = {
 
 const RealtimeContext = createContext<RealtimeContextValue>({ socket: null, watch: () => () => {}, presence: {} })
 
-/** Opens the realtime socket for the signed-in user `userId` (mounted by app/layout.tsx). */
+/**
+ * Opens the realtime socket for the signed-in user `userId` (mounted by app/layout.tsx, keyed by
+ * user id so a different account gets a fresh socket).
+ */
 export function RealtimeProvider({ userId, children }: { userId: number; children: React.ReactNode }) {
-    const [socket, setSocket] = useState<Socket | null>(null)
+    // Created once, not connected yet: the effect below connects it (and disconnects it on
+    // unmount). null during server rendering, where there is no browser to connect from.
+    const [socket] = useState<Socket | null>(() =>
+        typeof window === 'undefined' ? null : io({ path: '/chat-socket.io/', withCredentials: true, autoConnect: false }))
     const [presence, setPresence] = useState<Record<number, Presence>>({})
     // Every mounted usePresence() registers its ids here; the socket watches their union
     // (socket-server replaces the watch list on each call, so one list per connection).
@@ -41,8 +47,8 @@ export function RealtimeProvider({ userId, children }: { userId: number; childre
     }, [])
 
     useEffect(() => {
-        const s = io({ path: '/chat-socket.io/', withCredentials: true })
-        setSocket(s)
+        const s = socket
+        if (!s) return
 
         s.on('connect', () => syncWatchList(s))
         s.on(CHAT_EVENTS.presence, (update: PresenceUpdate) =>
@@ -54,11 +60,13 @@ export function RealtimeProvider({ userId, children }: { userId: number; childre
             toast(`💬 New message from ${message.senderName}`)
         })
 
+        s.connect()
+
         return () => {
+            s.removeAllListeners()
             s.disconnect()
-            setSocket(null)
         }
-    }, [userId, syncWatchList, toast])
+    }, [socket, userId, syncWatchList, toast])
 
     const watch = useCallback((ids: number[]) => {
         const key = Symbol('watcher')

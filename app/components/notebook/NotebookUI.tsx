@@ -186,9 +186,8 @@ export function Slot({ children, onClick, onContextMenu, highlighted, disabled }
 const BUTTON_FRAME_MS = 35
 const BUTTON_FRAMES = 4
 
-// Textures under AssetButton; the self-contained variants already carry their icon.
-const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'achievement'] as const
-type AssetButtonVariant = 'square' | 'bar' | (typeof SELF_CONTAINED_VARIANTS)[number]
+// Textures under AssetButton; the icon variants (home … achievement) already carry their icon.
+type AssetButtonVariant = 'square' | 'bar' | 'home' | 'back' | 'manual' | 'about' | 'achievement'
 
 const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
     square:      '/textures/notebook/button',

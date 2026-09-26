@@ -66,6 +66,7 @@ export default function CustomCursor() {
         : `/textures/book/cursor/click-${frame}.webp`
 
     return (
+        // eslint-disable-next-line @next/next/no-img-element -- a 16px sprite swapped every frame; next/image adds nothing here
         <img
             ref={imgRef}
             src={src}

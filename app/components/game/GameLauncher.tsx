@@ -43,7 +43,6 @@ export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { m
       window.clearTimeout(timeoutId);
     };
     // Re-armed by retryBoot() below via retryToken, so a retry gets its own fresh timeout window.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBoardReady, retryToken]);
 
   const retryBoot = () => {
@@ -79,8 +78,8 @@ export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { m
       gameRef.current?.destroy(true);
       gameRef.current = null;
     };
-    // router is deliberately not a dependency: the game only rebuilds when match params change.
-  }, [mode, difficulty, deckId, cardBack]);
+    // router is a stable object in the App Router; listing it doesn't cause rebuilds.
+  }, [mode, difficulty, deckId, cardBack, router]);
 
   return (
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>

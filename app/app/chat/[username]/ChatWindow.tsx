@@ -109,7 +109,8 @@ export default function ChatWindow({ me, peer, initialMessages }: { me: number; 
                                     ${mine ? 'bg-leather-800 text-parchment-100' : 'bg-ink-muted/20 text-ink-text'}`}>
                                     {m.content}
                                 </p>
-                                <time className="mt-0.5 font-serif text-[10px] text-ink-muted" dateTime={m.createdAt}>
+                                {/* Formatted in the viewer's time zone: differs from the server render by design. */}
+                                <time className="mt-0.5 font-serif text-[10px] text-ink-muted" dateTime={m.createdAt} suppressHydrationWarning>
                                     {new Date(m.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                 </time>
                             </div>

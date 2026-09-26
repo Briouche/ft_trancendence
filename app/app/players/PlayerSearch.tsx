@@ -45,8 +45,8 @@ export default function PlayerSearch({ me }: { me: number }) {
     const paramsRef = useRef(params)
     useEffect(() => { paramsRef.current = params }, [params])
 
-    const [result, setResult] = useState<UserSearchResult | null>(null)
-    const [loading, setLoading] = useState(true)
+    // The result remembers which query it answers; loading = it doesn't answer the current one.
+    const [result, setResult] = useState<(UserSearchResult & { forQuery: string }) | null>(null)
     const [query, setQuery] = useState(params.q)
 
     function update(changes: Partial<UserSearchParams>) {
@@ -71,17 +71,17 @@ export default function PlayerSearch({ me }: { me: number }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- `update` only reads refs and the router
     }, [query])
 
+    const queryString = useMemo(() => new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString(), [params])
+    const loading = result?.forQuery !== queryString
+
     useEffect(() => {
         const controller = new AbortController()
-        setLoading(true)
-        const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]))
-        fetch(`/api/users?${qs}`, { signal: controller.signal })
+        fetch(`/api/users?${queryString}`, { signal: controller.signal })
             .then(res => res.ok ? res.json() : null)
-            .then((data: UserSearchResult | null) => { if (data) setResult(data) })
+            .then((data: UserSearchResult | null) => { if (data) setResult({ ...data, forQuery: queryString }) })
             .catch(() => {})
-            .finally(() => { if (!controller.signal.aborted) setLoading(false) })
         return () => controller.abort()
-    }, [params])
+    }, [queryString])
 
     const users = useMemo(() => result?.users ?? [], [result])
     const initialPresence = useMemo(() => Object.fromEntries(users.map(u => [u.id, u.presence])), [users])

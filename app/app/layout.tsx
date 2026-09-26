@@ -48,7 +48,7 @@ export default async function RootLayout({
           <TransitionOverlay />
           <CustomCursor />
           {session ? (
-            <RealtimeProvider userId={session.userId}>
+            <RealtimeProvider key={session.userId} userId={session.userId}>
               <HubBackground username={session.username} />
               {children}
             </RealtimeProvider>

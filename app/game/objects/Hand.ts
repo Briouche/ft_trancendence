@@ -41,7 +41,7 @@ export class Hand
 
     removeCard(card: Card)
     {
-        let index = this.cards.indexOf(card);
+        const index = this.cards.indexOf(card);
         if (index !== -1)
             this.cards.splice(index, 1);
         card.destroy();

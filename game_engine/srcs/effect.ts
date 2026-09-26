@@ -72,7 +72,7 @@ export class DamageEffect extends Effect
         else if (this.resolver)
         {
             const targets = this.resolver.resolve(context);
-            for (let target of targets)
+            for (const target of targets)
             {
                 target.takeDamage(amount);
                 context.engine.recordDamage(target, amount, context.engine.findOwnerById(target.id));
@@ -105,7 +105,7 @@ export class HealEffect extends Effect
         else if (this.resolver)
         {
             const targets = this.resolver.resolve(context);
-            for (let target of targets)
+            for (const target of targets)
             {
                 const healed = target.heal(this._amount);
                 if (healed > 0)
@@ -265,7 +265,7 @@ export class silenceEffect extends Effect
         }
         else if (this.resolver)
         {
-            for (let target of this.resolver.resolve(context))
+            for (const target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard)
                     this.resetStats(target);
@@ -344,7 +344,7 @@ export class RandomMissileEffect extends Effect
         {
             if (this.resolver && !this.resolver.requiresInput)
             {
-                let target = this.resolver.resolve(context);
+                const target = this.resolver.resolve(context);
                 if (target.length === 0)
                     break;
                 if (target[0].isAlive())
@@ -378,7 +378,7 @@ export class triggerDeathrattleEffect extends Effect
         }
         else if (this.resolver)
         {
-            for (let target of this.resolver.resolve(context))
+            for (const target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard && target.effects.deathrattle)
                     target.effects.deathrattle.execute({ ...context, source: target });
@@ -403,7 +403,7 @@ export class triggerEndOfTurnEffect extends Effect
         }
         else if (this.resolver)
         {
-            for (let target of this.resolver.resolve(context))
+            for (const target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard)
                     context.engine.triggerMinionEndOfTurnEffect(context.owner.index, target);
@@ -426,7 +426,7 @@ export class timmyDamageEffect extends Effect
 
         if (damage < 0)
             damage = 0;
-        let effect = new DamageEffect(damage, this.resolver);
+        const effect = new DamageEffect(damage, this.resolver);
         effect.execute(context);
     }
 }
@@ -443,7 +443,7 @@ export class archiDamageEffect extends Effect
     {
         if (context.owner.archimedeCount >= 6)
         {
-            let effect = new DamageEffect(1000000000000, this.resolver)
+            const effect = new DamageEffect(1000000000000, this.resolver)
             effect.execute(context);
         }
     }
@@ -464,13 +464,13 @@ export class lifestealEffect extends Effect
     {
         if (context.source instanceof MinionCard)
         {
-            let healEffect = new HealEffect(context.source.attack, new PlayerHeroResolver());
+            const healEffect = new HealEffect(context.source.attack, new PlayerHeroResolver());
             healEffect.execute(context);
         }
         else if (context.source instanceof SpellCard)
         {
-            let boardMinions = [...context.engine.board.getMinions(0), ...context.engine.board.getMinions(1)]
-            let total = this.amount * boardMinions.length;
+            const boardMinions = [...context.engine.board.getMinions(0), ...context.engine.board.getMinions(1)]
+            const total = this.amount * boardMinions.length;
             new HealEffect(total, new PlayerHeroResolver()).execute(context);
         }
     }
@@ -490,19 +490,19 @@ export class destroyEffect extends Effect
         {
             if (context.target && context.target instanceof MinionCard)
             {
-                let amount = context.target.currentHealth;
-                let effect = new DamageEffect(amount, this.resolver);
+                const amount = context.target.currentHealth;
+                const effect = new DamageEffect(amount, this.resolver);
                 effect.execute(context);
             }
         }
         else if (this.resolver)
         {
-            for (let target of this.resolver.resolve(context))
+            for (const target of this.resolver.resolve(context))
             {
                 if (target.isAlive())
                 {
-                    let amount = target.currentHealth;
-                    let effect = new DamageEffect(amount, this.resolver);
+                    const amount = target.currentHealth;
+                    const effect = new DamageEffect(amount, this.resolver);
                     effect.execute(context);
                 }
             }

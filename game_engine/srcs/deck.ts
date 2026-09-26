@@ -56,7 +56,7 @@ export class Deck
 // (cardImport/cardLoader.ts, cardImport/aiDecks.ts).
 export function makeBasicDeck(player: string, deckNo: number = 0): Deck
 {
-    let deck1 = new Deck ([
+    const deck1 = new Deck ([
         new MinionCard(player + "20", "Timmy ", 4, "passive: hero can have more health, active: deal damage = to above 20", 4, 4, { battlecry: new timmyDamageEffect(new AnyCharacterResolver()) }, "timmy"),
         new MinionCard(player + "18", "Flagbearer", 3, "whenever this attacks, buff its neighbors by 1/1", 3, 3, { onAttack: new BuffEffect(1, 1, new NeighboringMinionsResolver()) }),
         new MinionCard(player + "17", "lantern", 2, "at the start of your turn, draw 1 card", 0, 4, { startOfTurnEffect: new DrawCardEffect(1) }),
@@ -77,7 +77,7 @@ export function makeBasicDeck(player: string, deckNo: number = 0): Deck
         new SpellCard(player + "16", "Arcane missiles", 1, "Deal 1 damage to 3 random enemies", new RandomMissileEffect(3, 1, new RandomEnemyResolver()))
     ]);
 
-    let deck2 = new Deck ([
+    const deck2 = new Deck ([
         new MinionCard(player + "20", "Jeffe", 3, "passive: when minion is damaged, + 1 atck, active: deal 1 damage to all minions", 3, 3, { battlecry: new DamageEffect(1, new AllMinionsResolver()) }, "jeffe"),
         new MinionCard(player + "18", "Flagbearer", 3, "whenever this attacks, buff its neighbors by 1/1", 3, 3, { onAttack: new BuffEffect(1, 1, new NeighboringMinionsResolver()) }),
         new MinionCard(player + "17", "lantern", 2, "at the start of your turn, draw 1 card", 0, 4, { startOfTurnEffect: new DrawCardEffect(1) }),
@@ -99,7 +99,7 @@ export function makeBasicDeck(player: string, deckNo: number = 0): Deck
         new SpellCard(player + "16", "Arcane missiles", 1, "Deal 1 damage to 3 random enemies", new RandomMissileEffect(3, 1, new RandomEnemyResolver()))
     ]);
 
-    let deck3 = new Deck ([
+    const deck3 = new Deck ([
         new MinionCard(player + "20", "Freddy", 3, "passive: when 4 minions die, summon a 1/1, active: trigger all friendly deathrattles", 3, 3, { battlecry: new triggerDeathrattleEffect(new AlliedMinionsResolver()) }, "freddy"),
         new MinionCard(player + "18", "Flagbearer", 3, "whenever this attacks, buff its neighbors by 1/1", 3, 3, { onAttack: new BuffEffect(1, 1, new NeighboringMinionsResolver()) }),
         new MinionCard(player + "17", "lantern", 2, "at the start of your turn, draw 1 card", 0, 4, { startOfTurnEffect: new DrawCardEffect(1) }),
@@ -120,7 +120,7 @@ export function makeBasicDeck(player: string, deckNo: number = 0): Deck
         new SpellCard(player + "16", "Arcane missiles", 1, "Deal 1 damage to 3 random enemies", new RandomMissileEffect(3, 1, new RandomEnemyResolver()))
     ]);
 
-    let deck4 = new Deck ([
+    const deck4 = new Deck ([
         new MinionCard(player + "archi", "ARCHIMEDE", 7, "", 7, 7, { archi: true, battlecry: new archiDamageEffect(new EnemyHeroResolver()) }, "archimede"),
         new MinionCard(player + "0", "archi sbire 1", 1, "", 1, 1, { archi: true, battlecry: new DrawCardEffect(1) }),
         new MinionCard(player + "1", "archi sbire 2", 1, "", 1, 1, { archi: true, battlecry: new DrawCardEffect(1) }),

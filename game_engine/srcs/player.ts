@@ -74,7 +74,7 @@ export class Player
 
         for (let i = 0; i < deck.length; i++)
         {
-            let legPassive = deck[i].getLeg();
+            const legPassive = deck[i].getLeg();
             if (legPassive !== undefined)
             {
                 this.legPassive = legPassive;
