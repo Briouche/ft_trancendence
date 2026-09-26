@@ -1,5 +1,6 @@
-// Wire protocol with the Phaser client. Mirrored by hand in app/game/shared/protocol.ts:
-// keep both files identical.
+// Wire protocol between the Phaser client and the game server. Two identical copies exist,
+// app/game/shared/protocol.ts and game_engine/srcs/shared/protocol.ts, because each service is
+// built from its own directory: edit one, copy it over the other (`diff` must print nothing).
 export interface clientEffect
 {
     taunt?: boolean;
@@ -100,6 +101,9 @@ export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }
     | { type: "event"; event: GameEvent }
     | { type: "prompt"; prompt: TargetPrompt }
+    // fatal: there is no seat left for this client and nothing it can do about it — its match was
+    // forfeited while it was away, or it already holds one it can't rejoin. Every other rejection
+    // is per-action ("not your turn", "waiting for target") and the match carries on.
     | { type: "rejected"; reason: string; fatal?: boolean }
     | { type: "opponentDisconnected"; secondsRemaining: number }
     | { type: "opponentReconnected" }

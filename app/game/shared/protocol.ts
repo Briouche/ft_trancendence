@@ -1,6 +1,6 @@
-// Wire format between this client and the game server; keep in sync with
-// game_engine/srcs/shared/protocol.ts.
-
+// Wire protocol between the Phaser client and the game server. Two identical copies exist,
+// app/game/shared/protocol.ts and game_engine/srcs/shared/protocol.ts, because each service is
+// built from its own directory: edit one, copy it over the other (`diff` must print nothing).
 export interface clientEffect
 {
     taunt?: boolean;
@@ -89,13 +89,13 @@ export interface TargetPrompt
 }
 
 export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
-                            | { type: "readySolo"; difficulty: Difficulty; deckId: number; cardBack: number }
-                            | { type: "playCard"; cardId: string; boardIndex?: number; }
-                            | { type: "attack"; attackerId: string; targetId: string; }
-                            | { type: "targetChoice"; targetId: string | null }
-                            | { type: "endTurn" }
-                            | { type: "resume" }
-                            | { type: "quit" };
+    | { type: "readySolo"; difficulty: Difficulty; deckId: number; cardBack: number }
+    | { type: "playCard"; cardId: string; boardIndex?: number; }
+    | { type: "attack"; attackerId: string; targetId: string; }
+    | { type: "targetChoice"; targetId: string | null }
+    | { type: "endTurn" }
+    | { type: "resume" }
+    | { type: "quit" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }
