@@ -13,4 +13,9 @@ const pool = new Pool({
     idleTimeoutMillis: 60000,
 });
 
-export const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+// 15 s instead of the default 5 s for interactive transactions: a match result written right
+// after a cold start must not be aborted by a slow first connection.
+export const prisma = new PrismaClient({
+    adapter: new PrismaPg(pool),
+    transactionOptions: { timeout: 15_000, maxWait: 10_000 },
+});

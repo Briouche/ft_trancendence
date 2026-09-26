@@ -14,7 +14,10 @@ const prismaClientSingleton = () => {
   });
   const adapter = new PrismaPg(pool);
 
-  return new PrismaClient({ adapter });
+  // Interactive transactions default to a 5 s timeout. The first requests after a cold start
+  // (connection setup, and in dev the on-demand compile of the route) were measured at 7 s, which
+  // aborted pack openings and match results; 15 s leaves room on slow machines.
+  return new PrismaClient({ adapter, transactionOptions: { timeout: 15_000, maxWait: 10_000 } });
 };
 
 declare global {
