@@ -8,7 +8,7 @@ import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId, makeDeckFromNames } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 import { authenticateCookieHeader, SocketIdentity } from "../auth/session";
-import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
+import { isDeckId, isDifficulty } from "./validateMessage";
 
 // Keep in sync with app/lib/cardBacks.ts.
 const CARD_BACK_COUNT = 8;
@@ -21,19 +21,6 @@ function clampCardBack(value: number): number
 function randomCardBack(): number
 {
     return Math.floor(Math.random() * CARD_BACK_COUNT);
-}
-
-// The client is not trusted: anything that reaches the engine is checked here first. An unknown
-// difficulty used to leave DIFFICULTY_PRESETS[difficulty] undefined and the AI loop dead, so the
-// match hung forever on the AI's turn.
-function isDifficulty(value: unknown): value is Difficulty
-{
-    return typeof value === "string" && Object.prototype.hasOwnProperty.call(DIFFICULTY_PRESETS, value);
-}
-
-function isDeckId(value: unknown): value is number
-{
-    return Number.isSafeInteger(value) && (value as number) > 0;
 }
 
 // Origin must match the Host the request was sent to (nginx forwards it). Requests without an

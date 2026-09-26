@@ -18,6 +18,8 @@ export interface MCTSNode {
   wins:           number;
   untriedActions: Action[];
   ownerIndex:     0 | 1;
+  // Plies from the root; lets a quicker win score higher than a slower one (see simulate).
+  depth:          number;
 }
 
 // Plays `action` on a clone; the real match is never touched.
@@ -66,16 +68,26 @@ export function createNode(state: GameEngine, parent: MCTSNode | null, action: A
     wins:           0,
     untriedActions: state.isTerminal() ? [] : state.getLegalActions(),
     ownerIndex:     state.currentTurn,
+    depth:          parent ? parent.depth + 1 : 0,
   };
 }
 
-function ucb1(node: MCTSNode, parentVisits: number): number {
-  if (node.visits === 0) return Infinity;
-  return (node.wins / node.visits) + UCB1_C * Math.sqrt(Math.log(parentVisits) / node.visits);
+// Win rate of `child` seen by the player choosing at `parent`. A child's wins are counted for the
+// player to move *in the child*: the same player after a card or an attack (still their turn),
+// the opponent after endTurn. Without this flip, selection compared "good for me" with "good for
+// my opponent" and favoured ending the turn exactly when that was bad.
+export function winRateFor(parent: MCTSNode, child: MCTSNode): number {
+  const rate = child.wins / child.visits;
+  return child.ownerIndex === parent.ownerIndex ? rate : 1 - rate;
+}
+
+function ucb1(parent: MCTSNode, child: MCTSNode): number {
+  if (child.visits === 0) return Infinity;
+  return winRateFor(parent, child) + UCB1_C * Math.sqrt(Math.log(parent.visits) / child.visits);
 }
 
 export function selectBestChild(node: MCTSNode): MCTSNode {
-  return node.children.reduce((best, c) => ucb1(c, node.visits) > ucb1(best, node.visits) ? c : best);
+  return node.children.reduce((best, c) => ucb1(node, c) > ucb1(node, best) ? c : best);
 }
 
 // Expands one random untried action into a child node.
@@ -125,13 +137,19 @@ function evaluate(state: GameEngine, forPlayer: 0 | 1): number
   return 0.5 + 0.5 * Math.tanh(raw);
 }
 
-// Random playout, capped at MAX_DEPTH plies.
-export function simulate(state: GameEngine, forPlayer: 0 | 1): number
+// A win found `n` plies from the root is worth 1 - n × WIN_DELAY_PENALTY (a loss 0 + the same),
+// so between two winning lines the faster one scores higher. Without it, "attack for lethal
+// now" and "end the turn, lethal next turn" both scored 1.0 and the AI could pass up a lethal.
+const WIN_DELAY_PENALTY = 0.002;
+
+// Random playout, capped at MAX_DEPTH plies. `startDepth` is the depth of the node it starts from.
+export function simulate(state: GameEngine, forPlayer: 0 | 1, startDepth: number = 0): number
 {
   let s = state;
   const MAX_DEPTH = 60;
+  let d = 0;
 
-  for (let d = 0; d < MAX_DEPTH && !s.isTerminal(); d++)
+  for (; d < MAX_DEPTH && !s.isTerminal(); d++)
   {
     const actions = s.getLegalActions();
     const usefulActions = actions.filter(a => !isWastedPlay(s, a));
@@ -142,9 +160,10 @@ export function simulate(state: GameEngine, forPlayer: 0 | 1): number
   if (s.isTerminal())
   {
     const winner = s.getWinner();
-    if (winner === forPlayer) return 1;
+    const delay = Math.min(0.2, (startDepth + d) * WIN_DELAY_PENALTY);
+    if (winner === forPlayer) return 1 - delay;
     if (winner === null)      return 0.5;
-    return 0;
+    return delay;
   }
 
   return evaluate(s, forPlayer);
