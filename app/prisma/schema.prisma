@@ -187,7 +187,7 @@ model UserCard {
   userId Int
   cardId String
   qty    Int    @default(0)
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   card   Card   @relation(fields: [cardId], references: [id])
 
   @@id([userId, cardId])
