@@ -8,7 +8,7 @@ const AGGRO_DECK: string[] = [
     "Diablotin du piment", "Diablotin du piment", "Critique culinaire", "Critique culinaire",
     "Feed the troops", "Feed the troops", "Hyperactive cousin", "Hyperactive cousin",
     "soulevement de tombes", "une maman aimante", "une maman aimante", "soulevement de tombes",
-    "equal opportunity", "equal opportunity", "Pyroblin", "Pyroblin",
+    "equal opportiny", "equal opportiny", "Pyroblin", "Pyroblin",
 ]
 
 // Control: spells + big late-game creatures.
@@ -23,7 +23,7 @@ const CONTROL_DECK: string[] = [
 
 // Archimede synergy: the 6 "archi" cards + Archimede.
 const ARCHI_DECK: string[] = [
-    "Archimed la maudite",
+    "Archimede la maudite",
     "Haku", "Reborn", "Ribgy", "Neo",
     "Po", "Zurg", "Bertrand", "Le Phoenix",
     "Goblinmikaze", "Flambeur de Dancefloor", "le gros pied puant", "CRS", "Client Mécontent",

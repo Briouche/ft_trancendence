@@ -64,6 +64,11 @@ export function createGameServer(port: number): void
 
     const waiting: WaitingPlayer[] = [];
     const liveGames: GameSession[] = [];
+    // Users whose match is being created (decks loading from the DB). The client sends its ready
+    // message both when the scene starts and when the socket connects, and the second one arrives
+    // during that await: without this guard it created a second match on the same socket, and
+    // every later move was then applied by both sessions.
+    const starting = new Set<number>();
 
     const removeGame = (game: GameSession): void =>
     {
@@ -87,7 +92,7 @@ export function createGameServer(port: number): void
 
         // Found the game but can't rejoin it (it's finishing): still an answer, not silence.
         if (!game.reattach(userId, socket))
-            reject(socket, "Partie déjà en cours.", true);
+            reject(socket, "You already have a match in progress.", true);
 
         return true;
     };
@@ -127,22 +132,23 @@ export function createGameServer(port: number): void
                 // connection to the seat their account already holds. No deck is re-read and no
                 // session is rebuilt — the match kept running in memory the whole time.
                 if (!resumeExisting(socket, identity.userId))
-                    reject(socket, "Partie introuvable.", true);
+                    reject(socket, "Match not found.", true);
                 return;
             }
 
             if (msg.type === "readySolo")
             {
-                if (resumeExisting(socket, identity.userId))
+                if (starting.has(identity.userId) || resumeExisting(socket, identity.userId))
                     return;
 
                 if (!isDifficulty(msg.difficulty) || !isDeckId(msg.deckId))
                 {
-                    reject(socket, "Requête invalide.");
+                    reject(socket, "Invalid request.");
                     return;
                 }
 
                 let playerDeck: Deck | null, aiDeck: Deck;
+                starting.add(identity.userId);
                 try
                 {
                     [playerDeck, aiDeck] = await Promise.all([
@@ -153,12 +159,16 @@ export function createGameServer(port: number): void
                 catch (err)
                 {
                     console.error("readySolo: failed to load deck(s):", err);
-                    reject(socket, "Erreur serveur, réessaie.");
+                    reject(socket, "Server error, please try again.");
                     return;
+                }
+                finally
+                {
+                    starting.delete(identity.userId);
                 }
                 if (!playerDeck)
                 {
-                    reject(socket, "Deck introuvable ou vide.");
+                    reject(socket, "Deck not found or empty.");
                     return;
                 }
 
@@ -196,12 +206,12 @@ export function createGameServer(port: number): void
             if (msg.type !== "ready")
                 return;
 
-            if (resumeExisting(socket, identity.userId))
+            if (starting.has(identity.userId) || resumeExisting(socket, identity.userId))
                 return;
 
             if (!isDeckId(msg.deckId))
             {
-                reject(socket, "Requête invalide.");
+                reject(socket, "Invalid request.");
                 return;
             }
 
@@ -235,6 +245,8 @@ export function createGameServer(port: number): void
             const [first, second]: [WaitingPlayer, WaitingPlayer] = Math.random() < 0.5 ? [wLo, wHi] : [wHi, wLo];
 
             let deck0: Deck | null, deck1: Deck | null;
+            starting.add(first.identity.userId);
+            starting.add(second.identity.userId);
             try
             {
                 [deck0, deck1] = await Promise.all([
@@ -247,15 +259,20 @@ export function createGameServer(port: number): void
                 // Same reasoning as readySolo above: a DB hiccup must fail this match start,
                 // not take down the process (and every other live game with it).
                 console.error("ready: failed to load deck(s):", err);
-                reject(first.socket, "Erreur serveur, réessaie.");
-                reject(second.socket, "Erreur serveur, réessaie.");
+                reject(first.socket, "Server error, please try again.");
+                reject(second.socket, "Server error, please try again.");
                 return;
+            }
+            finally
+            {
+                starting.delete(first.identity.userId);
+                starting.delete(second.identity.userId);
             }
 
             if (!deck0 || !deck1)
             {
-                if (!deck0) reject(first.socket, "Deck introuvable ou vide.");
-                if (!deck1) reject(second.socket, "Deck introuvable ou vide.");
+                if (!deck0) reject(first.socket, "Deck not found or empty.");
+                if (!deck1) reject(second.socket, "Deck not found or empty.");
                 return;
             }
 
