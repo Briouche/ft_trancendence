@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
+import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 
 // Test tool: gives the user one unopened pack.
 export async function POST() {
+    if (!DEV_TOOLS_ENABLED) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

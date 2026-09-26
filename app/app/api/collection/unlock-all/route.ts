@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
+import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
 // Test tool: gives the user every card at max quantity and every card back.
 export async function POST() {
+    if (!DEV_TOOLS_ENABLED) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
