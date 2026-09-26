@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-/** Big centered text ("YOUR TURN") that pops in and fades out. Resolves when gone. */
+/** Big centered text ("Your Turn") that pops in and fades out. Resolves when gone. */
 export function turnBannerAnimation(scene: Phaser.Scene, text: string): Promise<void>
 {
     return new Promise((resolve) =>
