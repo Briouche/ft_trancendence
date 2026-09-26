@@ -35,11 +35,12 @@ function getEncodedKey() {
   return new TextEncoder().encode(secretKey);
 }
 
-async function encrypt(payload: SessionPayload) {
+async function encrypt(payload: SessionPayload, expiresAt: Date) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    // Same instant as the cookie's expiry, so both lifetimes come from SESSION_DURATION_MS.
+    .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
     .sign(getEncodedKey());
 }
 
@@ -69,7 +70,7 @@ async function decrypt(token: string | undefined = "") {
  */
 export async function createSession(userId: number, username: string, tokenVersion: number) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-  const token = await encrypt({ userId, username, tokenVersion, expiresAt: expiresAt.toISOString() });
+  const token = await encrypt({ userId, username, tokenVersion, expiresAt: expiresAt.toISOString() }, expiresAt);
 
   const cookieStore = await cookies();
   cookieStore.set("session", token, {

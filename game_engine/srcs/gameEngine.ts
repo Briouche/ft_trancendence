@@ -1,5 +1,5 @@
 import { Card, MinionCard, SpellCard } from "./card";
-import { Board } from "./board";
+import { Board, MAX_BOARD_SIZE } from "./board";
 import { Player } from "./player";
 import { GameContext, Effect } from "./effect";
 import { Targetable, EnemyCharacterResolver } from "./target";
@@ -141,7 +141,7 @@ export class GameEngine
         if (!card || card.manaCost > player.currentMana)
             return { success: false, animationEvents: [] };
 
-        if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= 6)
+        if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= MAX_BOARD_SIZE)
             return { success: false, animationEvents: [] };
 
         player.hand.play(cardIndex);
@@ -360,7 +360,7 @@ export class GameEngine
 
             if (card.manaCost > player.currentMana)
                 continue;
-            if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= 6)
+            if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= MAX_BOARD_SIZE)
                 continue;
 
             const effect = this.getOnPlayEffect(card);
