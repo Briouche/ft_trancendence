@@ -3,6 +3,7 @@ import { GameEngine } from "./gameEngine";
 import { Player } from "./player";
 import { PlayerHeroResolver, Targetable, TargetResolver } from "./target";
 import { Hero } from "./hero";
+import { MAX_BOARD_SIZE } from "./board";
 
 // Everything an effect needs when it runs. `target` is the player's validated choice when the
 // resolver requires input; `bonusDamage` is the caster's spellpower.
@@ -296,7 +297,7 @@ export class SummonMinionEffect extends Effect
     {
         for (let i = 0; i < this._amount; i++)
         {
-            if (this._tokens[i] && context.engine.board.getMinions(context.owner.index).length < 6)
+            if (this._tokens[i] && context.engine.board.getMinions(context.owner.index).length < MAX_BOARD_SIZE)
             {
                 const summoned: MinionCard = this._tokens[i].clone();
                 context.engine.board.playMinion(context.owner.index, summoned);
