@@ -96,6 +96,12 @@ export default function AccountMenu({ username, cardCount, elo, wins, cardBacks 
                     >
                         📜 {english.termsOfService}
                     </Link>
+                    <Link
+                        href={ROUTES.designSystem}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-serif text-sm text-ink-muted transition-colors hover:bg-ink-900/10"
+                    >
+                        🎨 Design system
+                    </Link>
 
                     <div className="my-3 h-px bg-ink-muted/30" />
 
