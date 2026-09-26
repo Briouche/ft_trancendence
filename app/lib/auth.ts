@@ -9,7 +9,7 @@ import { createSession, deleteSession } from "@/lib/session";
 import { ROUTES } from "@/config/routes";
 import { ARGON2_OPTIONS, DUMMY_HASH } from "@/lib/constants";
 import { firstIssue, formDataToObject, loginSchema, registerSchema } from "@/lib/validation";
-import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { clientIp, isRateLimited, rateLimit, recordAttempt } from "@/lib/rateLimit";
 
 // Server actions: login, registration, logout.
 
@@ -17,10 +17,12 @@ type ActionResult = { error: string | null };
 
 const INVALID_CREDENTIALS = "Invalid username or password.";
 
-// 10 attempts per 15 minutes, counted both per client IP and per targeted account: the first
-// slows down one machine guessing many accounts, the second many machines guessing one account.
-const LOGIN_LIMIT = { max: 10, windowMs: 15 * 60 * 1000 };
-const REGISTER_LIMIT = { max: 5, windowMs: 60 * 60 * 1000 };
+// Failed logins only (a successful one never counts), per targeted account and per client IP:
+// the first stops password guessing on one account, the second one machine spraying many
+// accounts. The IP limit is higher because a whole school cluster can share one public IP.
+const LOGIN_FAILURES_PER_ACCOUNT = { max: 10, windowMs: 15 * 60 * 1000 };
+const LOGIN_FAILURES_PER_IP = { max: 50, windowMs: 15 * 60 * 1000 };
+const REGISTER_LIMIT = { max: 20, windowMs: 60 * 60 * 1000 };
 const TOO_MANY_ATTEMPTS = "Too many attempts. Please wait a few minutes and try again.";
 
 /**
@@ -33,10 +35,16 @@ export async function checkCredentials(formData: FormData): Promise<ActionResult
   if (!parsed.success) return { error: INVALID_CREDENTIALS };
   const { identifier, password } = parsed.data;
 
-  const ip = await clientIp();
-  if (!rateLimit(`login:ip:${ip}`, LOGIN_LIMIT) || !rateLimit(`login:id:${identifier}`, LOGIN_LIMIT)) {
+  const ipKey = `login:ip:${await clientIp()}`;
+  const accountKey = `login:id:${identifier}`;
+  if (isRateLimited(ipKey, LOGIN_FAILURES_PER_IP) || isRateLimited(accountKey, LOGIN_FAILURES_PER_ACCOUNT)) {
     return { error: TOO_MANY_ATTEMPTS };
   }
+  const fail = () => {
+    recordAttempt(ipKey, LOGIN_FAILURES_PER_IP);
+    recordAttempt(accountKey, LOGIN_FAILURES_PER_ACCOUNT);
+    return { error: INVALID_CREDENTIALS };
+  };
 
   const user = await prisma.user.findUnique({
     where: identifier.includes("@") ? { email: identifier } : { username: identifier },
@@ -45,11 +53,11 @@ export async function checkCredentials(formData: FormData): Promise<ActionResult
   if (!user || !user.password) {
     // Same argon2 cost as a real check, so response time doesn't reveal unknown accounts.
     await verify(DUMMY_HASH, password).catch(() => false);
-    return { error: INVALID_CREDENTIALS };
+    return fail();
   }
 
   const isValid = await verify(user.password, password).catch(() => false);
-  if (!isValid) return { error: INVALID_CREDENTIALS };
+  if (!isValid) return fail();
 
   await createSession(user.id, user.username, user.tokenVersion);
   return { error: null };

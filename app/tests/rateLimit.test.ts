@@ -30,3 +30,17 @@ describe("rateLimit", () => {
     expect(rateLimit("k", limit)).toBe(true);
   });
 });
+
+describe("isRateLimited / recordAttempt", () => {
+  afterEach(() => resetRateLimits());
+
+  it("only counts what is recorded (e.g. failed logins)", async () => {
+    const { isRateLimited, recordAttempt } = await import("@/lib/rateLimit");
+    const limit = { max: 2, windowMs: 1000 };
+    expect(isRateLimited("fail", limit)).toBe(false);
+    recordAttempt("fail", limit);
+    expect(isRateLimited("fail", limit)).toBe(false);
+    recordAttempt("fail", limit);
+    expect(isRateLimited("fail", limit)).toBe(true);
+  });
+});

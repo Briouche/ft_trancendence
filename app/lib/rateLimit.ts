@@ -21,14 +21,33 @@ function sweep(now: number): void {
   }
 }
 
+function currentWindow(key: string, now: number): Window | undefined {
+  const window = windows.get(key);
+  return window && window.resetAt > now ? window : undefined;
+}
+
 /**
  * Counts one attempt for `key` and tells whether it is still allowed.
  *
- * @param key    What is being limited, e.g. `login:ip:1.2.3.4`.
+ * @param key    What is being limited, e.g. `chat:12`.
  * @param limit  At most `max` attempts per `windowMs` milliseconds.
  * @returns false once the limit is reached, until the window expires.
  */
 export function rateLimit(key: string, limit: { max: number; windowMs: number }): boolean {
+  recordAttempt(key, limit);
+  return (windows.get(key)?.count ?? 0) <= limit.max;
+}
+
+/** True when `key` already used up its attempts for the current window (counts nothing). */
+export function isRateLimited(key: string, limit: { max: number; windowMs: number }): boolean {
+  return (currentWindow(key, Date.now())?.count ?? 0) >= limit.max;
+}
+
+/**
+ * Counts one attempt for `key` without checking it. Used with isRateLimited to count only what
+ * should be limited, e.g. failed logins: successful ones must not lock anybody out.
+ */
+export function recordAttempt(key: string, limit: { max: number; windowMs: number }): void {
   const now = Date.now();
 
   if (++callsSinceSweep >= SWEEP_EVERY) {
@@ -36,14 +55,9 @@ export function rateLimit(key: string, limit: { max: number; windowMs: number })
     sweep(now);
   }
 
-  const current = windows.get(key);
-  if (!current || current.resetAt <= now) {
-    windows.set(key, { count: 1, resetAt: now + limit.windowMs });
-    return true;
-  }
-
-  current.count += 1;
-  return current.count <= limit.max;
+  const current = currentWindow(key, now);
+  if (current) current.count += 1;
+  else windows.set(key, { count: 1, resetAt: now + limit.windowMs });
 }
 
 /** Test helper: forgets every counter. */
