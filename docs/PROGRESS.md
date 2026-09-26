@@ -58,20 +58,20 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 
 - [x] 0. Branche `finalisation`, PROGRESS.md, DECISIONS.md
 - [x] 1. Cartographie
-- [ ] 2a. HTTPS par défaut (`make`), cookies `secure`, wss
-- [ ] 2b. Connexion par email, validation zod front + back
-- [ ] 2c. Race conditions (paquets, amis, decks)
+- [x] 2a. HTTPS par défaut (`make`), cookies `secure`, wss
+- [x] 2b. Connexion par email, validation zod front + back
+- [x] 2c. Race conditions (paquets : UPDATE conditionnel ; amis : transaction SERIALIZABLE ; decks : transaction ; succès/dos de cartes : insert-if-absent)
 - [ ] 2d. Footer légal sur toutes les pages, contenu Privacy/Terms exact
-- [ ] 3a. Amis : envoyer / accepter / refuser / retirer (API + UI)
-- [ ] 3b. Présence en ligne + chat (socket-server réparé, modèle Message, UI)
-- [ ] 3c. Profil public `/users/[username]` + avatar (upload sécurisé, avatar par défaut)
-- [ ] 3d. Recherche avancée `/players` (filtres, tri, pagination serveur) = classement
-- [ ] 3e. Gamification : succès persistés, page `/achievements`, récompenses affichées en fin de partie
-- [ ] 3f. OAuth : liaison depuis le profil, gestion du refus
+- [x] 3a. Amis : envoyer / accepter / refuser / retirer (API + UI)
+- [x] 3b. Présence en ligne + chat (socket-server réparé, modèle Message, UI)
+- [x] 3c. Profil public `/users/[username]` + avatar (upload sécurisé, avatar par défaut)
+- [x] 3d. Recherche avancée `/players` (filtres, tri, pagination serveur) = classement
+- [x] 3e. Gamification : succès persistés, page `/achievements`, récompenses affichées en fin de partie
+- [x] 3f. OAuth : liaison depuis le profil, gestion du refus
 - [ ] 3g. Design system documenté + page de démonstration
 - [ ] 4a. Sécurité : rate limiting auth, en-têtes, CORS strict socket-server, `npm audit`
 - [ ] 4b. Lint propre (app + game_engine), code mort, console.log
-- [ ] 4c. Tests vitest (auth/validation, moteur, IA, amis, gamification)
+- [x] 4c. Tests vitest (auth/validation, moteur, IA, amis, gamification)
 - [ ] 4d. Console Chrome propre + responsive (vérif Playwright)
 - [ ] 5. Revue des commentaires (anglais, JSDoc sur les exports)
 - [ ] 6. `docs/explications/` fichier par fichier + 00/01/02
@@ -84,3 +84,11 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - Correctifs de sécurité déjà présents (branche `review/audit-complet`) : validation des decks,
   outils de test désactivés en prod, comptes de test non créés en prod, OAuth sans liaison par
   email, changement de mot de passe sécurisé, messages socket validés, origine WebSocket vérifiée.
+- HTTPS en dev comme en prod (proxy TLS sur 8080, redirection HTTP→HTTPS, en-têtes de sécurité).
+- Connexion par email ou nom d'utilisateur, schémas zod partagés, rate limiting auth.
+- Chat privé temps réel, système d'amis complet, présence en ligne (Redis), profils publics,
+  avatars sécurisés, recherche de joueurs/classement, succès + badges + historique des parties.
+- IA : correction de la perspective MCTS (UCB1) et du coup mortel manqué ; imprécision humaine.
+- Tests : 36 (app) + 23 (game_engine), tous verts. E2E Playwright (scratchpad) : amis, chat,
+  présence, XSS, toasts, recherche, avatar (y compris faux PNG refusé) OK, console sans erreur.
+- À noter : three.js épinglé en 0.182 (warning THREE.Clock en 0.183+ via @react-three/fiber).
