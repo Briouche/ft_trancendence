@@ -187,11 +187,10 @@ const BUTTON_FRAME_MS = 35
 const BUTTON_FRAMES = 4
 
 // Textures under AssetButton; the icon variants (home … achievement) already carry their icon.
-type AssetButtonVariant = 'square' | 'bar' | 'home' | 'back' | 'manual' | 'about' | 'achievement'
+type AssetButtonVariant = 'square' | 'home' | 'back' | 'manual' | 'about' | 'achievement'
 
 const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
     square:      '/textures/notebook/button',
-    bar:         '/textures/notebook/button-bar',
     home:        '/textures/notebook/button-home',
     back:        '/textures/notebook/button-back',
     manual:      '/textures/notebook/button-manual',
@@ -248,7 +247,7 @@ export function AssetButton({ active, onClick, disabled, variant = 'square', cla
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             className={`relative flex items-center justify-center font-display font-bold
-                transition-opacity disabled:opacity-30 ${variant === 'bar' ? 'text-white' : 'text-ink-text'} ${className}`}
+                transition-opacity disabled:opacity-30 text-ink-text ${className}`}
             style={{
                 backgroundImage: `url(${texturePath}/frame-${frame}.webp)`,
                 backgroundSize: '100% 100%',
@@ -256,7 +255,7 @@ export function AssetButton({ active, onClick, disabled, variant = 'square', cla
             }}
         >
             {active && <SelectHighlight className="-inset-1" animate={hovered} />}
-            <span className="relative" style={variant === 'bar' ? outlinedWhiteTextStyle : undefined}>{children}</span>
+            <span className="relative">{children}</span>
         </button>
     )
 }

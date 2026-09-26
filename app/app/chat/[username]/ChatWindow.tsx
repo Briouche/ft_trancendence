@@ -85,10 +85,10 @@ export default function ChatWindow({ me, peer, initialMessages }: { me: number; 
     return (
         <PageShell title="CHAT">
             <Panel maxWidth="max-w-2xl" className="flex flex-col gap-3">
-                <header className="flex items-center gap-3 border-b border-ink-muted/30 pb-3">
+                <header className="flex flex-wrap items-center gap-3 border-b border-ink-muted/30 pb-3">
                     <Avatar src={peer.avatarUrl} username={peer.username} />
-                    <div className="flex flex-col">
-                        <Link href={ROUTES.user(peer.username)} className="font-display text-xl text-ink-text hover:underline">{peer.username}</Link>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                        <Link href={ROUTES.user(peer.username)} className="truncate font-display text-xl text-ink-text hover:underline">{peer.username}</Link>
                         <PresenceDot presence={presence} showLabel />
                     </div>
                     <Link href={ROUTES.chat} className="ml-auto font-serif text-sm text-ink-muted underline">All conversations</Link>

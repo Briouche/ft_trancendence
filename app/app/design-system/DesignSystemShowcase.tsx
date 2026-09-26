@@ -73,7 +73,6 @@ export default function DesignSystemShowcase() {
                 <div className="flex flex-wrap items-center gap-3">
                     {ICON_BUTTONS.map(v => <AssetButton key={v} variant={v} ariaLabel={v} className="h-14 w-14" />)}
                     <AssetButton variant="square" className="h-12 w-28">Square</AssetButton>
-                    <AssetButton variant="bar" className="h-12 w-40">Bar</AssetButton>
                 </div>
             </Section>
 
