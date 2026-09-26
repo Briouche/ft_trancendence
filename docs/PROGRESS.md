@@ -61,18 +61,18 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - [x] 2a. HTTPS par défaut (`make`), cookies `secure`, wss
 - [x] 2b. Connexion par email, validation zod front + back
 - [x] 2c. Race conditions (paquets : UPDATE conditionnel ; amis : transaction SERIALIZABLE ; decks : transaction ; succès/dos de cartes : insert-if-absent)
-- [ ] 2d. Footer légal sur toutes les pages, contenu Privacy/Terms exact
+- [x] 2d. Footer légal sur toutes les pages, contenu Privacy/Terms exact
 - [x] 3a. Amis : envoyer / accepter / refuser / retirer (API + UI)
 - [x] 3b. Présence en ligne + chat (socket-server réparé, modèle Message, UI)
 - [x] 3c. Profil public `/users/[username]` + avatar (upload sécurisé, avatar par défaut)
 - [x] 3d. Recherche avancée `/players` (filtres, tri, pagination serveur) = classement
 - [x] 3e. Gamification : succès persistés, page `/achievements`, récompenses affichées en fin de partie
 - [x] 3f. OAuth : liaison depuis le profil, gestion du refus
-- [ ] 3g. Design system documenté + page de démonstration
-- [ ] 4a. Sécurité : rate limiting auth, en-têtes, CORS strict socket-server, `npm audit`
-- [ ] 4b. Lint propre (app + game_engine), code mort, console.log
+- [x] 3g. Design system documenté + page de démonstration
+- [x] 4a. Sécurité : rate limiting auth, en-têtes, CORS strict socket-server, `npm audit` (0 vulnérabilité)
+- [x] 4b. Lint propre (app + game_engine + socket-server), code mort, console.log
 - [x] 4c. Tests vitest (auth/validation, moteur, IA, amis, gamification)
-- [ ] 4d. Console Chrome propre + responsive (vérif Playwright)
+- [x] 4d. Console Chrome propre + responsive (vérif Playwright : 16 pages × 3 tailles, 0 message)
 - [ ] 5. Revue des commentaires (anglais, JSDoc sur les exports)
 - [ ] 6. `docs/explications/` fichier par fichier + 00/01/02
 - [ ] 7. README.md
@@ -92,3 +92,8 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - Tests : 36 (app) + 23 (game_engine), tous verts. E2E Playwright (scratchpad) : amis, chat,
   présence, XSS, toasts, recherche, avatar (y compris faux PNG refusé) OK, console sans erreur.
 - À noter : three.js épinglé en 0.182 (warning THREE.Clock en 0.183+ via @react-three/fiber).
+- Tests E2E de partie : solo contre l'IA (l'IA joue son tour), PvP, déconnexion → adversaire
+  prévenu, reconnexion dans les 30 s → partie reprise, abandon → forfait, récompenses (+2 paquets,
+  Elo ±16), historique et badges mis à jour. Bug trouvé et corrigé : double création de partie.
+- Limite connue : les pages « livre » (collection, decks, manuel, paquets, jeu) sont mises à
+  l'échelle sur mobile (lisibles mais petites en portrait) ; le hub passe en menu texte < 768 px.
