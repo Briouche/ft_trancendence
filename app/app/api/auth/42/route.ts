@@ -11,7 +11,7 @@ export async function GET() {
     const cookieStore = await cookies();
     cookieStore.set(STATE_COOKIE, state, {
         httpOnly: true,
-        secure:   process.env.NODE_ENV === "production",
+        secure:   true, // every environment is served over HTTPS (proxy/)
         sameSite: "lax",
         maxAge:   5 * 60,
         path:     "/",

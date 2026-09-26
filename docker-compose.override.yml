@@ -1,6 +1,8 @@
 services:
   proxy:
-    image: nginx:stable-alpine
+    build:
+      context: ./proxy
+      target: development
     ports:
       - "8080:8080"
     volumes:
@@ -9,8 +11,6 @@ services:
   app:
     build:
       target: development
-    ports:
-      - "3000:3000"
     volumes:
       - ./app:/app
       - /app/node_modules
@@ -20,8 +20,6 @@ services:
   game_engine:
     build:
       target: development
-    ports:
-      - "4000:4000"
     volumes:
       - ./game_engine:/app
       - /app/node_modules
@@ -29,16 +27,12 @@ services:
   socketio:
     build:
       target: development
-    ports:
-      - "4001:4000"
     volumes:
       - ./socket-server:/app
       - /app/node_modules
 
-  redis:
-    ports:
-     - "6380:6379"
-
+  # Loopback only, for local DB tools (prisma studio, psql). Every other service is reachable only
+  # through the HTTPS proxy.
   db:
     ports:
-     - "5432:5432"
+     - "127.0.0.1:5432:5432"
