@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import prisma from "@/lib/prisma";
 import { getSession } from '@/lib/session'
 import { ROUTES } from '@/config/routes'
+import { parseDeckId } from '@/lib/decks'
 import DeckBuilder from "../new/DeckBuilder";
 
 export default async function EditDeckPage({
@@ -9,13 +10,14 @@ export default async function EditDeckPage({
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const { id } = await params;
+    const deckId = parseDeckId((await params).id);
     const session = await getSession()
     if (!session) redirect(ROUTES.home)
+    if (deckId === null) notFound()
 
     const [deck, owned, decks, totalCopies] = await Promise.all([
         prisma.deck.findUnique({
-            where:   { id: Number(id) },
+            where:   { id: deckId },
             include: { cards: { include: { card: true } } }
         }),
         prisma.userCard.findMany({

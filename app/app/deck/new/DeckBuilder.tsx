@@ -10,13 +10,12 @@ import {
     Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton,
 } from '@/components/notebook/NotebookUI'
+import { DECK_NAME_MAX_LENGTH, LEGENDARY_RARITY, MAX_LEGENDARY, MAX_NON_LEGENDARY } from '@/lib/deckRules'
 
 type Card = CardFaceData & { qty: number }
 type DeckEntry = { card: Card; qty: number }
 type SavedDeck = { id: number; name: string; cards: { qty: number; card: { rarity: string; legendId: string } }[] }
 
-const MAX_LEGENDARY = 1
-const MAX_COMMONS = 20
 const COST_FILTERS = [1, 2, 3, 4, 5, 6, 7]
 
 type Props = {
@@ -59,7 +58,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
         }
 
         if (legendaryOnly) {
-            matches = matches.filter(c => c.rarity === 'Légendaire')
+            matches = matches.filter(c => c.rarity === LEGENDARY_RARITY)
         }
 
         return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))
@@ -92,8 +91,8 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
 
     const sortedDeckEntries = useMemo(
         () => Object.values(deck).sort((a, b) => {
-            const aLegendary = a.card.rarity === 'Légendaire'
-            const bLegendary = b.card.rarity === 'Légendaire'
+            const aLegendary = a.card.rarity === LEGENDARY_RARITY
+            const bLegendary = b.card.rarity === LEGENDARY_RARITY
             if (aLegendary !== bLegendary) return aLegendary ? -1 : 1
             return parseCost(a.card.cost) - parseCost(b.card.cost)
         }),
@@ -101,18 +100,18 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
     )
 
     const legendaryCount = Object.values(deck)
-        .filter(e => e.card.rarity === 'Légendaire')
+        .filter(e => e.card.rarity === LEGENDARY_RARITY)
         .reduce((sum, e) => sum + e.qty, 0)
     const commonCount = Object.values(deck)
-        .filter(e => e.card.rarity !== 'Légendaire')
+        .filter(e => e.card.rarity !== LEGENDARY_RARITY)
         .reduce((sum, e) => sum + e.qty, 0)
     const totalCards = legendaryCount + commonCount
 
     function canAdd(card: Card): boolean {
         const inDeck = deck[card.id]?.qty ?? 0
         if (inDeck >= card.qty) return false
-        if (card.rarity === 'Légendaire') return legendaryCount < MAX_LEGENDARY
-        return commonCount < MAX_COMMONS
+        if (card.rarity === LEGENDARY_RARITY) return legendaryCount < MAX_LEGENDARY
+        return commonCount < MAX_NON_LEGENDARY
     }
 
     function addCard(card: Card) {
@@ -159,7 +158,8 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
             setMessage('Deck saved!')
             if (!deckId) router.push(`/deck/${saved.id}`)
         } else {
-            setMessage('Error while saving')
+            const body: { error?: string } | null = await res.json().catch(() => null)
+            setMessage(body?.error ?? 'Error while saving')
         }
     }
 
@@ -303,15 +303,16 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                 placeholder="Deck name…"
                                 value={deckName}
                                 onChange={e => setDeckName(e.target.value)}
+                                maxLength={DECK_NAME_MAX_LENGTH}
                                 className="travelbook-slot mb-3 w-full bg-transparent px-3 py-2 text-center font-serif text-base
                                     text-ink-text placeholder:text-ink-muted/60 outline-none"
                             />
 
                             <p className="mb-1 text-center font-serif text-xs text-ink-muted">
-                                {legendaryCount}/{MAX_LEGENDARY} legendary · {commonCount}/{MAX_COMMONS} normal cards
+                                {legendaryCount}/{MAX_LEGENDARY} legendary · {commonCount}/{MAX_NON_LEGENDARY} normal cards
                             </p>
                             <p className="mb-3 text-center font-serif text-xs text-ink-muted">
-                                {totalCards} / {MAX_LEGENDARY + MAX_COMMONS} cards
+                                {totalCards} / {MAX_LEGENDARY + MAX_NON_LEGENDARY} cards
                             </p>
 
                             {message && (
@@ -360,7 +361,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                                 </span>
                                             </span>
                                             <p className="truncate font-serif text-lg text-ink-text">{entry.card.name}</p>
-                                            {entry.card.rarity === 'Légendaire' && (
+                                            {entry.card.rarity === LEGENDARY_RARITY && (
                                                 <Image
                                                     src="/textures/collection/icon-star-full.webp"
                                                     alt="Legendary"
@@ -385,7 +386,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                     <p className="mt-6 text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>No decks yet</p>
                                 )}
                                 {decks.map(d => {
-                                    const legendaryCards = d.cards.filter(c => c.card.rarity === 'Légendaire')
+                                    const legendaryCards = d.cards.filter(c => c.card.rarity === LEGENDARY_RARITY)
                                     return (
                                         <div
                                             key={d.id}
