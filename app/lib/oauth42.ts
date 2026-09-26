@@ -1,6 +1,5 @@
 import "server-only";
 
-import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { USERNAME_MAX_LENGTH } from "@/lib/constants";
 
@@ -69,11 +68,26 @@ export async function fetchFortyTwoProfile(code: string): Promise<FortyTwoProfil
     return fetchProfile(accessToken);
 }
 
-// Account linked to this 42 login, created with a unique username if it doesn't exist yet;
-// an existing local account with the same email gets linked instead.
+// Thrown when the 42 account's email already belongs to a local account.
+export class EmailTakenError extends Error {
+    constructor() {
+        super("A local account already uses this 42 account's email");
+    }
+}
+
+// Account linked to this 42 login, created with a unique username if it doesn't exist yet.
+//
+// A local account with the same email is deliberately NOT linked: sign-up never verifies email
+// ownership, so anyone could register with a victim's 42 email, set a password, and wait for the
+// victim's first "Sign in with 42" to hand them the (then shared) account.
 export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
     const existing = await prisma.user.findUnique({ where: { fortyTwoId: profile.id } });
     if (existing) return existing;
+
+    const email = profile.email.toLocaleLowerCase();
+    if (await prisma.user.findUnique({ where: { email }, select: { id: true } })) {
+        throw new EmailTakenError();
+    }
 
     const baseUsername = profile.login.toLocaleLowerCase().slice(0, USERNAME_MAX_LENGTH);
     let username = baseUsername;
@@ -83,21 +97,13 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
         username = `${baseUsername}_${suffix}`.slice(0, USERNAME_MAX_LENGTH);
     }
 
-    try {
-        return await prisma.user.create({
-            data: {
-                email:      profile.email.toLocaleLowerCase(),
-                username,
-                fortyTwoId: profile.id,
-            },
-        });
-    } catch (err) {
-        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-            return prisma.user.update({
-                where: { email: profile.email.toLocaleLowerCase() },
-                data:  { fortyTwoId: profile.id },
-            });
-        }
-        throw err;
-    }
+    // A concurrent sign-up can still take the email or username in between: the unique
+    // constraints make that create fail, and the callback reports a generic OAuth error.
+    return prisma.user.create({
+        data: {
+            email,
+            username,
+            fortyTwoId: profile.id,
+        },
+    });
 }

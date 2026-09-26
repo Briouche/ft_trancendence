@@ -8,8 +8,8 @@ import { ROUTES } from "@/config/routes";
 import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
 import ScaleToFit from "@/components/ScaleToFit";
 
-export default function SignInForm() {
-  const [error, setError] = useState("");
+export default function SignInForm({ initialError }: { initialError?: string }) {
+  const [error, setError] = useState(initialError ?? "");
   const [pending, setPending] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
