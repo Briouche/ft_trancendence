@@ -6,9 +6,14 @@
         "outDir": "./dist",
         "strict": true,
         "esModuleInterop": true,
-        "types": ["node"]
+        "types": [
+            "node"
+        ]
     },
     "ts-node": {
         "transpileOnly": false
-    }
+    },
+    "include": [
+        "srcs"
+    ]
 }
