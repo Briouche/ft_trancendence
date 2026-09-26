@@ -20,6 +20,12 @@ export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { m
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const router = useRouter();
+  // Read through a ref by the game effect below: that effect must only rebuild the Phaser game when
+  // the match parameters change. Listing `router` as a dependency destroyed and recreated the game
+  // (sending "quit" each time) whenever its identity changed, which stopped a reconnecting player
+  // from ever sending "ready" within the 30 s grace window.
+  const routerRef = useRef(router);
+  useEffect(() => { routerRef.current = router; }, [router]);
   const [isBoardReady, setIsBoardReady] = useState(false);
   const [bootIssue, setBootIssue] = useState<{ kind: "timeout" | "rejected"; reason?: string } | null>(null);
   const [retryToken, setRetryToken] = useState(0);
@@ -65,7 +71,7 @@ export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { m
 
     gameRef.current = new Phaser.Game(createGameConfig(containerRef.current, mode, difficulty, deckId, cardBack));
 
-    const goHome = () => router.push("/");
+    const goHome = () => routerRef.current.push("/");
     EventManager.on("phaser:navigateHome", goHome);
 
     return () => {
@@ -78,8 +84,7 @@ export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { m
       gameRef.current?.destroy(true);
       gameRef.current = null;
     };
-    // router is a stable object in the App Router; listing it doesn't cause rebuilds.
-  }, [mode, difficulty, deckId, cardBack, router]);
+  }, [mode, difficulty, deckId, cardBack]);
 
   return (
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
