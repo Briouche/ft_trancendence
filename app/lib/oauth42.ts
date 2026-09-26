@@ -107,3 +107,20 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
         },
     });
 }
+
+/**
+ * Links a 42 account to an existing, signed-in user (profile page). Explicit and authenticated,
+ * unlike the automatic email-based linking that was removed (see findOrCreateUserFromFortyTwo).
+ *
+ * @returns false when this 42 account belongs to another user, or this user is already linked
+ *          to a different 42 account.
+ */
+export async function linkFortyTwoAccount(userId: number, fortyTwoId: number): Promise<boolean> {
+    const owner = await prisma.user.findUnique({ where: { fortyTwoId }, select: { id: true } });
+    if (owner) return owner.id === userId; // already linked: to us (fine) or to someone else
+
+    // `fortyTwoId: null` in the WHERE: an account already linked to a *different* 42 login is
+    // never silently re-linked.
+    const { count } = await prisma.user.updateMany({ where: { id: userId, fortyTwoId: null }, data: { fortyTwoId } });
+    return count === 1;
+}
