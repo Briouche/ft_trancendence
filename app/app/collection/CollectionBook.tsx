@@ -47,8 +47,10 @@ function SideTab({ active, onClick, className = '', children }: {
     )
 }
 
-// Two-page notebook listing the player's cards (searchable, filterable by cost/legendary)
-// and, on a second tab, the card backs they can equip.
+/**
+ * Two-page notebook listing the player's cards (searchable, filterable by cost/legendary)
+ * and, on a second tab, the card backs they can equip.
+ */
 export default function CollectionBook({ cards, initialCardBack, unlockedCardBacks, totalCardCount }: {
     cards: Card[]
     initialCardBack: number

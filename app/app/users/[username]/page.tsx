@@ -7,6 +7,7 @@ import PublicProfileView from './PublicProfileView'
 
 type Props = { params: Promise<{ username: string }> }
 
+/** Browser tab title: "<username>'s profile". */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: `${decodeURIComponent((await params).username)}'s profile` }
 }

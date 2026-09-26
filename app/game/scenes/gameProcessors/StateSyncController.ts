@@ -22,8 +22,10 @@ interface DeferredCardAnimation
     run: (card: Card) => void;
 }
 
-// Applies each server state to the table objects (creating them on the first state), plays
-// draw animations for new hand cards, and runs animations deferred until their card exists.
+/**
+ * Applies each server state to the table objects (creating them on the first state), plays
+ * draw animations for new hand cards, and runs animations deferred until their card exists.
+ */
 export class StateSyncController
 {
     private previousState: ClientGameState | null = null;

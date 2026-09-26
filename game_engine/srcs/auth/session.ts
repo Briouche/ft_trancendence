@@ -35,8 +35,10 @@ function readSessionCookie(cookieHeader: string | undefined): string | null
     return null;
 }
 
-// Returns the authenticated user, or null if the cookie is missing/invalid/expired or the session
-// was revoked (logout-everywhere, password change) by bumping User.tokenVersion.
+/**
+ * Returns the authenticated user, or null if the cookie is missing/invalid/expired or the session
+ * was revoked (logout-everywhere, password change) by bumping User.tokenVersion.
+ */
 export async function authenticateCookieHeader(cookieHeader: string | undefined): Promise<SocketIdentity | null>
 {
     const token = readSessionCookie(cookieHeader);

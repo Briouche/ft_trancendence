@@ -10,7 +10,7 @@ const DISPLAY_SCALE = 0.6
 
 type Frame = 'default' | 1 | 2 | 3 | 4
 
-// Sprite cursor following the mouse, with a 4-frame click animation.
+/** Sprite cursor following the mouse, with a 4-frame click animation. */
 export default function CustomCursor() {
     const imgRef = useRef<HTMLImageElement>(null)
     const [frame, setFrame] = useState<Frame>('default')

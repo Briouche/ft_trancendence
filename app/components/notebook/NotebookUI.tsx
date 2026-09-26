@@ -27,7 +27,7 @@ function useLoopFrame(count: number, intervalMs: number, playing: boolean): numb
     return frame
 }
 
-// Golden selection frame; pulses only while `animate` is true.
+/** Golden selection frame; pulses only while `animate` is true. */
 export function SelectHighlight({ className = '', animate = true }: { className?: string; animate?: boolean }) {
     const frame = useLoopFrame(4, 150, animate)
     return (
@@ -50,11 +50,12 @@ export function SelectHighlight({ className = '', animate = true }: { className?
 export const HALF = 4
 export const SLOTS_PER_PAGE = HALF * 2
 
+/** Lower-case, accent-less version of a string, for accent-insensitive search ("épée" matches "epee"). */
 export function normalize(value: string): string {
     return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-// Numeric cost for sorting; non-numeric ("X") sorts last.
+/** Numeric cost for sorting; non-numeric ("X") sorts last. */
 export function parseCost(cost: string): number {
     const n = Number(cost)
     return Number.isNaN(n) ? Infinity : n
@@ -75,7 +76,7 @@ export const outlinedWhiteTextStyle = {
 
 const THUMB_SIZE_PX = 30
 
-// Scroll container with a sprite scrollbar (square draggable handle on a track).
+/** Scroll container with a sprite scrollbar (square draggable handle on a track). */
 export function NotebookScrollArea({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     const scrollRef = useRef<HTMLDivElement>(null)
     const [thumb, setThumb] = useState<{ top: number } | null>(null)
@@ -150,8 +151,10 @@ export function NotebookScrollArea({ children, className = '' }: { children: Rea
     )
 }
 
-// Card slot of a page: highlighted on hover, dashed placeholder when empty. Right-click stays
-// available while `disabled` (used to remove a card from a deck).
+/**
+ * Card slot of a page: highlighted on hover, dashed placeholder when empty. Right-click stays
+ * available while `disabled` (used to remove a card from a deck).
+ */
 export function Slot({ children, onClick, onContextMenu, highlighted, disabled }: {
     children?: React.ReactNode
     onClick?: () => void
@@ -198,7 +201,7 @@ const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
     achievement: '/textures/notebook/button-achievement',
 }
 
-// Sprite button playing a 4-frame press animation; `onClick` fires once the animation ends.
+/** Sprite button playing a 4-frame press animation; `onClick` fires once the animation ends. */
 export function AssetButton({ active, onClick, disabled, variant = 'square', className = '', children, ariaLabel, expanded }: {
     active?: boolean
     onClick?: () => void
@@ -260,7 +263,7 @@ export function AssetButton({ active, onClick, disabled, variant = 'square', cla
     )
 }
 
-// Page-turn arrow, visible and animated only while hovered; an invisible layer widens the hit zone.
+/** Page-turn arrow, visible and animated only while hovered; an invisible layer widens the hit zone. */
 export function PageArrow({ direction, onClick, disabled }: {
     direction: 'prev' | 'next'
     onClick: () => void
@@ -303,7 +306,7 @@ export function PageArrow({ direction, onClick, disabled }: {
     )
 }
 
-// Text input that reports its value 150ms after the last keystroke.
+/** Text input that reports its value 150ms after the last keystroke. */
 export function SearchInput({ onChange, disabled, placeholder = 'Search a name or an effect…', className = '' }: {
     onChange: (value: string) => void
     disabled?: boolean
@@ -338,7 +341,7 @@ export const woodenTableBackground: React.CSSProperties = {
     backgroundColor: '#0e0f10',
 }
 
-// Home button pinned to the top-right corner of the page.
+/** Home button pinned to the top-right corner of the page. */
 export function HomeButton({ onClick }: { onClick: () => void }) {
     return (
         <div className="fixed right-6 top-6 z-40">
@@ -347,7 +350,7 @@ export function HomeButton({ onClick }: { onClick: () => void }) {
     )
 }
 
-// Ribbon title banner.
+/** Ribbon title banner. */
 export function TitleBanner({ children, width = 'w-[1060px]', className = '' }: { children: React.ReactNode; width?: string; className?: string }) {
     return (
         <div className={`flex ${width} flex-col items-center gap-1 ${className}`}>

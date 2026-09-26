@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+/** Face-down card of the opponent's hand (only the card back is ever known to this client). */
 export class OpponentCard extends Phaser.GameObjects.Container
 {
     private back: Phaser.GameObjects.Image;

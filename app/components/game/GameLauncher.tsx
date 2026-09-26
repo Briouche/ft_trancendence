@@ -14,7 +14,7 @@ import SceneLoading from "@/components/library/SceneLoading";
 // no feedback — see EventManager.ts / serverSocket.ts for the "rejected" path this also catches.
 const BOOT_TIMEOUT_MS = 12000;
 
-// Mounts the Phaser game into a full-viewport div (client-only, see PhaserLoader).
+/** Mounts the Phaser game into a full-viewport div (client-only, see PhaserLoader). */
 export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { mode: GameMode; difficulty: Difficulty; deckId: number; cardBack: number })
 {
   const containerRef = useRef<HTMLDivElement>(null);

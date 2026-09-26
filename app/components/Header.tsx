@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 
 import LogoutButton from "./elements/LogoutButton";
 
-// Site title centered in a 3-column grid, logout button on the right when signed in.
+/** Site title centered in a 3-column grid, logout button on the right when signed in. */
 export default async function Header() {
   const session = await getSession();
 

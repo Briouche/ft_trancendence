@@ -1,7 +1,7 @@
 import { Effect } from "./effect";
 import { legendary } from "./legendary";
 
-// Cards are built from DB rows (cardImport/cardLoader.ts) then cloned per game / simulation.
+/** Cards are built from DB rows (cardImport/cardLoader.ts) then cloned per game / simulation. */
 export abstract class Card
 {
     public readonly name:        string;
@@ -50,6 +50,7 @@ interface Keywords
 
 let nextTokenId: number = 0;
 
+/** A creature card: stays on the board with attack/health and optional keywords and hooks. */
 export class MinionCard extends Card
 {
     public attack:    number;
@@ -116,6 +117,7 @@ export class MinionCard extends Card
     }
 }
 
+/** A one-shot card: its effect resolves when played, then it is gone. */
 export class SpellCard extends Card
 {
     public readonly effect: Effect;

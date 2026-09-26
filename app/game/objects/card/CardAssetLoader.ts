@@ -20,6 +20,7 @@ const RARITY_FRAME_KEYS: Record<string, string> = {
     "Légendaire": "frame_legendaire",
 };
 
+/** Texture key of the card frame for a rarity (common frame for unknown rarities). */
 export function resolveCardFrameKey(rarity: string): string
 {
     return RARITY_FRAME_KEYS[rarity] ?? "frame_commune";
@@ -31,6 +32,10 @@ function hasCardArt(assetKey: string): boolean
     return !!assetKey && assetKey !== "placeholder_card";
 }
 
+/**
+ * Illustration texture to use right away: its key if already loaded, otherwise null plus
+ * `needsAsyncLoad` so the caller fetches it with ensureCardArt.
+ */
 export function resolveInitialCardArt(scene: Phaser.Scene, assetKey: string): { key: string | null; needsAsyncLoad: boolean }
 {
     if (!hasCardArt(assetKey))
@@ -40,6 +45,11 @@ export function resolveInitialCardArt(scene: Phaser.Scene, assetKey: string): { 
     return { key: alreadyLoaded ? assetKey : null, needsAsyncLoad: !alreadyLoaded };
 }
 
+/**
+ * Loads a card illustration on demand (card art is not preloaded: there are too many) and calls
+ * `onLoaded` once it is available, or `onFailed` if it can't be loaded. Concurrent requests for
+ * the same art share one download.
+ */
 export function ensureCardArt(scene: Phaser.Scene, assetKey: string, onLoaded: (key: string) => void, onFailed?: () => void): void
 {
     if (scene.textures.exists(assetKey))

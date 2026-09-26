@@ -28,8 +28,10 @@ type Props = {
     initialDeck?: Record<string, DeckEntry>
 }
 
-// Notebook of the player's collection (left) next to the deck being built and the list of
-// saved decks (right). Left-click adds a card, right-click removes it.
+/**
+ * Notebook of the player's collection (left) next to the deck being built and the list of
+ * saved decks (right). Left-click adds a card, right-click removes it.
+ */
 export default function DeckBuilder({ cards, decks, totalCardCount, deckId, initialName = '', initialDeck = {} }: Props) {
     const router = useRouter()
     const [deck, setDeck]             = useState<Record<string, DeckEntry>>(initialDeck)

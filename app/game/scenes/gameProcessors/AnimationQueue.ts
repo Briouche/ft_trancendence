@@ -10,14 +10,16 @@ import { ClientGameState } from "../../shared/protocol";
 // mistaken for one that will never finish.
 const TASK_TIMEOUT_MS = 5000;
 
-// Plays event animations one after another in server order; a state received meanwhile is
-// applied (latest only) once the queue is empty.
-//
-// Everything beyond the plain queueing is about one failure mode: GameScene.onServerState holds
-// incoming states here while the queue is busy, so a queue that never drains is a client that can
-// never resync — which is exactly what a reconnect has to do. A task that rejects, or one whose
-// tween onComplete never fires (its target destroyed mid-tween, a lost WebGL context), must
-// therefore not be able to stop the queue.
+/**
+ * Plays event animations one after another in server order; a state received meanwhile is
+ * applied (latest only) once the queue is empty.
+ *
+ * Everything beyond the plain queueing is about one failure mode: GameScene.onServerState holds
+ * incoming states here while the queue is busy, so a queue that never drains is a client that can
+ * never resync — which is exactly what a reconnect has to do. A task that rejects, or one whose
+ * tween onComplete never fires (its target destroyed mid-tween, a lost WebGL context), must
+ * therefore not be able to stop the queue.
+ */
 export class AnimationQueue
 {
     private pendingAnimations = 0;

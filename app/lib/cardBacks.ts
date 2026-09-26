@@ -22,6 +22,7 @@ export const ACHIEVEMENT_CARD_BACK_HINTS: Record<number, string> = {
     [ACHIEVEMENT_CARD_BACKS.fullCollection]: 'Complete the full card collection',
 }
 
+/** True for an integer index of an existing card back. */
 export function isValidCardBack(value: unknown): value is number {
     return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value < CARD_BACK_COUNT
 }

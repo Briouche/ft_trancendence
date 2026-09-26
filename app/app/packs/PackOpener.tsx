@@ -19,8 +19,10 @@ type Phase = 'choosing' | 'opening' | 'revealing'
 const FLAP_CLIP = 'polygon(0% 0%, 100% 0%, 100% 66%, 0% 30%)'
 const BODY_CLIP = 'polygon(0% 30%, 100% 66%, 100% 100%, 0% 100%)'
 
-// Pack opening flow: choose one of 3 designs → tear animation while /api/packs/open runs →
-// cards revealed one by one in a circle.
+/**
+ * Pack opening flow: choose one of 3 designs → tear animation while /api/packs/open runs →
+ * cards revealed one by one in a circle.
+ */
 export default function PackOpener({ initialPacks, initialPityCounter, cardBack }: {
     initialPacks:        number
     initialPityCounter:  number

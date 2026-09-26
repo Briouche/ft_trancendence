@@ -29,8 +29,10 @@ const END_TURN_HEIGHT_RATIO = 0.07;
 const END_TURN_OFFSET_RATIO = 0.65;
 const END_TURN_Y_RATIO = 0.5;
 
-// Everything on the table except the hands: both minion rows, heroes, mana bars, decks, the
-// end-turn button, and the targets used for attacks and spells.
+/**
+ * Everything on the table except the hands: both minion rows, heroes, mana bars, decks, the
+ * end-turn button, and the targets used for attacks and spells.
+ */
 export class Board
 {
     private scene: Phaser.Scene;

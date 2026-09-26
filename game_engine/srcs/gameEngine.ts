@@ -27,8 +27,10 @@ export type Action =
     | { type: "attack"; attackerIndex: number; targetIndex: number }
     | { type: "endTurn" };
 
-// Authoritative state and rules of one match. GameSession drives the real instance;
-// ai/tree.ts clones it to simulate moves.
+/**
+ * Authoritative state and rules of one match. GameSession drives the real instance;
+ * ai/tree.ts clones it to simulate moves.
+ */
 export class GameEngine
 {
     public readonly players: [Player, Player];

@@ -4,7 +4,7 @@ import { getSession } from '@/lib/session'
 import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 import { DEFAULT_UNLOCKED_CARD_BACKS } from '@/lib/cardBacks'
 
-// Test tool: empties the user's collection and resets card backs to a fresh account's.
+/** Test tool: empties the user's collection and resets card backs to a fresh account's. */
 export async function POST() {
     if (!DEV_TOOLS_ENABLED) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 

@@ -814,7 +814,7 @@ function HubCamera() {
     )
 }
 
-// `active` stops the render loop while the hub is hidden behind another route.
+/** `active` stops the render loop while the hub is hidden behind another route. */
 export default function HubScene({ username, cardCount, elo, wins, cardBacks, active = true }: {
     username:  string
     cardCount: number

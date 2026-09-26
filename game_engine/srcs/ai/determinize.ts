@@ -4,7 +4,7 @@ import { Card } from "../card";
 import { shuffle, replaceHand } from "./utils";
 import { Deck } from "../deck"
 
-// Clone of the game where the opponent's hidden hand is re-drawn at random from hand + deck.
+/** Clone of the game where the opponent's hidden hand is re-drawn at random from hand + deck. */
 export async function determinize(engine: GameEngine, currentPlayerIdx: 0 | 1): Promise<GameEngine>
 {
   const clone = engine.clone();

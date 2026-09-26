@@ -38,7 +38,7 @@ export interface CardData
     effects: clientEffect;
 }
 
-// Card data with its printed (base) stats, for previews.
+/** Card data with its printed (base) stats, for previews. */
 export function withStartingStats(data: CardData): CardData
 {
     if (data.baseAttack === undefined && data.baseHealth === undefined)
@@ -46,8 +46,10 @@ export function withStartingStats(data: CardData): CardData
     return { ...data, attack: data.baseAttack ?? data.attack, health: data.baseHealth ?? data.health, maxHealth: data.baseHealth ?? data.maxHealth };
 }
 
-// One card in hand or on the board: frame, art, texts, stat colors and effect icons.
-// Input and hover behavior are wired by InputController and animations/hover.ts.
+/**
+ * One card in hand or on the board: frame, art, texts, stat colors and effect icons.
+ * Input and hover behavior are wired by InputController and animations/hover.ts.
+ */
 export class Card extends Phaser.GameObjects.Container
 {
     public cardData: CardData;

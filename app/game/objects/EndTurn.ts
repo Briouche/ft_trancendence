@@ -7,7 +7,7 @@ const BUTTON_HOVER_COLOR = 0x3a663a;
 const BUTTON_STROKE = 0x66cc66;
 const LABEL_COLOR = "#ffffff";
 
-// "End Turn" button.
+/** "End Turn" button. */
 export class EndTurn extends Phaser.GameObjects.Container
 {
     private background: Phaser.GameObjects.Rectangle;

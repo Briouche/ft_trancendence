@@ -5,6 +5,7 @@ import { ROUTES } from '@/config/routes'
 import { parseDeckId } from '@/lib/decks'
 import DeckBuilder from "../new/DeckBuilder";
 
+/** /deck/:id — the deck builder opened on one of the user's saved decks (404 for anyone else's). */
 export default async function EditDeckPage({
     params,
 }: {

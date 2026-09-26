@@ -17,8 +17,10 @@ function normalize(value: string): string {
     return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-// Splits a card description into plain/bold segments around its keyword labels
-// (matched without case or accents, displayed as written).
+/**
+ * Splits a card description into plain/bold segments around its keyword labels
+ * (matched without case or accents, displayed as written).
+ */
 export function splitKeywordSegments(desc: string, keywords: string[]): TextSegment[] {
     if (keywords.length === 0) return [{ text: desc, bold: false }]
 

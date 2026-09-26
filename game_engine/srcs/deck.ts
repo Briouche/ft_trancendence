@@ -2,7 +2,7 @@ import { Card, SpellCard, MinionCard } from "./card";
 import { AddEffectfEffect, archiDamageEffect, BuffEffect, CombinedEffect, DamageEffect, DrawCardEffect, HealEffect, RandomMissileEffect, SummonMinionEffect, timmyDamageEffect, triggerDeathrattleEffect } from "./effect";
 import { AlliedMinionsResolver, AllMinionsResolver, AnyCharacterResolver, EnemyHeroResolver, NeighboringMinionsResolver, OtherAlliedMinionsResolver, RandomEnemyResolver } from "./target";
 
-// A player's draw pile.
+/** A player's draw pile. */
 export class Deck
 {
     private cards: Card[];
@@ -52,8 +52,10 @@ export class Deck
     }
 }
 
-// Hardcoded fixture decks for ai/aiDiagnostic.ts only; real matches load decks from the DB
-// (cardImport/cardLoader.ts, cardImport/aiDecks.ts).
+/**
+ * Hardcoded fixture decks for ai/aiDiagnostic.ts only; real matches load decks from the DB
+ * (cardImport/cardLoader.ts, cardImport/aiDecks.ts).
+ */
 export function makeBasicDeck(player: string, deckNo: number = 0): Deck
 {
     const deck1 = new Deck ([

@@ -10,6 +10,7 @@ import ChatWindow from './ChatWindow'
 
 type Props = { params: Promise<{ username: string }> }
 
+/** Browser tab title: "Chat with <username>". */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: `Chat with ${decodeURIComponent((await params).username)}` }
 }

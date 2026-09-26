@@ -6,7 +6,7 @@ export type ResolvedTarget = { kind: "hero"; hero: Hero; id: string } | { kind: 
 
 const HIGHLIGHT_DEPTH = 1500;
 
-// A targetable hero or minion slot: drop zone + highlight ring.
+/** A targetable hero or minion slot: drop zone + highlight ring. */
 export class Target
 {
     private zone: Phaser.GameObjects.Zone;

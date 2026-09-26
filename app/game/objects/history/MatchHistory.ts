@@ -8,8 +8,10 @@ export interface HistoryEntry
     details: string[];
 }
 
-// Match log: card plays, attacks and turn ends open an entry; damage/heal/buff/death/effect
-// events are appended as details of the open entry.
+/**
+ * Match log: card plays, attacks and turn ends open an entry; damage/heal/buff/death/effect
+ * events are appended as details of the open entry.
+ */
 export class MatchHistory
 {
     private entries: HistoryEntry[] = [];

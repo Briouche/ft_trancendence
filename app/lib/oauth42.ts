@@ -21,11 +21,12 @@ function getEnv(name: string): string {
     return value;
 }
 
-// Public origin of the site, taken from FT_REDIRECT_URI.
+/** Public origin of the site, taken from FT_REDIRECT_URI. */
 export function getSiteOrigin(): string {
     return new URL(getEnv("FT_REDIRECT_URI")).origin;
 }
 
+/** URL of 42's authorization page for this app, carrying the anti-CSRF `state`. */
 export function buildAuthorizeUrl(state: string): string {
     const params = new URLSearchParams({
         client_id:     getEnv("FT_CLIENT_ID"),
@@ -63,23 +64,26 @@ async function fetchProfile(accessToken: string): Promise<FortyTwoProfile> {
     return { id: data.id, login: data.login, email: data.email };
 }
 
+/** Exchanges the authorization code for a token, then fetches the 42 profile (id, login, email). */
 export async function fetchFortyTwoProfile(code: string): Promise<FortyTwoProfile> {
     const accessToken = await exchangeCodeForToken(code);
     return fetchProfile(accessToken);
 }
 
-// Thrown when the 42 account's email already belongs to a local account.
+/** Thrown when the 42 account's email already belongs to a local account. */
 export class EmailTakenError extends Error {
     constructor() {
         super("A local account already uses this 42 account's email");
     }
 }
 
-// Account linked to this 42 login, created with a unique username if it doesn't exist yet.
-//
-// A local account with the same email is deliberately NOT linked: sign-up never verifies email
-// ownership, so anyone could register with a victim's 42 email, set a password, and wait for the
-// victim's first "Sign in with 42" to hand them the (then shared) account.
+/**
+ * Account linked to this 42 login, created with a unique username if it doesn't exist yet.
+ *
+ * A local account with the same email is deliberately NOT linked: sign-up never verifies email
+ * ownership, so anyone could register with a victim's 42 email, set a password, and wait for the
+ * victim's first "Sign in with 42" to hand them the (then shared) account.
+ */
 export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
     const existing = await prisma.user.findUnique({ where: { fortyTwoId: profile.id } });
     if (existing) return existing;

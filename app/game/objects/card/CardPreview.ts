@@ -154,7 +154,7 @@ class CardPreview extends Phaser.GameObjects.Container
 
 const previewCleanups = new WeakMap<Card, () => void>();
 
-// Shows the preview after hovering a card for HOVER_DELAY_MS.
+/** Shows the preview after hovering a card for HOVER_DELAY_MS. */
 export function attachCardPreviewHover(card: Card): void
 {
     detachCardPreviewHover(card);
@@ -183,7 +183,7 @@ export function attachCardPreviewHover(card: Card): void
     previewCleanups.set(card, clear);
 }
 
-// Cancels a pending/open preview before the card's listeners are replaced.
+/** Cancels a pending/open preview before the card's listeners are replaced. */
 export function detachCardPreviewHover(card: Card): void
 {
     const clear = previewCleanups.get(card);
@@ -194,6 +194,7 @@ export function detachCardPreviewHover(card: Card): void
     }
 }
 
+/** Shows a large preview of a played card for `durationMs`, then removes it. */
 export function showCardPreview(scene: Phaser.Scene, cardData: CardData, durationMs: number = PLAYED_DURATION_MS): void
 {
     const preview = new CardPreview(scene, cardData);

@@ -25,6 +25,7 @@ function requiresTarget(card: Card): boolean
         effect.resolver !== null && effect.resolver.requiresInput === true);
 }
 
+/** Wire form of a card (protocol ClientCard): what the browser needs to draw it and nothing else. */
 export function toClientCard(card: Card): ClientCard
 {
     const effects: clientEffect = {};
@@ -91,7 +92,7 @@ function toClientHero(player: Player): ClientHero
     return data;
 }
 
-// pendingPrompt is supplied by the caller (GameSession owns the pending target, not the engine).
+/** pendingPrompt is supplied by the caller (GameSession owns the pending target, not the engine). */
 export function toClientState(engine: GameEngine, playerIndex: 0 | 1, pendingPrompt?: TargetPrompt): ClientGameState
 {
     const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;

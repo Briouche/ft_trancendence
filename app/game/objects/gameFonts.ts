@@ -5,6 +5,11 @@ const FALLBACK_FAMILY = "sans-serif";
 
 let loadedFamily: Promise<string> | null = null;
 
+/**
+ * Waits until the site's pixel font is loaded and returns its family name, so Phaser (which
+ * draws text into a canvas once) never renders with a fallback font. Memoized; a failure clears
+ * the memo so the next call retries.
+ */
 export function ensureCardFontLoaded(): Promise<string>
 {
     if (loadedFamily)

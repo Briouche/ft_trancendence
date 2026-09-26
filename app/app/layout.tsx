@@ -28,8 +28,10 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-// Root layout: cursor, route transition overlay, notifications, the legal footer, and for
-// signed-in users the realtime socket (presence, chat) and the persistent 3D hub.
+/**
+ * Root layout: cursor, route transition overlay, notifications, the legal footer, and for
+ * signed-in users the realtime socket (presence, chat) and the persistent 3D hub.
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{

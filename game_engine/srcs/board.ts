@@ -2,8 +2,10 @@ import { MinionCard } from "./card";
 
 const MAX_BOARD_SIZE: number = 6;
 
-// Both rows of minions. Array order is board position: neighbors (target.ts, cleaveEffect) are
-// adjacent indices.
+/**
+ * Both rows of minions. Array order is board position: neighbors (target.ts, cleaveEffect) are
+ * adjacent indices.
+ */
 export class Board
 {
     private minions: [MinionCard[], MinionCard[]];

@@ -4,6 +4,7 @@ import { getSession } from '@/lib/session'
 import { ROUTES } from '@/config/routes'
 import CollectionBook from './CollectionBook'
 
+/** /collection — the owned cards and card backs, loaded on the server and shown as a notebook. */
 export default async function CollectionPage() {
     const session = await getSession()
     if (!session) redirect(ROUTES.home)

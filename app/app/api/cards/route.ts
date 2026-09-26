@@ -11,8 +11,10 @@ const getCachedCards = unstable_cache(
     { revalidate: 300, tags: ['cards'] }
 )
 
-// No session check: this serves the read-only card catalog (design data), not anything
-// user-specific, so it's intentionally public unlike the other routes in this folder.
+/**
+ * No session check: this serves the read-only card catalog (design data), not anything
+ * user-specific, so it's intentionally public unlike the other routes in this folder.
+ */
 export async function GET() {
     const cards = await getCachedCards()
     return NextResponse.json(cards)

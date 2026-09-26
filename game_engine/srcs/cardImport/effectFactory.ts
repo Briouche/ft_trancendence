@@ -72,6 +72,10 @@ function buildResolver(spec: ResolverSpec): TargetResolver
     }
 }
 
+/**
+ * Effect object described by a JSON spec from the Card table (battlecry, deathrattle…);
+ * undefined when the card has none. See EffectSpec above for the supported kinds.
+ */
 export function buildEffect(spec: EffectSpec | null | undefined): Effect | undefined
 {
     if (!spec)

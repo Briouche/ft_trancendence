@@ -5,7 +5,7 @@ import type { Difficulty } from "./shared/protocol";
 
 export type GameMode = "solo" | "multiplayer";
 
-// Phaser config for one match; the match params are handed to BootScene.
+/** Phaser config for one match; the match params are handed to BootScene. */
 export function createGameConfig(parent: HTMLDivElement, mode: GameMode, difficulty: Difficulty, deckId: number, cardBack: number): Phaser.Types.Core.GameConfig
 {
     return {

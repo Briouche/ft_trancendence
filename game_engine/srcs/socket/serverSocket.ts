@@ -52,8 +52,10 @@ function identityOf(socket: Socket): SocketIdentity
     return socket.data.identity as SocketIdentity;
 }
 
-// Socket.IO server: solo games start immediately against the AI, multiplayer pairs the first
-// two players in the queue. Live sessions are kept so a reconnecting socket finds its game.
+/**
+ * Socket.IO server: solo games start immediately against the AI, multiplayer pairs the first
+ * two players in the queue. Live sessions are kept so a reconnecting socket finds its game.
+ */
 export function createGameServer(port: number): void
 {
     // The client always connects through the nginx proxy on the page's own origin, so no CORS is

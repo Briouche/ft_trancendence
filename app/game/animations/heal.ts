@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { MAX_MAGNITUDE, POSITIVE_COLOR, spawnFloatingNumber, spawnGlowPulse } from "./shared";
 
+/** Heal on a card or hero: green glow, a small pulse and a floating "+N". Resolves when done. */
 export function healAnimation(scene: Phaser.Scene, target: Phaser.GameObjects.Container, amount: number): Promise<void>
 {
     return new Promise((resolve) =>

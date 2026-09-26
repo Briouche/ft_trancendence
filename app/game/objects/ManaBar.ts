@@ -12,7 +12,7 @@ const BANNER_RIGHT_WIDTH = 4;
 const BANNER_TOP_HEIGHT = 4;
 const BANNER_BOTTOM_HEIGHT = 4;
 
-// Mana pips on a banner, with a "mana/maxMana" label to its left.
+/** Mana pips on a banner, with a "mana/maxMana" label to its left. */
 export class Manabar
 {
     private scene: Phaser.Scene;

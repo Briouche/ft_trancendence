@@ -5,7 +5,7 @@ import { computeXs } from "./BoardMath";
 
 const CARD_ASPECT_RATIO = 1.4;
 
-// One side's row of minions on the board.
+/** One side's row of minions on the board. */
 export class CardRow
 {
     private cards: Card[] = [];

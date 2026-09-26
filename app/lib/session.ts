@@ -63,6 +63,10 @@ async function decrypt(token: string | undefined = "") {
   }
 }
 
+/**
+ * Signs a session JWT (7 days, carrying tokenVersion) and sets it as an HttpOnly, Secure,
+ * SameSite=Lax cookie.
+ */
 export async function createSession(userId: number, username: string, tokenVersion: number) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
   const token = await encrypt({ userId, username, tokenVersion, expiresAt: expiresAt.toISOString() });
@@ -77,13 +81,16 @@ export async function createSession(userId: number, username: string, tokenVersi
   });
 }
 
+/** Removes the session cookie (log out on this browser). */
 export async function deleteSession() {
   const cookieStore = await cookies();
   cookieStore.delete("session");
 }
 
-// Session payload, or null when the cookie is missing, invalid or issued before the user's
-// tokenVersion was bumped. Cached per request.
+/**
+ * Session payload, or null when the cookie is missing, invalid or issued before the user's
+ * tokenVersion was bumped. Cached per request.
+ */
 export const getSession = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
@@ -101,6 +108,7 @@ export const getSession = cache(async () => {
   return payload;
 });
 
+/** The signed-in user's account details, or null. Cached per request. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const session = await getSession();
   if (!session) return null;

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Card } from "../objects/card/Card";
 
+/** Minion entering the board: grows in from 20% with a small overshoot. Resolves when done. */
 export function summonAnimation(scene: Phaser.Scene, card: Card): Promise<void>
 {
     return new Promise((resolve) =>

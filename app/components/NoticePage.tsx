@@ -11,7 +11,7 @@ interface NoticePageProps {
   data: NoticeData;
 }
 
-// Shared layout of the legal pages (privacy, terms): header, back link, scrolling body.
+/** Shared layout of the legal pages (privacy, terms): header, back link, scrolling body. */
 export default function NoticePage({ data }: NoticePageProps) {
   const { title, lastUpdated, body } = data;
 

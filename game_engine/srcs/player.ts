@@ -6,7 +6,7 @@ import { legendary } from "./legendary";
 
 const MAX_MANA: number = 7;
 
-// One seat: hero, deck, hand, mana, fatigue and the legendary passive counters.
+/** One seat: hero, deck, hand, mana, fatigue and the legendary passive counters. */
 export class Player
 {
     public hero:          Hero;

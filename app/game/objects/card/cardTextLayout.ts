@@ -19,6 +19,7 @@ export const GAME_COST_BOX_SPELL = growBox(CARD_COST_BOX_SPELL, 5, 5);
 export const GAME_ATTACK_BOX = growBox(CARD_ATTACK_BOX, 5, 5);
 export const GAME_HEALTH_BOX = growBox(CARD_HEALTH_BOX, 5, 5);
 
+/** Center of a percentage box (see lib/cardLayout.ts) relative to the card center, in pixels. */
 export function boxCenterOffset(box: CardBox, width: number, height: number): { x: number; y: number }
 {
     return {
@@ -58,11 +59,13 @@ function fitCacheKey(text: Phaser.GameObjects.Text, boxWidthPx: number, boxHeigh
     return `${textBoxCacheKey(text, boxWidthPx, boxHeightPx, minSize, maxSize)}|${Math.round(text.style.wordWrapWidth ?? -1)}`;
 }
 
-// Finds the largest font size (between minSize and maxSize) that still fits the box — unlike
-// fitTextToBox, which only shrinks from a fixed starting point, this grows or shrinks from the
-// current size to maximize use of the available space (useful for the name, whose length varies
-// a lot from card to card). Binary search relies on `fits` being monotonic in size (a larger font
-// never fits where a smaller one didn't), which holds for a fixed wrap width.
+/**
+ * Finds the largest font size (between minSize and maxSize) that still fits the box — unlike
+ * fitTextToBox, which only shrinks from a fixed starting point, this grows or shrinks from the
+ * current size to maximize use of the available space (useful for the name, whose length varies
+ * a lot from card to card). Binary search relies on `fits` being monotonic in size (a larger font
+ * never fits where a smaller one didn't), which holds for a fixed wrap width.
+ */
 export function maximizeTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: number, boxHeightPx: number, minSize = 8, maxSize = 200): void
 {
     const cacheKey = fitCacheKey(text, boxWidthPx, boxHeightPx, minSize, maxSize);
@@ -105,10 +108,12 @@ const WRAP_WIDTH_FRACTIONS = [1, 0.8, 0.65, 0.5, 0.4];
 
 const wrapFitCache = new Map<string, { bestSize: number; bestWrapWidth: number }>();
 
-// Like maximizeTextToBox, but also tries several wrap widths (i.e. more or fewer lines) and keeps
-// whichever yields the largest font — a short/wide text often bottlenecked by the WIDTH of a
-// single line can end up much bigger once spread over 2-3 narrower lines that use the box's
-// remaining height.
+/**
+ * Like maximizeTextToBox, but also tries several wrap widths (i.e. more or fewer lines) and keeps
+ * whichever yields the largest font — a short/wide text often bottlenecked by the WIDTH of a
+ * single line can end up much bigger once spread over 2-3 narrower lines that use the box's
+ * remaining height.
+ */
 export function maximizeWrappedTextToBox(text: Phaser.GameObjects.Text, boxWidthPx: number, boxHeightPx: number, minSize = 8, maxSize = 200): void
 {
     const cacheKey = textBoxCacheKey(text, boxWidthPx, boxHeightPx, minSize, maxSize);
@@ -142,7 +147,7 @@ export function maximizeWrappedTextToBox(text: Phaser.GameObjects.Text, boxWidth
     wrapFitCache.set(cacheKey, { bestSize, bestWrapWidth });
 }
 
-// Centers the text on its box at `baseSizeRatio` × card height, shrunk to fit.
+/** Centers the text on its box at `baseSizeRatio` × card height, shrunk to fit. */
 export function layoutBoxText(text: Phaser.GameObjects.Text, box: CardBox, width: number, height: number, baseSizeRatio: number): void
 {
     const boxWidthPx = (box.width / 100) * width;
@@ -153,7 +158,7 @@ export function layoutBoxText(text: Phaser.GameObjects.Text, box: CardBox, width
     fitTextToBox(text, boxWidthPx, boxHeightPx);
 }
 
-// Fills the box with the image, center-cropping the overflowing axis ("cover").
+/** Fills the box with the image, center-cropping the overflowing axis ("cover"). */
 export function layoutBoxImage(image: Phaser.GameObjects.Image, box: CardBox, width: number, height: number): void
 {
     const boxWidthPx = (box.width / 100) * width;

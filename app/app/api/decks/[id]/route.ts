@@ -5,6 +5,7 @@ import { parseDeckId, validateDeckInput } from "@/lib/decks";
 
 // Update or delete one of the current user's decks; a deck they don't own reads as 404.
 
+/** PUT /api/decks/:id — replaces the name and cards of one of the current user's decks (validated like POST). */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -34,6 +35,7 @@ export async function PUT(
   return NextResponse.json(deck);
 }
 
+/** DELETE /api/decks/:id — deletes one of the current user's decks (its cards go with it). */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

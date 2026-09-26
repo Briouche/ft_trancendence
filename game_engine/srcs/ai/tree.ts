@@ -58,6 +58,7 @@ function applyAction(engine: GameEngine, action: Action): GameEngine {
   return clone;
 }
 
+/** New search node for `state`, reached from `parent` by `action` (null for the root). */
 export function createNode(state: GameEngine, parent: MCTSNode | null, action: Action | null): MCTSNode {
   return {
     state,
@@ -72,10 +73,12 @@ export function createNode(state: GameEngine, parent: MCTSNode | null, action: A
   };
 }
 
-// Win rate of `child` seen by the player choosing at `parent`. A child's wins are counted for the
-// player to move *in the child*: the same player after a card or an attack (still their turn),
-// the opponent after endTurn. Without this flip, selection compared "good for me" with "good for
-// my opponent" and favoured ending the turn exactly when that was bad.
+/**
+ * Win rate of `child` seen by the player choosing at `parent`. A child's wins are counted for the
+ * player to move *in the child*: the same player after a card or an attack (still their turn),
+ * the opponent after endTurn. Without this flip, selection compared "good for me" with "good for
+ * my opponent" and favoured ending the turn exactly when that was bad.
+ */
 export function winRateFor(parent: MCTSNode, child: MCTSNode): number {
   const rate = child.wins / child.visits;
   return child.ownerIndex === parent.ownerIndex ? rate : 1 - rate;
@@ -86,11 +89,12 @@ function ucb1(parent: MCTSNode, child: MCTSNode): number {
   return winRateFor(parent, child) + UCB1_C * Math.sqrt(Math.log(parent.visits) / child.visits);
 }
 
+/** Child to descend into: highest UCB1 score (win rate + exploration bonus). */
 export function selectBestChild(node: MCTSNode): MCTSNode {
   return node.children.reduce((best, c) => ucb1(node, c) > ucb1(node, best) ? c : best);
 }
 
-// Expands one random untried action into a child node.
+/** Expands one random untried action into a child node. */
 export function expand(node: MCTSNode): MCTSNode {
   const idx    = Math.floor(Math.random() * node.untriedActions.length);
   const action = node.untriedActions.splice(idx, 1)[0];
@@ -99,6 +103,7 @@ export function expand(node: MCTSNode): MCTSNode {
   return child;
 }
 
+/** True for a card play whose effect would hit nothing (skipped in random playouts). */
 export function isWastedPlay(engine: GameEngine, action: Action): boolean {
   if (action.type !== "playCard") return false;
 
@@ -142,7 +147,7 @@ function evaluate(state: GameEngine, forPlayer: 0 | 1): number
 // now" and "end the turn, lethal next turn" both scored 1.0 and the AI could pass up a lethal.
 const WIN_DELAY_PENALTY = 0.002;
 
-// Random playout, capped at MAX_DEPTH plies. `startDepth` is the depth of the node it starts from.
+/** Random playout, capped at MAX_DEPTH plies. `startDepth` is the depth of the node it starts from. */
 export function simulate(state: GameEngine, forPlayer: 0 | 1, startDepth: number = 0): number
 {
   let s = state;
@@ -169,7 +174,7 @@ export function simulate(state: GameEngine, forPlayer: 0 | 1, startDepth: number
   return evaluate(s, forPlayer);
 }
 
-// Each node's wins are counted from the perspective of the player to move at that node.
+/** Each node's wins are counted from the perspective of the player to move at that node. */
 export function backpropagate(node: MCTSNode | null, result: number, forPlayer: 0 | 1): void
 {
   for (let n = node; n !== null; n = n.parent)

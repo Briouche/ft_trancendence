@@ -13,7 +13,7 @@ const DETAIL_ROW_HEIGHT_RATIO = 0.045;
 const ICON_SIZE_RATIO = 0.045;
 const SCROLL_SPEED = 0.5;
 
-// Scrollable full match log, newest entry first.
+/** Scrollable full match log, newest entry first. */
 export class HistoryOverlay extends Phaser.GameObjects.Container
 {
     private dim: Phaser.GameObjects.Rectangle;

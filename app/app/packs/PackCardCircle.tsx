@@ -28,8 +28,10 @@ function useVmin() {
     return vmin
 }
 
-// The pack's cards laid out in a circle; each flips on click. Once all are revealed, back and
-// collection buttons appear in the center.
+/**
+ * The pack's cards laid out in a circle; each flips on click. Once all are revealed, back and
+ * collection buttons appear in the center.
+ */
 export default function PackCardCircle({
     cards, revealedIndices, onSelect, onBack, onViewCollection, cardBack,
 }: {

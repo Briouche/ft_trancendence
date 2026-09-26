@@ -30,8 +30,10 @@ function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: numb
     )
 }
 
-// Card sized to its container; `stackQty` > 1 draws a second copy behind it, `dimFront`/`dimBack`
-// gray out each layer.
+/**
+ * Card sized to its container; `stackQty` > 1 draws a second copy behind it, `dimFront`/`dimBack`
+ * gray out each layer.
+ */
 export default function ScaledCardFace({ card, ownedQty, stackQty, dimFront, dimBack }: {
     card: CardFaceData
     ownedQty?: number

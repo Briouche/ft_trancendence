@@ -6,6 +6,7 @@ export const MAX_MAGNITUDE = 40;
 export const POSITIVE_COLOR = "#09d84e";
 export const NEGATIVE_COLOR = "#ff4d4d";
 
+/** Number that floats up and fades out at (x, y); bigger for bigger `magnitude`. Fire-and-forget. */
 export function spawnFloatingNumber(scene: Phaser.Scene, x: number, y: number, text: string, color: string, magnitude: number): void
 {
     const fontSize = 20 + magnitude * 2.5;
@@ -31,6 +32,7 @@ export function spawnFloatingNumber(scene: Phaser.Scene, x: number, y: number, t
     });
 }
 
+/** Colored ring that expands and fades behind `target`. Fire-and-forget. */
 export function spawnGlowPulse(scene: Phaser.Scene, target: Phaser.GameObjects.Container, color: number): void
 {
     const radius = (Math.max(target.width, target.height) || 80) * 0.4;

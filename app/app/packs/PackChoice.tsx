@@ -4,7 +4,7 @@ import PackArt, { type PackSkin } from './PackArt'
 
 const PACK_WIDTH = 170
 
-// The 3 pack designs on offer; grayed out and inert when `locked`.
+/** The 3 pack designs on offer; grayed out and inert when `locked`. */
 export default function PackChoice({ skins, locked, onChoose }: { skins: PackSkin[]; locked?: boolean; onChoose: (skin: PackSkin) => void }) {
     return (
         <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-16">

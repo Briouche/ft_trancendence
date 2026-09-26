@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { ROUTES } from "@/config/routes";
 import PlayModeSelector from "./PlayModeSelector";
 
+/** /play — choose a mode (vs AI / vs player), a difficulty and a deck, then start a match. */
 export default async function PlayPage() {
   const session = await getSession();
   if (!session) redirect(ROUTES.home);

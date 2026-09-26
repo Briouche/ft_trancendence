@@ -4,6 +4,7 @@ import { Card } from "../objects/card/Card";
 const HOVER_LIFT_RATIO = 0.25;
 const HOVER_DEPTH = 1000;
 
+/** Makes a hand card rise and come to the front while the pointer is over it. */
 export function attachCardHover(card: Card): void
 {
     card.on("pointerover", () => onHoverStart(card));

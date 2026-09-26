@@ -4,6 +4,7 @@ import { logoutUser } from "@/lib/auth";
 
 import FormButton from "./FormButton";
 
+/** "Log out" button: posts the logoutUser server action, which clears the session cookie. */
 export default function LogoutButton() {
   return (
     <form action={logoutUser}>

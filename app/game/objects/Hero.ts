@@ -60,7 +60,7 @@ export interface HeroData
     cardBack: number;
 }
 
-// A hero: portrait frame, name, health, and the passive counter badge when the deck has one.
+/** A hero: portrait frame, name, health, and the passive counter badge when the deck has one. */
 export class Hero extends Phaser.GameObjects.Container
 {
     public heroData: HeroData;

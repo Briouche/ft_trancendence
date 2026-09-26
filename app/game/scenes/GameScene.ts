@@ -17,8 +17,10 @@ import { GAME_FONT_FAMILY_KEY } from "../objects/gameFontRegistry";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 
-// Match scene: routes server events to the flow/animation/sync/input controllers and owns the
-// hand, board, opponent hand and history UI.
+/**
+ * Match scene: routes server events to the flow/animation/sync/input controllers and owns the
+ * hand, board, opponent hand and history UI.
+ */
 export class GameScene extends Phaser.Scene
 {
     private flow = new GameFlowState();

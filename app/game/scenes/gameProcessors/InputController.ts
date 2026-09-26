@@ -10,8 +10,10 @@ import { summonAnimation } from "../../animations";
 
 type ClickTargetMode = "attack" | "spell";
 
-// Player input on cards: drag-and-drop and click-to-select/click-to-target both end in the same
-// finalize*/request* methods. A spell is a card without attack stats.
+/**
+ * Player input on cards: drag-and-drop and click-to-select/click-to-target both end in the same
+ * finalize*/request* methods. A spell is a card without attack stats.
+ */
 export class InputController
 {
     private targetingCard: Card | null = null;

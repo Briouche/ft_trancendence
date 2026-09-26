@@ -234,6 +234,7 @@ function IllustratedSection({ title, image, reverse, imgWidth = "w-44", fullWidt
   );
 }
 
+/** How-to-play notebook: rules, card anatomy, keywords and legendary passives, with illustrations. */
 export default function ManualBook() {
   const router = useRouter();
 

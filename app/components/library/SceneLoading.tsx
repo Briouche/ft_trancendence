@@ -1,4 +1,4 @@
-// Placeholder shown while a 3D scene's client-only chunk loads.
+/** Placeholder shown while a 3D scene's client-only chunk loads. */
 export default function SceneLoading() {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-ink-950">

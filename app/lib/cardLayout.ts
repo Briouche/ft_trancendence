@@ -24,4 +24,5 @@ export const CARD_ART_BOX: CardBox = { left: 5.4, top: 14.1, width: 89, height: 
 
 // Spells all carry the "Rare" rarity; their frame has no attack/health slots.
 const SPELL_RARITIES = new Set(["Rare"]);
+/** True for spell cards (whose frame has no attack/health slots). */
 export const isSpellRarity = (rarity: string) => SPELL_RARITIES.has(rarity);

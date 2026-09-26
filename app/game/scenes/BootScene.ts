@@ -6,8 +6,10 @@ import { GAME_FONT_FAMILY_KEY } from "@/game/objects/gameFontRegistry";
 import { CARD_BACK_COUNT } from "@/lib/cardBacks";
 import { BOOT_IMAGE_ASSETS } from "./bootAssets";
 
-// Preloads the static assets (card art loads lazily, see CardAssetLoader), waits for the
-// font, then starts GameScene with the match params.
+/**
+ * Preloads the static assets (card art loads lazily, see CardAssetLoader), waits for the
+ * font, then starts GameScene with the match params.
+ */
 export class BootScene extends Phaser.Scene
 {
     private mode!: GameMode;

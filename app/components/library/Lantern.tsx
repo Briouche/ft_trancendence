@@ -16,7 +16,7 @@ type Props = (
     lightDistance?:  number
 }
 
-// The scene's single moving warm spotlight, carried by the camera.
+/** The scene's single moving warm spotlight, carried by the camera. */
 export default function Lantern(props: Props) {
     const { lightIntensity = LANTERN.intensity, lightAngle = LANTERN.angle, lightDistance = LANTERN.distance } = props
     const lightRef = useRef<THREE.SpotLight>(null)

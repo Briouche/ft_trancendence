@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type CardFaceData } from '@/components/CardFace'
 import ScaledCardFace from '@/components/ScaledCardFace'
 
-// Close-up of a revealed pack card with a mouse-following tilt; closes on click outside or Escape.
+/** Close-up of a revealed pack card with a mouse-following tilt; closes on click outside or Escape. */
 export default function PackCardZoom({
     card, onClose,
 }: {

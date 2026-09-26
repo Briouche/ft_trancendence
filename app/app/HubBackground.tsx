@@ -39,9 +39,11 @@ function subscribeNarrow(onChange: () => void) {
     return () => query.removeEventListener('change', onChange)
 }
 
-// Hub mounted once by the root layout and only hidden on other routes, so its WebGL scene is
-// never rebuilt. Stats are refetched every time the user comes back to "/". Falls back to a
-// plain menu without WebGL2 and on phone-sized screens.
+/**
+ * Hub mounted once by the root layout and only hidden on other routes, so its WebGL scene is
+ * never rebuilt. Stats are refetched every time the user comes back to "/". Falls back to a
+ * plain menu without WebGL2 and on phone-sized screens.
+ */
 export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'

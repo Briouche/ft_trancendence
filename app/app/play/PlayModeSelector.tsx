@@ -37,7 +37,7 @@ function ToggleButton({ active, onClick, children }: { active: boolean; onClick:
   );
 }
 
-// Play screen: pick a mode (and AI difficulty), then a deck to start the match.
+/** Play screen: pick a mode (and AI difficulty), then a deck to start the match. */
 export default function PlayModeSelector({ decks, elo }: { decks: SavedDeck[]; elo: number }) {
   const router = useRouter();
   const [mode, setMode] = useState<GameMode>("solo");

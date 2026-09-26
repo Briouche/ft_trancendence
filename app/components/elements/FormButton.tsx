@@ -4,6 +4,7 @@ type FormButtonProps = {
   disabled?: boolean;
 };
 
+/** Submit button of the small server-action forms (log out). */
 export default function FormButton({
   children,
   className = "",

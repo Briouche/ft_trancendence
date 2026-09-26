@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { MAX_MAGNITUDE, NEGATIVE_COLOR, POSITIVE_COLOR, spawnFloatingNumber, spawnGlowPulse } from "./shared";
 
+/** Stat change on a card or hero: glow + floating "+1/+2" numbers (red for a debuff). Resolves when done. */
 export function buffAnimation(scene: Phaser.Scene, target: Phaser.GameObjects.Container, attackDelta: number, healthDelta: number): Promise<void>
 {
     return new Promise((resolve) =>

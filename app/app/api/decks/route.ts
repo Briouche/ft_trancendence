@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { validateDeckInput } from "@/lib/decks";
 
-// Creates a deck for the current user.
+/** Creates a deck for the current user. */
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -33,6 +33,7 @@ const ARCHI_DECK: string[] = [
 
 const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]
 
+/** One of the AI decks at random (list of card names). */
 export function pickRandomAiDeck(): string[]
 {
     return AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)]

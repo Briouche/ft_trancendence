@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-// Deck pile: a card back that shows the remaining card count on hover.
+/** Deck pile: a card back that shows the remaining card count on hover. */
 export class Deck
 {
     public graphic: Phaser.GameObjects.Image;

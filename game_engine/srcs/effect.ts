@@ -15,9 +15,11 @@ export interface GameContext
     bonusDamage?: number;
 }
 
-// Base of every card effect. Pattern shared by most subclasses: with an input resolver act on
-// context.target, otherwise act on every target the resolver returns. Effects report what they
-// did through engine.record*() so the client can animate it.
+/**
+ * Base of every card effect. Pattern shared by most subclasses: with an input resolver act on
+ * context.target, otherwise act on every target the resolver returns. Effects report what they
+ * did through engine.record*() so the client can animate it.
+ */
 export abstract class Effect
 {
     public resolver: TargetResolver | null;
@@ -30,6 +32,7 @@ export abstract class Effect
     abstract execute(context: GameContext): void;
 }
 
+/** Owner draws `amount` cards. */
 export class DrawCardEffect extends Effect
 {
     private _amount: number;
@@ -47,6 +50,7 @@ export class DrawCardEffect extends Effect
     }
 }
 
+/** Deals `amount` damage (plus spell power for spells) to the chosen or resolved targets. */
 export class DamageEffect extends Effect
 {
     private _amount: number;
@@ -81,6 +85,7 @@ export class DamageEffect extends Effect
     }
 }
 
+/** Restores up to `amount` health to the chosen or resolved targets. */
 export class HealEffect extends Effect
 {
     private _amount: number;
@@ -115,7 +120,7 @@ export class HealEffect extends Effect
     }
 }
 
-// +atk/+health on minions; heroes only get the health part.
+/** +atk/+health on minions; heroes only get the health part. */
 export class BuffEffect extends Effect
 {
     private _attackBuff: number;
@@ -166,7 +171,7 @@ export class BuffEffect extends Effect
     }
 }
 
-// Buff scaled by how many targets countResolver finds.
+/** Buff scaled by how many targets countResolver finds. */
 export class CountScaledBuffEffect extends Effect
 {
     private _perAtk: number;
@@ -190,7 +195,7 @@ export class CountScaledBuffEffect extends Effect
 
 type AddableKeyword = 'battlecry' | 'deathrattle' | 'onAttack' | 'taunt' | 'rush' | 'endOfTurnEffect';
 
-// Gives minions a keyword (boolean) or a hook (Effect).
+/** Gives minions a keyword (boolean) or a hook (Effect). */
 export class AddEffectfEffect extends Effect
 {
     private _addedKeyword: Effect | boolean;
@@ -229,7 +234,7 @@ export class AddEffectfEffect extends Effect
     }
 }
 
-// Removes all keywords and resets stats to the printed values.
+/** Removes all keywords and resets stats to the printed values. */
 export class silenceEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -274,7 +279,7 @@ export class silenceEffect extends Effect
     }
 }
 
-// Summons clones of the token templates while the board has room.
+/** Summons clones of the token templates while the board has room. */
 export class SummonMinionEffect extends Effect
 {
     private _tokens: MinionCard[];
@@ -303,7 +308,7 @@ export class SummonMinionEffect extends Effect
     }
 }
 
-// Runs several effects in order. At most one of them may require a target.
+/** Runs several effects in order. At most one of them may require a target. */
 export class CombinedEffect extends Effect
 {
     private effects: Effect[];
@@ -323,7 +328,7 @@ export class CombinedEffect extends Effect
     }
 }
 
-// `amount` hits of `damage`, each on a fresh pick from the resolver.
+/** `amount` hits of `damage`, each on a fresh pick from the resolver. */
 export class RandomMissileEffect extends Effect
 {
     private _amount: number;
@@ -359,6 +364,7 @@ export class RandomMissileEffect extends Effect
     }
 }
 
+/** Triggers the deathrattle of every resolved minion without killing it (Freddy). */
 export class triggerDeathrattleEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -387,6 +393,7 @@ export class triggerDeathrattleEffect extends Effect
     }
 }
 
+/** Triggers the end-of-turn effect of every resolved minion right away. */
 export class triggerEndOfTurnEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -412,7 +419,7 @@ export class triggerEndOfTurnEffect extends Effect
     }
 }
 
-// Timmy's battlecry: damage equal to the hero's health above 20.
+/** Timmy's battlecry: damage equal to the hero's health above 20. */
 export class timmyDamageEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -431,7 +438,7 @@ export class timmyDamageEffect extends Effect
     }
 }
 
-// Archimede's battlecry: 100 damage once 6 "archi" cards have been played.
+/** Archimede's battlecry: 100 damage once 6 "archi" cards have been played. */
 export class archiDamageEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -449,7 +456,7 @@ export class archiDamageEffect extends Effect
     }
 }
 
-// Minion: heals the hero for its attack. Spell: heals `amount` per minion on the board.
+/** Minion: heals the hero for its attack. Spell: heals `amount` per minion on the board. */
 export class lifestealEffect extends Effect
 {
     amount: number;
@@ -476,7 +483,7 @@ export class lifestealEffect extends Effect
     }
 }
 
-// Deals damage equal to the target's remaining health.
+/** Deals damage equal to the target's remaining health. */
 export class destroyEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -510,7 +517,7 @@ export class destroyEffect extends Effect
     }
 }
 
-// Sets the lower hero's health to the higher one's; both players draw.
+/** Sets the lower hero's health to the higher one's; both players draw. */
 export class equalHealthEffect extends Effect
 {
     constructor()
@@ -532,7 +539,7 @@ export class equalHealthEffect extends Effect
     }
 }
 
-// onAttack: also hits the neighbors of the attacked minion.
+/** onAttack: also hits the neighbors of the attacked minion. */
 export class cleaveEffect extends Effect
 {
     constructor()
@@ -566,7 +573,7 @@ export class cleaveEffect extends Effect
     }
 }
 
-// endOfTurn: heals the source back to full.
+/** endOfTurn: heals the source back to full. */
 export class regenerationEffect extends Effect
 {
     constructor()

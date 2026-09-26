@@ -9,7 +9,7 @@ const CLICK_DELAY_MS = 2000;
 const DETAILS_OFFSET_Y = 90;
 const HINT_OFFSET_Y = 160;
 
-// Full-screen result banner; becomes clickable after a delay and then navigates home.
+/** Full-screen result banner; becomes clickable after a delay and then navigates home. */
 export class GameOverOverlay extends Phaser.GameObjects.Container
 {
     private dim: Phaser.GameObjects.Rectangle;

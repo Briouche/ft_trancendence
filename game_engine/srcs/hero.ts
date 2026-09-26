@@ -1,4 +1,4 @@
-// A player's health pool; a Targetable like minions (see target.ts).
+/** A player's health pool; a Targetable like minions (see target.ts). */
 export class Hero
 {
     public readonly name: string;

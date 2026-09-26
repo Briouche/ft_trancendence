@@ -6,7 +6,7 @@ import { showCardPreview } from "@/game/objects/card/CardPreview";
 import { attackAnimation, battlecryAnimation, damageAnimation, healAnimation, buffAnimation, deathAnimation, deathrattleAnimation, passiveEffectAnimation, turnBannerAnimation, summonAnimation } from "../../animations";
 import { MatchHistory } from "../../objects/history/MatchHistory";
 
-// Plays the animation of one server GameEvent and records it in the match history.
+/** Plays the animation of one server GameEvent and records it in the match history. */
 export class ServerEventPlayer
 {
     constructor(private scene: Phaser.Scene, private board: Board, private getPlayerIndex: () => 0 | 1 | null, private deferUntilCardExists: (cardId: string, run: (card: Card) => void) => void, private history: MatchHistory)

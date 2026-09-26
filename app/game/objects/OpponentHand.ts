@@ -9,7 +9,7 @@ const MAX_HAND_SPAN_RATIO = 0.5;
 const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
 
-// The opponent's hand: face-down card backs fanned at the top, one per card they hold.
+/** The opponent's hand: face-down card backs fanned at the top, one per card they hold. */
 export class OpponentHand
 {
     private scene: Phaser.Scene;

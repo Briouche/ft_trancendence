@@ -65,7 +65,7 @@ function boxStyle(box: CardBox): CSSProperties {
     return { left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%` }
 }
 
-// DOM rendering of a card: frame, illustration, name, cost, text (keywords bolded), attack/health.
+/** DOM rendering of a card: frame, illustration, name, cost, text (keywords bolded), attack/health. */
 export default function CardFace({ card, ownedQty }: { card: CardFaceData; ownedQty?: number }) {
     const art = CARD_ART[card.rarity] ?? CARD_ART['Commune']!
     const segments = splitKeywordSegments(card.desc, card.keywords)

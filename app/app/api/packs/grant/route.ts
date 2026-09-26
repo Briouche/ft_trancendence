@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 
-// Test tool: gives the user one unopened pack.
+/** Test tool: gives the user one unopened pack. */
 export async function POST() {
     if (!DEV_TOOLS_ENABLED) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 

@@ -14,7 +14,7 @@ function drawCardPlaceholder(g: Phaser.GameObjects.Graphics, size: number): void
     g.strokeRoundedRect(-size / 2, -size / 2, size, size, size * 0.15);
 }
 
-// Icon of a history entry: the card's art, the sword/hourglass texture, or a drawn placeholder.
+/** Icon of a history entry: the card's art, the sword/hourglass texture, or a drawn placeholder. */
 export function createHistoryIcon(scene: Phaser.Scene, icon: HistoryEntry["icon"], x: number, y: number, size: number): Phaser.GameObjects.Image | Phaser.GameObjects.Graphics
 {
     const assetKey = icon.kind === "cardPlayed" ? icon.assetKey : TEXTURE_BY_KIND[icon.kind];

@@ -8,7 +8,7 @@ const ARROW_DEPTH = 2000;
 const CURVE_BIAS = 120;
 const DOTTED_SEGMENTS = 20;
 
-// Curved dashed arrow from a card to the pointer while choosing a target.
+/** Curved dashed arrow from a card to the pointer while choosing a target. */
 export class TargetArrow
 {
     private graphic: Phaser.GameObjects.Graphics;

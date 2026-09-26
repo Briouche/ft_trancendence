@@ -6,7 +6,7 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 
 type Card = CardFaceData & { ownedQty: number }
 
-// Full-screen card view with a mouse-following tilt; closes on click outside or Escape.
+/** Full-screen card view with a mouse-following tilt; closes on click outside or Escape. */
 export default function CardZoom({ card, onClose }: { card: Card | null; onClose: () => void }) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 })
     const cardRef = useRef<HTMLDivElement>(null)

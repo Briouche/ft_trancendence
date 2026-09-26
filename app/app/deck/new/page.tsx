@@ -6,6 +6,7 @@ import DeckBuilder from "./DeckBuilder";
 
 export const dynamic = "force-dynamic";
 
+/** /deck/new — the deck builder with the user's collection and saved decks. */
 export default async function DeckPage() {
     const session = await getSession()
     if (!session) redirect(ROUTES.home)

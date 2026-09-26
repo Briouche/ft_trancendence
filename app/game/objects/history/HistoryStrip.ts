@@ -9,7 +9,7 @@ const SLOT_SIZE_RATIO = 0.045;
 const SLOT_GAP_RATIO = 0.01;
 const CAP = 6;
 
-// Column of the latest history icons on the left edge (newest on top); click opens the overlay.
+/** Column of the latest history icons on the left edge (newest on top); click opens the overlay. */
 export class HistoryStrip
 {
     private scene: Phaser.Scene;

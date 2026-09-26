@@ -33,8 +33,10 @@ interface PendingTarget
     optionsById: Map<string, Targetable>;
 }
 
-// One match: validates client messages, applies them to the engine, broadcasts events/state,
-// runs the AI's turns, records the result.
+/**
+ * One match: validates client messages, applies them to the engine, broadcasts events/state,
+ * runs the AI's turns, records the result.
+ */
 export class GameSession
 {
     private engine: GameEngine;

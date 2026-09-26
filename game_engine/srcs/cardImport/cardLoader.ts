@@ -30,6 +30,7 @@ function safeNumber(value: string): number
     return Number.isNaN(n) ? 0 : n
 }
 
+/** Game-engine minion built from a catalog row; the id gets `playerPrefix`/`suffix` to stay unique in a match. */
 export function rawToMinionCard(raw: RawCard, playerPrefix = "", suffix = ""): MinionCard
 {
     return new MinionCard(
@@ -162,13 +163,15 @@ async function catalogFor(keys: string[], pick: (c: CardCatalog) => Map<string, 
     return map
 }
 
-// The card catalog is content data (~76 rows) that only changes on a re-seed, so it's loaded once
-// per process instead of being re-queried on every match start — see index.ts, which kicks this
-// off at boot so it's warm before the first player arrives (and doubles as the Prisma warm-up).
-// Memoized the same way as ensureCardFontLoaded in app/game/objects/gameFonts.ts: concurrent
-// callers share one in-flight load, and a failure clears the memo so the next call retries rather
-// than leaving the process permanently unable to start a game.
-// Caveat: re-seeding while this process is running leaves the cache stale until it restarts.
+/**
+ * The card catalog is content data (~76 rows) that only changes on a re-seed, so it's loaded once
+ * per process instead of being re-queried on every match start — see index.ts, which kicks this
+ * off at boot so it's warm before the first player arrives (and doubles as the Prisma warm-up).
+ * Memoized the same way as ensureCardFontLoaded in app/game/objects/gameFonts.ts: concurrent
+ * callers share one in-flight load, and a failure clears the memo so the next call retries rather
+ * than leaving the process permanently unable to start a game.
+ * Caveat: re-seeding while this process is running leaves the cache stale until it restarts.
+ */
 export function ensureCatalogLoaded(): Promise<CardCatalog>
 {
     if (!catalogPromise)
@@ -182,7 +185,7 @@ export function ensureCatalogLoaded(): Promise<CardCatalog>
     return catalogPromise
 }
 
-// Build a deck from a specific list of card ids (for player-built decks later)
+/** Build a deck from a specific list of card ids (for player-built decks later) */
 export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Promise<Deck>
 {
     const byId = await catalogFor(cardIds, c => c.byId)
@@ -201,7 +204,7 @@ export async function makeDeckFromIds(cardIds: string[], playerPrefix = ""): Pro
     return new Deck(gameCards)
 }
 
-// Deck from card names (AI decks, aiDecks.ts); no ownership check.
+/** Deck from card names (AI decks, aiDecks.ts); no ownership check. */
 export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""): Promise<Deck>
 {
     const byName = await catalogFor(cardNames, c => c.byName)
@@ -220,7 +223,7 @@ export async function makeDeckFromNames(cardNames: string[], playerPrefix = ""):
     return new Deck(gameCards)
 }
 
-// Build a deck from a player's saved Deck
+/** Build a deck from a player's saved Deck */
 export async function makeDeckFromDeckId(deckId: number, ownerId: number, playerPrefix = ""): Promise<Deck | null>
 {
     // Prisma loads the `cards` relation with a second SELECT rather than a join (its

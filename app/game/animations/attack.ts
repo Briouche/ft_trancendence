@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { Card } from "../objects/card/Card";
 
-// Pull back, lunge at the target (with a camera shake on impact), return.
+/** Pull back, lunge at the target (with a camera shake on impact), return. */
 export function attackAnimation(scene: Phaser.Scene, attacker: Card, targetX: number, targetY: number): Promise<void>
 {
     return new Promise((resolve) =>

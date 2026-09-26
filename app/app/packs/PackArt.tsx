@@ -21,7 +21,7 @@ function randomPackSkin(): PackSkin {
     }
 }
 
-// `count` distinct pack designs.
+/** `count` distinct pack designs. */
 export function randomPackSkins(count: number): PackSkin[] {
     const seen = new Set<string>()
     const skins: PackSkin[] = []
@@ -35,7 +35,7 @@ export function randomPackSkins(count: number): PackSkin[] {
     return skins
 }
 
-// One pack cover cropped out of the sheet, `width` px wide.
+/** One pack cover cropped out of the sheet, `width` px wide. */
 export default function PackArt({ skin, width, className = '', style }: {
     skin:      PackSkin
     width:     number

@@ -1,6 +1,6 @@
 import { TargetPrompt } from "../../shared/protocol";
 
-// Turn/prompt state shared by the scene controllers.
+/** Turn/prompt state shared by the scene controllers. */
 export class GameFlowState
 {
     playerIndex: 0 | 1 | null = null;

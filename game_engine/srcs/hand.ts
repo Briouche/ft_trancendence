@@ -2,6 +2,7 @@ import { Card } from "./card";
 
 const MAX_HAND_SIZE: number = 10;
 
+/** A player's hand: at most 10 cards, extra draws are lost. */
 export class Hand
 {
     private cards: Card[] = [];

@@ -5,7 +5,7 @@ const BATTLECRY_COLOR = 0x33CCFF;
 const WAVE_COUNT = 2;
 const WAVE_DURATION = 350;
 
-// Expanding rings around the card plus a quick scale pop.
+/** Expanding rings around the card plus a quick scale pop. */
 export function battlecryAnimation(scene: Phaser.Scene, card: Card): Promise<void>
 {
     return new Promise((resolve) =>

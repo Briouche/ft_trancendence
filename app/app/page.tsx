@@ -10,7 +10,7 @@ const OAUTH_ERRORS: Record<string, string> = {
   oauth_denied: "Sign in with 42 was cancelled.",
 };
 
-// Sign-in page for visitors; signed-in users see the hub mounted by the root layout instead.
+/** Sign-in page for visitors; signed-in users see the hub mounted by the root layout instead. */
 export default async function HomePage({
   searchParams,
 }: {

@@ -3,8 +3,10 @@ import { Action, GameEngine } from "../gameEngine";
 import { determinize } from "./determinize";
 import { createNode, selectBestChild, expand, simulate, backpropagate, winRateFor } from "./tree";
 
-// Best action for the current player: one MCTS tree per sampled opponent hand ("world"),
-// the action with the best average win rate across worlds wins.
+/**
+ * Best action for the current player: one MCTS tree per sampled opponent hand ("world"),
+ * the action with the best average win rate across worlds wins.
+ */
 export async function getBestAction(
   engine: GameEngine,
   simulations: number,

@@ -13,7 +13,7 @@ export interface Targetable
     readonly id: string;
 }
 
-// Picks the targets of an effect. requiresInput: the player chooses one from the list.
+/** Picks the targets of an effect. requiresInput: the player chooses one from the list. */
 export abstract class TargetResolver
 {
     public readonly requiresInput: boolean;
@@ -41,7 +41,7 @@ export abstract class TargetResolver
 
 // ---- player picks one target ----
 
-// any character, ignores taunt
+/** any character, ignores taunt */
 export class AnyCharacterResolver extends TargetResolver
 {
     constructor()
@@ -62,7 +62,7 @@ export class AnyCharacterResolver extends TargetResolver
     }
 }
 
-// any enemy, respects taunt; a rush attacker can't target the hero
+/** any enemy, respects taunt; a rush attacker can't target the hero */
 export class EnemyCharacterResolver extends TargetResolver
 {
     constructor()
@@ -88,7 +88,7 @@ export class EnemyCharacterResolver extends TargetResolver
     }
 }
 
-// enemy minions, respects taunt
+/** enemy minions, respects taunt */
 export class EnemyMinionResolver extends TargetResolver
 {
     constructor()
@@ -104,7 +104,7 @@ export class EnemyMinionResolver extends TargetResolver
     }
 }
 
-// any minion, ignores taunt
+/** any minion, ignores taunt */
 export class AnyMinionResolver extends TargetResolver
 {
     constructor()
@@ -118,7 +118,7 @@ export class AnyMinionResolver extends TargetResolver
     }
 }
 
-// one allied minion
+/** one allied minion */
 export class AllyMinionResolver extends TargetResolver
 {
     constructor()
@@ -134,6 +134,7 @@ export class AllyMinionResolver extends TargetResolver
 
 // ---- no choice ----
 
+/** The enemy hero. */
 export class EnemyHeroResolver extends TargetResolver
 {
     constructor()
@@ -148,6 +149,7 @@ export class EnemyHeroResolver extends TargetResolver
     }
 }
 
+/** Every minion and both heroes. */
 export class AllCharactersResolver extends TargetResolver
 {
     constructor()
@@ -165,6 +167,7 @@ export class AllCharactersResolver extends TargetResolver
     }
 }
 
+/** Every minion on the board, both sides. */
 export class AllMinionsResolver extends TargetResolver
 {
     constructor()
@@ -178,7 +181,7 @@ export class AllMinionsResolver extends TargetResolver
     }
 }
 
-// all enemy minions, ignores taunt
+/** all enemy minions, ignores taunt */
 export class AllEnemyMinionsResolver extends TargetResolver
 {
     constructor()
@@ -193,7 +196,7 @@ export class AllEnemyMinionsResolver extends TargetResolver
     }
 }
 
-// all enemy minions + enemy hero
+/** all enemy minions + enemy hero */
 export class AllEnemiesResolver extends TargetResolver
 {
     constructor()
@@ -208,6 +211,7 @@ export class AllEnemiesResolver extends TargetResolver
     }
 }
 
+/** Both heroes. */
 export class BothHeroesResolver extends TargetResolver
 {
     constructor()
@@ -221,6 +225,7 @@ export class BothHeroesResolver extends TargetResolver
     }
 }
 
+/** The owner's own hero. */
 export class PlayerHeroResolver extends TargetResolver
 {
     constructor()
@@ -234,6 +239,7 @@ export class PlayerHeroResolver extends TargetResolver
     }
 }
 
+/** Every minion on the owner's side. */
 export class AlliedMinionsResolver extends TargetResolver
 {
     constructor()
@@ -247,7 +253,7 @@ export class AlliedMinionsResolver extends TargetResolver
     }
 }
 
-// allied minions except the source
+/** allied minions except the source */
 export class OtherAlliedMinionsResolver extends TargetResolver
 {
     constructor()
@@ -268,6 +274,7 @@ export class OtherAlliedMinionsResolver extends TargetResolver
     }
 }
 
+/** The owner's minions that are below their maximum health. */
 export class DamagedAlliedMinionsResolver extends TargetResolver
 {
     constructor()
@@ -282,7 +289,7 @@ export class DamagedAlliedMinionsResolver extends TargetResolver
     }
 }
 
-// the minion carrying the effect
+/** the minion carrying the effect */
 export class SourceResolver extends TargetResolver
 {
     constructor()
@@ -298,7 +305,7 @@ export class SourceResolver extends TargetResolver
     }
 }
 
-// one random living enemy (minion or hero)
+/** one random living enemy (minion or hero) */
 export class RandomEnemyResolver extends TargetResolver
 {
     constructor()
@@ -319,7 +326,7 @@ export class RandomEnemyResolver extends TargetResolver
     }
 }
 
-// the minions left and right of the source
+/** the minions left and right of the source */
 export class NeighboringMinionsResolver extends TargetResolver
 {
     constructor()

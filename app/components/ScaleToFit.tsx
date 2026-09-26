@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Renders fixed-size content and scales it as one block to fit the available space
-// (up to `maxScale`), so pixel-perfect layouts work at any viewport size.
+/**
+ * Renders fixed-size content and scales it as one block to fit the available space
+ * (up to `maxScale`), so pixel-perfect layouts work at any viewport size.
+ */
 export default function ScaleToFit({ children, className = 'h-screen', maxScale = Infinity, align = 'center' }: {
     children: React.ReactNode
     className?: string

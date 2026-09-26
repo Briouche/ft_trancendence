@@ -5,6 +5,7 @@ interface NoticeSectionProps {
   children: ReactNode;
 }
 
+/** One titled section of a legal page (see NoticePage). */
 export function NoticeSection({ title, children }: NoticeSectionProps) {
   return (
     <section className="mb-section">

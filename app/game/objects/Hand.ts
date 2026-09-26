@@ -12,7 +12,7 @@ const MAX_FAN_ANGLE_DEG = 6;
 const ARC_DIP_RATIO = 0.05;
 const FIRST_CARD_DEPTH = 200;
 
-// The player's hand, laid out as a fanned arc at the bottom of the screen.
+/** The player's hand, laid out as a fanned arc at the bottom of the screen. */
 export class Hand
 {
     private scene: Phaser.Scene;
