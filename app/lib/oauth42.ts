@@ -1,7 +1,7 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { USERNAME_MAX_LENGTH } from "@/lib/constants";
+import { USERNAME_MAX_LENGTH } from "@/lib/validation";
 
 // "Sign in with 42" OAuth flow: authorize URL, code exchange, profile fetch, account lookup.
 

@@ -3,11 +3,16 @@
 import { useState } from 'react'
 import type { CurrentUser } from '@/lib/session'
 import { updateUserProfile } from '@/lib/updateUserProfile'
+import {
+    EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH, USERNAME_PATTERN,
+    firstIssue, formDataToObject, profileUpdateSchema,
+} from '@/lib/validation'
 import { outlinedWhiteTextStyle } from '@/components/notebook/NotebookUI'
 
 const fieldClassName = `travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
     text-base text-ink-text placeholder:text-ink-muted/60 outline-none`
 
+/** Profile edit form (username, email, optional password change), validated with profileUpdateSchema. */
 export default function EditProfileForm({ user, onDone }: { user: CurrentUser; onDone: () => void }) {
     const [error, setError] = useState<string | null>(null)
     const [pending, setPending] = useState(false)
@@ -15,10 +20,9 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
     const handleSubmit = async (formData: FormData) => {
         setError(null)
 
-        const password = formData.get('password') as string | null
-        const confirmPassword = formData.get('confirmPassword') as string | null
-        if (password && password !== confirmPassword) {
-            setError('Passwords do not match.')
+        const parsed = profileUpdateSchema.safeParse(formDataToObject(formData))
+        if (!parsed.success) {
+            setError(firstIssue(parsed.error))
             return
         }
 
@@ -48,9 +52,9 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
                     name="username"
                     type="text"
                     defaultValue={user.username}
-                    minLength={3}
-                    maxLength={30}
-                    pattern="^[a-zA-Z0-9_]+$"
+                    minLength={USERNAME_MIN_LENGTH}
+                    maxLength={USERNAME_MAX_LENGTH}
+                    pattern={USERNAME_PATTERN}
                     title="Username can only contain letters, numbers, and underscores."
                     required
                     disabled={pending}
@@ -64,7 +68,7 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
                     name="email"
                     type="email"
                     defaultValue={user.email}
-                    maxLength={254}
+                    maxLength={EMAIL_MAX_LENGTH}
                     required
                     disabled={pending}
                     className={fieldClassName}
@@ -80,7 +84,7 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
                         name="currentPassword"
                         type="password"
                         placeholder="••••••••"
-                        maxLength={128}
+                        maxLength={PASSWORD_MAX_LENGTH}
                         autoComplete="current-password"
                         disabled={pending}
                         className={fieldClassName}
@@ -95,8 +99,8 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    minLength={8}
-                    maxLength={128}
+                    minLength={PASSWORD_MIN_LENGTH}
+                    maxLength={PASSWORD_MAX_LENGTH}
                     pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
                     title="Password must include an uppercase letter, a lowercase letter, and a number."
                     disabled={pending}
@@ -110,8 +114,8 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
                     name="confirmPassword"
                     type="password"
                     placeholder="••••••••"
-                    minLength={8}
-                    maxLength={128}
+                    minLength={PASSWORD_MIN_LENGTH}
+                    maxLength={PASSWORD_MAX_LENGTH}
                     disabled={pending}
                     className={fieldClassName}
                 />

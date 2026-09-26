@@ -5,10 +5,22 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { registerUser } from "@/lib/auth";
+import {
+  EMAIL_MAX_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  USERNAME_PATTERN,
+  firstIssue,
+  formDataToObject,
+  registerSchema,
+} from "@/lib/validation";
 import { ROUTES } from "@/config/routes";
 import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
 import ScaleToFit from "@/components/ScaleToFit";
 
+/** Registration card: username, email, password (twice), validated with registerSchema. */
 export default function RegisterForm() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -17,32 +29,9 @@ export default function RegisterForm() {
   const handleSubmit = async (formData: FormData) => {
     setError("");
 
-    const username = (formData.get("username") as string | null)?.trim();
-    const email = (formData.get("email") as string | null)?.trim();
-    const password = formData.get("password") as string | null;
-    const confirmPassword = formData.get("confirmPassword") as string | null;
-
-    if (!username || username.length < 3) {
-      setError("Username must be at least 3 characters long.");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      setError("Please provide a valid email address.");
-      return;
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!password || password.length > 128 || !passwordRegex.test(password)) {
-      setError(
-        "Password must be 8-128 characters long and include an uppercase letter, a lowercase letter, and a number."
-      );
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    const parsed = registerSchema.safeParse(formDataToObject(formData));
+    if (!parsed.success) {
+      setError(firstIssue(parsed.error));
       return;
     }
 
@@ -88,9 +77,9 @@ export default function RegisterForm() {
               autoComplete="username"
               placeholder="Choose a username"
               required
-              minLength={3}
-              maxLength={30}
-              pattern="^[a-zA-Z0-9_]+$"
+              minLength={USERNAME_MIN_LENGTH}
+              maxLength={USERNAME_MAX_LENGTH}
+              pattern={USERNAME_PATTERN}
               title="Username can only contain letters, numbers, and underscores."
               className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
                 text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
@@ -107,7 +96,7 @@ export default function RegisterForm() {
               autoComplete="email"
               placeholder="you@example.com"
               required
-              maxLength={254}
+              maxLength={EMAIL_MAX_LENGTH}
               className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
                 text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
             />
@@ -123,8 +112,8 @@ export default function RegisterForm() {
               autoComplete="new-password"
               placeholder="••••••••"
               required
-              minLength={8}
-              maxLength={128}
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={PASSWORD_MAX_LENGTH}
               className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
                 text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
             />
@@ -140,8 +129,8 @@ export default function RegisterForm() {
               autoComplete="new-password"
               placeholder="••••••••"
               required
-              minLength={8}
-              maxLength={128}
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={PASSWORD_MAX_LENGTH}
               className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
                 text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
             />

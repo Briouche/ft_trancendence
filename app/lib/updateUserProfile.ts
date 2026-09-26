@@ -7,73 +7,36 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 import { createSession, getSession } from "@/lib/session";
-import {
-  ARGON2_OPTIONS,
-  EMAIL_MAX_LENGTH,
-  EMAIL_REGEX,
-  getStringField,
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_REGEX,
-  USERNAME_MAX_LENGTH,
-  USERNAME_MIN_LENGTH,
-  USERNAME_REGEX,
-} from "@/lib/constants";
+import { ARGON2_OPTIONS } from "@/lib/constants";
+import { firstIssue, formDataToObject, profileUpdateSchema } from "@/lib/validation";
 
-// Server action: updates username/email and optionally the password, then refreshes the session.
-// A password change requires the current password (when the account has one) and signs out every
-// other session, so a stolen session can't be used to lock the real owner out.
-export async function updateUserProfile(formData: FormData) {
+/**
+ * Server action: updates username/email and optionally the password, then refreshes the session.
+ *
+ * A password change requires the current password (when the account has one: 42-only accounts
+ * don't) and signs out every other session, so a stolen session can't be used to lock the real
+ * owner out.
+ */
+export async function updateUserProfile(formData: FormData): Promise<{ error: string | null }> {
   const session = await getSession();
   if (!session) {
     return { error: "Unauthorized. Please log in again." };
   }
 
-  const username = getStringField(formData, "username")?.trim();
-  const email = getStringField(formData, "email")?.trim().toLocaleLowerCase() ?? null;
-  const password = formData.get("password");
-  const confirmPassword = formData.get("confirmPassword");
-
-  if (
-    !username ||
-    username.length < USERNAME_MIN_LENGTH ||
-    username.length > USERNAME_MAX_LENGTH ||
-    !USERNAME_REGEX.test(username)
-  ) {
-    return {
-      error:
-        "Username must be 3-30 characters and contain only letters, numbers, and underscores.",
-    };
-  }
-
-  if (!email || email.length > EMAIL_MAX_LENGTH || !EMAIL_REGEX.test(email)) {
-    return { error: "Please provide a valid email address." };
-  }
+  const parsed = profileUpdateSchema.safeParse(formDataToObject(formData));
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+  const { username, email, password, currentPassword } = parsed.data;
 
   let passwordHash: string | undefined;
 
-  if (typeof password === "string" && password.length > 0) {
-    if (password.length < 8 || password.length > PASSWORD_MAX_LENGTH || !PASSWORD_REGEX.test(password)) {
-      return {
-        error:
-          "Password must be 8-128 characters long and include an uppercase letter, a lowercase letter, and a number.",
-      };
-    }
-
-    if (typeof confirmPassword !== "string" || password !== confirmPassword) {
-      return { error: "Passwords do not match." };
-    }
-
+  if (password !== "") {
     const current = await prisma.user.findUnique({
       where: { id: session.userId },
       select: { password: true },
     });
     if (current?.password) {
-      const currentPassword = formData.get("currentPassword");
       const isValid =
-        typeof currentPassword === "string" &&
-        currentPassword.length > 0 &&
-        currentPassword.length <= PASSWORD_MAX_LENGTH &&
-        (await verify(current.password, currentPassword).catch(() => false));
+        currentPassword.length > 0 && (await verify(current.password, currentPassword).catch(() => false));
       if (!isValid) {
         return { error: "Current password is incorrect." };
       }
@@ -87,7 +50,7 @@ export async function updateUserProfile(formData: FormData) {
     updatedUser = await prisma.user.update({
       where: { id: session.userId },
       data: {
-        username: username.toLocaleLowerCase(),
+        username,
         email,
         // Bumping tokenVersion invalidates every JWT issued so far; createSession below
         // re-issues one for this browser only.
@@ -96,14 +59,7 @@ export async function updateUserProfile(formData: FormData) {
     });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      const target = err.meta?.target as string[] | undefined;
-      if (target?.includes("email")) {
-        return { error: "Email is already in use by another account." };
-      }
-      if (target?.includes("username")) {
-        return { error: "Username is already taken." };
-      }
-      return { error: "Could not update profile information." };
+      return { error: await describeConflict(session.userId, username, email) };
     }
 
     console.error("updateUserProfile: unexpected error", err);
@@ -114,4 +70,16 @@ export async function updateUserProfile(formData: FormData) {
   revalidatePath("/profile");
 
   return { error: null };
+}
+
+// Which field collided. Looked up explicitly: with the pg driver adapter, Prisma's P2002 error
+// doesn't reliably say which constraint failed (err.meta.target can be missing).
+async function describeConflict(userId: number, username: string, email: string): Promise<string> {
+  const other = await prisma.user.findFirst({
+    where: { id: { not: userId }, OR: [{ username }, { email }] },
+    select: { username: true, email: true },
+  });
+  if (other?.email === email) return "Email is already in use by another account.";
+  if (other?.username === username) return "Username is already taken.";
+  return "Could not update profile information.";
 }

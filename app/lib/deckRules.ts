@@ -5,4 +5,3 @@ export const LEGENDARY_RARITY = "Légendaire";
 
 export const MAX_LEGENDARY = 1;
 export const MAX_NON_LEGENDARY = 20;
-export const DECK_NAME_MAX_LENGTH = 50;

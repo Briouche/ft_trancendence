@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { checkCredentials } from "@/lib/auth";
+import { EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH, firstIssue, formDataToObject, loginSchema } from "@/lib/validation";
 import { ROUTES } from "@/config/routes";
 import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
 import ScaleToFit from "@/components/ScaleToFit";
 
+/** Sign-in card: username/email + password, or "Sign in with 42". */
 export default function SignInForm({ initialError }: { initialError?: string }) {
   const [error, setError] = useState(initialError ?? "");
   const [pending, setPending] = useState(false);
@@ -15,21 +17,9 @@ export default function SignInForm({ initialError }: { initialError?: string }) 
   const handleSubmit = async (formData: FormData) => {
     setError("");
 
-    const username = (formData.get("username") as string | null)?.trim();
-    const password = formData.get("password") as string | null;
-
-    if (!username || username.length < 3) {
-      setError("Username must be at least 3 characters long.");
-      return;
-    }
-
-    if (!password || password.length === 0) {
-      setError("Password is required.");
-      return;
-    }
-
-    if (password.length > 128) {
-      setError("Password is too long.");
+    const parsed = loginSchema.safeParse(formDataToObject(formData));
+    if (!parsed.success) {
+      setError(firstIssue(parsed.error));
       return;
     }
 
@@ -61,16 +51,15 @@ export default function SignInForm({ initialError }: { initialError?: string }) 
 
           <label className="flex flex-col gap-1">
             <span className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
-              Username
+              Username or email
             </span>
             <input
-              name="username"
+              name="identifier"
               type="text"
               autoComplete="username"
               placeholder="..."
               required
-              minLength={3}
-              maxLength={30}
+              maxLength={EMAIL_MAX_LENGTH}
               className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
                 text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
             />
@@ -86,7 +75,7 @@ export default function SignInForm({ initialError }: { initialError?: string }) 
               autoComplete="current-password"
               placeholder="..."
               required
-              maxLength={128}
+              maxLength={PASSWORD_MAX_LENGTH}
               className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif
                 text-base text-ink-text placeholder:text-ink-muted/60 outline-none"
             />

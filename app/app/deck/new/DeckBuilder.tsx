@@ -10,7 +10,8 @@ import {
     Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton,
 } from '@/components/notebook/NotebookUI'
-import { DECK_NAME_MAX_LENGTH, LEGENDARY_RARITY, MAX_LEGENDARY, MAX_NON_LEGENDARY } from '@/lib/deckRules'
+import { LEGENDARY_RARITY, MAX_LEGENDARY, MAX_NON_LEGENDARY } from '@/lib/deckRules'
+import { DECK_NAME_MAX_LENGTH } from '@/lib/validation'
 
 type Card = CardFaceData & { qty: number }
 type DeckEntry = { card: Card; qty: number }

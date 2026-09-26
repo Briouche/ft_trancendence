@@ -2,98 +2,67 @@
 
 import { redirect } from "next/navigation";
 
-import { hash, verify } from "@node-rs/argon2"
+import { hash, verify } from "@node-rs/argon2";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { createSession, deleteSession } from "@/lib/session";
 import { ROUTES } from "@/config/routes";
-import {
-  ARGON2_OPTIONS,
-  DUMMY_HASH,
-  EMAIL_MAX_LENGTH,
-  EMAIL_REGEX,
-  getStringField,
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_REGEX,
-  USERNAME_MAX_LENGTH,
-  USERNAME_MIN_LENGTH,
-  USERNAME_REGEX,
-} from "@/lib/constants";
+import { ARGON2_OPTIONS, DUMMY_HASH } from "@/lib/constants";
+import { firstIssue, formDataToObject, loginSchema, registerSchema } from "@/lib/validation";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 // Server actions: login, registration, logout.
 
-export async function checkCredentials(formData: FormData) {
-  const usernameRaw = getStringField(formData, "username");
-  const passwordRaw = formData.get("password");
+type ActionResult = { error: string | null };
 
-  if (
-    !usernameRaw ||
-    usernameRaw.length > USERNAME_MAX_LENGTH ||
-    typeof passwordRaw !== "string" ||
-    passwordRaw.length === 0 ||
-    passwordRaw.length > PASSWORD_MAX_LENGTH
-  ) {
-    return { error: "Invalid username or password." };
+const INVALID_CREDENTIALS = "Invalid username or password.";
+
+// 10 attempts per 15 minutes, counted both per client IP and per targeted account: the first
+// slows down one machine guessing many accounts, the second many machines guessing one account.
+const LOGIN_LIMIT = { max: 10, windowMs: 15 * 60 * 1000 };
+const REGISTER_LIMIT = { max: 5, windowMs: 60 * 60 * 1000 };
+const TOO_MANY_ATTEMPTS = "Too many attempts. Please wait a few minutes and try again.";
+
+/**
+ * Signs a user in with their username or email and password, and sets the session cookie.
+ * Every failure returns the same message so the form can't be used to find out which accounts
+ * exist.
+ */
+export async function checkCredentials(formData: FormData): Promise<ActionResult> {
+  const parsed = loginSchema.safeParse(formDataToObject(formData));
+  if (!parsed.success) return { error: INVALID_CREDENTIALS };
+  const { identifier, password } = parsed.data;
+
+  const ip = await clientIp();
+  if (!rateLimit(`login:ip:${ip}`, LOGIN_LIMIT) || !rateLimit(`login:id:${identifier}`, LOGIN_LIMIT)) {
+    return { error: TOO_MANY_ATTEMPTS };
   }
 
-  const username = usernameRaw.toLocaleLowerCase();
-  const password = passwordRaw;
-
   const user = await prisma.user.findUnique({
-    where: { username },
+    where: identifier.includes("@") ? { email: identifier } : { username: identifier },
   });
 
   if (!user || !user.password) {
-    try {
-      await verify(DUMMY_HASH, password);
-    } catch {
-    }
-    return { error: "Invalid username or password." };
+    // Same argon2 cost as a real check, so response time doesn't reveal unknown accounts.
+    await verify(DUMMY_HASH, password).catch(() => false);
+    return { error: INVALID_CREDENTIALS };
   }
 
-  try {
-    const isValid = await verify(user.password, password);
-
-    if (!isValid) {
-      return { error: "Invalid username or password." };
-    }
-  } catch {
-    return { error: "Invalid username or password." };
-  }
+  const isValid = await verify(user.password, password).catch(() => false);
+  if (!isValid) return { error: INVALID_CREDENTIALS };
 
   await createSession(user.id, user.username, user.tokenVersion);
-
   return { error: null };
 }
 
-export async function registerUser(formData: FormData) {
-  const username = getStringField(formData, "username");
-  const email = getStringField(formData, "email")?.toLocaleLowerCase() ?? null;
-  const password = formData.get("password");
-  const confirmPassword = formData.get("confirmPassword");
+/** Creates an account from the registration form and signs it in. */
+export async function registerUser(formData: FormData): Promise<ActionResult> {
+  const parsed = registerSchema.safeParse(formDataToObject(formData));
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+  const { username, email, password } = parsed.data;
 
-  if (
-    !username ||
-    username.length < USERNAME_MIN_LENGTH ||
-    username.length > USERNAME_MAX_LENGTH ||
-    !USERNAME_REGEX.test(username)
-  ) {
-    return { error: "Username must be 3-30 characters and contain only letters, numbers, and underscores." };
-  }
-
-  if (!email || email.length > EMAIL_MAX_LENGTH || !EMAIL_REGEX.test(email)) {
-    return { error: "Please provide a valid email address." };
-  }
-
-  if (typeof password !== "string" || password.length > PASSWORD_MAX_LENGTH || !PASSWORD_REGEX.test(password)) {
-    return {
-      error:
-        "Password must be 8-128 characters long and include an uppercase letter, a lowercase letter, and a number.",
-    };
-  }
-
-  if (typeof confirmPassword !== "string" || password !== confirmPassword) {
-    return { error: "Passwords do not match." };
+  if (!rateLimit(`register:ip:${await clientIp()}`, REGISTER_LIMIT)) {
+    return { error: TOO_MANY_ATTEMPTS };
   }
 
   const passwordHash = await hash(password, ARGON2_OPTIONS);
@@ -101,24 +70,22 @@ export async function registerUser(formData: FormData) {
   let user;
   try {
     user = await prisma.user.create({
-      data: {
-        username: username.toLocaleLowerCase(),
-        email,
-        password: passwordHash,
-      },
+      data: { username, email, password: passwordHash },
     });
   } catch (err) {
+    // P2002 = unique constraint (username or email taken). The message stays generic on purpose:
+    // naming the taken field would let anyone probe which emails have an account.
     if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) {
       console.error("registerUser: unexpected error creating user", err);
     }
-    return { error: "Could not create account." };
+    return { error: "Could not create account. The username or email may already be in use." };
   }
 
   await createSession(user.id, user.username, user.tokenVersion);
-
   return { error: null };
 }
 
+/** Clears the session cookie and goes back to the sign-in page. */
 export async function logoutUser() {
   await deleteSession();
   redirect(ROUTES.home);
