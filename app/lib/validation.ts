@@ -135,3 +135,26 @@ export function formDataToObject(formData: FormData): Record<string, string> {
 export function firstIssue(error: z.ZodError): string {
   return error.issues[0]?.message ?? "Invalid input.";
 }
+
+export const USER_SORTS = ["elo", "pvpWins", "username", "joined"] as const;
+export const USER_FILTERS = ["all", "online", "friends"] as const;
+export const USER_PAGE_SIZES = [10, 20, 50] as const;
+
+/**
+ * Query string of GET /api/users (player search / leaderboard). Unknown or missing values fall
+ * back to defaults instead of failing, so a hand-edited URL still shows a sensible page.
+ */
+export const userSearchSchema = z.object({
+  q: z.string().trim().max(USERNAME_MAX_LENGTH).catch("").default("").transform((q) => q.toLowerCase()),
+  sort: z.enum(USER_SORTS).catch("elo").default("elo"),
+  order: z.enum(["asc", "desc"]).catch("desc").default("desc"),
+  filter: z.enum(USER_FILTERS).catch("all").default("all"),
+  page: z.coerce.number().int().min(1).max(10_000).catch(1).default(1),
+  pageSize: z.coerce
+    .number()
+    .refine((n) => (USER_PAGE_SIZES as readonly number[]).includes(n))
+    .catch(10)
+    .default(10),
+});
+
+export type UserSearchParams = z.infer<typeof userSearchSchema>;
