@@ -32,6 +32,9 @@ server {
     http2 on;
     server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
 
+    # Avatar uploads are up to 2 MB (app/lib/avatarStorage.ts); nginx's default is 1 MB.
+    client_max_body_size 3m;
+
     ssl_certificate /etc/nginx/ssl/fullchain.pem;
     ssl_certificate_key /etc/nginx/ssl/privkey.pem;
 

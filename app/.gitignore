@@ -37,3 +37,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# uploaded avatars when running outside Docker (lib/avatarStorage.ts)
+/uploads

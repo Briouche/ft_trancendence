@@ -3,7 +3,6 @@ import "server-only";
 import { cache } from "react";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import type { UserStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 // JWT session cookie: create, delete, read (with tokenVersion check) and current user lookup.
@@ -22,11 +21,12 @@ export type CurrentUser = {
   username: string;
   email: string;
   avatar: string | null;
-  status: UserStatus;
   createdAt: Date;
   elo: number;
   // False for 42-only accounts. The hash itself never leaves the server.
   hasPassword: boolean;
+  // True once "Sign in with 42" is linked to this account.
+  linkedTo42: boolean;
 };
 
 function getEncodedKey() {
@@ -107,10 +107,10 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { username: true, email: true, avatar: true, status: true, createdAt: true, elo: true, password: true },
+    select: { username: true, email: true, avatar: true, createdAt: true, elo: true, password: true, fortyTwoId: true },
   });
   if (!user) return null;
 
-  const { password, ...rest } = user;
-  return { id: session.userId, ...rest, hasPassword: password !== null };
+  const { password, fortyTwoId, ...rest } = user;
+  return { id: session.userId, ...rest, hasPassword: password !== null, linkedTo42: fortyTwoId !== null };
 });

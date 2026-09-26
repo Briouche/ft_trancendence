@@ -41,6 +41,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+# Mount point of the avatars volume. Created here, owned by nextjs, because Docker initialises an
+# empty named volume from the image directory (ownership included) on first mount.
+RUN mkdir -p /data/avatars && chown nextjs:nodejs /data/avatars
 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
