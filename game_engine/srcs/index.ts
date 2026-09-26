@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { createGameServer } from "./socket/serverSocket";
 import { ensureCatalogLoaded } from "./cardImport/cardLoader";
+import { resetInGamePresence } from "./presence";
 
 // Last-resort safety net: individual DB calls are already try/caught inside serverSocket.ts,
 // but this covers anything that slips through so one bad request can't take down every live
@@ -16,6 +17,9 @@ process.on("uncaughtException", (err) =>
     console.error("Uncaught exception (process kept alive):", err);
 });
 
+// Matches live in this process's memory, so none survive a restart: clear their "in a match"
+// presence before accepting players again.
+void resetInGamePresence();
 createGameServer(4000);
 console.log("Game server listening on ws://localhost:4000");
 

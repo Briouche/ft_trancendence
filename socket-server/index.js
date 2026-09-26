@@ -2,17 +2,33 @@ import http from "http";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Redis } from "ioredis";
-import { jwtVerify } from "jose";
 
-// Chat/presence socket.io server: authenticates with the Next.js session cookie, tracks online
-// users in Redis, relays chat messages.
+// Chat & presence socket.io server (path /chat-socket.io/).
+//
+// - Every connection of a user joins the room `user:<id>`. The app pushes chat messages and
+//   friend-list changes to those rooms through the Redis adapter (app/lib/realtime.ts), so this
+//   process never touches the database: messages are validated and saved by the app first.
+// - Presence: HASH `presence:online` counts open connections per user; a user is online while
+//   the count is > 0 (several tabs = several connections). game_engine keeps SET
+//   `presence:ingame`. A presence change is sent to the room `presence:<id>`, joined only by the
+//   clients currently displaying that user (see "presence:watch"), not broadcast to everyone.
 
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT || 4000);
 const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379";
+const APP_INTERNAL_URL = process.env.APP_INTERNAL_URL || "http://app:3000";
+
+// Keep in sync with app/lib/presence.ts and game_engine/srcs/presence.ts.
+const ONLINE_KEY = "presence:online";
+const INGAME_KEY = "presence:ingame";
+
+// Upper bound of users one connection may watch (a friends list or one page of players).
+const MAX_WATCHED = 200;
+// The app compiles routes on first hit in dev (several seconds on slow machines).
+const AUTH_TIMEOUT_MS = 15_000;
 
 const pubClient = new Redis(REDIS_URL);
 const subClient = pubClient.duplicate();
-const redis = new Redis(REDIS_URL);
+const redis = pubClient.duplicate();
 
 const server = http.createServer((req, res) => {
   if (req.url === "/health") {
@@ -24,113 +40,129 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
-// Path must match the nginx location proxying here (game_engine uses the default one).
+/**
+ * Accepts only same-origin browser connections (Origin host = Host header forwarded by nginx).
+ * WebSocket upgrades bypass CORS, so without this any website could open a socket authenticated
+ * by the visitor's session cookie. Requests without Origin (non-browser) still need the cookie.
+ */
+function isSameOrigin(req, callback) {
+  const origin = req.headers.origin;
+  if (!origin) return callback(null, true);
+  let host;
+  try {
+    host = new URL(origin).host;
+  } catch {
+    return callback("invalid origin", false);
+  }
+  const ok = host === req.headers.host;
+  callback(ok ? null : "cross-origin request refused", ok);
+}
+
+// Path must match the nginx location proxying here (game_engine uses the default /socket.io/).
 const io = new Server(server, {
   path: "/chat-socket.io/",
-  cors: {
-    origin: (origin, callback) => callback(null, true),
-    credentials: true,
-  },
+  allowRequest: isSameOrigin,
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
 io.adapter(createAdapter(pubClient, subClient));
 
+/**
+ * Identity behind the handshake's session cookie, asked to the app (GET /api/auth/me) so this
+ * socket applies exactly the app's checks, including revoked sessions (tokenVersion).
+ * @returns {Promise<{ id: number, username: string } | null>}
+ */
+async function authenticate(cookieHeader) {
+  if (!cookieHeader) return null;
+  const res = await fetch(`${APP_INTERNAL_URL}/api/auth/me`, {
+    headers: { cookie: cookieHeader },
+    signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
+  });
+  if (!res.ok) return null;
+  const body = await res.json();
+  return Number.isInteger(body?.id) ? { id: body.id, username: String(body.username) } : null;
+}
+
 io.use(async (socket, next) => {
   try {
-    const rawCookies = socket.handshake.headers.cookie || "";
-
-    const parsedCookies = rawCookies
-      .split(";")
-      .reduce((acc, cookieString) => {
-        const [key, value] = cookieString.trim().split("=");
-        if (key && value) acc[key] = decodeURIComponent(value);
-        return acc;
-      }, {});
-
-    const token = parsedCookies.session;
-
-    if (!token) {
-      return next(new Error("Authentication error: No session token"));
-    }
-
-    if (!process.env.JWT_SECRET) {
-      console.error("[Socket Auth Failed]: JWT_SECRET environment variable is missing.");
-      return next(new Error("Authentication error: Server misconfiguration"));
-    }
-
-    const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secretKey, { algorithms: ["HS256"] });
-
-    socket.data.user = payload;
+    const user = await authenticate(socket.handshake.headers.cookie);
+    if (!user) return next(new Error("unauthenticated"));
+    socket.data.user = user;
     next();
   } catch (err) {
-    console.error(`[Socket Auth Failed]: ${err.name} - ${err.message}`);
-    next(new Error("Authentication error: Invalid session token"));
+    console.error("[chat] auth failed:", err instanceof Error ? err.message : err);
+    next(new Error("unauthenticated"));
   }
 });
 
-async function broadcastPresence() {
-  try {
-    const rawUsers = await redis.hgetall("online_users_meta");
-    const activeUsers = Object.values(rawUsers)
-      .map((u) => {
-        try {
-          return JSON.parse(u);
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
+/** Current presence of one user: "in_game" > "online" > "offline". */
+async function presenceOf(userId) {
+  const [inGame, count] = await Promise.all([redis.sismember(INGAME_KEY, String(userId)), redis.hget(ONLINE_KEY, String(userId))]);
+  if (inGame === 1) return "in_game";
+  return Number(count) > 0 ? "online" : "offline";
+}
 
-    io.emit("presence:update", activeUsers);
-  } catch (err) {
-    console.error("[Socket] Failed to broadcast presence:", err);
-  }
+/** Sends a user's presence to everyone watching them. */
+async function announce(userId) {
+  io.to(`presence:${userId}`).emit("presence", { userId, presence: await presenceOf(userId) });
+}
+
+/** Valid list of user ids to watch, or null. */
+function parseWatchList(ids) {
+  if (!Array.isArray(ids) || ids.length > MAX_WATCHED) return null;
+  return ids.every((id) => Number.isSafeInteger(id) && id > 0) ? [...new Set(ids)] : null;
 }
 
 io.on("connection", async (socket) => {
-  console.log(`[Socket] Client connected: ${socket.id}`);
-  const { id, username } = socket.data.user;
-  const userKey = `user_sockets:${id}`;
+  const { id } = socket.data.user;
+  socket.join(`user:${id}`);
 
   try {
-    await redis.sadd(userKey, socket.id);
-    await redis.hset(
-      "online_users_meta",
-      id.toString(),
-      JSON.stringify({ id, username })
-    );
-    await broadcastPresence();
+    // First connection of this user (no other tab open): they just came online.
+    if ((await redis.hincrby(ONLINE_KEY, String(id), 1)) === 1) await announce(id);
   } catch (err) {
-    console.error(`[Socket] Error connecting user ${id}:`, err);
+    console.error(`[chat] presence update failed for user ${id}:`, err);
   }
 
-  socket.on("send_message", (data) => {
-    console.log(`[Socket] Message received:`, data);
-    io.emit("receive_message", data);
+  // Replaces the set of users this connection receives presence updates for, and answers with
+  // their current presence so the client doesn't have to wait for the next change.
+  socket.on("presence:watch", async (ids, ack) => {
+    const list = parseWatchList(ids);
+    if (!list) return typeof ack === "function" && ack({ error: "invalid list" });
+
+    for (const room of socket.rooms) {
+      if (room.startsWith("presence:") && !list.includes(Number(room.slice(9)))) socket.leave(room);
+    }
+    socket.join(list.map((u) => `presence:${u}`));
+
+    if (typeof ack === "function") {
+      const entries = await Promise.all(list.map(async (u) => [u, await presenceOf(u)]));
+      ack({ presence: Object.fromEntries(entries) });
+    }
   });
 
-  socket.on("disconnect", async (reason) => {
-    console.log(`[Socket] Client disconnected (${socket.id}): ${reason}`);
+  socket.on("presence:unwatch", () => {
+    for (const room of socket.rooms) if (room.startsWith("presence:")) socket.leave(room);
+  });
 
+  socket.on("disconnect", async () => {
     try {
-      await redis.srem(userKey, socket.id);
-
-      // A user is offline once their last tab disconnects.
-      const remainingSockets = await redis.scard(userKey);
-      if (remainingSockets === 0) {
-        await redis.hdel("online_users_meta", id.toString());
+      // Last connection of this user closed: they went offline.
+      if ((await redis.hincrby(ONLINE_KEY, String(id), -1)) <= 0) {
+        await redis.hdel(ONLINE_KEY, String(id));
+        await announce(id);
       }
-
-      await broadcastPresence();
     } catch (err) {
-      console.error(`[Socket] Error disconnecting socket ${socket.id}:`, err);
+      console.error(`[chat] presence update failed for user ${id}:`, err);
     }
   });
 });
 
+// Connection counts of a previous run are meaningless (its sockets are gone). This assumes a
+// single socket-server instance, which is how the stack is deployed.
+await redis.del(ONLINE_KEY);
+
 server.listen(PORT, () => {
-  console.log(`[Socket.io] Dedicated server running on port ${PORT}`);
+  console.log(`[chat] socket.io server listening on port ${PORT}`);
 });

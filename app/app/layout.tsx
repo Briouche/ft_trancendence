@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import TransitionOverlay from "@/components/library/TransitionOverlay";
 import CustomCursor from "@/components/CustomCursor";
+import Footer from "@/components/Footer";
+import { ToastProvider } from "@/components/ui/Toast";
+import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { getSession } from "@/lib/session";
 import HubBackground from "./HubBackground";
 import "./globals.css";
@@ -14,15 +17,19 @@ const pixelGame = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ft_transcendence",
-  description: "The card library of ft_transcendence",
+  title: {
+    default: "ft_transcendence — card battles",
+    template: "%s · ft_transcendence",
+  },
+  description: "A collectible card game: build decks, open packs and battle other players or the AI.",
 };
 
 export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-// Root layout: cursor, route transition overlay, and the persistent 3D hub for signed-in users.
+// Root layout: cursor, route transition overlay, notifications, the legal footer, and for
+// signed-in users the realtime socket (presence, chat) and the persistent 3D hub.
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -37,10 +44,19 @@ export default async function RootLayout({
       style={{ backgroundColor: '#0b0c0d' }}
     >
       <body className="min-h-full flex flex-col bg-ink-950">
-        <TransitionOverlay />
-        <CustomCursor />
-        {session && <HubBackground username={session.username} />}
-        {children}
+        <ToastProvider>
+          <TransitionOverlay />
+          <CustomCursor />
+          {session ? (
+            <RealtimeProvider userId={session.userId}>
+              <HubBackground username={session.username} />
+              {children}
+            </RealtimeProvider>
+          ) : (
+            children
+          )}
+          <Footer />
+        </ToastProvider>
       </body>
     </html>
   );

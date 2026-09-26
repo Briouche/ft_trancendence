@@ -1,5 +1,4 @@
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import RegisterForm from "@/components/RegisterForm";
 
 export default function RegisterPage() {
@@ -7,7 +6,6 @@ export default function RegisterPage() {
     <>
       <Header />
       <RegisterForm />
-      <Footer />
     </>
   );
 }
