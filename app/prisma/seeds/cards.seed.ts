@@ -51,12 +51,12 @@ function parseKeywords(raw: string[] | undefined, cardId: string): Keyword[] {
 	if (!raw) return []
 	return raw.map(label => {
 		const keyword = KEYWORD_LABELS[label]
-		if (!keyword) throw new Error(`Mot-clé inconnu "${label}" sur la carte ${cardId}`)
+		if (!keyword) throw new Error(`Unknown keyword "${label}" on card ${cardId}`)
 		return keyword
 	})
 }
 
-// Upserts every card of data/tcg-collection.json, then deletes cards no longer in it.
+/** Upserts every card of data/tcg-collection.json, then deletes cards no longer in it. */
 export async function seedCards(prisma: PrismaClient)
 {
 	const jsonPath = path.resolve(__dirname, './data/tcg-collection.json')
