@@ -1,5 +1,5 @@
 import { jwtVerify } from "jose";
-import { prisma } from "../cardImport/cardLoader";
+import { prisma } from "../db";
 
 const SESSION_COOKIE = "session";
 

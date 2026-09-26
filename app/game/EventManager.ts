@@ -44,7 +44,7 @@ socket.on("message", (msg: ServerMessage) =>
     else if (msg.type === "rejected")
         EventManager.emit("server:rejected", msg.reason, msg.fatal === true);
     else if (msg.type === "gameOver")
-        EventManager.emit("server:gameOver", msg.winner);
+        EventManager.emit("server:gameOver", msg.winner, msg.rewards);
     else if (msg.type === "event")
         EventManager.emit("server:event", msg.event);
     else if (msg.type === "opponentDisconnected")

@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { openPack } from '@/lib/packs'
-import { getSession } from '@/lib/session'
+import { jsonError, requireSession } from '@/lib/api'
+import { NoPackError, openPack } from '@/lib/packs'
+import { evaluateAchievements } from '@/lib/achievements'
 
+/** POST /api/packs/open — opens one unopened pack; returns the cards and any unlocked reward. */
 export async function POST() {
-    const session = await getSession()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await requireSession()
+    if (auth instanceof NextResponse) return auth
 
     try {
-        const result = await openPack(prisma, session.userId)
-        return NextResponse.json(result)
+        const result = await openPack(prisma, auth.userId)
+        // Opening packs feeds "Pack Rat", "Collector" and "Completionist".
+        const newAchievements = await evaluateAchievements(auth.userId)
+        const rewardPacks = newAchievements.reduce((sum, a) => sum + a.rewardPacks, 0)
+        return NextResponse.json({
+            ...result,
+            unopenedPacks: result.unopenedPacks + rewardPacks,
+            newAchievements: newAchievements.map(a => ({ key: a.key, title: a.title, rewardPacks: a.rewardPacks })),
+        })
     } catch (error) {
-        return NextResponse.json(
-            { error: (error as Error).message },
-            { status: 400 }
-        )
+        if (error instanceof NoPackError) return jsonError(400, error.message)
+        throw error
     }
 }

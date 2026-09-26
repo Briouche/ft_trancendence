@@ -21,7 +21,15 @@ export type CardBacksSummary = {
 
 type Panel = 'account' | 'trophy' | null
 
-// Top-right dropdowns of the hub: account summary + links, and win counts.
+// Account menu links besides the profile and legal pages.
+const SOCIAL_LINKS = [
+    { href: ROUTES.friends, icon: '🧑‍🤝‍🧑', label: 'Friends' },
+    { href: ROUTES.chat, icon: '💬', label: 'Chat' },
+    { href: ROUTES.players, icon: '🔎', label: 'Players & leaderboard' },
+    { href: ROUTES.achievements, icon: '🏆', label: 'Achievements' },
+]
+
+/** Top-right dropdowns of the hub: account summary + links, and win counts. */
 export default function AccountMenu({ username, cardCount, elo, wins, cardBacks }: {
     username:  string
     cardCount: number
@@ -38,8 +46,8 @@ export default function AccountMenu({ username, cardCount, elo, wins, cardBacks 
     return (
         <div className="pointer-events-auto absolute right-4 top-4 z-50">
             <div className="flex items-center gap-2">
-                <AssetButton onClick={() => toggle('account')} variant="about" className="h-14 w-14 shrink-0" />
-                <AssetButton onClick={() => toggle('trophy')} variant="achievement" className="h-14 w-14 shrink-0" />
+                <AssetButton onClick={() => toggle('account')} variant="about" className="h-14 w-14 shrink-0" ariaLabel="Account menu" expanded={openPanel === 'account'} />
+                <AssetButton onClick={() => toggle('trophy')} variant="achievement" className="h-14 w-14 shrink-0" ariaLabel="Wins" expanded={openPanel === 'trophy'} />
             </div>
 
             {openPanel === 'account' && (
@@ -63,12 +71,15 @@ export default function AccountMenu({ username, cardCount, elo, wins, cardBacks 
                     >
                         👤 Full profile
                     </Link>
-                    <Link
-                        href={ROUTES.friends}
-                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-serif text-sm text-ink-muted transition-colors hover:bg-ink-900/10"
-                    >
-                        🧑‍🤝‍🧑 Friends
-                    </Link>
+                    {SOCIAL_LINKS.map(link => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-serif text-sm text-ink-muted transition-colors hover:bg-ink-900/10"
+                        >
+                            <span aria-hidden="true">{link.icon}</span> {link.label}
+                        </Link>
+                    ))}
 
                     <div className="my-3 h-px bg-ink-muted/30" />
 
@@ -103,6 +114,9 @@ export default function AccountMenu({ username, cardCount, elo, wins, cardBacks 
                         <p className="flex justify-between"><span>vs AI (Hard)</span><span>{wins.vsAiHard}</span></p>
                         <p className="flex justify-between"><span>vs Player</span><span>{wins.vsPlayer}</span></p>
                     </div>
+                    <Link href={ROUTES.achievements} className="mt-3 block font-serif text-sm text-ink-text underline">
+                        See all achievements →
+                    </Link>
                 </div>
             )}
         </div>

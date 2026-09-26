@@ -6,7 +6,7 @@ import { MatchHistory } from "../objects/history/MatchHistory";
 import { HistoryStrip } from "../objects/history/HistoryStrip";
 import { HistoryOverlay } from "../objects/history/HistoryOverlay";
 import { EventManager } from "../EventManager";
-import { ClientGameState, TargetPrompt, GameEvent } from "../shared/protocol";
+import { ClientGameState, TargetPrompt, GameEvent, MatchRewards } from "../shared/protocol";
 import { GameFlowState } from "./gameProcessors/GameFlowState";
 import { AnimationQueue } from "./gameProcessors/AnimationQueue";
 import { StateSyncController } from "./gameProcessors/StateSyncController";
@@ -42,7 +42,7 @@ export class GameScene extends Phaser.Scene
     private onAssignedHandler = (playerIndex: 0 | 1) => { this.matched = true; this.flow.playerIndex = playerIndex; };
     private onStateHandler = (state: ClientGameState) => this.onServerState(state);
     private onPromptHandler = (prompt: TargetPrompt) => this.onServerPrompt(prompt);
-    private onGameOverHandler = (winner: "you" | "opponent") => this.onGameOver(winner);
+    private onGameOverHandler = (winner: "you" | "opponent", rewards?: MatchRewards) => this.onGameOver(winner, rewards);
     private onRejectedHandler = (reason: string, fatal: boolean) => this.onServerRejected(reason, fatal);
     private onEventHandler = (event: GameEvent) => this.onServerEvent(event);
     private onOpponentDisconnectedHandler = (seconds: number) => this.showOpponentDisconnected(seconds);
@@ -246,7 +246,7 @@ export class GameScene extends Phaser.Scene
         new GameOverOverlay(this, reason, "#760606", { fontSize: "56px" });
     }
 
-    private onGameOver(winner: "you" | "opponent"): void
+    private onGameOver(winner: "you" | "opponent", rewards?: MatchRewards): void
     {
         if (this.matchEnded)
             return;
@@ -259,7 +259,7 @@ export class GameScene extends Phaser.Scene
         {
             const text = winner === "you" ? "YOU WIN!!" : "YOU LOSE :(";
             const color = winner === "you" ? "#03c844" : "#760606";
-            new GameOverOverlay(this, text, color);
+            new GameOverOverlay(this, text, color, { details: describeRewards(rewards) });
         });
     }
 
@@ -292,4 +292,19 @@ export class GameScene extends Phaser.Scene
         EventManager.off("server:opponentDisconnected", this.onOpponentDisconnectedHandler);
         EventManager.off("server:opponentReconnected", this.onOpponentReconnectedHandler);
     }
+}
+
+// One line summing up what the match earned, for the end screen ("" when nothing to show).
+function describeRewards(rewards?: MatchRewards): string
+{
+    if (!rewards)
+        return "";
+    const parts: string[] = [];
+    if (rewards.packs > 0)
+        parts.push(`+${rewards.packs} pack${rewards.packs > 1 ? "s" : ""}`);
+    if (rewards.eloChange !== 0)
+        parts.push(`Elo ${rewards.eloChange > 0 ? "+" : ""}${rewards.eloChange}`);
+    if (rewards.cardBackUnlocked !== undefined)
+        parts.push("new card back unlocked!");
+    return parts.join("   ·   ");
 }

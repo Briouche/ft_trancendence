@@ -45,16 +45,39 @@ function drawOneSlot(pool: DrawableCard[]): DrawableCard | null {
   return card;
 }
 
+/** Thrown by openPack when the user has no unopened pack left. */
+export class NoPackError extends Error {
+  constructor() {
+    super("No pack available.");
+  }
+}
+
+/**
+ * Opens one of the user's unopened packs: draws CARDS_PER_PACK cards (never more copies of a card
+ * than the catalog allows per player), applies the legendary pity timer, adds the cards to the
+ * collection and unlocks the "full collection" card back when this pack completes it.
+ * Everything happens in one transaction.
+ *
+ * @throws NoPackError when there is no pack left to open.
+ */
 export async function openPack(prisma: PrismaClient, userId: number) {
   return prisma.$transaction(async (tx) => {
+    // Take the pack first, as one conditional UPDATE: it both checks there is a pack left and
+    // locks the user row until commit. A second concurrent opening (double click, two tabs) then
+    // waits here and re-checks against the decremented count, instead of both reading "1 pack
+    // left" and each drawing a full pack from it.
+    const taken = await tx.user.updateMany({
+      where: { id: userId, unopenedPacks: { gt: 0 } },
+      data: { unopenedPacks: { decrement: 1 }, packsOpened: { increment: 1 } },
+    });
+    if (taken.count === 0) {
+      throw new NoPackError();
+    }
+
     const user = await tx.user.findUniqueOrThrow({
       where: { id: userId },
-      select: { id: true, unopenedPacks: true, pityCounter: true, unlockedCardBacks: true },
+      select: { pityCounter: true, unlockedCardBacks: true },
     });
-
-    if (user.unopenedPacks <= 0) {
-      throw new Error("Aucun paquet disponible pour cet utilisateur.");
-    }
 
     const [allCards, owned] = await Promise.all([
       tx.card.findMany(),
@@ -111,10 +134,9 @@ export async function openPack(prisma: PrismaClient, userId: number) {
     const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
-        unopenedPacks: { decrement: 1 },
         pityCounter: gotLegendary ? 0 : { increment: 1 },
         ...(newlyUnlockedBacks.length > 0 && {
-          unlockedCardBacks: { set: [...user.unlockedCardBacks, ...newlyUnlockedBacks] },
+          unlockedCardBacks: { push: newlyUnlockedBacks },
         }),
       },
       select: { unopenedPacks: true, pityCounter: true },

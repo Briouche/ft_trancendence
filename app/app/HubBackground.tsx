@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import SceneLoading from '@/components/library/SceneLoading'
 import SimpleHubMenu from './SimpleHubMenu'
 import type { WinsBreakdown, CardBacksSummary } from './AccountMenu'
+import { useToast } from '@/components/ui/Toast'
 
 const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: SceneLoading })
 
@@ -29,6 +30,7 @@ export default function HubBackground({ username }: { username: string }) {
     const isHome = pathname === '/'
     const [stats, setStats] = useState({ cardCount: 0, elo: 1000, wins: EMPTY_WINS, cardBacks: EMPTY_CARD_BACKS })
     const [webgl2Supported, setWebgl2Supported] = useState<boolean | null>(null)
+    const toast = useToast()
 
     useEffect(() => {
         setWebgl2Supported(supportsWebGL2())
@@ -40,10 +42,17 @@ export default function HubBackground({ username }: { username: string }) {
 
         fetch('/api/user/summary')
             .then(res => res.ok ? res.json() : null)
-            .then(data => { if (data && !cancelled) setStats({ cardCount: data.cardCount, elo: data.elo, wins: data.wins, cardBacks: data.cardBacks }) })
+            .then(data => {
+                if (!data || cancelled) return
+                setStats({ cardCount: data.cardCount, elo: data.elo, wins: data.wins, cardBacks: data.cardBacks })
+                // Achievements reached since the last visit (typically during the match just played).
+                for (const a of data.newAchievements as { title: string; rewardPacks: number }[]) {
+                    toast(`🏆 Achievement unlocked: ${a.title} (+${a.rewardPacks} pack${a.rewardPacks > 1 ? 's' : ''})`, 'success')
+                }
+            })
 
         return () => { cancelled = true }
-    }, [isHome])
+    }, [isHome, toast])
 
     return (
         <div className={isHome ? '' : 'hidden'}>

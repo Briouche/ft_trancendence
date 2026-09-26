@@ -1,14 +1,9 @@
-import { PrismaClient, Prisma } from '@prisma/client'
-import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { Prisma } from '@prisma/client'
+import { prisma } from '../db'
 import { MinionCard, SpellCard, Card } from '../card'
 import { Deck } from '../deck'
 import { legendary } from '../legendary'
 import { buildEffect, EffectSpec } from './effectFactory'
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, max: 15, idleTimeoutMillis: 60000 })
-const adapter = new PrismaPg(pool)
-export const prisma = new PrismaClient({ adapter })
 
 const CARD_SELECT = {
     id: true, assetKey: true, name: true, type: true, rarity: true, cost: true, atk: true,
@@ -277,67 +272,4 @@ export async function makeDeckFromDeckId(deckId: number, ownerId: number, player
     }
 
     return built
-}
-
-export type WinCategory = 'winsVsAiEasy' | 'winsVsAiMedium' | 'winsVsAiHard' | 'winsVsPlayer'
-
-// Card back unlocked by the first win of each category (see app/lib/cardBacks.ts).
-const WIN_CATEGORY_CARD_BACK: Record<WinCategory, number> = {
-    winsVsPlayer:   3,
-    winsVsAiEasy:   4,
-    winsVsAiMedium: 5,
-    winsVsAiHard:   6,
-}
-
-// Packs granted per win category — mirrors the "Win this match : N packs" promise shown on the
-// Play screen (packsForWin in app/app/play/PlayModeSelector.tsx). Kept in sync by hand since the
-// client only ever displays that number, it never sends it back to the server.
-const PACKS_FOR_WIN_CATEGORY: Record<WinCategory, number> = {
-    winsVsAiEasy:   0,
-    winsVsAiMedium: 1,
-    winsVsAiHard:   2,
-    winsVsPlayer:   2,
-}
-
-export async function recordWin(userId: number, category: WinCategory): Promise<void>
-{
-    const packs = PACKS_FOR_WIN_CATEGORY[category]
-    await prisma.user.update({
-        where: { id: userId },
-        data: {
-            [category]: { increment: 1 },
-            ...(packs > 0 ? { unopenedPacks: { increment: packs } } : {}),
-        },
-    })
-    await unlockCardBackIfNeeded(userId, WIN_CATEGORY_CARD_BACK[category])
-}
-
-async function unlockCardBackIfNeeded(userId: number, index: number): Promise<void>
-{
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { unlockedCardBacks: true } })
-    if (!user || user.unlockedCardBacks.includes(index))
-        return
-    await prisma.user.update({ where: { id: userId }, data: { unlockedCardBacks: { set: [...user.unlockedCardBacks, index] } } })
-}
-
-// Standard Elo update, K = 32. PvP only.
-const ELO_K_FACTOR = 32
-
-export async function recordEloUpdate(winnerId: number, loserId: number): Promise<void>
-{
-    const [winner, loser] = await Promise.all([
-        prisma.user.findUnique({ where: { id: winnerId }, select: { elo: true } }),
-        prisma.user.findUnique({ where: { id: loserId }, select: { elo: true } }),
-    ])
-    if (!winner || !loser)
-        return
-
-    const expectedWinner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
-    const winnerDelta = Math.round(ELO_K_FACTOR * (1 - expectedWinner))
-    const loserDelta = Math.round(ELO_K_FACTOR * (0 - (1 - expectedWinner)))
-
-    await prisma.$transaction([
-        prisma.user.update({ where: { id: winnerId }, data: { elo: { increment: winnerDelta } } }),
-        prisma.user.update({ where: { id: loserId }, data: { elo: { increment: loserDelta } } }),
-    ])
 }

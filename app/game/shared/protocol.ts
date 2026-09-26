@@ -88,6 +88,14 @@ export interface TargetPrompt
     options: TargetOption[];
 }
 
+// What a player earned from a match (game_engine/srcs/matchResults.ts).
+export interface MatchRewards
+{
+    packs: number;
+    eloChange: number;
+    cardBackUnlocked?: number;
+}
+
 export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
     | { type: "readySolo"; difficulty: Difficulty; deckId: number; cardBack: number }
     | { type: "playCard"; cardId: string; boardIndex?: number; }
@@ -107,4 +115,5 @@ export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "rejected"; reason: string; fatal?: boolean }
     | { type: "opponentDisconnected"; secondsRemaining: number }
     | { type: "opponentReconnected" }
-    | { type: "gameOver"; winner: "you" | "opponent" };
+    // rewards: what this player earned, once the result is saved; absent if saving failed.
+    | { type: "gameOver"; winner: "you" | "opponent"; rewards?: MatchRewards };

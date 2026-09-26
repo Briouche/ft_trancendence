@@ -6,6 +6,8 @@ const OVERLAY_DEPTH = 3000;
 const DIM_COLOR = 0x000000;
 const DIM_ALPHA = 0.6;
 const CLICK_DELAY_MS = 2000;
+const DETAILS_OFFSET_Y = 90;
+const HINT_OFFSET_Y = 160;
 
 // Full-screen result banner; becomes clickable after a delay and then navigates home.
 export class GameOverOverlay extends Phaser.GameObjects.Container
@@ -13,10 +15,12 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
     private dim: Phaser.GameObjects.Rectangle;
     private message: Phaser.GameObjects.Text;
     private hint: Phaser.GameObjects.Text;
+    private details: Phaser.GameObjects.Text;
 
     // fontSize is overridable because the default is sized for "YOU WIN!!", not for a sentence —
     // a fatal rejection reuses this overlay to explain why the match is gone.
-    constructor(scene: Phaser.Scene, text: string, color: string, options: { fontSize?: string } = {})
+    // details: an optional line under the result, e.g. the rewards earned ("+2 packs · Elo +16").
+    constructor(scene: Phaser.Scene, text: string, color: string, options: { fontSize?: string; details?: string } = {})
     {
         super(scene, 0, 0);
 
@@ -26,10 +30,12 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
         this.dim = scene.add.rectangle(width / 2, height / 2, width, height, DIM_COLOR, DIM_ALPHA);
         this.message = scene.add.text(width / 2, height / 2, text,
             { fontFamily, fontSize: options.fontSize ?? "128px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
-        this.hint = scene.add.text(width / 2, height / 2 + 60, "Click anywhere to continue",
+        this.details = scene.add.text(width / 2, height / 2 + DETAILS_OFFSET_Y, options.details ?? "",
+            { fontFamily, fontSize: "44px", color: "#f3d27a", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5);
+        this.hint = scene.add.text(width / 2, height / 2 + HINT_OFFSET_Y, "Click anywhere to continue",
             { fontFamily, fontSize: "40px", color: "#ffffff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 
-        this.add([this.dim, this.message, this.hint]);
+        this.add([this.dim, this.message, this.details, this.hint]);
         this.setDepth(OVERLAY_DEPTH);
         scene.add.existing(this);
 
@@ -52,7 +58,8 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
         const { width, height } = gameSize;
         this.dim.setPosition(width / 2, height / 2).setSize(width, height);
         this.message.setPosition(width / 2, height / 2);
-        this.hint.setPosition(width / 2, height / 2 + 60);
+        this.details.setPosition(width / 2, height / 2 + DETAILS_OFFSET_Y);
+        this.hint.setPosition(width / 2, height / 2 + HINT_OFFSET_Y);
         if (this.input) this.input.hitArea.setTo(0, 0, width, height);
     }
 }

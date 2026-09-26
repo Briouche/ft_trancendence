@@ -11,6 +11,7 @@ import type { CardFaceData } from '@/components/CardFace'
 import { HomeButton, TitleBanner, outlinedWhiteTextStyle, woodenTableBackground } from '@/components/notebook/NotebookUI'
 import ScaleToFit from '@/components/ScaleToFit'
 import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
+import { useToast } from '@/components/ui/Toast'
 
 type Phase = 'choosing' | 'opening' | 'revealing'
 
@@ -40,6 +41,7 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const [clearing, setClearing]               = useState(false)
     const [unlockingAll, setUnlockingAll]       = useState(false)
     const router                                = useRouter()
+    const toast                                 = useToast()
 
     // Random designs are rolled after mount to keep server and client renders identical.
     useEffect(() => {
@@ -68,7 +70,17 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
             return
         }
 
-        const data: { cards: CardFaceData[]; unopenedPacks: number; pityCounter: number; unlockedCardBacks: number[] } = await res.json()
+        const data: {
+            cards: CardFaceData[]
+            unopenedPacks: number
+            pityCounter: number
+            unlockedCardBacks: number[]
+            newAchievements: { title: string; rewardPacks: number }[]
+        } = await res.json()
+
+        for (const a of data.newAchievements) {
+            toast(`🏆 Achievement unlocked: ${a.title} (+${a.rewardPacks} pack${a.rewardPacks > 1 ? 's' : ''})`, 'success')
+        }
 
         setCards(data.cards)
         setPacksLeft(data.unopenedPacks)

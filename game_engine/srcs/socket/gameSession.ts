@@ -1,14 +1,17 @@
 import { Action, ActionResult, AnimationEvent, GameEngine } from "../gameEngine";
 import { Socket } from "socket.io";
 import { Player } from "../player";
-import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent } from "../shared/protocol";
+import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent, MatchRewards } from "../shared/protocol";
 import { toClientState, toClientCard } from "./toClientState";
 import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
-import { getBestAction } from "../ai/mcts";
-import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
-import { recordWin, recordEloUpdate, WinCategory } from "../cardImport/cardLoader";
+import { chooseAiAction, thinkingTime } from "../ai/policy";
+import { Difficulty } from "../ai/types";
+import { AI_MATCH_MODE, HumanResult, recordMatch } from "../matchResults";
+import { setInGame } from "../presence";
+import { isWellFormed } from "./validateMessage";
+import { MatchMode } from "@prisma/client";
 
 // userId is always present for a human seat: the socket is authenticated from the session cookie
 // before any message is handled (see auth/session.ts), so a seat is tied to an account rather than
@@ -19,34 +22,6 @@ export type Seat = { kind: "human"; socket: Socket; userId: number } | { kind: "
 // of brief blip that socket.io reconnects through on its own (flaky wifi, a laptop sleeping for a
 // moment, a dev-server hiccup) without handing the opponent a free win.
 const RECONNECT_GRACE_MS = 30_000;
-
-// User counter credited for a win against the AI at each difficulty.
-const DIFFICULTY_WIN_CATEGORY: Record<Difficulty, WinCategory> = {
-    facile:    "winsVsAiEasy",
-    moyen:     "winsVsAiMedium",
-    difficile: "winsVsAiHard",
-}
-
-// Shape check of an in-game message before it reaches the engine: a string boardIndex, for one,
-// would slip past the range check in handlePlayCard (string comparisons are always false).
-function isWellFormed(msg: unknown): msg is ClientMessage
-{
-    if (typeof msg !== "object" || msg === null)
-        return false;
-
-    const m = msg as Record<string, unknown>;
-    switch (m.type)
-    {
-        case "playCard":
-            return typeof m.cardId === "string" && (m.boardIndex === undefined || Number.isSafeInteger(m.boardIndex));
-        case "attack":
-            return typeof m.attackerId === "string" && typeof m.targetId === "string";
-        case "targetChoice":
-            return m.targetId === null || typeof m.targetId === "string";
-        default:
-            return typeof m.type === "string";
-    }
-}
 
 // A card play waiting for the player to pick a target.
 interface PendingTarget
@@ -84,7 +59,13 @@ export class GameSession
         const startResult = this.engine.startGame();
         this.broadcastAnimationEvents(startResult.animationEvents);
         this.broadcastState();
+        void setInGame(this.humanUserIds(), true);
         this.runAiTurnLoop();
+    }
+
+    private humanUserIds(): number[]
+    {
+        return this.seats.flatMap(seat => seat.kind === "human" ? [seat.userId] : []);
     }
 
     // Matches the connection object itself, not its id: with connectionStateRecovery enabled a
@@ -201,29 +182,51 @@ export class GameSession
         if (alive[0] && alive[1])
             return;
 
-        this.gameOver = true;
-        this.clearDisconnectTimers();
-        const winnerIndex: 0 | 1 = alive[0] ? 0 : 1;
-        this.send(winnerIndex, { type: "gameOver", winner: "you" });
-        this.send(1 - winnerIndex, { type: "gameOver", winner: "opponent" });
-        this.recordResult(winnerIndex);
-        this.onGameEnd();
+        this.finish(alive[0] ? 0 : 1, "hero");
     }
 
-    // Win counter for any human winner; Elo only for PvP.
-    private recordResult(winnerIndex: 0 | 1): void
+    // Ends the match exactly once: freezes it (gameOver blocks every later message), saves the
+    // result, then tells each player the outcome along with what they earned. The result is
+    // saved *before* "gameOver" is sent so the rewards shown on the end screen are the ones
+    // actually stored; if saving fails, the outcome is still sent, just without rewards.
+    private finish(winnerIndex: 0 | 1, reason: "hero" | "forfeit"): void
     {
-        const winnerSeat = this.seats[winnerIndex];
-        const loserSeat = this.seats[1 - winnerIndex];
-
-        if (winnerSeat.kind !== "human")
+        if (this.gameOver)
             return;
 
-        const category: WinCategory = loserSeat.kind === "ai" ? DIFFICULTY_WIN_CATEGORY[this.difficulty] : "winsVsPlayer";
-        recordWin(winnerSeat.userId, category).catch(err => console.error("Failed to record win:", err));
+        this.gameOver = true;
+        this.clearDisconnectTimers();
 
-        if (loserSeat.kind === "human" && loserSeat.userId !== null)
-            recordEloUpdate(winnerSeat.userId, loserSeat.userId).catch(err => console.error("Failed to record Elo update:", err));
+        const loserIndex: 0 | 1 = winnerIndex === 0 ? 1 : 0;
+        const humans: HumanResult[] = [];
+        this.seats.forEach((seat, index) =>
+        {
+            if (seat.kind === "human")
+                humans.push({ userId: seat.userId, won: index === winnerIndex });
+        });
+        const vsAi = this.seats.some(seat => seat.kind === "ai");
+        const mode: MatchMode = vsAi ? AI_MATCH_MODE[this.difficulty] : MatchMode.PVP;
+
+        recordMatch(mode, reason, humans)
+            .catch(err =>
+            {
+                console.error("Failed to record match result:", err);
+                return new Map();
+            })
+            .then(rewards =>
+            {
+                this.sendGameOver(winnerIndex, "you", rewards);
+                this.sendGameOver(loserIndex, "opponent", rewards);
+                void setInGame(this.humanUserIds(), false);
+                this.onGameEnd();
+            });
+    }
+
+    private sendGameOver(seatIndex: 0 | 1, winner: "you" | "opponent", rewards: Map<number, MatchRewards>): void
+    {
+        const seat = this.seats[seatIndex];
+        if (seat.kind === "human")
+            this.send(seatIndex, { type: "gameOver", winner, rewards: rewards.get(seat.userId) });
     }
 
     private send(playerIndex: number, msg: ServerMessage): void
@@ -523,16 +526,7 @@ export class GameSession
 
     private forfeit(loserIndex: 0 | 1): void
     {
-        if (this.gameOver)
-            return;
-
-        this.gameOver = true;
-        this.clearDisconnectTimers();
-        const winnerIndex: 0 | 1 = loserIndex === 0 ? 1 : 0;
-        this.send(winnerIndex, { type: "gameOver", winner: "you" });
-        this.send(loserIndex, { type: "gameOver", winner: "opponent" });
-        this.recordResult(winnerIndex);
-        this.onGameEnd();
+        this.finish(loserIndex === 0 ? 1 : 0, "forfeit");
     }
 
     handleEndTurn()
@@ -547,17 +541,20 @@ export class GameSession
         this.runAiTurnLoop();
     }
 
+    // Plays the AI's moves while it is the AI's turn. Each move is preceded by a variable
+    // "thinking" pause (human pace, lets the player follow the animations) and chosen by
+    // ai/policy.ts. An AI failure never freezes the match: its turn is ended instead.
     private async runAiTurnLoop(): Promise<void>
     {
-        const { simulations, worlds } = DIFFICULTY_PRESETS[this.difficulty];
-
         while (!this.gameOver && this.seats[this.engine.currentTurn].kind === "ai")
         {
-            let action: Action;
+            await this.delay(thinkingTime(this.difficulty));
+            if (this.gameOver)
+                break;
 
             try
             {
-                action = await getBestAction(this.engine, simulations, worlds);
+                const action: Action = await chooseAiAction(this.engine, this.difficulty);
                 this.applyAiAction(action);
             }
             catch (err)
@@ -572,11 +569,7 @@ export class GameSession
                     console.error("Forced endTurn also failed, aborting AI loop for this game:", endTurnErr);
                     break;
                 }
-                continue;
             }
-
-            if (action.type !== "endTurn")
-                await this.delay(1500);
         }
     }
 
