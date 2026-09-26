@@ -230,7 +230,8 @@ export async function makeDeckFromDeckId(deckId: number, ownerId: number, player
 {
     // Prisma loads the `cards` relation with a second SELECT rather than a join (its
     // relationLoadStrategy option isn't available under the pg driver adapter), so this is 2 round
-    // trips — still the only DB work left on the match-start path now that cards come from memory.
+    // trips, plus the ownership check below — the only DB work on the match-start path now that
+    // cards come from memory.
     const deck = await prisma.deck.findUnique({
         where: { id: deckId },
         select: { userId: true, cards: { select: { cardId: true, qty: true } } },
@@ -242,6 +243,20 @@ export async function makeDeckFromDeckId(deckId: number, ownerId: number, player
     if (deck.userId !== ownerId)
     {
         console.warn(`Deck ${deckId} requested by user ${ownerId} but owned by ${deck.userId} — rejected`)
+        return null
+    }
+
+    // Decks are validated when saved (app/lib/decks.ts), but not decks saved before that check
+    // existed, and a collection can shrink after a deck is built. The match must only ever use
+    // copies the player actually owns right now.
+    const owned = await prisma.userCard.findMany({
+        where: { userId: ownerId, cardId: { in: deck.cards.map(dc => dc.cardId) } },
+        select: { cardId: true, qty: true },
+    })
+    const ownedQty = new Map(owned.map(o => [o.cardId, o.qty]))
+    if (deck.cards.some(dc => (ownedQty.get(dc.cardId) ?? 0) < dc.qty))
+    {
+        console.warn(`Deck ${deckId} of user ${ownerId} uses cards they don't own — rejected`)
         return null
     }
 
