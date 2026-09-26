@@ -27,6 +27,27 @@ const DIFFICULTY_WIN_CATEGORY: Record<Difficulty, WinCategory> = {
     difficile: "winsVsAiHard",
 }
 
+// Shape check of an in-game message before it reaches the engine: a string boardIndex, for one,
+// would slip past the range check in handlePlayCard (string comparisons are always false).
+function isWellFormed(msg: unknown): msg is ClientMessage
+{
+    if (typeof msg !== "object" || msg === null)
+        return false;
+
+    const m = msg as Record<string, unknown>;
+    switch (m.type)
+    {
+        case "playCard":
+            return typeof m.cardId === "string" && (m.boardIndex === undefined || Number.isSafeInteger(m.boardIndex));
+        case "attack":
+            return typeof m.attackerId === "string" && typeof m.targetId === "string";
+        case "targetChoice":
+            return m.targetId === null || typeof m.targetId === "string";
+        default:
+            return typeof m.type === "string";
+    }
+}
+
 // A card play waiting for the player to pick a target.
 interface PendingTarget
 {
@@ -136,7 +157,7 @@ export class GameSession
 
     private handle(playerIndex: 0 | 1, msg: ClientMessage)
     {
-        if (this.gameOver)
+        if (this.gameOver || !isWellFormed(msg))
             return ;
 
         if (msg.type === "quit")

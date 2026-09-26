@@ -1,3 +1,4 @@
+import { IncomingMessage } from "http";
 import { Server, Socket } from "socket.io";
 import { Player } from "../player";
 import { Hero } from "../hero";
@@ -7,6 +8,7 @@ import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId, makeDeckFromNames } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 import { authenticateCookieHeader, SocketIdentity } from "../auth/session";
+import { DIFFICULTY_PRESETS, Difficulty } from "../ai/types";
 
 // Keep in sync with app/lib/cardBacks.ts.
 const CARD_BACK_COUNT = 8;
@@ -19,6 +21,39 @@ function clampCardBack(value: number): number
 function randomCardBack(): number
 {
     return Math.floor(Math.random() * CARD_BACK_COUNT);
+}
+
+// The client is not trusted: anything that reaches the engine is checked here first. An unknown
+// difficulty used to leave DIFFICULTY_PRESETS[difficulty] undefined and the AI loop dead, so the
+// match hung forever on the AI's turn.
+function isDifficulty(value: unknown): value is Difficulty
+{
+    return typeof value === "string" && Object.prototype.hasOwnProperty.call(DIFFICULTY_PRESETS, value);
+}
+
+function isDeckId(value: unknown): value is number
+{
+    return Number.isSafeInteger(value) && (value as number) > 0;
+}
+
+// Origin must match the Host the request was sent to (nginx forwards it). Requests without an
+// Origin come from non-browser clients, which still need a valid session cookie to get in.
+function isSameOrigin(req: IncomingMessage, callback: (err: string | null | undefined, success: boolean) => void): void
+{
+    const origin = req.headers.origin;
+    if (!origin)
+        return callback(null, true);
+
+    let originHost: string;
+    try
+    {
+        originHost = new URL(origin).host;
+    }
+    catch
+    {
+        return callback("invalid origin", false);
+    }
+    callback(originHost === req.headers.host ? null : "cross-origin request refused", originHost === req.headers.host);
 }
 
 type WaitingPlayer = { socket: Socket; identity: SocketIdentity; deckId: number; cardBack: number };
@@ -34,8 +69,11 @@ function identityOf(socket: Socket): SocketIdentity
 // two players in the queue. Live sessions are kept so a reconnecting socket finds its game.
 export function createGameServer(port: number): void
 {
-    // Same-origin through the nginx proxy, so any Origin is accepted.
-    const io = new Server(port, { cors: { origin: (origin, callback) => callback(null, true) }, connectionStateRecovery: {} });
+    // The client always connects through the nginx proxy on the page's own origin, so no CORS is
+    // needed. The Origin check matters because WebSocket upgrades bypass CORS entirely: without it
+    // any site could open a socket that the browser authenticates with the player's session cookie
+    // (cross-site WebSocket hijacking) and play moves on their behalf.
+    const io = new Server(port, { allowRequest: isSameOrigin, connectionStateRecovery: {} });
 
     const waiting: WaitingPlayer[] = [];
     const liveGames: GameSession[] = [];
@@ -93,6 +131,9 @@ export function createGameServer(port: number): void
 
         socket.on("message", async (msg: ClientMessage) =>
         {
+            if (typeof msg !== "object" || msg === null)
+                return;
+
             if (msg.type === "resume")
             {
                 // The player's socket dropped and came back inside the grace window: hand this new
@@ -107,6 +148,12 @@ export function createGameServer(port: number): void
             {
                 if (resumeExisting(socket, identity.userId))
                     return;
+
+                if (!isDifficulty(msg.difficulty) || !isDeckId(msg.deckId))
+                {
+                    reject(socket, "Requête invalide.");
+                    return;
+                }
 
                 let playerDeck: Deck | null, aiDeck: Deck;
                 try
@@ -164,6 +211,12 @@ export function createGameServer(port: number): void
 
             if (resumeExisting(socket, identity.userId))
                 return;
+
+            if (!isDeckId(msg.deckId))
+            {
+                reject(socket, "Requête invalide.");
+                return;
+            }
 
             // Already queued: refresh the socket on the existing entry rather than adding a second
             // one. A reconnect while waiting arrives as a new socket, which under a socket-keyed
