@@ -73,8 +73,8 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - [x] 4b. Lint propre (app + game_engine + socket-server), code mort, console.log
 - [x] 4c. Tests vitest (auth/validation, moteur, IA, amis, gamification)
 - [x] 4d. Console Chrome propre + responsive (vérif Playwright : 16 pages × 3 tailles, 0 message)
-- [ ] 5. Revue des commentaires (anglais, JSDoc sur les exports)
-- [ ] 6. `docs/explications/` fichier par fichier + 00/01/02
+- [x] 5. Revue des commentaires (anglais partout, JSDoc sur les 203 exports, aucun TODO/FIXME)
+- [ ] 6. `docs/explications/` fichier par fichier + 00/01/02 — 00/01/02 faits ; pages par fichier en cours : `docs/explications/verifier_couverture.sh` liste celles qui manquent (ordre : game_engine, socket-server, infra, app/lib, app/app, app/components, app/game, prisma, tests)
 - [ ] 7. README.md
 - [ ] 8. Vérification finale (clone propre, parcours complet, deux sessions)
 - [ ] 9. `docs/RAPPORT_FINAL.md`
