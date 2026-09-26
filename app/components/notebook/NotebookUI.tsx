@@ -201,13 +201,17 @@ const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
 }
 
 // Sprite button playing a 4-frame press animation; `onClick` fires once the animation ends.
-export function AssetButton({ active, onClick, disabled, variant = 'square', className = '', children }: {
+export function AssetButton({ active, onClick, disabled, variant = 'square', className = '', children, ariaLabel, expanded }: {
     active?: boolean
     onClick?: () => void
     disabled?: boolean
     variant?: AssetButtonVariant
     className?: string
     children?: React.ReactNode
+    /** Accessible name, required for the icon-only variants (home, back, about…). */
+    ariaLabel?: string
+    /** For buttons that open a menu: whether it is currently open (aria-expanded). */
+    expanded?: boolean
 }) {
     const [frame, setFrame] = useState(1)
     const [hovered, setHovered] = useState(false)
@@ -236,8 +240,12 @@ export function AssetButton({ active, onClick, disabled, variant = 'square', cla
 
     return (
         <button
+            type="button"
             onClick={handleClick}
             disabled={disabled}
+            aria-label={ariaLabel}
+            aria-expanded={expanded}
+            aria-pressed={active}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             className={`relative flex items-center justify-center font-display font-bold
@@ -336,7 +344,7 @@ export const woodenTableBackground: React.CSSProperties = {
 export function HomeButton({ onClick }: { onClick: () => void }) {
     return (
         <div className="fixed right-6 top-6 z-40">
-            <AssetButton onClick={onClick} variant="home" className="h-14 w-14 shrink-0" />
+            <AssetButton onClick={onClick} variant="home" className="h-14 w-14 shrink-0" ariaLabel="Back to the hub" />
         </div>
     )
 }
