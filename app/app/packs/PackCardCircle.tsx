@@ -55,8 +55,8 @@ export default function PackCardCircle({
         <div className="relative pointer-events-none" style={{ width: size, height: size }}>
             {allRevealed && (
                 <div className="pointer-events-auto absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 gap-3">
-                    <AssetButton onClick={onBack} variant="back" className="h-14 w-14 shrink-0" />
-                    <AssetButton onClick={onViewCollection} variant="manual" className="h-14 w-14 shrink-0" />
+                    <AssetButton onClick={onBack} variant="back" className="h-14 w-14 shrink-0" ariaLabel="Open another pack" />
+                    <AssetButton onClick={onViewCollection} variant="manual" className="h-14 w-14 shrink-0" ariaLabel="View my collection" />
                 </div>
             )}
 
