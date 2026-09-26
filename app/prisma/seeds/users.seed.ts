@@ -24,10 +24,9 @@ export async function seedUsers(prisma: PrismaClient) {
 
     await prisma.user.upsert({
       where: { email },
-      update: {
-        username,
-        password,
-      },
+      // Left untouched when the account exists: the seed runs on every container start, and
+      // re-applying the JSON password would undo any password change made in the app.
+      update: {},
       create: {
         email,
         username,
