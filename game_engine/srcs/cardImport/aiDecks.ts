@@ -23,7 +23,7 @@ const CONTROL_DECK: string[] = [
 
 // Archimede synergy: the 6 "archi" cards + Archimede.
 const ARCHI_DECK: string[] = [
-    "Archimed la maudite",
+    "Archimede la maudite",
     "Haku", "Reborn", "Ribgy", "Neo",
     "Po", "Zurg", "Bertrand", "Le Phoenix",
     "Goblinmikaze", "Flambeur de Dancefloor", "le gros pied puant", "CRS", "Client Mécontent",
