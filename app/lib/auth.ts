@@ -63,7 +63,7 @@ export async function checkCredentials(formData: FormData): Promise<ActionResult
   return { error: null };
 }
 
-/** Creates an account from the registration form and signs it in. */
+/** Creates an account from the registration form, signs it in and goes to the hub. */
 export async function registerUser(formData: FormData): Promise<ActionResult> {
   const parsed = registerSchema.safeParse(formDataToObject(formData));
   if (!parsed.success) return { error: firstIssue(parsed.error) };
@@ -90,7 +90,10 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
   }
 
   await createSession(user.id, user.username, user.tokenVersion);
-  return { error: null };
+  // Navigate from the action itself: letting the client push "/" after the cookie is set made Next
+  // re-render /register (which redirects signed-in users) mid-transition, and React's dev-mode
+  // performance tracks threw "cannot have a negative time stamp" in the console.
+  redirect(ROUTES.home);
 }
 
 /** Clears the session cookie and goes back to the sign-in page. */

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { registerUser } from "@/lib/auth";
@@ -24,7 +23,6 @@ import ScaleToFit from "@/components/ScaleToFit";
 export default function RegisterForm() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setError("");
@@ -36,15 +34,11 @@ export default function RegisterForm() {
     }
 
     setPending(true);
+    // On success the action redirects to the hub and never returns here.
     const result = await registerUser(formData);
     setPending(false);
 
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-
-    router.push(ROUTES.home);
+    if (result?.error) setError(result.error);
   };
 
   return (
