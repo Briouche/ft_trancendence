@@ -222,6 +222,18 @@ export class GameScene extends Phaser.Scene
         this.opponentDisconnectedText = null;
     }
 
+    // Short message under the top edge that fades out ("not your turn", "illegal target"): the
+    // player learns why the move was refused, and nothing ends up in the browser console.
+    private showNotice(text: string): void
+    {
+        const fontFamily = this.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
+        const notice = this.add.text(this.scale.width / 2, 90, text.charAt(0).toUpperCase() + text.slice(1),
+            { fontFamily, fontSize: "32px", color: "#ffdd88", stroke: "#000000", strokeThickness: 4 })
+            .setOrigin(0.5)
+            .setDepth(2500);
+        this.tweens.add({ targets: notice, alpha: 0, delay: 1200, duration: 600, onComplete: () => notice.destroy() });
+    }
+
     // Two very different things arrive here. An ordinary rejection ("not your turn", "illegal
     // target") just undoes the in-flight interaction and the match carries on. A fatal one means
     // the server has no seat left for this client — typically a reconnect that landed after the
@@ -233,7 +245,7 @@ export class GameScene extends Phaser.Scene
 
         if (!fatal)
         {
-            console.warn("Server rejected action:", reason);
+            this.showNotice(reason);
             return;
         }
 

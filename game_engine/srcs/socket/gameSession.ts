@@ -50,17 +50,22 @@ export class GameSession
         this.difficulty = difficulty;
         this.onGameEnd = onGameEnd;
         this.seats = [seat0, seat1];
-        console.log("Game Starting... with " + seat0.kind + " and " + seat1.kind);
         this.engine = new GameEngine([player0, player1]);
         this.bindHandlers();
         this.send(0, { type: "assigned", playerIndex: 0 });
         this.send(1, { type: "assigned", playerIndex: 1 });
-        console.log("players assigned... game starting!");
+        console.log(`match started: ${this.describeSeat(0)} vs ${this.describeSeat(1)}${seat0.kind === "ai" || seat1.kind === "ai" ? ` (AI ${difficulty})` : ""}`);
         const startResult = this.engine.startGame();
         this.broadcastAnimationEvents(startResult.animationEvents);
         this.broadcastState();
         void setInGame(this.humanUserIds(), true);
         this.runAiTurnLoop();
+    }
+
+    private describeSeat(index: 0 | 1): string
+    {
+        const seat = this.seats[index];
+        return seat.kind === "human" ? `user ${seat.userId}` : "AI";
     }
 
     private humanUserIds(): number[]

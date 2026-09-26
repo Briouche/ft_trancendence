@@ -29,8 +29,8 @@ socket.on("connect_error", (err: Error) =>
     connectErrorReported = true;
 
     EventManager.emit("server:rejected", err.message === "unauthenticated"
-        ? "Session expirée — reconnecte-toi."
-        : "Connexion au serveur de jeu impossible.", false);
+        ? "Session expired — please sign in again."
+        : "Cannot reach the game server.", false);
 });
 
 socket.on("message", (msg: ServerMessage) =>

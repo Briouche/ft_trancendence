@@ -91,21 +91,21 @@ export default function GameLauncher({ mode, difficulty, deckId, cardBack }: { m
             <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-ink-950">
               <p className="max-w-md text-center font-display text-sm tracking-[0.15em] text-gold-400/90 uppercase">
                 {bootIssue.kind === "rejected"
-                  ? bootIssue.reason ?? "La partie n'a pas pu démarrer."
-                  : "La connexion prend plus de temps que prévu..."}
+                  ? bootIssue.reason ?? "The match could not start."
+                  : "Connecting is taking longer than expected..."}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={retryBoot}
                   className="rounded border border-gold-400/40 px-4 py-2 font-display text-xs tracking-[0.2em] text-gold-400 uppercase hover:bg-gold-400/10"
                 >
-                  Réessayer
+                  Retry
                 </button>
                 <button
                   onClick={cancelBoot}
                   className="rounded border border-gold-400/20 px-4 py-2 font-display text-xs tracking-[0.2em] text-gold-400/70 uppercase hover:bg-gold-400/10"
                 >
-                  Annuler
+                  Cancel
                 </button>
               </div>
             </div>
