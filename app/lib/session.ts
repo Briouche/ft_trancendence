@@ -25,6 +25,8 @@ export type CurrentUser = {
   status: UserStatus;
   createdAt: Date;
   elo: number;
+  // False for 42-only accounts. The hash itself never leaves the server.
+  hasPassword: boolean;
 };
 
 function getEncodedKey() {
@@ -105,9 +107,10 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { username: true, email: true, avatar: true, status: true, createdAt: true, elo: true },
+    select: { username: true, email: true, avatar: true, status: true, createdAt: true, elo: true, password: true },
   });
   if (!user) return null;
 
-  return { id: session.userId, ...user };
+  const { password, ...rest } = user;
+  return { id: session.userId, ...rest, hasPassword: password !== null };
 });

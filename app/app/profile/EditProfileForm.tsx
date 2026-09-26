@@ -71,11 +71,29 @@ export default function EditProfileForm({ user, onDone }: { user: CurrentUser; o
                 />
             </label>
 
+            {user.hasPassword && (
+                <label className="flex flex-col gap-1">
+                    <span className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
+                        Current password (to change it)
+                    </span>
+                    <input
+                        name="currentPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        maxLength={128}
+                        autoComplete="current-password"
+                        disabled={pending}
+                        className={fieldClassName}
+                    />
+                </label>
+            )}
+
             <label className="flex flex-col gap-1">
-                <span className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">Password</span>
+                <span className="font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">New password</span>
                 <input
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="••••••••"
                     minLength={8}
                     maxLength={128}
