@@ -75,7 +75,7 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - [x] 4d. Console Chrome propre + responsive (vérif Playwright : 16 pages × 3 tailles, 0 message)
 - [x] 5. Revue des commentaires (anglais partout, JSDoc sur les 203 exports, aucun TODO/FIXME)
 - [x] 6. `docs/explications/` : 00/01/02 + une page par fichier source (252 pages, `verifier_couverture.sh` ne signale rien)
-- [ ] 7. README.md
+- [x] 7. README.md (anglais, toutes les sections du sujet, TODO(team) pour les infos d'équipe)
 - [ ] 8. Vérification finale (clone propre, parcours complet, deux sessions)
 - [ ] 9. `docs/RAPPORT_FINAL.md`
 
