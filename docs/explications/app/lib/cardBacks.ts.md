@@ -4,9 +4,10 @@
 
 ## 1. Rôle
 
-Catalogue des 8 dos de cartes cosmétiques : ceux de départ (0, 1, 2), ceux gagnés par succès
-(première victoire par mode : 3 à 6 ; collection complète : 7), les textes d'indice, et la
-validation d'un index.
+Catalogue des 8 dos de cartes cosmétiques : ceux de départ (0, 1, 2) et ceux qui **sont les
+succès du jeu** (`ACHIEVEMENT_CARD_BACKS` : première victoire contre un joueur 3, contre l'IA
+facile / moyenne / difficile 4 à 6 ; collection complète 7), leurs conditions
+(`ACHIEVEMENT_CARD_BACK_HINTS`), et la validation d'un index.
 
 ## 2. Dépendances
 
@@ -30,4 +31,5 @@ Choisir un dos dans la collection → `POST /api/user/card-back` vérifie qu'il 
 
 ## 6. Questions probables en évaluation
 
-- **Les dos de cartes sont-ils des récompenses ?** Oui, des badges visuels de la gamification.
+- **Les dos de cartes sont-ils des récompenses ?** Oui : ce sont les succès de la gamification,
+  visibles sur `/achievements`, sur le profil public et par l'adversaire en partie.

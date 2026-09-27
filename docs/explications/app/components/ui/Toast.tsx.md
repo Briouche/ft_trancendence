@@ -8,7 +8,7 @@
 
 ## 2. Dépendances
 
-- **Utilisé par** : layout, `RealtimeProvider` (nouveau message), hub et paquets (succès), amis, profil public, succès, vitrine.
+- **Utilisé par** : layout, `RealtimeProvider` (nouveau message), amis, profil public, vitrine.
 - **Design system** : composant listé dans `docs/DESIGN_SYSTEM.md`, visible sur `/design-system`.
 
 ## 3. Explication bloc par bloc
@@ -25,4 +25,4 @@ Nouveau message pendant qu'on est sur `/players` → « 💬 New message from bo
 
 ## 6. Questions probables en évaluation
 
-- **Comment l'utilisateur est-il notifié ?** Toasts (messages, succès, actions).
+- **Comment l'utilisateur est-il notifié ?** Toasts (nouveaux messages, résultat des actions) ; les récompenses de partie s'affichent sur l'écran de fin.

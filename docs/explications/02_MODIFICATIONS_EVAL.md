@@ -74,16 +74,31 @@ pour ces valeurs (seule la mise en page d'un plateau plus large pourrait être �
 
 ## 6. Ajouter un succès
 
-**Fichier** : `app/lib/achievementCatalog.ts`, tableau `ACHIEVEMENTS` (l. 38). Exemple, basé sur une
-statistique existante :
+Un succès = un dos de cartes à débloquer. Exemple : « Gagner 10 parties contre un joueur » → dos 8.
+
+1. **Image** : `app/public/textures/cards/backs/8.webp`.
+2. **Catalogue** — `app/lib/cardBacks.ts` : `CARD_BACK_COUNT = 9` (l. 2), ajouter
+   `tenPvpWins: 8` à `ACHIEVEMENT_CARD_BACKS` (l. 8-14) et sa condition dans
+   `ACHIEVEMENT_CARD_BACK_HINTS` (`'Win 10 games vs another player'`). Même `CARD_BACK_COUNT`
+   dans `game_engine/srcs/socket/serverSocket.ts` (l. 14).
+3. **Progression** — `app/lib/achievements.ts`, objet `progress` : `tenPvpWins: [user.winsVsPlayer, 10]`.
+   (Oublier cette ligne est une erreur TypeScript : l'objet est typé sur les clés du catalogue.)
+4. **Déblocage** au moment où l'exploit arrive — ici `game_engine/srcs/matchResults.ts`, à côté
+   du déblocage existant (l. 97-105), avec la même mise à jour conditionnelle :
 
 ```ts
-{ key: "centurion", title: "Centurion", description: "Play 100 matches.", metric: "matchesPlayed", goal: 100, tier: "gold", rewardPacks: 3 },
+// Dans la boucle `for (const human of humans.filter(h => h.won))`, après l'incrément des victoires :
+if (mode === "PVP")
+    await tx.user.updateMany({
+        where: { id: human.userId, winsVsPlayer: { gte: 10 }, NOT: { unlockedCardBacks: { has: 8 } } },
+        data:  { unlockedCardBacks: { push: 8 } },
+    });
 ```
 
-C'est tout : la page `/achievements`, le badge du profil et le déblocage automatique suivent.
-Pour une **nouvelle statistique**, ajouter son nom au type `AchievementMetric` (même fichier) et son
-calcul dans `computeStats` (`app/lib/achievements.ts`, objet retourné l. 41).
+La condition `winsVsPlayer >= 10` est vérifiée par PostgreSQL dans la même requête, et le
+`NOT has` garantit que le dos n'est accordé qu'une fois.
+
+La page `/achievements`, le profil public et la collection (équiper le dos) suivent tout seuls.
 
 ## 7. Changer les récompenses d'une victoire
 

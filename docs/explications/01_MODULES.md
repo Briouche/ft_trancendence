@@ -65,7 +65,7 @@ et une server action (`app/lib/auth.ts` → formulaire de connexion).
 **Sous-exigences** :
 - *Chat basique (envoi/réception)* : conversation privée entre amis, historique paginé, temps réel,
   notification (toast) quand on est sur une autre page.
-- *Voir les infos d'un utilisateur* : `/users/<nom>` (avatar, présence, Elo, stats, badges, 10
+- *Voir les infos d'un utilisateur* : `/users/<nom>` (avatar, présence, Elo, stats, dos de cartes gagnés, 10
   dernières parties) ; accessible depuis toute liste (clic sur un nom).
 - *Amis : ajouter, retirer, voir la liste* : `/friends` (envoyer, accepter, refuser, annuler,
   retirer), boutons aussi sur les profils.
@@ -232,20 +232,25 @@ client `app/game/EventManager.ts`, `scenes/GameScene.ts`, `scenes/gameProcessors
 
 ## 12. Mineur — Gamification (1 pt)
 
-**Où** : `app/lib/achievementCatalog.ts` (règles), `app/lib/achievements.ts` (déblocage),
-`app/app/achievements/**` (page), `game_engine/srcs/matchResults.ts` (paquets, dos de carte, Elo,
-historique), `app/lib/packs.ts` (garantie légendaire), classement `/players`.
+**Où** : `app/lib/cardBacks.ts` (dos et conditions), `game_engine/srcs/matchResults.ts`
+(déblocage à la victoire, paquets, Elo, historique), `app/lib/packs.ts` (garantie légendaire,
+déblocage « collection complète »), `app/lib/achievements.ts` + `app/app/achievements/**`
+(progression), classement `/players`.
 
 **Éléments (tous persistés en base)** :
-1. **Succès** (10) → table `UserAchievement`.
-2. **Badges** bronze/argent/or (un par succès) affichés sur le profil public.
-3. **Classement** Elo (`User.elo`, K = 32) sur `/players`.
-4. **Récompenses** : paquets par victoire et par succès (`User.unopenedPacks`), dos de cartes
-   (`User.unlockedCardBacks`), garantie d'une légendaire tous les 5 paquets (`User.pityCounter`).
+1. **Succès = dos de cartes** (choix de l'équipe) : 5 dos à débloquer — première victoire contre
+   un joueur, contre l'IA facile / moyenne / difficile, collection complète →
+   `User.unlockedCardBacks`. Équipables dans la collection, **vus par l'adversaire** en partie,
+   affichés sur le profil public.
+2. **Classement** Elo (`User.elo`, K = 32) sur `/players`.
+3. **Récompenses** : paquets par victoire (`User.unopenedPacks` : IA moyenne 1, difficile 2,
+   joueur 2), garantie d'une légendaire tous les 5 paquets (`User.pityCounter`).
+4. **Historique** des parties (`Match` / `MatchPlayer`) avec variation d'Elo.
 
-**Retour visuel / règles affichées** : barres de progression et règles sur `/achievements`, toasts
-« Achievement unlocked », écran de fin de partie « +2 packs · Elo +16 », compteur « N packs until
+**Retour visuel / règles affichées** : barres de progression et règles sur `/achievements`, écran de
+fin de partie « +2 packs · Elo +16 » et dos débloqué annoncé, compteur « N packs until
 guaranteed legendary ».
 
-**Démo** : gagner une partie contre l'IA moyenne → écran de fin avec récompenses → retour au hub :
-toast du succès « First Blood » → `/achievements` (barre remplie) → profil public (badge).
+**Démo** : gagner une partie contre l'IA moyenne → écran de fin avec récompenses (dont « nouveau dos
+débloqué ») → `/achievements` (« ✅ Unlocked ») → l'équiper dans la collection → profil public
+(section « Card backs earned »).

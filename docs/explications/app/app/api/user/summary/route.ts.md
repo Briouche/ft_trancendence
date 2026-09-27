@@ -4,24 +4,28 @@
 
 ## 1. Rôle
 
-`GET /api/user/summary` : cartes, Elo, paquets, victoires par mode, dos de cartes — et **déblocage des succès** atteints depuis la dernière visite (`newAchievements`).
+`GET /api/user/summary` : nombre de cartes, Elo, paquets non ouverts, victoires par mode et
+nombre de dos de cartes débloqués / total, pour le hub.
 
 ## 2. Dépendances
 
-- **Importe** : `lib/prisma.ts`, `lib/api.ts`, `lib/cardBacks.ts`, `lib/achievements.ts`.
+- **Importe** : `lib/prisma.ts`, `lib/api.ts`, `lib/cardBacks.ts` (`CARD_BACK_COUNT`).
+- **Utilisé par** : `app/HubBackground.tsx`.
 
 ## 3. Explication bloc par bloc
 
-`evaluateAchievements` d'abord (les paquets gagnés sont inclus dans les chiffres), puis lecture des stats et somme des cartes (`aggregate`).
+`requireSession` → lecture des champs de l'utilisateur (`select` ciblé) → somme des exemplaires
+possédés (`aggregate` sur `UserCard.qty`) → JSON.
 
 ## 4. Flux concret
 
-Retour au hub après une partie → toasts des succès.
+Retour au hub après une partie → les chiffres (Elo, paquets, victoires) sont à jour.
 
 ## 5. Points d'attention
 
-- Appelée à chaque retour sur `/`.
+- Lecture seule, appelée à chaque affichage du hub.
 
 ## 6. Questions probables en évaluation
 
-- **Quand les succès sont-ils vérifiés ?** Au retour au hub, sur `/achievements` et à l'ouverture d'un paquet.
+- **Pourquoi `aggregate` ?** La somme est calculée par PostgreSQL au lieu de charger toutes les
+  lignes de la collection.

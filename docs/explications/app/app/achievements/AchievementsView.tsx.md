@@ -1,28 +1,40 @@
 # `app/app/achievements/AchievementsView.tsx`
 
-> Service : **app** · Client Component · la page des succès
+> Service : **app** · Client Component · la page des succès (dos de cartes)
 
 ## 1. Rôle
 
-Affiche les **règles** (objectif, récompense, badge, gains de victoire, Elo, dos de cartes), le compteur « X / 10 unlocked », chaque succès avec son **badge**, sa **barre de progression** et sa date, et la liste des dos de cartes à gagner.
+Affiche les **règles de progression** (chaque succès débloque un dos de cartes, dos de départ,
+paquets gagnés par victoire, légendaire garantie tous les 5 paquets, Elo K = 32), le compteur
+« X / 5 unlocked », puis chaque dos de succès avec son illustration, sa condition, sa **barre de
+progression** et son état.
 
 ## 2. Dépendances
 
-- **Importe** : `PageShell`, `Panel`, `ProgressBar`, `TierBadge`, `TextLink`, `useToast`, `lib/cardBacks.ts`, `lib/achievementCatalog.ts`, `config/routes.ts`.
+- **Importe** : `PageShell`, `Panel`, `ProgressBar`, `TextLink`, `CardBackArt`,
+  `lib/cardBacks.ts` (`DEFAULT_UNLOCKED_CARD_BACKS`), `config/routes.ts`, le type
+  `CardBackAchievement` de `lib/achievements.ts` (import de type seulement : rien de serveur
+  n'arrive dans le bundle client).
 
 ## 3. Explication bloc par bloc
 
-- `useEffect` → `fetch('/api/achievements')` → état ; un toast par clé de `newlyUnlocked`.
-- Chaque carte de succès : `TierBadge` (grisé s'il est verrouillé), description, `ProgressBar` (`progressFraction`), « 4 / 10 » ou « Unlocked <date> ».
+- `useEffect` → `fetch('/api/achievements')` → état ; le drapeau `cancelled` évite d'écrire
+  l'état après démontage (et en double sous le Strict Mode de dev).
+- Chaque succès : `CardBackArt` (grisé `opacity-40 grayscale` s'il est verrouillé), la règle,
+  `ProgressBar` (`value / goal`, libellé accessible), puis « ✅ Unlocked » ou « value / goal ».
+- Le compteur est dans une zone `aria-live="polite"` (annoncé par les lecteurs d'écran).
 
 ## 4. Flux concret
 
-Après 3 amis ajoutés → la page affiche « Social Butterfly » débloqué + toast « +1 pack ».
+Après une première victoire en PvP → « 1 / 5 unlocked », le dos « Win a game vs another player »
+apparaît en couleur ; le lien « Equip a card back » mène à la collection pour l'équiper.
 
 ## 5. Points d'attention
 
-- Les dates sont formatées dans le fuseau du navigateur (`suppressHydrationWarning`).
+- La page ne débloque rien (lecture seule) : le déblocage a lieu en fin de partie ou à
+  l'ouverture d'un paquet.
 
 ## 6. Questions probables en évaluation
 
-- **Quel retour visuel pour la gamification ?** Barres de progression, badges, toasts, écran de fin de partie.
+- **Quel retour visuel pour la gamification ?** Écran de fin de partie (paquets, Elo, dos
+  débloqué), barres de progression ici, dos visibles sur le profil public et par l'adversaire.

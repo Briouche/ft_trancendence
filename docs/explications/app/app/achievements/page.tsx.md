@@ -4,7 +4,7 @@
 
 ## 1. Rôle
 
-Page des succès (réservée aux connectés) ; rend `AchievementsView`.
+Page des succès — les dos de cartes à débloquer (réservée aux connectés) ; rend `AchievementsView`.
 
 ## 2. Dépendances
 
@@ -20,7 +20,7 @@ Menu du compte → Achievements.
 
 ## 5. Points d'attention
 
-- Les données sont chargées côté client (le chargement débloque les nouveaux succès et affiche un toast).
+- Les données sont chargées côté client par `AchievementsView` (lecture seule, rien n'est débloqué ici).
 
 ## 6. Questions probables en évaluation
 

@@ -4,11 +4,11 @@
 
 ## 1. Rôle
 
-Déroulé en 3 phases : **choisir** un des 3 designs → **ouvrir** (animation de déchirure pendant l'appel `/api/packs/open`) → **révéler** les 8 cartes une par une (clic ou barre d'espace), dos de carte débloqué annoncé, toasts des succès. Affiche paquets restants et « N packs until guaranteed legendary ». En dev : outils de test.
+Déroulé en 3 phases : **choisir** un des 3 designs → **ouvrir** (animation de déchirure pendant l'appel `/api/packs/open`) → **révéler** les 8 cartes une par une (clic ou barre d'espace), dos de carte débloqué annoncé (collection complète). Affiche paquets restants et « N packs until guaranteed legendary ». En dev : outils de test.
 
 ## 2. Dépendances
 
-- **Importe** : `./PackCardCircle`, `./PackCardZoom`, `./PackChoice`, `./PackArt`, `CardBackArt`, `NotebookUI`, `ScaleToFit`, `lib/devTools.ts`, `useToast`.
+- **Importe** : `./PackCardCircle`, `./PackCardZoom`, `./PackChoice`, `./PackArt`, `CardBackArt`, `NotebookUI`, `ScaleToFit`, `lib/devTools.ts`.
 
 ## 3. Explication bloc par bloc
 

@@ -45,16 +45,15 @@ libellé accessible).
 | 4 | `Field` — champ texte avec libellé | `components/ui/Field.tsx` | amis, design system |
 | 5 | `Avatar` — avatar encadré avec repli sur l'avatar par défaut | `components/ui/Avatar.tsx` | amis, chat, joueurs, profils |
 | 6 | `PresenceDot` — présence (couleur + texte pour lecteurs d'écran) | `components/ui/PresenceDot.tsx` | amis, chat, joueurs, profils |
-| 7 | `TierBadge` — badge bronze/argent/or | `components/ui/TierBadge.tsx` | profils publics, succès |
-| 8 | `ProgressBar` — barre `role="progressbar"` | `components/ui/ProgressBar.tsx` | succès |
-| 9 | `Pagination` — page précédente / suivante | `components/ui/Pagination.tsx` | joueurs |
-| 10 | `EmptyState` — liste vide | `components/ui/EmptyState.tsx` | amis, chat, profils |
-| 11 | `Toast` / `useToast` — notifications | `components/ui/Toast.tsx` | layout, hub, paquets, chat, amis, succès |
-| 12 | `AssetButton` — bouton sprite animé (icônes) | `components/notebook/NotebookUI.tsx` | hub, toutes les pages carnet |
-| 13 | `HomeButton`, `TitleBanner`, `Slot`, `PageArrow`, `SearchInput`, `SelectHighlight` | `components/notebook/NotebookUI.tsx` | collection, decks, jeu, manuel, paquets |
-| 14 | `ScaleToFit` — met à l'échelle une page à mise en page fixe | `components/ScaleToFit.tsx` | pages carnet |
-| 15 | `CardFace` / `ScaledCardFace` / `CardBackArt` — cartes | `components/` | collection, decks, paquets |
-| 16 | `NoticePage` / `NoticeSection` — pages légales | `components/` | privacy, terms |
+| 7 | `ProgressBar` — barre `role="progressbar"` | `components/ui/ProgressBar.tsx` | succès |
+| 8 | `Pagination` — page précédente / suivante | `components/ui/Pagination.tsx` | joueurs |
+| 9 | `EmptyState` — liste vide | `components/ui/EmptyState.tsx` | amis, chat, profils |
+| 10 | `Toast` / `useToast` — notifications | `components/ui/Toast.tsx` | layout, chat, amis, profils |
+| 11 | `AssetButton` — bouton sprite animé (icônes) | `components/notebook/NotebookUI.tsx` | hub, toutes les pages carnet |
+| 12 | `HomeButton`, `TitleBanner`, `Slot`, `PageArrow`, `SearchInput`, `SelectHighlight` | `components/notebook/NotebookUI.tsx` | collection, decks, jeu, manuel, paquets |
+| 13 | `ScaleToFit` — met à l'échelle une page à mise en page fixe | `components/ScaleToFit.tsx` | pages carnet |
+| 14 | `CardFace` / `ScaledCardFace` / `CardBackArt` — cartes | `components/` | collection, decks, paquets, succès, profils |
+| 15 | `NoticePage` / `NoticeSection` — pages légales | `components/` | privacy, terms |
 
 ## Règles d'usage
 

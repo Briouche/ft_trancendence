@@ -14,7 +14,7 @@ Hearthstone) :
 - on joue des parties **contre l'IA** (3 difficultés) ou **contre un autre joueur** en temps réel,
   sur deux machines différentes ; le serveur arbitre chaque coup ;
 - autour du jeu : **amis**, **chat privé**, **présence en ligne**, **profils publics** avec avatar,
-  **classement Elo**, **succès/badges**, **historique des parties**.
+  **classement Elo**, **succès (dos de cartes à débloquer)**, **historique des parties**.
 
 ## 2. Les conteneurs
 
@@ -65,7 +65,7 @@ sequenceDiagram
         P-->>B: redirect("/")
     end
     P->>L: getPublicProfile("alice", viewerId)
-    L->>DB: Prisma : user, badges, 10 dernières parties, relation d'amitié
+    L->>DB: Prisma : user, dos gagnés, 10 dernières parties, relation d'amitié
     L->>R: présence (HMGET presence:online, SMISMEMBER presence:ingame)
     L-->>P: profil public (jamais l'email)
     P-->>B: HTML rendu côté serveur + composant client PublicProfileView
@@ -167,7 +167,6 @@ erDiagram
     User ||--o{ Friendship : "destinataire"
     User ||--o{ Message : "envoie"
     User ||--o{ Message : "reçoit"
-    User ||--o{ UserAchievement : "débloque"
     User ||--o{ MatchPlayer : "joue"
     Match ||--|{ MatchPlayer : "sièges humains"
 
@@ -181,7 +180,7 @@ erDiagram
         string avatar "nom du fichier"
         int elo
         int unopenedPacks
-        int[] unlockedCardBacks
+        int[] unlockedCardBacks "dos débloqués = succès"
     }
     Card {
         string id PK
@@ -217,11 +216,6 @@ erDiagram
         int senderId FK
         int recipientId FK
         string content "500 max"
-    }
-    UserAchievement {
-        int userId PK
-        string key PK
-        datetime unlockedAt
     }
     Match {
         int id PK

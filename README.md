@@ -22,8 +22,9 @@ Key features:
   human-like pacing and mistakes).
 - **Social**: friends (requests, accept/decline, remove), **live online status**, **private
   chat** between friends, public profiles with match history.
-- **Progression**: Elo leaderboard, 10 achievements with bronze/silver/gold badges, reward packs,
-  unlockable card backs, per-mode win counters.
+- **Progression**: Elo leaderboard, achievements that unlock card backs (first win in each mode,
+  complete collection) shown to your opponents, reward packs with a guaranteed legendary, per-mode
+  win counters.
 - **Everything over HTTPS/WSS**, secrets only in `.env`, inputs validated on both sides.
 
 Full documentation (French) for the team and the evaluation: [`docs/`](docs/) — start with
@@ -162,20 +163,18 @@ erDiagram
     Card ||--o{ DeckCard : ""
     User ||--o{ Friendship : "requester / addressee"
     User ||--o{ Message : "sends / receives"
-    User ||--o{ UserAchievement : unlocks
     User ||--o{ MatchPlayer : plays
     Match ||--|{ MatchPlayer : "human seats"
 ```
 
 | Table | Purpose | Key fields |
 |---|---|---|
-| `User` | account, stats, rewards | `id` PK, `email` UQ, `username` UQ, `password` (argon2 hash, null for 42-only), `fortyTwoId` UQ, `tokenVersion`, `avatar`, `elo`, `unopenedPacks`, `pityCounter`, `winsVs*`, `cardBack`, `unlockedCardBacks int[]`, `packsOpened` |
+| `User` | account, stats, rewards | `id` PK, `email` UQ, `username` UQ, `password` (argon2 hash, null for 42-only), `fortyTwoId` UQ, `tokenVersion`, `avatar`, `elo`, `unopenedPacks`, `pityCounter`, `winsVs*`, `cardBack`, `unlockedCardBacks int[]` (starting backs + backs earned through achievements) |
 | `Card` | card catalog | `id` PK (text), `name`, `rarity`, `cost`/`atk`/`def`, `qty` (max copies per player), keyword flags, effects as JSON (`battlecry`, `deathrattle`, `spellEffect`…) |
 | `UserCard` | collection | PK (`userId`, `cardId`), `qty` |
 | `Deck` / `DeckCard` | decks | `Deck.userId` FK; `DeckCard` PK (`deckId`, `cardId`), `qty` |
 | `Friendship` | friendships | `requesterId`, `addresseeId` (UQ pair), `status` PENDING / ACCEPTED / BLOCKED |
 | `Message` | private chat | `senderId`, `recipientId`, `content varchar(500)`, `createdAt` |
-| `UserAchievement` | unlocked achievements | PK (`userId`, `key`), `unlockedAt` |
 | `Match` / `MatchPlayer` | match history | `Match.mode` PVP / AI_EASY / AI_MEDIUM / AI_HARD, `endReason` hero / forfeit; `MatchPlayer` PK (`matchId`, `userId`), `won`, `eloChange` |
 
 All user-owned rows are deleted with the user (`ON DELETE CASCADE`). Online presence is kept in
@@ -200,7 +199,7 @@ Redis, not in the database. Full diagram: [`docs/explications/00_VUE_ENSEMBLE.md
 | Game client | Phaser table, drag & drop, animations, match history | brcoppie |
 | Multiplayer | matchmaking, authoritative server, reconnection, forfeit | brcoppie, stdevis |
 | AI opponent | MCTS with determinization, difficulties, human-like play | brcoppie, lecartuy |
-| Gamification | Elo, achievements & badges, rewards, leaderboard | stdevis |
+| Gamification | Elo, card-back achievements, rewards, leaderboard | stdevis |
 | Player search | filters, sort, server-side pagination | stdevis |
 | Infrastructure | Docker Compose, nginx TLS, Makefile | fkrakow |
 
@@ -215,14 +214,14 @@ Redis, not in the database. Full diagram: [`docs/explications/00_VUE_ENSEMBLE.md
 | 2 | Real-time features using WebSockets | Major | 2 | game socket (`game_engine`), chat/presence socket (`socket-server`), targeted rooms | brcoppie, fkrakow |
 | 3 | User interaction (chat, profile, friends) | Major | 2 | `/chat`, `/users/[username]`, `/friends` | fkrakow |
 | 4 | ORM (Prisma) | Minor | 1 | `app/prisma/schema.prisma`, migrations, shared client | all |
-| 5 | Custom design system (10+ components) | Minor | 1 | tokens + 16 components, `/design-system`, `docs/DESIGN_SYSTEM.md` | stdevis |
+| 5 | Custom design system (10+ components) | Minor | 1 | tokens + 15 components, `/design-system`, `docs/DESIGN_SYSTEM.md` | stdevis |
 | 6 | Advanced search (filters, sort, pagination) | Minor | 1 | `/players` + `GET /api/users` | stdevis |
 | 7 | Standard user management | Major | 2 | profile edit, avatar upload + default, friends with online status, profile pages | fkrakow |
 | 8 | Remote authentication with OAuth 2.0 (42) | Minor | 1 | `app/api/auth/42/**`, `app/lib/oauth42.ts` | fkrakow |
 | 9 | AI opponent | Major | 2 | `game_engine/srcs/ai/**` (MCTS, policy) | brcoppie, lecartuy |
 | 10 | Complete web-based game | Major | 2 | `game_engine/srcs/gameEngine.ts` + Phaser client, rules in `/manual` | brcoppie |
 | 11 | Remote players | Major | 2 | authoritative server, authenticated sockets, reconnection window | brcoppie, stdevis |
-| 12 | Gamification | Minor | 1 | achievements, badges, Elo leaderboard, reward packs, card backs | stdevis |
+| 12 | Gamification | Minor | 1 | card-back achievements, Elo leaderboard, reward packs (legendary pity) | stdevis |
 
 **TODO(team):** add the justification of each module choice in your own words.
 

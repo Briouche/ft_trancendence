@@ -4,11 +4,11 @@
 
 ## 1. Rôle
 
-`POST /api/packs/open` : ouvre un paquet (`lib/packs.ts`) puis évalue les succès (« Pack Rat », « Collector », « Completionist ») ; renvoie les cartes, les paquets restants (récompenses incluses) et les succès débloqués.
+`POST /api/packs/open` : ouvre un paquet (`lib/packs.ts`) ; renvoie les cartes tirées, les paquets restants, le compteur de légendaire garantie et le dos débloqué si ce paquet complète la collection.
 
 ## 2. Dépendances
 
-- **Importe** : `lib/prisma.ts`, `lib/api.ts`, `lib/packs.ts`, `lib/achievements.ts`.
+- **Importe** : `lib/prisma.ts`, `lib/api.ts`, `lib/packs.ts`.
 
 ## 3. Explication bloc par bloc
 
@@ -16,7 +16,7 @@
 
 ## 4. Flux concret
 
-Choisir un paquet → animation → cartes révélées → toast si un succès tombe.
+Choisir un paquet → animation → cartes révélées → si la collection est complète, le dos « Complete the full card collection » est débloqué.
 
 ## 5. Points d'attention
 

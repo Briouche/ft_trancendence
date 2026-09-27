@@ -6,7 +6,7 @@
 
 Affiche **en vrai** chaque token et chaque composant réutilisable : couleurs (valeur et rôle),
 typographie, icônes (`AssetButton`), boutons et liens, champs, identité (`Avatar`,
-`PresenceDot`), progression et badges, pagination, liste vide, cartes.
+`PresenceDot`), progression (`ProgressBar`), pagination, liste vide, cartes.
 
 ## 2. Dépendances
 

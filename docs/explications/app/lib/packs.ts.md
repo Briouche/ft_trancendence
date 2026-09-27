@@ -25,7 +25,7 @@
 ```ts
 const taken = await tx.user.updateMany({
     where: { id: userId, unopenedPacks: { gt: 0 } },           // vérifie ET réserve en une requête
-    data: { unopenedPacks: { decrement: 1 }, packsOpened: { increment: 1 } },
+    data: { unopenedPacks: { decrement: 1 } },
 });
 if (taken.count === 0) throw new NoPackError();
 ```

@@ -24,4 +24,4 @@ Bouton « Get a free pack (temporary) » de `/packs` en dev.
 
 ## 6. Questions probables en évaluation
 
-- **Comment obtient-on des paquets en vrai ?** Victoires (moyen, difficile, PvP) et succès.
+- **Comment obtient-on des paquets en vrai ?** Victoires : IA moyenne 1, IA difficile 2, joueur 2.

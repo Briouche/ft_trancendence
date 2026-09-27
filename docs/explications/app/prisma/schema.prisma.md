@@ -14,10 +14,9 @@ Définit toutes les tables, leurs champs et relations (partagé avec le serveur 
 
 | Modèle | Rôle | Clés / contraintes |
 |---|---|---|
-| `User` | compte, stats, récompenses | `email` et `username` uniques, `fortyTwoId` unique, `tokenVersion` |
+| `User` | compte, stats, récompenses (dont `unlockedCardBacks` : les dos débloqués = les succès) | `email` et `username` uniques, `fortyTwoId` unique, `tokenVersion` |
 | `Friendship` | amitié (PENDING/ACCEPTED) | `@@unique([requesterId, addresseeId])`, suppression en cascade |
 | `Message` | chat | index par paire d'utilisateurs, 500 caractères max |
-| `UserAchievement` | succès débloqués | clé `(userId, key)` |
 | `Match` / `MatchPlayer` | historique | un `MatchPlayer` par siège humain, variation d'Elo |
 | `Card` | catalogue, effets en JSON | `id` texte |
 | `UserCard` | collection | clé `(userId, cardId)` |

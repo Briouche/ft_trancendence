@@ -4,11 +4,11 @@
 
 ## 1. Rôle
 
-Identité (avatar, nom, présence en direct, inscription), **action** selon la relation (éditer son profil, ajouter en ami, accepter sa demande, demande envoyée, chat), statistiques (Elo, parties, victoires), **badges**, **10 dernières parties**.
+Identité (avatar, nom, présence en direct, inscription), **action** selon la relation (éditer son profil, ajouter en ami, accepter sa demande, demande envoyée, chat), statistiques (Elo, parties, victoires), **dos de cartes gagnés** (les succès, avec leur condition), **10 dernières parties**.
 
 ## 2. Dépendances
 
-- **Importe** : composants `ui/*`, `useToast`, `usePresence`, `useRealtimeEvent`, `lib/chatEvents.ts`, `config/routes.ts`, type `PublicProfile`.
+- **Importe** : composants `ui/*`, `CardBackArt`, `useToast`, `usePresence`, `useRealtimeEvent`, `lib/chatEvents.ts`, `config/routes.ts`, type `PublicProfile`.
 
 ## 3. Explication bloc par bloc
 
