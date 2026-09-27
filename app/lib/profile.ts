@@ -1,7 +1,7 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { getBadges } from "@/lib/achievements";
+import { getEarnedCardBacks } from "@/lib/achievements";
 import { relationship } from "@/lib/friends";
 import { publicUserSelect, toPublicUsers } from "@/lib/users";
 
@@ -31,9 +31,9 @@ export async function getPublicProfile(username: string, viewerId: number) {
   });
   if (!row) return null;
 
-  const [[user], badges, rel, matches, played] = await Promise.all([
+  const [[user], earnedCardBacks, rel, matches, played] = await Promise.all([
     toPublicUsers([row]),
-    getBadges(row.id),
+    getEarnedCardBacks(row.id),
     relationship(viewerId, row.id),
     prisma.matchPlayer.findMany({
       where: { userId: row.id },
@@ -55,7 +55,7 @@ export async function getPublicProfile(username: string, viewerId: number) {
       pvpWins: row.winsVsPlayer,
       aiWins: { easy: row.winsVsAiEasy, medium: row.winsVsAiMedium, hard: row.winsVsAiHard },
     },
-    badges,
+    earnedCardBacks,
     relationship: rel,
     matches: matches.map((mp) => ({
       id: mp.matchId,

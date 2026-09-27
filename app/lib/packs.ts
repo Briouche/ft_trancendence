@@ -68,7 +68,7 @@ export async function openPack(prisma: PrismaClient, userId: number) {
     // left" and each drawing a full pack from it.
     const taken = await tx.user.updateMany({
       where: { id: userId, unopenedPacks: { gt: 0 } },
-      data: { unopenedPacks: { decrement: 1 }, packsOpened: { increment: 1 } },
+      data: { unopenedPacks: { decrement: 1 } },
     });
     if (taken.count === 0) {
       throw new NoPackError();

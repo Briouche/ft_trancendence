@@ -40,15 +40,13 @@ model User {
   winsVsPlayer   Int @default(0)
   // Elo rating, PvP only (K = 32).
   elo Int @default(1000)
-  // Selected / unlocked card backs, indices into lib/cardBacks.ts.
+  // Selected / unlocked card backs, indices into lib/cardBacks.ts. The unlockable ones are the
+  // game's achievements (first win per mode, full collection).
   cardBack          Int   @default(0)
   unlockedCardBacks Int[] @default([0, 1, 2])
-  // Lifetime number of packs opened (achievements).
-  packsOpened Int @default(0)
 
   messagesSent     Message[]         @relation("MessageSender")
   messagesReceived Message[]         @relation("MessageRecipient")
-  achievements     UserAchievement[]
   matchesAsPlayer  MatchPlayer[]
 }
 
@@ -68,17 +66,6 @@ model Message {
 
   @@index([senderId, recipientId, id])
   @@index([recipientId, senderId, id])
-}
-
-// Achievement unlocked by a user; the catalog (titles, thresholds, rewards) is code, in
-// app/lib/achievements.ts, keyed by `key`.
-model UserAchievement {
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  key        String
-  unlockedAt DateTime @default(now())
-
-  @@id([userId, key])
 }
 
 enum MatchMode {

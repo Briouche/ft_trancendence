@@ -6,7 +6,7 @@ import PageShell from '@/components/ui/PageShell'
 import Panel from '@/components/ui/Panel'
 import Avatar from '@/components/ui/Avatar'
 import PresenceDot from '@/components/ui/PresenceDot'
-import TierBadge from '@/components/ui/TierBadge'
+import CardBackArt from '@/components/CardBackArt'
 import EmptyState from '@/components/ui/EmptyState'
 import TextButton, { TextLink } from '@/components/ui/TextButton'
 import { useToast } from '@/components/ui/Toast'
@@ -24,9 +24,9 @@ function Stat({ label, value }: { label: string; value: string | number }) {
     )
 }
 
-/** Public profile: identity + presence, relationship actions, stats, badges and recent matches. */
+/** Public profile: identity + presence, relationship actions, stats, earned card backs and recent matches. */
 export default function PublicProfileView({ profile }: { profile: PublicProfile }) {
-    const { user, stats, badges, matches, relationship } = profile
+    const { user, stats, earnedCardBacks, matches, relationship } = profile
     const router = useRouter()
     const toast = useToast()
     const [busy, setBusy] = useState(false)
@@ -83,11 +83,16 @@ export default function PublicProfileView({ profile }: { profile: PublicProfile 
                 </div>
             </Panel>
 
-            <Panel maxWidth="max-w-3xl" aria-labelledby="badges-title">
-                <h2 id="badges-title" className="mb-3 font-display text-2xl text-ink-text">Badges</h2>
-                {badges.length === 0 ? <EmptyState>No badge yet.</EmptyState> : (
-                    <ul className="flex flex-wrap gap-2">
-                        {badges.map(b => <li key={b.key}><TierBadge tier={b.tier} title={b.title} /></li>)}
+            <Panel maxWidth="max-w-3xl" aria-labelledby="backs-title">
+                <h2 id="backs-title" className="mb-3 font-display text-2xl text-ink-text">Card backs earned</h2>
+                {earnedCardBacks.length === 0 ? <EmptyState>No achievement card back yet.</EmptyState> : (
+                    <ul className="flex flex-wrap gap-3">
+                        {earnedCardBacks.map(b => (
+                            <li key={b.cardBack} className="flex w-24 flex-col items-center gap-1" title={b.rule}>
+                                <CardBackArt index={b.cardBack} className="h-24 w-16" />
+                                <span className="text-center font-serif text-[10px] leading-tight text-ink-muted">{b.rule}</span>
+                            </li>
+                        ))}
                     </ul>
                 )}
             </Panel>

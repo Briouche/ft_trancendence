@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic'
 import SceneLoading from '@/components/library/SceneLoading'
 import SimpleHubMenu from './SimpleHubMenu'
 import type { WinsBreakdown, CardBacksSummary } from './AccountMenu'
-import { useToast } from '@/components/ui/Toast'
 
 const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: SceneLoading })
 
@@ -51,7 +50,6 @@ export default function HubBackground({ username }: { username: string }) {
     // null during server rendering (no DOM to probe), the real answer in the browser.
     const webgl2Supported = useSyncExternalStore<boolean | null>(noSubscription, supportsWebGL2, () => null)
     const isNarrow = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW_QUERY).matches, () => false)
-    const toast = useToast()
 
     useEffect(() => {
         if (!isHome) return
@@ -60,19 +58,11 @@ export default function HubBackground({ username }: { username: string }) {
         fetch('/api/user/summary')
             .then(res => res.ok ? res.json() : null)
             .then(data => {
-                if (!data) return
-                // Achievements reached since the last visit (typically during the match just played).
-                // Announced even if this effect was cancelled meanwhile: the request that unlocked
-                // them is the only one that reports them (in dev, Strict Mode runs this effect twice
-                // and the first, cancelled run is the one that unlocks), and toasts are app-wide.
-                for (const a of data.newAchievements as { title: string; rewardPacks: number }[]) {
-                    toast(`🏆 Achievement unlocked: ${a.title} (+${a.rewardPacks} pack${a.rewardPacks > 1 ? 's' : ''})`, 'success')
-                }
-                if (!cancelled) setStats({ cardCount: data.cardCount, elo: data.elo, wins: data.wins, cardBacks: data.cardBacks })
+                if (data && !cancelled) setStats({ cardCount: data.cardCount, elo: data.elo, wins: data.wins, cardBacks: data.cardBacks })
             })
 
         return () => { cancelled = true }
-    }, [isHome, toast])
+    }, [isHome])
 
     return (
         <div className={isHome ? '' : 'hidden'}>

@@ -1,117 +1,62 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { ACHIEVEMENT_CARD_BACKS } from "@/lib/cardBacks";
-import {
-  ACHIEVEMENTS,
-  ACHIEVEMENTS_BY_KEY,
-  type AchievementDefinition,
-  type AchievementMetric,
-  type AchievementStatus,
-} from "@/lib/achievementCatalog";
+import { ACHIEVEMENT_CARD_BACKS, ACHIEVEMENT_CARD_BACK_HINTS } from "@/lib/cardBacks";
 
-// Achievement unlocking. Statistics are recomputed from the database each time (no separate
-// counters that could drift), and whatever newly reached its goal is persisted with its reward.
+// The achievements of the game are its unlockable card backs: each one has a condition (first win
+// in a mode, complete collection) and is granted by the code that detects it —
+// game_engine/srcs/matchResults.ts after a match, lib/packs.ts when a pack completes the
+// collection. This module only reports the progress towards each of them.
 
-type Stats = Record<AchievementMetric, number>;
+/** One card-back achievement as shown on /achievements. */
+export type CardBackAchievement = {
+  cardBack: number;
+  rule: string;
+  value: number;
+  goal: number;
+  unlocked: boolean;
+};
 
-/** Current value of every achievement metric for a user. */
-export async function computeStats(userId: number): Promise<Stats> {
-  const [user, matchesPlayed, distinctCards, friends, messagesSent] = await Promise.all([
+/** Progress of a user towards every card-back achievement, in catalog order. */
+export async function getCardBackAchievements(userId: number): Promise<CardBackAchievement[]> {
+  const [user, owned, cards] = await Promise.all([
     prisma.user.findUniqueOrThrow({
       where: { id: userId },
-      select: {
-        winsVsAiEasy: true,
-        winsVsAiMedium: true,
-        winsVsAiHard: true,
-        winsVsPlayer: true,
-        packsOpened: true,
-        elo: true,
-        unlockedCardBacks: true,
-      },
+      select: { winsVsPlayer: true, winsVsAiEasy: true, winsVsAiMedium: true, winsVsAiHard: true, unlockedCardBacks: true },
     }),
-    prisma.matchPlayer.count({ where: { userId } }),
-    prisma.userCard.count({ where: { userId, qty: { gt: 0 } } }),
-    prisma.friendship.count({
-      where: { status: "ACCEPTED", OR: [{ requesterId: userId }, { addresseeId: userId }] },
-    }),
-    prisma.message.count({ where: { senderId: userId } }),
+    prisma.userCard.findMany({ where: { userId }, select: { cardId: true, qty: true } }),
+    prisma.card.findMany({ select: { id: true, qty: true } }),
   ]);
 
-  return {
-    totalWins: user.winsVsAiEasy + user.winsVsAiMedium + user.winsVsAiHard + user.winsVsPlayer,
-    matchesPlayed,
-    pvpWins: user.winsVsPlayer,
-    hardAiWins: user.winsVsAiHard,
-    packsOpened: user.packsOpened,
-    distinctCards,
-    // The "full collection" card back is granted by lib/packs.ts at the moment it happens.
-    collectionComplete: user.unlockedCardBacks.includes(ACHIEVEMENT_CARD_BACKS.fullCollection) ? 1 : 0,
-    friends,
-    messagesSent,
-    elo: user.elo,
+  // Collection progress in copies: each card counts up to its per-player maximum.
+  const ownedQty = new Map(owned.map((o) => [o.cardId, o.qty]));
+  const collectionGoal = cards.reduce((sum, c) => sum + c.qty, 0);
+  const collectionValue = cards.reduce((sum, c) => sum + Math.min(c.qty, ownedQty.get(c.id) ?? 0), 0);
+
+  const progress: Record<keyof typeof ACHIEVEMENT_CARD_BACKS, [number, number]> = {
+    winVsPlayer: [user.winsVsPlayer, 1],
+    winVsAiEasy: [user.winsVsAiEasy, 1],
+    winVsAiMedium: [user.winsVsAiMedium, 1],
+    winVsAiHard: [user.winsVsAiHard, 1],
+    fullCollection: [collectionValue, collectionGoal],
   };
-}
 
-/**
- * Unlocks every achievement whose goal is now reached and grants its reward packs.
- *
- * Safe to call concurrently (two tabs, or the hub and a pack opening at once): each unlock is an
- * insert that skips duplicates, and only the call whose insert actually created the row grants
- * the reward, so packs can never be granted twice.
- *
- * @returns the achievements unlocked by this call (for a "new achievement" notification).
- */
-export async function evaluateAchievements(userId: number): Promise<AchievementDefinition[]> {
-  const [stats, owned] = await Promise.all([
-    computeStats(userId),
-    prisma.userAchievement.findMany({ where: { userId }, select: { key: true } }),
-  ]);
-  const ownedKeys = new Set(owned.map((o) => o.key));
-  const reached = ACHIEVEMENTS.filter((a) => !ownedKeys.has(a.key) && stats[a.metric] >= a.goal);
-  if (reached.length === 0) return [];
-
-  return prisma.$transaction(async (tx) => {
-    const unlocked: AchievementDefinition[] = [];
-    for (const achievement of reached) {
-      const { count } = await tx.userAchievement.createMany({
-        data: [{ userId, key: achievement.key }],
-        skipDuplicates: true,
-      });
-      if (count === 1) unlocked.push(achievement);
-    }
-
-    const packs = unlocked.reduce((sum, a) => sum + a.rewardPacks, 0);
-    if (packs > 0) {
-      await tx.user.update({ where: { id: userId }, data: { unopenedPacks: { increment: packs } } });
-    }
-    return unlocked;
+  return (Object.entries(ACHIEVEMENT_CARD_BACKS) as [keyof typeof ACHIEVEMENT_CARD_BACKS, number][]).map(([key, cardBack]) => {
+    const [value, goal] = progress[key];
+    return {
+      cardBack,
+      rule: ACHIEVEMENT_CARD_BACK_HINTS[cardBack],
+      value: Math.min(value, goal),
+      goal,
+      unlocked: user.unlockedCardBacks.includes(cardBack),
+    };
   });
 }
 
-/** Every achievement with the user's progress and unlock date (evaluates first). */
-export async function getAchievementStatuses(userId: number): Promise<{
-  achievements: AchievementStatus[];
-  newlyUnlocked: string[];
-}> {
-  const newlyUnlocked = await evaluateAchievements(userId);
-  const [stats, rows] = await Promise.all([
-    computeStats(userId),
-    prisma.userAchievement.findMany({ where: { userId } }),
-  ]);
-  const unlockedAt = new Map(rows.map((r) => [r.key, r.unlockedAt.toISOString()]));
-
-  return {
-    achievements: ACHIEVEMENTS.map((a) => ({ ...a, value: stats[a.metric], unlockedAt: unlockedAt.get(a.key) ?? null })),
-    newlyUnlocked: newlyUnlocked.map((a) => a.key),
-  };
-}
-
-/** Badges (unlocked achievements) of a user, most recent first, for their public profile. */
-export async function getBadges(userId: number) {
-  const rows = await prisma.userAchievement.findMany({ where: { userId }, orderBy: { unlockedAt: "desc" } });
-  return rows.flatMap((r) => {
-    const definition = ACHIEVEMENTS_BY_KEY.get(r.key);
-    return definition ? [{ key: r.key, title: definition.title, tier: definition.tier, unlockedAt: r.unlockedAt.toISOString() }] : [];
-  });
+/** Card backs earned through achievements, for a public profile. */
+export async function getEarnedCardBacks(userId: number): Promise<{ cardBack: number; rule: string }[]> {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { unlockedCardBacks: true } });
+  return Object.values(ACHIEVEMENT_CARD_BACKS)
+    .filter((cardBack) => user.unlockedCardBacks.includes(cardBack))
+    .map((cardBack) => ({ cardBack, rule: ACHIEVEMENT_CARD_BACK_HINTS[cardBack] }));
 }

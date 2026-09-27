@@ -5,7 +5,6 @@ import PageShell from '@/components/ui/PageShell'
 import Panel from '@/components/ui/Panel'
 import Avatar from '@/components/ui/Avatar'
 import PresenceDot from '@/components/ui/PresenceDot'
-import TierBadge from '@/components/ui/TierBadge'
 import ProgressBar from '@/components/ui/ProgressBar'
 import TextButton, { TextLink } from '@/components/ui/TextButton'
 import Field from '@/components/ui/Field'
@@ -108,16 +107,10 @@ export default function DesignSystemShowcase() {
                 </div>
             </Section>
 
-            <Section title="Progress & badges">
+            <Section title="Progress">
                 <div className="flex flex-col gap-3">
                     <ProgressBar value={0.35} label="Example progress: 35%" />
                     <ProgressBar value={1} complete label="Example progress: complete" />
-                    <div className="flex flex-wrap gap-2">
-                        <TierBadge tier="bronze" title="Bronze" />
-                        <TierBadge tier="silver" title="Silver" />
-                        <TierBadge tier="gold" title="Gold" />
-                        <TierBadge tier="gold" title="Locked" locked />
-                    </div>
                 </div>
             </Section>
 

@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/api";
-import { getAchievementStatuses } from "@/lib/achievements";
+import { getCardBackAchievements } from "@/lib/achievements";
 
-/**
- * GET /api/achievements — every achievement with the current user's progress. Also unlocks
- * whatever was reached since the last check; `newlyUnlocked` lists those keys for a notification.
- */
+/** GET /api/achievements — the card-back achievements with the current user's progress. */
 export async function GET() {
   const auth = await requireSession();
   if (auth instanceof NextResponse) return auth;
 
-  return NextResponse.json(await getAchievementStatuses(auth.userId));
+  return NextResponse.json({ achievements: await getCardBackAchievements(auth.userId) });
 }
