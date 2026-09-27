@@ -9,7 +9,7 @@ interface RawUser {
   password: string;
 }
 
-// Dev/test accounts from data/users-collection.json (passwords hashed on insert).
+/** Dev/test accounts from data/users-collection.json (passwords hashed on insert). */
 export async function seedUsers(prisma: PrismaClient) {
   const jsonPath = path.resolve(__dirname, "./data/users-collection.json");
   const raw = fs.readFileSync(jsonPath, "utf-8");
