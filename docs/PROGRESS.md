@@ -66,7 +66,7 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - [x] 3b. Présence en ligne + chat (socket-server réparé, modèle Message, UI)
 - [x] 3c. Profil public `/users/[username]` + avatar (upload sécurisé, avatar par défaut)
 - [x] 3d. Recherche avancée `/players` (filtres, tri, pagination serveur) = classement
-- [x] 3e. Gamification : succès persistés, page `/achievements`, récompenses affichées en fin de partie
+- [x] 3e. Gamification : succès = dos de cartes (décision de l'équipe, D11), page `/achievements`, récompenses affichées en fin de partie
 - [x] 3f. OAuth : liaison depuis le profil, gestion du refus
 - [x] 3g. Design system documenté + page de démonstration
 - [x] 4a. Sécurité : rate limiting auth, en-têtes, CORS strict socket-server, `npm audit` (0 vulnérabilité)
@@ -76,8 +76,8 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
 - [x] 5. Revue des commentaires (anglais partout, JSDoc sur les 203 exports, aucun TODO/FIXME)
 - [x] 6. `docs/explications/` : 00/01/02 + une page par fichier source (252 pages, `verifier_couverture.sh` ne signale rien)
 - [x] 7. README.md (anglais, toutes les sections du sujet, TODO(team) pour les infos d'équipe)
-- [ ] 8. Vérification finale (clone propre, parcours complet, deux sessions)
-- [ ] 9. `docs/RAPPORT_FINAL.md`
+- [x] 8. Vérification finale (clone propre, parcours complet, deux sessions, `make prod`)
+- [x] 9. `docs/RAPPORT_FINAL.md`
 
 ## Journal
 
@@ -97,3 +97,9 @@ Node + socket.io + Redis (`socket-server`) · PostgreSQL 16 · Redis 7 · nginx 
   Elo ±16), historique et badges mis à jour. Bug trouvé et corrigé : double création de partie.
 - Limite connue : les pages « livre » (collection, decks, manuel, paquets, jeu) sont mises à
   l'échelle sur mobile (lisibles mais petites en portrait) ; le hub passe en menu texte < 768 px.
+- Étape 8 (clone propre) : 4 bugs trouvés et corrigés (reconnexion bloquée par la recréation du
+  jeu Phaser, délai de transaction à froid, conteneur qui ignorait l'échec des migrations, erreur
+  console à l'inscription). Parcours complet 28/28, `make prod` vérifié (HTTPS, 301, outils de
+  dev désactivés, pas de comptes de test).
+- À la demande de l'équipe : les succès sont les dos de cartes (10 succès + badges retirés,
+  migration de suppression de `UserAchievement` / `packsOpened`), docs mises à jour.
