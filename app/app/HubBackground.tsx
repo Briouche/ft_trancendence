@@ -22,11 +22,14 @@ function supportsWebGL2(): boolean {
 }
 
 // Hub mounted once by the root layout and only hidden on other routes, so its WebGL scene is
-// never rebuilt. Stats are refetched every time the user comes back to "/". Falls back to a
-// plain menu without WebGL2.
+// not rebuilt, except after a match (see `inGame`). Stats are refetched every time the user
+// comes back to "/". Falls back to a plain menu without WebGL2.
 export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'
+    // During a match the hub is unmounted (not just hidden) so its WebGL context and textures are
+    // freed for Phaser; it rebuilds when the player comes back.
+    const inGame = pathname.startsWith('/play/game')
     const [stats, setStats] = useState({ cardCount: 0, elo: 1000, wins: EMPTY_WINS, cardBacks: EMPTY_CARD_BACKS })
     const [webgl2Supported, setWebgl2Supported] = useState<boolean | null>(null)
 
@@ -44,6 +47,8 @@ export default function HubBackground({ username }: { username: string }) {
 
         return () => { cancelled = true }
     }, [isHome])
+
+    if (inGame) return null
 
     return (
         <div className={isHome ? '' : 'hidden'}>
