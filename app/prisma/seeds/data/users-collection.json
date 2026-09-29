@@ -3,17 +3,45 @@
     {
       "email": "alex.vanguard@shadowrealm.com",
       "username": "AlexVanguard",
-      "password": "test1"
+      "password": "Testtest1",
+      "unlockAllCards": true
     },
     {
       "email": "elena.spellweaver@mythos.gg",
       "username": "ElenaSpellweaver",
-      "password": "test2"
+      "password": "Testtest2",
+	  "unlockAllCards": true
     },
     {
       "email": "kai.cyberblade@neoncity.io",
       "username": "KaiCyberblade",
-      "password": "test3"
+      "password": "Testtest3"
+    },
+    {
+      "email": "mira.nightshade@shadowrealm.com",
+      "username": "MiraNightshade",
+      "password": "Testtest4"
+    },
+    {
+      "email": "theo.ironclad@mythos.gg",
+      "username": "TheoIronclad",
+      "password": "Testtest5"
+    },
+    {
+      "email": "nova.starforge@neoncity.io",
+      "username": "NovaStarforge",
+      "password": "Testtest6"
     }
+  ],
+  "friendships": [
+    { "requester": "AlexVanguard", "addressee": "KaiCyberblade", "status": "ACCEPTED" },
+    { "requester": "TheoIronclad", "addressee": "AlexVanguard", "status": "ACCEPTED" },
+    { "requester": "AlexVanguard", "addressee": "NovaStarforge", "status": "PENDING" },
+    { "requester": "MiraNightshade", "addressee": "AlexVanguard", "status": "PENDING" },
+
+    { "requester": "ElenaSpellweaver", "addressee": "KaiCyberblade", "status": "ACCEPTED" },
+    { "requester": "MiraNightshade", "addressee": "ElenaSpellweaver", "status": "ACCEPTED" },
+    { "requester": "ElenaSpellweaver", "addressee": "TheoIronclad", "status": "PENDING" },
+    { "requester": "NovaStarforge", "addressee": "ElenaSpellweaver", "status": "PENDING" }
   ]
 }

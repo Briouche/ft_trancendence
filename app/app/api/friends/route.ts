@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 import prisma from "@/lib/prisma";
+import { FRIEND_ROW_SELECT } from "@/lib/user-and-friends/requirements";
 
 // Accepted friendships of the current user, as the list of other people.
 export async function GET() {
@@ -15,14 +16,17 @@ export async function GET() {
       OR: [{ requesterId: session.userId }, { addresseeId: session.userId }],
     },
     include: {
-      requester: { select: { id: true, username: true, avatar: true, status: true } },
-      addressee: { select: { id: true, username: true, avatar: true, status: true } },
+      requester: { select: FRIEND_ROW_SELECT },
+      addressee: { select: FRIEND_ROW_SELECT },
     },
   });
 
-  const friends = friendships.map((f) =>
-    f.requesterId === session.userId ? f.addressee : f.requester
-  );
+  // Collapse each Friendship row down to "the other person" (friendshipId kept so the client
+  // can target this specific row when removing the friend).
+  const friends = friendships.map((f) => ({
+    friendshipId: f.id,
+    ...(f.requesterId === session.userId ? f.addressee : f.requester),
+  }));
 
   return NextResponse.json({ friends });
 }

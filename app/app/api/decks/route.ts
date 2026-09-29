@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 
 // Creates a deck for the current user.
 export async function POST(req: NextRequest) {

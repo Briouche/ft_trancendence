@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera, RoundedBox, Sparkles, Html, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
-import Lantern from '@/components/library/Lantern'
-import Candle from '@/components/library/Candle'
-import { PALETTE, ATMOSPHERE } from '@/components/library/theme'
+import Lantern from '@/components/home-library/Lantern'
+import Candle from '@/components/home-library/Candle'
+import { PALETTE, ATMOSPHERE } from '@/components/home-library/theme'
 import { MENU_ITEMS, type MenuItem } from './menu'
-import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './AccountMenu'
+import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from '../components/account-menu/AccountMenu'
 
 // The hub: a 3D library hall (three-fiber) ringed by bookshelves, with one clickable prop per
 // menu destination (armchair, card table, cellar door, librarian, tuto board).

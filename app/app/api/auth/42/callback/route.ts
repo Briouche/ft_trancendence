@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { fetchFortyTwoProfile, findOrCreateUserFromFortyTwo, getSiteOrigin } from "@/lib/oauth42";
-import { createSession } from "@/lib/session";
+import { fetchFortyTwoProfile, findOrCreateUserFromFortyTwo, getSiteOrigin } from "@/lib/auth/oauth42";
+import { createSession } from "@/lib/auth/cookieSession";
 import { ROUTES } from "@/config/routes";
 import { STATE_COOKIE } from "../route";
 

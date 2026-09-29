@@ -183,78 +183,13 @@ export function Slot({ children, onClick, onContextMenu, highlighted, disabled }
     )
 }
 
-const BUTTON_FRAME_MS = 35
-const BUTTON_FRAMES = 4
-
-// Textures under AssetButton; the self-contained variants already carry their icon.
-const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'achievement'] as const
-type AssetButtonVariant = 'square' | 'bar' | (typeof SELF_CONTAINED_VARIANTS)[number]
-
-const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
-    square:      '/textures/notebook/button',
-    bar:         '/textures/notebook/button-bar',
-    home:        '/textures/notebook/button-home',
-    back:        '/textures/notebook/button-back',
-    manual:      '/textures/notebook/button-manual',
-    about:       '/textures/notebook/button-about',
-    achievement: '/textures/notebook/button-achievement',
-}
-
-// Sprite button playing a 4-frame press animation; `onClick` fires once the animation ends.
-export function AssetButton({ active, onClick, disabled, variant = 'square', className = '', children }: {
-    active?: boolean
-    onClick?: () => void
-    disabled?: boolean
-    variant?: AssetButtonVariant
-    className?: string
-    children?: React.ReactNode
-}) {
-    const [frame, setFrame] = useState(1)
-    const [hovered, setHovered] = useState(false)
-    const texturePath = VARIANT_TEXTURE_PATH[variant]
-
-    useEffect(() => {
-        for (let i = 1; i <= BUTTON_FRAMES; i++) {
-            const img = new window.Image()
-            img.src = `${texturePath}/frame-${i}.webp`
-        }
-    }, [texturePath])
-
-    function handleClick() {
-        if (disabled) return
-        function tick(i: number) {
-            if (i > BUTTON_FRAMES) {
-                setFrame(1)
-                onClick?.()
-                return
-            }
-            setFrame(i)
-            setTimeout(() => tick(i + 1), BUTTON_FRAME_MS)
-        }
-        setTimeout(() => tick(2), BUTTON_FRAME_MS)
-    }
-
-    return (
-        <button
-            onClick={handleClick}
-            disabled={disabled}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            className={`relative flex items-center justify-center font-display font-bold
-                transition-opacity disabled:opacity-30 ${variant === 'bar' ? 'text-white' : 'text-ink-text'} ${className}`}
-            style={{
-                backgroundImage: `url(${texturePath}/frame-${frame}.webp)`,
-                backgroundSize: '100% 100%',
-                imageRendering: 'pixelated',
-            }}
-        >
-            {active && <SelectHighlight className="-inset-1" animate={hovered} />}
-            <span className="relative" style={variant === 'bar' ? outlinedWhiteTextStyle : undefined}>{children}</span>
-        </button>
-    )
-}
-
-// Page-turn arrow, visible and animated only while hovered; an invisible layer widens the hit zone.
+// Page-turn arrow: no button chrome (background + frame) — just the notebook's "Arrow01a" icon
+// (Sprites Animated, 4 frames), looping while the mouse is near the book's edge, fully invisible
+// otherwise (not just faded — it should appear ONLY when the mouse is over it). The icon stays
+// exactly at its original spot (w-20, centered, not offset) — only the HIT ZONE is enlarged, via
+// a separate invisible layer (w-16) that overlaps the page edge; hover state is shared between
+// the two (onMouseEnter/Leave on the wrapper). Points left natively: "prev" isn't flipped, "next"
+// is (scaleX(-1)).
 export function PageArrow({ direction, onClick, disabled }: {
     direction: 'prev' | 'next'
     onClick: () => void
@@ -332,33 +267,3 @@ export const woodenTableBackground: React.CSSProperties = {
     backgroundColor: '#0e0f10',
 }
 
-// Home button pinned to the top-right corner of the page.
-export function HomeButton({ onClick }: { onClick: () => void }) {
-    return (
-        <div className="fixed right-6 top-6 z-40">
-            <AssetButton onClick={onClick} variant="home" className="h-14 w-14 shrink-0" />
-        </div>
-    )
-}
-
-// Ribbon title banner.
-export function TitleBanner({ children, width = 'w-[1060px]', className = '' }: { children: React.ReactNode; width?: string; className?: string }) {
-    return (
-        <div className={`flex ${width} flex-col items-center gap-1 ${className}`}>
-            <div className="travelbook-title-banner flex w-full items-center justify-center px-12 py-6">
-                <h1
-                    className="font-display text-7xl font-bold tracking-wide text-white"
-                    style={{
-                        transform: 'translateY(-25px)',
-                        textShadow: [
-                            '-2px -2px 0 #000', '2px -2px 0 #000', '-2px 2px 0 #000', '2px 2px 0 #000',
-                            '-2px 0 0 #000', '2px 0 0 #000', '0 -2px 0 #000', '0 2px 0 #000',
-                        ].join(', '),
-                    }}
-                >
-                    {children}
-                </h1>
-            </div>
-        </div>
-    )
-}

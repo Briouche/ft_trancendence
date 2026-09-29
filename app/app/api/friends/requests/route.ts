@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 import prisma from "@/lib/prisma";
+import { FRIEND_ROW_SELECT } from "@/lib/user-and-friends/requirements";
 
 export async function GET() {
   const session = await getSession();
@@ -14,7 +15,7 @@ export async function GET() {
       addresseeId: session.userId,
     },
     include: {
-      requester: { select: { id: true, username: true, avatar: true, status: true } },
+      requester: { select: FRIEND_ROW_SELECT },
     },
     orderBy: { createdAt: "desc" },
   });

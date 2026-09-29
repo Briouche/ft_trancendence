@@ -8,8 +8,11 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 import ScaleToFit from '@/components/ScaleToFit'
 import {
     Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
-    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground, HomeButton,
+    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground,
 } from '@/components/notebook/NotebookUI'
+import { HomeButton } from '@/components/notebook/AssetButton'
+import { TitleBanner } from '@/components/notebook/PageLayout'
+import BoxedButton from '@/components/notebook/BoxedButton'
 
 type Card = CardFaceData & { qty: number }
 type DeckEntry = { card: Card; qty: number }
@@ -318,15 +321,9 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                 <p className="mb-3 text-center font-serif text-xs italic text-ink-text">{message}</p>
                             )}
 
-                            <button
-                                onClick={saveDeck}
-                                disabled={saving || totalCards === 0}
-                                className="travelbook-slot03a mb-5 h-11 w-full font-display font-bold text-white
-                                    transition-transform active:scale-95 disabled:opacity-30"
-                                style={outlinedWhiteTextStyle}
-                            >
+                            <BoxedButton onClick={saveDeck} disabled={saving || totalCards === 0} className="mb-5 h-11 w-full">
                                 {saving ? 'Saving…' : 'Save deck'}
-                            </button>
+                            </BoxedButton>
 
                             <div className="mb-2 h-px bg-ink-900/15" />
                             <p className="mb-2 text-center font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
@@ -433,14 +430,9 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                 })}
                             </NotebookScrollArea>
 
-                            <button
-                                onClick={() => setCreating(true)}
-                                className="travelbook-slot03a mt-4 h-14 w-full font-display text-lg font-bold text-white
-                                    transition-transform active:scale-95"
-                                style={outlinedWhiteTextStyle}
-                            >
+                            <BoxedButton onClick={() => setCreating(true)} className="mt-4 h-14 w-full text-lg">
                                 Create deck
-                            </button>
+                            </BoxedButton>
                         </>
                     )}
                         </div>
@@ -464,23 +456,19 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                             “{pendingDelete.name}” will be permanently deleted.
                         </p>
                         <div className="flex w-full gap-4">
-                            <button
-                                onClick={() => setPendingDelete(null)}
-                                className="travelbook-slot03a h-14 flex-1 font-display text-lg font-bold text-ink-text transition-transform active:scale-95"
-                            >
+                            <BoxedButton onClick={() => setPendingDelete(null)} tone="ink" className="h-14 flex-1 text-lg">
                                 Cancel
-                            </button>
-                            <button
+                            </BoxedButton>
+                            <BoxedButton
                                 onClick={() => {
                                     const { id } = pendingDelete
                                     setPendingDelete(null)
                                     deleteDeck(id)
                                 }}
-                                className="travelbook-slot03a h-14 flex-1 font-display text-lg font-bold text-white transition-transform active:scale-95"
-                                style={outlinedWhiteTextStyle}
+                                className="h-14 flex-1 text-lg"
                             >
                                 Delete
-                            </button>
+                            </BoxedButton>
                         </div>
                     </div>
                 </div>
