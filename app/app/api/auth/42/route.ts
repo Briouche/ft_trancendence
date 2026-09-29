@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { buildAuthorizeUrl } from "@/lib/oauth42";
+import { buildAuthorizeUrl } from "@/lib/auth/oauth42";
 
 export const STATE_COOKIE = "ft_oauth_state";
 

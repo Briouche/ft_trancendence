@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import TransitionOverlay from "@/components/library/TransitionOverlay";
+import TransitionOverlay from "@/components/home-library/TransitionOverlay";
 import CustomCursor from "@/components/CustomCursor";
 import BackgroundMusic from "@/components/BackgroundMusic";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
+import { PresenceProvider } from "@/app/presence";
 import HubBackground from "./HubBackground";
 import "./globals.css";
 
@@ -42,7 +43,7 @@ export default async function RootLayout({
         <CustomCursor />
         <BackgroundMusic />
         {session && <HubBackground username={session.username} />}
-        {children}
+        {session ? <PresenceProvider>{children}</PresenceProvider> : children}
       </body>
     </html>
   );

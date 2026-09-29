@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 import { DEFAULT_UNLOCKED_CARD_BACKS } from '@/lib/cardBacks'
 
 // Test tool: empties the user's collection and resets card backs to a fresh account's.

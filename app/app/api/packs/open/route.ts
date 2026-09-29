@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { openPack } from '@/lib/packs'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 
 export async function POST() {
     const session = await getSession()

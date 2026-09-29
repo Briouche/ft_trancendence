@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/auth/cookieSession'
 
 // Test tool: gives the user one unopened pack.
 export async function POST() {

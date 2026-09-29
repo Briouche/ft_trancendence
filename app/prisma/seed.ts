@@ -4,6 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { seedCards } from './seeds/cards.seed'
 import { seedUsers } from './seeds/users.seed'
+import { seedDecks } from './seeds/decks.seed'
 
 // Seeds cards then dev users (run by `prisma db seed`).
 
@@ -16,6 +17,9 @@ async function main() {
 
 	await seedCards(prisma)
 	await seedUsers(prisma)
+
+	// Needs both cards and users to exist
+	await seedDecks(prisma)
 
 	console.log('🏁 Database seeding completed successfully!')
 }

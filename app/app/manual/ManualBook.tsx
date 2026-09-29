@@ -4,9 +4,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ScaleToFit from "@/components/ScaleToFit";
 import {
-  HomeButton, TitleBanner, NotebookScrollArea,
+  NotebookScrollArea,
   woodenTableBackground, outlinedWhiteTextStyle,
 } from "@/components/notebook/NotebookUI";
+import { HomeButton } from "@/components/notebook/AssetButton";
+import { TitleBanner } from "@/components/notebook/PageLayout";
 import { type CardFaceData } from "@/components/CardFace";
 import ScaledCardFace from "@/components/ScaledCardFace";
 import {

@@ -1,7 +1,7 @@
-import { getSession } from "@/lib/session";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import SignInForm from "@/components/SignInForm";
+import { getSession } from "@/lib/auth/cookieSession";
+import Header from "@/components/auth-forms/Header";
+import Footer from "@/components/auth-forms/Footer";
+import SignInForm from "@/components/auth-forms/SignInForm";
 
 // Sign-in page for visitors; signed-in users see the hub mounted by the root layout instead.
 export default async function HomePage() {
@@ -13,7 +13,7 @@ export default async function HomePage() {
         <Header />
         <SignInForm />
         <Footer />
-      </>
+     </>
     );
   }
 

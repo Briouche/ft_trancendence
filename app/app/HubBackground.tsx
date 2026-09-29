@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import SceneLoading from '@/components/library/SceneLoading'
+import SceneLoading from '@/components/home-library/SceneLoading'
 import SimpleHubMenu from './SimpleHubMenu'
-import type { WinsBreakdown, CardBacksSummary } from './AccountMenu'
+import type { WinsBreakdown, CardBacksSummary } from '@/components/account-menu/AccountMenu'
 
 const HubScene = dynamic(() => import('./HubScene'), { ssr: false, loading: SceneLoading })
 
