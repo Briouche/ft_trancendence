@@ -1,11 +1,7 @@
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-<<<<<<< HEAD
-import { getSession } from "@/lib/session";
-import { ROUTES } from "@/config/routes";
-=======
 import { getSession } from "@/lib/auth/cookieSession";
->>>>>>> origin/merge/readme-review-dev
+import { ROUTES } from "@/config/routes";
 import PhaserLoader from "@/components/game/PhaserLoader";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";

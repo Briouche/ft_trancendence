@@ -2,7 +2,7 @@
 
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { getUserInfo } from "@/lib/user-and-friends/getUserInfo";
+import { getUserInfo, withStatus } from "@/lib/user-and-friends/getUserInfo";
 import { FRIEND_ROW_SELECT, isValidId } from "@/lib/user-and-friends/requirements";
 import { USERNAME_MAX_LENGTH, USERNAME_REGEX } from "@/lib/auth/requirements";
 
@@ -25,7 +25,8 @@ export async function searchUserByUsername(usernameRaw: string) {
 
   if (!user || user.id === currentUser.id) return null;
 
-  return user;
+  const [withPresence] = await withStatus([user]);
+  return withPresence;
 }
 
 export async function sendFriendRequest(addresseeId: number) {

@@ -18,9 +18,10 @@ import {
   PASSWORD_REGEX,
 } from "@/lib/auth/requirements";
 
-export default function SignInForm() {
+// `initialError` explains a failed "Sign in with 42" redirect (see app/page.tsx).
+export default function SignInForm({ initialError }: { initialError?: string }) {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError ?? "");
   const [pending, setPending] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {

@@ -1,10 +1,11 @@
 import "server-only";
 
 import { cache } from "react";
-import type { UserStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/cookieSession";
+import { getPresence, isInGame } from "@/lib/presence";
 import type { WinsBreakdown } from "@/components/account-menu/TrophyPanel";
+import type { PresenceStatus } from "@/components/profile/StatusIndicator";
 
 // Shape shown on any profile page — own or someone else's. CurrentUser adds `email`, which is
 // only ever fetched/shown for the session owner's own /profile (see getUserProfileById below).
@@ -12,7 +13,9 @@ export type ProfileUser = {
   id: number;
   username: string;
   avatar: string | null;
-  status: UserStatus;
+  // Only IN_GAME or OFFLINE here: ONLINE is resolved client-side from the socket presence set
+  // (see usePresenceStatus in app/presence.tsx).
+  status: PresenceStatus;
   createdAt: Date;
   wins: WinsBreakdown;
   friendCount: number;
@@ -54,7 +57,6 @@ export const getUserInfo = cache(async (): Promise<CurrentUser | null> => {
       email: true,
       password: true,
       avatar: true,
-      status: true,
       createdAt: true,
       ...WIN_COLUMNS,
     },
@@ -69,7 +71,7 @@ export const getUserInfo = cache(async (): Promise<CurrentUser | null> => {
     email: user.email,
     hasPassword: user.password !== null,
     avatar: user.avatar,
-    status: user.status,
+    status: await serverStatus(session.userId),
     createdAt: user.createdAt,
     wins: toWins(user),
     friendCount,
@@ -89,7 +91,6 @@ export const getUserProfileById = cache(async (id: number): Promise<ProfileUser 
       id: true,
       username: true,
       avatar: true,
-      status: true,
       createdAt: true,
       ...WIN_COLUMNS,
     },
@@ -102,7 +103,7 @@ export const getUserProfileById = cache(async (id: number): Promise<ProfileUser 
     id: user.id,
     username: user.username,
     avatar: user.avatar,
-    status: user.status,
+    status: await serverStatus(user.id),
     createdAt: user.createdAt,
     wins: toWins(user),
     friendCount,
@@ -121,7 +122,6 @@ export const getUserProfileByUsername = cache(async (username: string): Promise<
       id: true,
       username: true,
       avatar: true,
-      status: true,
       createdAt: true,
       ...WIN_COLUMNS,
     },
@@ -134,7 +134,7 @@ export const getUserProfileByUsername = cache(async (username: string): Promise<
     id: user.id,
     username: user.username,
     avatar: user.avatar,
-    status: user.status,
+    status: await serverStatus(user.id),
     createdAt: user.createdAt,
     wins: toWins(user),
     friendCount,
@@ -159,6 +159,17 @@ export const areFriends = cache(async (otherId: number): Promise<boolean> => {
 
   return !!friendship;
 });
+
+// Users seated in a match are tracked by game_engine in Redis (lib/presence.ts), not in the DB.
+async function serverStatus(userId: number): Promise<PresenceStatus> {
+  return (await isInGame(userId)) ? "IN_GAME" : "OFFLINE";
+}
+
+/** Adds the server-side `status` (see serverStatus) to user rows, in one Redis round trip. */
+export async function withStatus<T extends { id: number }>(users: T[]): Promise<(T & { status: PresenceStatus })[]> {
+  const presence = await getPresence(users.map((u) => u.id));
+  return users.map((u) => ({ ...u, status: presence.get(u.id) === "in_game" ? "IN_GAME" : "OFFLINE" }));
+}
 
 function countFriends(userId: number) {
   return prisma.friendship.count({

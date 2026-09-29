@@ -5,11 +5,12 @@ export const ROUTES = {
   profile: "/profile",
   // Another user's (read-only) profile — /profile itself always means "mine, editable".
   // Keyed by username (not id) so the URL doesn't expose/enumerate sequential user ids.
-  profileOf: (username: string) => `/profile/${username}`,
+  profileOf: (username: string) => `/profile/${encodeURIComponent(username)}`,
   friends: "/friends",
   chatWith: (id: number) => `/chat/${id}`,
+  players: "/players",
+  achievements: "/achievements",
+  designSystem: "/design-system",
   privacyNotice: "/privacy",
   termsOfUse: "/terms",
-  profile: "/profile",
-  friends: "/friends",
-}
+};

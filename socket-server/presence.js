@@ -24,6 +24,14 @@ export async function unregisterUserSocket(userId, socketId) {
   }
 }
 
+// Clears every presence key left by a previous run (its sockets are gone), so nobody stays
+// "online" forever through a stale socket id.
+export async function resetPresence() {
+  const socketKeys = [];
+  for await (const keys of redis.scanStream({ match: userSocketsKey("*") })) socketKeys.push(...keys);
+  await redis.del(ONLINE_USERS_META_KEY, ...socketKeys);
+}
+
 export async function getActiveUsers() {
   const rawUsers = await redis.hgetall(ONLINE_USERS_META_KEY);
   return Object.values(rawUsers)

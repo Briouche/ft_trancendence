@@ -23,12 +23,12 @@ export async function getMessages(otherUserId: number) {
   const rows = await prisma.message.findMany({
     where: {
       OR: [
-        { senderId: currentUser.id, receiverId: otherUserId },
-        { senderId: otherUserId, receiverId: currentUser.id },
+        { senderId: currentUser.id, recipientId: otherUserId },
+        { senderId: otherUserId, recipientId: currentUser.id },
       ],
     },
     orderBy: { createdAt: "asc" },
-    select: { id: true, senderId: true, receiverId: true, content: true, createdAt: true },
+    select: { id: true, senderId: true, recipientId: true, content: true, createdAt: true },
   });
 
   const messages = rows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }));
@@ -58,8 +58,8 @@ export async function sendMessage(receiverId: number, content: string) {
   }
 
   const row = await prisma.message.create({
-    data: { senderId: currentUser.id, receiverId, content: trimmed },
-    select: { id: true, senderId: true, receiverId: true, content: true, createdAt: true },
+    data: { senderId: currentUser.id, recipientId: receiverId, content: trimmed },
+    select: { id: true, senderId: true, recipientId: true, content: true, createdAt: true },
   });
 
   const message = { ...row, createdAt: row.createdAt.toISOString() };

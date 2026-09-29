@@ -44,8 +44,8 @@ export default function ChatWindow({ currentUserId, otherUser, initialMessages }
         // one: theirs to me, or mine to them (sent from this tab or another one of mine).
         const onMessage = (message: Message) => {
             const isThisConversation =
-                (message.senderId === otherUser.id && message.receiverId === currentUserId) ||
-                (message.senderId === currentUserId && message.receiverId === otherUser.id)
+                (message.senderId === otherUser.id && message.recipientId === currentUserId) ||
+                (message.senderId === currentUserId && message.recipientId === otherUser.id)
             if (isThisConversation) addMessage(message)
         }
 

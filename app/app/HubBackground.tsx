@@ -26,7 +26,6 @@ function supportsWebGL2(): boolean {
     return webgl2Support
 }
 
-<<<<<<< HEAD
 const noSubscription = () => () => {}
 
 // Below this width the 3D hall's floating labels overlap and can't be tapped reliably, so phones
@@ -39,16 +38,9 @@ function subscribeNarrow(onChange: () => void) {
     return () => query.removeEventListener('change', onChange)
 }
 
-/**
- * Hub mounted once by the root layout and only hidden on other routes, so its WebGL scene is
- * never rebuilt. Stats are refetched every time the user comes back to "/". Falls back to a
- * plain menu without WebGL2 and on phone-sized screens.
- */
-=======
 // Hub mounted once by the root layout and only hidden on other routes, so its WebGL scene is
 // not rebuilt, except after a match (see `inGame`). Stats are refetched every time the user
 // comes back to "/". Falls back to a plain menu without WebGL2.
->>>>>>> origin/merge/readme-review-dev
 export default function HubBackground({ username }: { username: string }) {
     const pathname = usePathname()
     const isHome = pathname === '/'

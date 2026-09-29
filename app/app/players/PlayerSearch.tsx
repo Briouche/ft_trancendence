@@ -9,7 +9,8 @@ import Avatar from '@/components/ui/Avatar'
 import PresenceDot from '@/components/ui/PresenceDot'
 import Pagination from '@/components/ui/Pagination'
 import EmptyState from '@/components/ui/EmptyState'
-import { usePresence } from '@/components/realtime/RealtimeProvider'
+import { useActiveUserIds } from '@/app/presence'
+import type { Presence } from '@/lib/presenceTypes'
 import { ROUTES } from '@/config/routes'
 import { USER_PAGE_SIZES, userSearchSchema, type UserSearchParams } from '@/lib/validation'
 import type { UserSearchResult } from '@/lib/userSearch'
@@ -84,8 +85,11 @@ export default function PlayerSearch({ me }: { me: number }) {
     }, [queryString])
 
     const users = useMemo(() => result?.users ?? [], [result])
-    const initialPresence = useMemo(() => Object.fromEntries(users.map(u => [u.id, u.presence])), [users])
-    const presence = usePresence(users.map(u => u.id), initialPresence)
+    // In-game comes from the search result (game_engine's Redis set); online/offline is kept live by
+    // the socket presence set, like every other status dot (see app/presence.tsx).
+    const onlineUserIds = useActiveUserIds()
+    const presenceOf = (u: { id: number; presence: Presence }): Presence =>
+        u.presence === 'in_game' ? 'in_game' : onlineUserIds.has(u.id) ? 'online' : 'offline'
     const rankOffset = (params.page - 1) * params.pageSize
 
     return (
@@ -155,12 +159,12 @@ export default function PlayerSearch({ me }: { me: number }) {
                                     <tr key={u.id} className={`border-t border-ink-muted/20 ${u.id === me ? 'bg-gold-300/30' : ''}`}>
                                         <td className="py-1.5">{params.sort === 'elo' && params.order === 'desc' && params.filter === 'all' && !params.q ? rankOffset + i + 1 : '·'}</td>
                                         <td>
-                                            <Link href={ROUTES.user(u.username)} className="flex items-center gap-2 hover:underline">
+                                            <Link href={ROUTES.profileOf(u.username)} className="flex items-center gap-2 hover:underline">
                                                 <Avatar src={u.avatarUrl} username={u.username} size="sm" />
                                                 <span className="truncate">{u.username}{u.id === me ? ' (you)' : ''}</span>
                                             </Link>
                                         </td>
-                                        <td><PresenceDot presence={presence[u.id] ?? 'offline'} showLabel /></td>
+                                        <td><PresenceDot presence={presenceOf(u)} showLabel /></td>
                                         <td className="text-right">{u.elo}</td>
                                         <td className="text-right">{u.pvpWins}</td>
                                         <td className="text-right" suppressHydrationWarning>{new Date(u.joinedAt).toLocaleDateString()}</td>

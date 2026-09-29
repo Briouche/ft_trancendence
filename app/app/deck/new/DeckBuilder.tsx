@@ -10,14 +10,10 @@ import {
     Slot, PageArrow, SearchInput, SelectHighlight, NotebookScrollArea,
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, outlinedWhiteTextStyle, woodenTableBackground,
 } from '@/components/notebook/NotebookUI'
-<<<<<<< HEAD
 import { LEGENDARY_RARITY, MAX_LEGENDARY, MAX_NON_LEGENDARY } from '@/lib/deckRules'
 import { DECK_NAME_MAX_LENGTH } from '@/lib/validation'
-=======
 import { HomeButton } from '@/components/notebook/AssetButton'
-import { TitleBanner } from '@/components/notebook/PageLayout'
 import BoxedButton from '@/components/notebook/BoxedButton'
->>>>>>> origin/merge/readme-review-dev
 
 type Card = CardFaceData & { qty: number }
 type DeckEntry = { card: Card; qty: number }

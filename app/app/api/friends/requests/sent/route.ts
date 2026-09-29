@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookieSession";
 import prisma from "@/lib/prisma";
 import { FRIEND_ROW_SELECT } from "@/lib/user-and-friends/requirements";
+import { withStatus } from "@/lib/user-and-friends/getUserInfo";
 
 export async function GET() {
   const session = await getSession();
@@ -20,9 +21,10 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  const pendingRequests = requests.map((r) => ({
+  const addressees = await withStatus(requests.map((r) => r.addressee));
+  const pendingRequests = requests.map((r, i) => ({
     friendshipId: r.id,
-    addressee: r.addressee,
+    addressee: addressees[i],
     createdAt: r.createdAt,
   }));
 

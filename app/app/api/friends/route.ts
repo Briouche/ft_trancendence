@@ -1,21 +1,16 @@
 import { NextResponse } from "next/server";
-<<<<<<< HEAD
-import { requireSession } from "@/lib/api";
-import { listFriends } from "@/lib/friends";
-=======
 import { getSession } from "@/lib/auth/cookieSession";
 import prisma from "@/lib/prisma";
 import { FRIEND_ROW_SELECT } from "@/lib/user-and-friends/requirements";
->>>>>>> origin/merge/readme-review-dev
+import { withStatus } from "@/lib/user-and-friends/getUserInfo";
 
-/** GET /api/friends — accepted friends of the current user, with their presence. */
+// Accepted friendships of the current user, as the list of other people.
 export async function GET() {
-  const auth = await requireSession();
-  if (auth instanceof NextResponse) return auth;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
 
-<<<<<<< HEAD
-  return NextResponse.json({ friends: await listFriends(auth.userId) });
-=======
   const friendships = await prisma.friendship.findMany({
     where: {
       status: "ACCEPTED",
@@ -29,11 +24,10 @@ export async function GET() {
 
   // Collapse each Friendship row down to "the other person" (friendshipId kept so the client
   // can target this specific row when removing the friend).
-  const friends = friendships.map((f) => ({
+  const friends = await withStatus(friendships.map((f) => ({
     friendshipId: f.id,
     ...(f.requesterId === session.userId ? f.addressee : f.requester),
-  }));
+  })));
 
   return NextResponse.json({ friends });
->>>>>>> origin/merge/readme-review-dev
 }

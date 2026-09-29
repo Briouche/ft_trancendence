@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { HomeButton, woodenTableBackground } from '@/components/notebook/NotebookUI'
+import { woodenTableBackground } from '@/components/notebook/NotebookUI'
+import { HomeButton } from '@/components/notebook/AssetButton'
 
 /**
  * Layout of the scrolling (non-scaled) pages: wooden table background, home button, page title

@@ -4,13 +4,13 @@ import { redis } from "@/lib/redis";
 import type { Presence } from "@/lib/presenceTypes";
 
 // Online presence, read from Redis. Written by the other services:
-// - socket-server keeps HASH `presence:online` = { userId: open connection count };
+// - socket-server keeps HASH `online_users_meta` = { userId: {userId, username} } of connected users;
 // - game_engine keeps SET `presence:ingame` = ids of users currently seated in a match.
-// Keep these key names in sync with socket-server/index.js and game_engine/srcs/presence.ts.
+// Keep these key names in sync with socket-server/presence.js and game_engine/srcs/presence.ts.
 
 export type { Presence };
 
-export const PRESENCE_ONLINE_KEY = "presence:online";
+export const PRESENCE_ONLINE_KEY = "online_users_meta";
 export const PRESENCE_INGAME_KEY = "presence:ingame";
 
 /**
@@ -23,13 +23,13 @@ export async function getPresence(userIds: number[]): Promise<Map<number, Presen
 
   try {
     const ids = userIds.map(String);
-    const [counts, inGame] = await Promise.all([
+    const [online, inGame] = await Promise.all([
       redis.hmget(PRESENCE_ONLINE_KEY, ...ids),
       redis.smismember(PRESENCE_INGAME_KEY, ...ids),
     ]);
     userIds.forEach((id, i) => {
       if (inGame[i] === 1) result.set(id, "in_game");
-      else if (Number(counts[i]) > 0) result.set(id, "online");
+      else if (online[i] !== null) result.set(id, "online");
     });
   } catch (err) {
     console.error("getPresence: Redis unavailable, reporting everyone offline:", err);
@@ -45,10 +45,20 @@ export async function getOnlineUserIds(): Promise<number[]> {
       redis.smembers(PRESENCE_INGAME_KEY),
     ]);
     const ids = new Set<number>(inGame.map(Number));
-    for (const [id, count] of Object.entries(online)) if (Number(count) > 0) ids.add(Number(id));
+    for (const id of Object.keys(online)) ids.add(Number(id));
     return [...ids];
   } catch (err) {
     console.error("getOnlineUserIds: Redis unavailable:", err);
     return [];
+  }
+}
+
+/** Whether a user is currently seated in a match. Never throws (false if Redis is unreachable). */
+export async function isInGame(userId: number): Promise<boolean> {
+  try {
+    return (await redis.sismember(PRESENCE_INGAME_KEY, String(userId))) === 1;
+  } catch (err) {
+    console.error("isInGame: Redis unavailable:", err);
+    return false;
   }
 }

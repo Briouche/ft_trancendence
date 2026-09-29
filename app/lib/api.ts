@@ -2,7 +2,7 @@ import "server-only";
 
 import { NextResponse } from "next/server";
 import type { z } from "zod";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 import { firstIssue } from "@/lib/validation";
 
 // Small helpers shared by the route handlers in app/api, so every route answers errors the same

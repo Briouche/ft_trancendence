@@ -12,7 +12,8 @@ export const MESSAGE_MAX_LENGTH = 2000;
 
 // The fields a friends/requests/search row needs (components/friends/Row.tsx). Deliberately no
 // `avatar`: it's a data URI of up to ~700KB per user, and rows don't display it.
-export const FRIEND_ROW_SELECT = { id: true, username: true, status: true } as const;
+// Rows also carry a `status`, added by withStatus() (lib/user-and-friends/getUserInfo.ts).
+export const FRIEND_ROW_SELECT = { id: true, username: true } as const;
 
 // Server action arguments come straight from the client and are only typed at compile time —
 // ids must be re-checked at runtime before they reach Prisma.

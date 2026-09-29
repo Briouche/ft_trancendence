@@ -1,13 +1,7 @@
-<<<<<<< HEAD
-import { getSession } from "@/lib/session";
-import Header from "@/components/Header";
-import SignInForm from "@/components/SignInForm";
-=======
 import { getSession } from "@/lib/auth/cookieSession";
 import Header from "@/components/auth-forms/Header";
 import Footer from "@/components/auth-forms/Footer";
 import SignInForm from "@/components/auth-forms/SignInForm";
->>>>>>> origin/merge/readme-review-dev
 
 // ?error=… values set by the 42 OAuth callback (app/api/auth/42/callback/route.ts).
 const OAUTH_ERRORS: Record<string, string> = {
@@ -32,14 +26,9 @@ export default async function HomePage({
     return (
       <>
         <Header />
-<<<<<<< HEAD
         <SignInForm initialError={initialError} />
-      </>
-=======
-        <SignInForm />
         <Footer />
-     </>
->>>>>>> origin/merge/readme-review-dev
+      </>
     );
   }
 

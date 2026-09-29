@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-<<<<<<< HEAD
-import { getSession } from '@/lib/session'
-import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
-=======
 import { getSession } from '@/lib/auth/cookieSession'
->>>>>>> origin/merge/readme-review-dev
+import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 import { DEFAULT_UNLOCKED_CARD_BACKS } from '@/lib/cardBacks'
 
 /** Test tool: empties the user's collection and resets card backs to a fresh account's. */
@@ -19,7 +15,7 @@ export async function POST() {
         prisma.userCard.deleteMany({ where: { userId: session.userId } }),
         prisma.user.update({
             where: { id: session.userId },
-            data:  { unlockedCardBacks: DEFAULT_UNLOCKED_CARD_BACKS, cardBack: 0 },
+            data: { unlockedCardBacks: DEFAULT_UNLOCKED_CARD_BACKS, cardBack: 0 },
         }),
     ])
 

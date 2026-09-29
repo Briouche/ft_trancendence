@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
-<<<<<<< HEAD
-import { getSession } from '@/lib/session'
-import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
-=======
 import { getSession } from '@/lib/auth/cookieSession'
->>>>>>> origin/merge/readme-review-dev
+import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
 /** Test tool: gives the user every card at max quantity and every card back. */
@@ -28,7 +24,7 @@ export async function POST() {
         `] : []),
         prisma.user.update({
             where: { id: session.userId },
-            data:  { unlockedCardBacks: Array.from({ length: CARD_BACK_COUNT }, (_, i) => i) },
+            data: { unlockedCardBacks: Array.from({ length: CARD_BACK_COUNT }, (_, i) => i) },
         }),
     ])
 

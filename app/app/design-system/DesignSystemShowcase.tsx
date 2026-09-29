@@ -11,7 +11,8 @@ import Field from '@/components/ui/Field'
 import Pagination from '@/components/ui/Pagination'
 import EmptyState from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
-import { AssetButton, SearchInput, Slot } from '@/components/notebook/NotebookUI'
+import { SearchInput, Slot } from '@/components/notebook/NotebookUI'
+import { AssetButton } from '@/components/notebook/AssetButton'
 import CardBackArt from '@/components/CardBackArt'
 
 // Design tokens, as declared in app/globals.css (@theme) — shown with their Tailwind names.

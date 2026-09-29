@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/cookieSession";
 
 /**
  * GET /api/auth/me — identity behind the session cookie, or 401.

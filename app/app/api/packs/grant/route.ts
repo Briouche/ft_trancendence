@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-<<<<<<< HEAD
-import { getSession } from '@/lib/session'
-import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
-=======
 import { getSession } from '@/lib/auth/cookieSession'
->>>>>>> origin/merge/readme-review-dev
+import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
 
 /** Test tool: gives the user one unopened pack. */
 export async function POST() {
@@ -16,7 +12,7 @@ export async function POST() {
 
     const user = await prisma.user.update({
         where: { id: session.userId },
-        data:  { unopenedPacks: { increment: 1 } },
+        data: { unopenedPacks: { increment: 1 } },
         select: { unopenedPacks: true },
     })
 
