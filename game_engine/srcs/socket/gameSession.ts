@@ -77,6 +77,12 @@ export class GameSession
     // Identity-based counterpart to hasSocket. A socket.io reconnect hands the same player a brand
     // new socket id, so anything that needs to recognise a returning player (rejoining a match,
     // refusing a second concurrent game) has to match on the authenticated user instead.
+    /** Ids of the human players of this match (AI seats have none). */
+    humanUserIds(): number[]
+    {
+        return this.seats.flatMap(seat => seat.kind === "human" ? [seat.userId] : []);
+    }
+
     hasUser(userId: number): boolean
     {
         return this.seats.some(seat => seat.kind === "human" && seat.userId === userId);

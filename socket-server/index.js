@@ -2,15 +2,17 @@ import http from "http";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { pubClient, subClient } from "./redis.js";
-import { authenticateSocket } from "./auth.js";
+import { authenticateSocket, isSameOrigin } from "./auth.js";
 import { handleConnection } from "./handlers/connection.js";
+import { resetPresence } from "./presence.js";
 
-// Chat/presence socket.io server: authenticates with the Next.js session cookie, tracks online
-// users in Redis, relays chat messages.
+// Chat & presence socket.io server (path /chat-socket.io/, behind nginx's TLS). It authenticates
+// connections with the app's session cookie, tracks who is online in Redis and delivers the
+// chat messages the app publishes through the Redis adapter. It never touches the database.
 
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT || 4000);
 
-// creates the server with a health rule for docker-compose
+// Plain HTTP server, with a health route for Docker.
 const server = http.createServer((req, res) => {
   if (req.url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -21,23 +23,22 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
-// Path must match the nginx location proxying here (game_engine uses the default one).
+// The path must match the nginx location proxying here (game_engine uses the default one).
+// No CORS: pages and sockets are served from the same origin, and allowRequest rejects handshakes
+// coming from any other site.
 const io = new Server(server, {
   path: "/chat-socket.io/",
-  cors: {
-    origin: (origin, callback) => callback(null, true),
-    credentials: true,
-  },
+  allowRequest: (req, callback) => callback(null, isSameOrigin(req)),
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
 io.adapter(createAdapter(pubClient, subClient));
-
 io.use(authenticateSocket);
-
 io.on("connection", (socket) => handleConnection(io, socket));
 
+await resetPresence();
+
 server.listen(PORT, () => {
-  console.log(`[Socket.io] Dedicated server running on port ${PORT}`);
+  console.log(`[chat] socket.io server listening on port ${PORT}`);
 });

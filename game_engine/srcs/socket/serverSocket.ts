@@ -6,7 +6,8 @@ import { GameSession, Seat } from "./gameSession";
 import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId, makeDeckFromNames } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
-import { authenticateCookieHeader, SocketIdentity } from "../auth/session";
+import { authenticateCookieHeader, isSameOrigin, SocketIdentity } from "../auth/session";
+import { setInGame } from "../presence";
 
 // Keep in sync with app/lib/cardBacks.ts.
 const CARD_BACK_COUNT = 8;
@@ -34,8 +35,12 @@ function identityOf(socket: Socket): SocketIdentity
 // two players in the queue. Live sessions are kept so a reconnecting socket finds its game.
 export function createGameServer(port: number): void
 {
-    // Same-origin through the nginx proxy, so any Origin is accepted.
-    const io = new Server(port, { cors: { origin: (origin, callback) => callback(null, true) }, connectionStateRecovery: {} });
+    // No CORS: the game page and this socket share an origin through nginx. allowRequest rejects
+    // handshakes from any other site, which could otherwise open a socket with the player's cookie.
+    const io = new Server(port, {
+        allowRequest: (req, callback) => callback(null, isSameOrigin(req)),
+        connectionStateRecovery: {},
+    });
 
     const waiting: WaitingPlayer[] = [];
     const liveGames: GameSession[] = [];
@@ -45,6 +50,7 @@ export function createGameServer(port: number): void
         const idx = liveGames.indexOf(game);
         if (idx !== -1)
             liveGames.splice(idx, 1);
+        void setInGame(game.humanUserIds(), false);
     };
 
     const reject = (socket: Socket, reason: string, fatal: boolean = false): void =>
@@ -144,6 +150,7 @@ export function createGameServer(port: number): void
                 const session: GameSession = new GameSession(seats[0], seats[1], players[0], players[1], msg.difficulty, () => removeGame(session));
 
                 liveGames.push(session);
+                void setInGame(session.humanUserIds(), true);
                 return;
             }
 
@@ -228,6 +235,7 @@ export function createGameServer(port: number): void
             const session: GameSession = new GameSession(seat0, seat1, player0, player1, undefined, () => removeGame(session));
 
             liveGames.push(session);
+            void setInGame(session.humanUserIds(), true);
         });
 
         socket.on("disconnect", () =>

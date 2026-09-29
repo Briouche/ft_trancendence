@@ -1,3 +1,4 @@
+import type { IncomingMessage } from "http";
 import { jwtVerify } from "jose";
 import { prisma } from "../cardImport/cardLoader";
 
@@ -65,4 +66,25 @@ export async function authenticateCookieHeader(cookieHeader: string | undefined)
         return null;
 
     return { userId: payload.userId, username: user.username ?? payload.username };
+}
+
+/**
+ * Whether a handshake comes from a page of this site: browsers always send Origin on WebSocket
+ * and cross-origin requests, and it must match the Host nginx forwarded. Without it another site
+ * could open a game socket carrying the visitor's cookie. A request without Origin is not a
+ * browser page (no ambient cookie) and still has to authenticate.
+ */
+export function isSameOrigin(req: IncomingMessage): boolean
+{
+    const origin = req.headers.origin;
+    if (!origin)
+        return true;
+    try
+    {
+        return new URL(origin).host === req.headers.host;
+    }
+    catch
+    {
+        return false;
+    }
 }

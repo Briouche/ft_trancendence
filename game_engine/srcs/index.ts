@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { createGameServer } from "./socket/serverSocket";
 import { ensureCatalogLoaded } from "./cardImport/cardLoader";
+import { resetInGameStatuses } from "./presence";
 
 // Last-resort safety net: individual DB calls are already try/caught inside serverSocket.ts,
 // but this covers anything that slips through so one bad request can't take down every live
@@ -17,6 +18,7 @@ process.on("uncaughtException", (err) =>
 });
 
 createGameServer(4000);
+void resetInGameStatuses();
 console.log("Game server listening on ws://localhost:4000");
 
 // Pull the card catalog into memory now rather than on the first match start, so the first player
