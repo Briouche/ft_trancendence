@@ -9,27 +9,26 @@ import BoxedButton from "@/components/notebook/BoxedButton";
 import FormButton from "./FormButton";
 import { ROUTES } from "@/config/routes";
 import { checkCredentials } from "@/lib/auth/authActions";
-import {
-  USERNAME_MAX_LENGTH,
-  USERNAME_MIN_LENGTH,
-  USERNAME_REGEX,
-  PASSWORD_ALLOWED_CHARS,
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_REGEX,
-} from "@/lib/auth/requirements";
+import { PASSWORD_MAX_LENGTH } from "@/lib/auth/requirements";
+import { formDataToObject, signInSchema } from "@/lib/validation";
 
-export default function SignInForm() {
+/**
+ * Sign-in form (email or username + password). `initialError` explains a failed
+ * "Sign in with 42" round trip (see app/page.tsx).
+ */
+export default function SignInForm({ initialError }: { initialError?: string }) {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError ?? "");
   const [pending, setPending] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
     setError("");
 
-    const username = (formData.get("username") as string | null)?.trim();
-    const password = formData.get("password") as string | null;
-
-    // We could do additional tests before sending it to the server action
+    // Same schema as the server action: catches empty fields before a round trip.
+    if (!signInSchema.safeParse(formDataToObject(formData)).success) {
+      setError("Enter your email or username and your password.");
+      return;
+    }
 
     setPending(true);
     const result = await checkCredentials(formData);
@@ -53,14 +52,11 @@ export default function SignInForm() {
       error={error}
     >
       <TextField
-        label="Username"
-        name="username"
+        label="Email or username"
+        name="identifier"
         autoComplete="username"
         required
-        minLength={USERNAME_MIN_LENGTH}
-        maxLength={USERNAME_MAX_LENGTH}
-        pattern={USERNAME_REGEX.source}
-        patternTitle="Only letters and numbers are allowed."
+        maxLength={254}
       />
 
       <TextField
@@ -70,8 +66,6 @@ export default function SignInForm() {
         autoComplete="current-password"
         required
         maxLength={PASSWORD_MAX_LENGTH}
-        pattern={PASSWORD_REGEX.source}
-        patternTitle={"Must include an uppercase letter, a lowercase letter, and a number, and contain only letters, numbers, and the symbols " + PASSWORD_ALLOWED_CHARS}
       />
 
       <FormButton pending={pending} pendingText="Signing in...">

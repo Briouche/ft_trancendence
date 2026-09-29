@@ -8,6 +8,7 @@ import TextField from "@/components/notebook/TextField";
 import FormButton from "./FormButton";
 import { ROUTES } from "@/config/routes";
 import { registerUser } from "@/lib/auth/authActions";
+import { firstIssue, formDataToObject, registerSchema } from "@/lib/validation";
 import {
   USERNAME_MAX_LENGTH,
   USERNAME_MIN_LENGTH,
@@ -19,6 +20,7 @@ import {
   EMAIL_MAX_LENGTH,
 } from "@/lib/auth/requirements";
 
+/** Account creation form (username, email, password twice), validated before submitting. */
 export default function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -27,17 +29,12 @@ export default function RegisterForm() {
   const handleSubmit = async (formData: FormData) => {
     setError("");
 
-    const username = (formData.get("username") as string | null)?.trim();
-    const email = (formData.get("email") as string | null)?.trim();
-    const password = formData.get("password") as string | null;
-    const confirmPassword = formData.get("confirmPassword") as string | null;
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    // Same schema as the server action, for immediate feedback; the server checks again.
+    const parsed = registerSchema.safeParse(formDataToObject(formData));
+    if (!parsed.success) {
+      setError(firstIssue(parsed.error));
       return;
     }
-
-    // We could do additional tests before sending it to the server action
 
     setPending(true);
     const result = await registerUser(formData);
