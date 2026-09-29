@@ -4,9 +4,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ScaleToFit from "@/components/ScaleToFit";
 import {
-  HomeButton, TitleBanner, NotebookScrollArea,
+  NotebookScrollArea,
   woodenTableBackground, outlinedWhiteTextStyle,
 } from "@/components/notebook/NotebookUI";
+import { HomeButton } from "@/components/notebook/AssetButton";
+import { TitleBanner } from "@/components/notebook/PageLayout";
 import { type CardFaceData } from "@/components/CardFace";
 import ScaledCardFace from "@/components/ScaledCardFace";
 import {
@@ -24,7 +26,7 @@ const KEYWORDS: { label: string; desc: string }[] = [
   { label: "Regeneration", desc: "Heals back to full health at the end of the turn." },
   { label: "Start of Turn", desc: "Triggers at the start of your turn." },
   { label: "End of Turn", desc: "Triggers at the end of your turn." },
-  { label: "Archimed", desc: "Play all 6 to set up the ARCHI-exodia." },
+  { label: "Archimede", desc: "Play all 6 to set up the ARCHI-exodia." },
 ];
 
 const CARD_ANATOMY: { n: number; label: string; desc: string }[] = [

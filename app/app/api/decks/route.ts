@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+<<<<<<< HEAD
 import { getSession } from "@/lib/session";
 import { validateDeckInput } from "@/lib/decks";
+=======
+import { getSession } from "@/lib/auth/cookieSession";
+>>>>>>> origin/merge/readme-review-dev
 
 /** Creates a deck for the current user. */
 export async function POST(req: NextRequest) {

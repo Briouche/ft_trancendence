@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+<<<<<<< HEAD
 import { getSession } from '@/lib/session'
 import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
+=======
+import { getSession } from '@/lib/auth/cookieSession'
+>>>>>>> origin/merge/readme-review-dev
 
 /** Test tool: gives the user one unopened pack. */
 export async function POST() {

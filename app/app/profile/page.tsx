@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+<<<<<<< HEAD
 import { getCurrentUser } from '@/lib/session'
 import { avatarUrl } from '@/lib/avatar'
+=======
+import { getUserInfo } from '@/lib/user-and-friends/getUserInfo'
+>>>>>>> origin/merge/readme-review-dev
 import { ROUTES } from '@/config/routes'
-import ProfileInformation from './ProfileInformation'
+import ProfileInformation from '@/components/profile/ProfileInformation'
 
+<<<<<<< HEAD
 export const metadata: Metadata = { title: 'My profile' }
 
 // ?error=… / ?linked=1 set by the 42 OAuth callback when linking from this page.
@@ -18,6 +23,10 @@ const LINK_MESSAGES: Record<string, string> = {
 /** /profile — the signed-in user's own account: details, avatar, password, 42 link. */
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string; linked?: string }> }) {
     const user = await getCurrentUser()
+=======
+export default async function ProfilePage() {
+    const user = await getUserInfo()
+>>>>>>> origin/merge/readme-review-dev
     if (!user) redirect(ROUTES.home)
 
     const { error, linked } = await searchParams

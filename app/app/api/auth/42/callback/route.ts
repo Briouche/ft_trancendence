@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+<<<<<<< HEAD
 import {
   EmailTakenError,
   fetchFortyTwoProfile,
@@ -8,6 +9,10 @@ import {
   linkFortyTwoAccount,
 } from "@/lib/oauth42";
 import { createSession, getSession } from "@/lib/session";
+=======
+import { fetchFortyTwoProfile, findOrCreateUserFromFortyTwo, getSiteOrigin } from "@/lib/auth/oauth42";
+import { createSession } from "@/lib/auth/cookieSession";
+>>>>>>> origin/merge/readme-review-dev
 import { ROUTES } from "@/config/routes";
 import { LINK_COOKIE, STATE_COOKIE } from "../route";
 

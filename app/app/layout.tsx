@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import TransitionOverlay from "@/components/library/TransitionOverlay";
+import TransitionOverlay from "@/components/home-library/TransitionOverlay";
 import CustomCursor from "@/components/CustomCursor";
+<<<<<<< HEAD
 import Footer from "@/components/Footer";
 import { ToastProvider } from "@/components/ui/Toast";
 import { RealtimeProvider } from "@/components/realtime/RealtimeProvider";
 import { getSession } from "@/lib/session";
+=======
+import BackgroundMusic from "@/components/BackgroundMusic";
+import { getSession } from "@/lib/auth/cookieSession";
+import { PresenceProvider } from "@/app/presence";
+>>>>>>> origin/merge/readme-review-dev
 import HubBackground from "./HubBackground";
 import "./globals.css";
 
@@ -46,6 +52,7 @@ export default async function RootLayout({
       style={{ backgroundColor: '#0b0c0d' }}
     >
       <body className="min-h-full flex flex-col bg-ink-950">
+<<<<<<< HEAD
         <ToastProvider>
           <TransitionOverlay />
           <CustomCursor />
@@ -59,6 +66,13 @@ export default async function RootLayout({
           )}
           <Footer />
         </ToastProvider>
+=======
+        <TransitionOverlay />
+        <CustomCursor />
+        <BackgroundMusic />
+        {session && <HubBackground username={session.username} />}
+        {session ? <PresenceProvider>{children}</PresenceProvider> : children}
+>>>>>>> origin/merge/readme-review-dev
       </body>
     </html>
   );

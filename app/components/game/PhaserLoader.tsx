@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import SceneLoading from "@/components/library/SceneLoading";
+import SceneLoading from "@/components/home-library/SceneLoading";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+<<<<<<< HEAD
 import { requireSession } from '@/lib/api'
+=======
+import { getSession } from '@/lib/auth/cookieSession'
+>>>>>>> origin/merge/readme-review-dev
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
 /** GET /api/user/summary — hub stats of the current user: card count, Elo, wins per opponent type, card backs. */

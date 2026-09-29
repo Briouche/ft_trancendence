@@ -31,6 +31,10 @@ export function timmyPassive(player: Player)
 /** Freddy: summons a 1/1 skeleton. */
 export function freddyPassive(context: GameContext, number: number)
 {
+<<<<<<< HEAD
     const summon: SummonMinionEffect = new SummonMinionEffect([new MinionCard("freddyToken" + number, "Skeleton", 0, "Bleuuuuuuurrghhhh...", 1, 1)], 1);
+=======
+    let summon: SummonMinionEffect = new SummonMinionEffect([new MinionCard("freddyToken" + number, "Skeleton", 0, "Bleuuuuuuurrghhhh...", 1, 1, undefined, undefined, "skeleton", 1, 1)], 1);
+>>>>>>> origin/merge/readme-review-dev
     summon.execute(context);
 }

@@ -9,8 +9,10 @@ import CardBackArt from '@/components/CardBackArt'
 import { CARD_BACK_COUNT, ACHIEVEMENT_CARD_BACK_HINTS } from '@/lib/cardBacks'
 import {
     Slot, PageArrow, SearchInput,
-    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground, HomeButton,
+    HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground,
 } from '@/components/notebook/NotebookUI'
+import { HomeButton } from '@/components/notebook/AssetButton'
+import { TitleBanner } from '@/components/notebook/PageLayout'
 import ScaleToFit from '@/components/ScaleToFit'
 import CardZoom from './CardZoom'
 

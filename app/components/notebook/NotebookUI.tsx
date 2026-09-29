@@ -186,6 +186,7 @@ export function Slot({ children, onClick, onContextMenu, highlighted, disabled }
     )
 }
 
+<<<<<<< HEAD
 const BUTTON_FRAME_MS = 35
 const BUTTON_FRAMES = 4
 
@@ -264,6 +265,15 @@ export function AssetButton({ active, onClick, disabled, variant = 'square', cla
 }
 
 /** Page-turn arrow, visible and animated only while hovered; an invisible layer widens the hit zone. */
+=======
+// Page-turn arrow: no button chrome (background + frame) — just the notebook's "Arrow01a" icon
+// (Sprites Animated, 4 frames), looping while the mouse is near the book's edge, fully invisible
+// otherwise (not just faded — it should appear ONLY when the mouse is over it). The icon stays
+// exactly at its original spot (w-20, centered, not offset) — only the HIT ZONE is enlarged, via
+// a separate invisible layer (w-16) that overlaps the page edge; hover state is shared between
+// the two (onMouseEnter/Leave on the wrapper). Points left natively: "prev" isn't flipped, "next"
+// is (scaleX(-1)).
+>>>>>>> origin/merge/readme-review-dev
 export function PageArrow({ direction, onClick, disabled }: {
     direction: 'prev' | 'next'
     onClick: () => void
@@ -341,6 +351,7 @@ export const woodenTableBackground: React.CSSProperties = {
     backgroundColor: '#0e0f10',
 }
 
+<<<<<<< HEAD
 /** Home button pinned to the top-right corner of the page. */
 export function HomeButton({ onClick }: { onClick: () => void }) {
     return (
@@ -371,3 +382,5 @@ export function TitleBanner({ children, width = 'w-[1060px]', className = '' }: 
         </div>
     )
 }
+=======
+>>>>>>> origin/merge/readme-review-dev

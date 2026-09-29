@@ -68,7 +68,7 @@ export function toClientCard(card: Card): ClientCard
         if (card.effects.cannotAttack)
             clientCard.effects.cannotAttack = true;
         if (card.effects.archi)
-            clientCard.effects.archimed = true;
+            clientCard.effects.archimede = true;
         if (card.effects.onAttack instanceof cleaveEffect)
             clientCard.effects.cleave = true;
         if (card.effects.endOfTurnEffect instanceof regenerationEffect)

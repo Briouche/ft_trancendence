@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+<<<<<<< HEAD
 import { getSession } from "@/lib/session";
 import { parseDeckId, validateDeckInput } from "@/lib/decks";
+=======
+import { getSession } from "@/lib/auth/cookieSession";
+>>>>>>> origin/merge/readme-review-dev
 
 // Update or delete one of the current user's decks; a deck they don't own reads as 404.
 

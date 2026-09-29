@@ -1,0 +1,75 @@
+{
+  "decks": [
+    {
+      "name": "La cuisine de Jeffe",
+      "owners": ["AlexVanguard", "KaiCyberblade"],
+      "cards": [
+        { "name": "Joël el Jeffe (aka marcel au 1000 épices)", "qty": 1 },
+        { "name": "Client Mécontent", "qty": 2 },
+        { "name": "Second Braillaird", "qty": 2 },
+        { "name": "Critique culinaire", "qty": 2 },
+        { "name": "Lanceur de couteaux", "qty": 2 },
+        { "name": "Cactus dos Pimentos", "qty": 2 },
+        { "name": "Diablotin du piment", "qty": 2 },
+        { "name": "Poulet mécontent", "qty": 2 },
+        { "name": "Sauce TomAAAAAAte", "qty": 2 },
+        { "name": "Mixeur", "qty": 2 },
+        { "name": "Entartrage", "qty": 2 }
+      ]
+    },
+    {
+      "name": "Le dancefloor de Gertrude",
+      "owners": ["AlexVanguard", "KaiCyberblade"],
+      "cards": [
+        { "name": "Gertrude", "qty": 1 },
+        { "name": "Slime Saxophoniste", "qty": 2 },
+        { "name": "Bondisseur enjoué", "qty": 2 },
+        { "name": "Flambeur de Dancefloor", "qty": 2 },
+        { "name": "Arcane Missile", "qty": 2 },
+        { "name": "TIG", "qty": 2 },
+        { "name": "Entartrage", "qty": 2 },
+        { "name": "Investment Goblin", "qty": 2 },
+        { "name": "Lecture de textes Anciencs", "qty": 2 },
+        { "name": "blackhole", "qty": 2 },
+        { "name": "tremblement", "qty": 2 }
+      ]
+    },
+    {
+      "name": "Le cimetière de Freddy",
+      "owners": ["AlexVanguard"],
+      "cards": [
+        { "name": "Freddy, le fossoyeur de tombe", "qty": 1 },
+        { "name": "conseiller de l'ombre", "qty": 2 },
+        { "name": "mere pondeuse", "qty": 2 },
+        { "name": "Goblinmikaze", "qty": 2 },
+        { "name": "soulevement de tombes", "qty": 2 },
+        { "name": "slime degoutant", "qty": 2 },
+        { "name": "Commis de la souffrance", "qty": 2 },
+        { "name": "une maman aimante", "qty": 2 },
+        { "name": "tortue encourageante", "qty": 2 },
+        { "name": "Jumeaux Goblin", "qty": 2 },
+        { "name": "cannibalisme", "qty": 2 }
+      ]
+    },
+    {
+      "name": "Les bocaux d'Archimède",
+      "owners": ["AlexVanguard"],
+      "cards": [
+        { "name": "Archimede la maudite", "qty": 1 },
+        { "name": "Haku", "qty": 1 },
+        { "name": "Reborn", "qty": 1 },
+        { "name": "Ribgy", "qty": 1 },
+        { "name": "Neo", "qty": 1 },
+        { "name": "Po", "qty": 1 },
+        { "name": "Zurg", "qty": 1 },
+        { "name": "Bertrand", "qty": 2 },
+        { "name": "Le Phoenix", "qty": 2 },
+        { "name": "CRS", "qty": 2 },
+        { "name": "Bibliothequaire", "qty": 2 },
+        { "name": "Le menestrel", "qty": 2 },
+        { "name": "Pyroblin", "qty": 2 },
+        { "name": "golem endormi", "qty": 2 }
+      ]
+    }
+  ]
+}

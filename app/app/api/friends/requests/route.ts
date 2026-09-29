@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+<<<<<<< HEAD
 import { z } from "zod";
 import { jsonError, parseJsonBody, requireSession } from "@/lib/api";
 import { listRequests, sendFriendRequest, type SendRequestResult } from "@/lib/friends";
 import { usernameSchema } from "@/lib/validation";
 import { rateLimit } from "@/lib/rateLimit";
+=======
+import { getSession } from "@/lib/auth/cookieSession";
+import prisma from "@/lib/prisma";
+import { FRIEND_ROW_SELECT } from "@/lib/user-and-friends/requirements";
+>>>>>>> origin/merge/readme-review-dev
 
 /** GET /api/friends/requests — pending requests: `incoming` (to answer) and `outgoing` (sent). */
 export async function GET() {
@@ -48,7 +54,28 @@ export async function POST(request: Request) {
     return jsonError(429, "Too many friend requests, try again later.");
   }
 
+<<<<<<< HEAD
   const result = await sendFriendRequest(auth.userId, body.username);
   const { ok, message } = OUTCOMES[result];
   return NextResponse.json(ok ? { ok, result, message } : { ok, result, error: message });
+=======
+  const requests = await prisma.friendship.findMany({
+    where: {
+      status: "PENDING",
+      addresseeId: session.userId,
+    },
+    include: {
+      requester: { select: FRIEND_ROW_SELECT },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const friendRequests = requests.map((r) => ({
+    friendshipId: r.id,
+    requester: r.requester,
+    createdAt: r.createdAt,
+  }));
+
+  return NextResponse.json({ requests: friendRequests });
+>>>>>>> origin/merge/readme-review-dev
 }

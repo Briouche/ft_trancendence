@@ -1,7 +1,13 @@
 import http from "http";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
+<<<<<<< HEAD
 import { Redis } from "ioredis";
+=======
+import { pubClient, subClient } from "./redis.js";
+import { authenticateSocket } from "./auth.js";
+import { handleConnection } from "./handlers/connection.js";
+>>>>>>> origin/merge/readme-review-dev
 
 // Chat & presence socket.io server (path /chat-socket.io/).
 //
@@ -13,6 +19,7 @@ import { Redis } from "ioredis";
 //   `presence:ingame`. A presence change is sent to the room `presence:<id>`, joined only by the
 //   clients currently displaying that user (see "presence:watch"), not broadcast to everyone.
 
+<<<<<<< HEAD
 const PORT = Number(process.env.PORT || 4000);
 const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379";
 const APP_INTERNAL_URL = process.env.APP_INTERNAL_URL || "http://app:3000";
@@ -29,7 +36,11 @@ const AUTH_TIMEOUT_MS = 15_000;
 const pubClient = new Redis(REDIS_URL);
 const subClient = pubClient.duplicate();
 const redis = pubClient.duplicate();
+=======
+const PORT = process.env.PORT || 4000;
+>>>>>>> origin/merge/readme-review-dev
 
+// creates the server with a health rule for docker-compose
 const server = http.createServer((req, res) => {
   if (req.url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -68,6 +79,7 @@ const io = new Server(server, {
 
 io.adapter(createAdapter(pubClient, subClient));
 
+<<<<<<< HEAD
 /**
  * Identity behind the handshake's session cookie, asked to the app (GET /api/auth/me) so this
  * socket applies exactly the app's checks, including revoked sessions (tokenVersion).
@@ -158,6 +170,11 @@ io.on("connection", async (socket) => {
     }
   });
 });
+=======
+io.use(authenticateSocket);
+
+io.on("connection", (socket) => handleConnection(io, socket));
+>>>>>>> origin/merge/readme-review-dev
 
 // Connection counts of a previous run are meaningless (its sockets are gone). This assumes a
 // single socket-server instance, which is how the stack is deployed.

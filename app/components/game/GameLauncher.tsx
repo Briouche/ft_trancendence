@@ -6,7 +6,7 @@ import Phaser from "phaser";
 import { createGameConfig, GameMode } from "@/game/GameConfig";
 import { EventManager } from "@/game/EventManager";
 import type { Difficulty } from "@/game/shared/protocol";
-import SceneLoading from "@/components/library/SceneLoading";
+import SceneLoading from "@/components/home-library/SceneLoading";
 
 // How long to wait for the match to actually start (asset preload + font load + socket round
 // trip + server-side deck resolution) before treating it as stuck rather than just slow. On a

@@ -1,7 +1,7 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { USERNAME_MAX_LENGTH } from "@/lib/validation";
+import { USERNAME_MAX_LENGTH } from "@/lib/auth/requirements";
 
 // "Sign in with 42" OAuth flow: authorize URL, code exchange, profile fetch, account lookup.
 
@@ -10,7 +10,7 @@ const TOKEN_URL = "https://api.intra.42.fr/oauth/token";
 const ME_URL = "https://api.intra.42.fr/v2/me";
 
 interface FortyTwoProfile {
-    id:    number;
+    id: number;
     login: string;
     email: string;
 }
@@ -29,10 +29,10 @@ export function getSiteOrigin(): string {
 /** URL of 42's authorization page for this app, carrying the anti-CSRF `state`. */
 export function buildAuthorizeUrl(state: string): string {
     const params = new URLSearchParams({
-        client_id:     getEnv("FT_CLIENT_ID"),
-        redirect_uri:  getEnv("FT_REDIRECT_URI"),
+        client_id: getEnv("FT_CLIENT_ID"),
+        redirect_uri: getEnv("FT_REDIRECT_URI"),
         response_type: "code",
-        scope:         "public",
+        scope: "public",
         state,
     });
     return `${AUTHORIZE_URL}?${params.toString()}`;
@@ -40,14 +40,14 @@ export function buildAuthorizeUrl(state: string): string {
 
 async function exchangeCodeForToken(code: string): Promise<string> {
     const res = await fetch(TOKEN_URL, {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            grant_type:    "authorization_code",
-            client_id:     getEnv("FT_CLIENT_ID"),
+            grant_type: "authorization_code",
+            client_id: getEnv("FT_CLIENT_ID"),
             client_secret: getEnv("FT_CLIENT_SECRET"),
             code,
-            redirect_uri:  getEnv("FT_REDIRECT_URI"),
+            redirect_uri: getEnv("FT_REDIRECT_URI"),
         }),
     });
     if (!res.ok) throw new Error(`42 token exchange failed: ${res.status}`);

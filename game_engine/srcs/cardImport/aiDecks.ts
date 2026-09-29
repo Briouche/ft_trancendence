@@ -28,7 +28,7 @@ const ARCHI_DECK: string[] = [
     "Po", "Zurg", "Bertrand", "Le Phoenix",
     "Goblinmikaze", "Flambeur de Dancefloor", "le gros pied puant", "CRS", "Client Mécontent",
     "Feeder goblin", "Cactus dos Pimentos", "Le menestrel", "tortue encourageante",
-    "Bibliothequaire", "Pyroblin", "Jumeau Goblin",
+    "Bibliothequaire", "Pyroblin", "Jumeaux Goblin",
 ]
 
 const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]

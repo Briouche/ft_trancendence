@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { MENU_ITEMS } from './menu'
-import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from './AccountMenu'
+import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from '@/components/account-menu/AccountMenu'
 
 /** Text menu shown instead of the 3D hall when WebGL2 is unavailable. */
 export default function SimpleHubMenu({ username, cardCount, elo, wins, cardBacks }: {

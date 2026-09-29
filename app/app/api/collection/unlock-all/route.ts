@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
+<<<<<<< HEAD
 import { getSession } from '@/lib/session'
 import { DEV_TOOLS_ENABLED } from '@/lib/devTools'
+=======
+import { getSession } from '@/lib/auth/cookieSession'
+>>>>>>> origin/merge/readme-review-dev
 import { CARD_BACK_COUNT } from '@/lib/cardBacks'
 
 /** Test tool: gives the user every card at max quantity and every card back. */

@@ -1,13 +1,12 @@
+// server functions to manage the session cookie
 import "server-only";
 
 import { cache } from "react";
-import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { SignJWT, jwtVerify } from "jose";
 import prisma from "@/lib/prisma";
 
-// JWT session cookie: create, delete, read (with tokenVersion check) and current user lookup.
-
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+import { SESSION_DURATION_DAY, SESSION_DURATION_MS } from "@/lib/auth/requirements";
 
 type SessionPayload = {
   userId: number;
@@ -16,18 +15,50 @@ type SessionPayload = {
   expiresAt: string;
 };
 
-export type CurrentUser = {
-  id: number;
-  username: string;
-  email: string;
-  avatar: string | null;
-  createdAt: Date;
-  elo: number;
-  // False for 42-only accounts. The hash itself never leaves the server.
-  hasPassword: boolean;
-  // True once "Sign in with 42" is linked to this account.
-  linkedTo42: boolean;
-};
+export const getSession = cache(async () => {
+  // this function gets the user's session cookie
+  // and checks the validity of its payload
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+  if (!token) return null;
+
+  const payload = await decrypt(token);
+  if (!payload) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    select: { tokenVersion: true },
+  });
+  if (!user || user.tokenVersion !== payload.tokenVersion) return null;
+
+  return payload;
+});
+
+export async function createSession(userId: number, username: string, tokenVersion: number) {
+  // creates the session cookie to log in
+
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  const token = await encrypt({ userId, username, tokenVersion, expiresAt: expiresAt.toISOString() });
+
+  const cookieStore = await cookies();
+  cookieStore.set("session", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    expires: expiresAt,
+    path: "/",
+  });
+}
+
+export async function deleteSession() {
+  // removes the session cookie to log out
+
+  const cookieStore = await cookies();
+  cookieStore.delete("session");
+}
+
+
 
 function getEncodedKey() {
   const secretKey = process.env.JWT_SECRET;
@@ -35,12 +66,11 @@ function getEncodedKey() {
   return new TextEncoder().encode(secretKey);
 }
 
-async function encrypt(payload: SessionPayload, expiresAt: Date) {
+async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    // Same instant as the cookie's expiry, so both lifetimes come from SESSION_DURATION_MS.
-    .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
+    .setExpirationTime("7d")
     .sign(getEncodedKey());
 }
 
@@ -64,34 +94,27 @@ async function decrypt(token: string | undefined = "") {
   }
 }
 
-/**
- * Signs a session JWT (7 days, carrying tokenVersion) and sets it as an HttpOnly, Secure,
- * SameSite=Lax cookie.
- */
 export async function createSession(userId: number, username: string, tokenVersion: number) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-  const token = await encrypt({ userId, username, tokenVersion, expiresAt: expiresAt.toISOString() }, expiresAt);
+  const token = await encrypt({ userId, username, tokenVersion, expiresAt: expiresAt.toISOString() });
 
   const cookieStore = await cookies();
   cookieStore.set("session", token, {
     httpOnly: true,
-    secure: true, // every environment is served over HTTPS (proxy/)
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     expires: expiresAt,
     path: "/",
   });
 }
 
-/** Removes the session cookie (log out on this browser). */
 export async function deleteSession() {
   const cookieStore = await cookies();
   cookieStore.delete("session");
 }
 
-/**
- * Session payload, or null when the cookie is missing, invalid or issued before the user's
- * tokenVersion was bumped. Cached per request.
- */
+// Session payload, or null when the cookie is missing, invalid or issued before the user's
+// tokenVersion was bumped. Cached per request.
 export const getSession = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
@@ -109,17 +132,15 @@ export const getSession = cache(async () => {
   return payload;
 });
 
-/** The signed-in user's account details, or null. Cached per request. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const session = await getSession();
   if (!session) return null;
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { username: true, email: true, avatar: true, createdAt: true, elo: true, password: true, fortyTwoId: true },
+    select: { username: true, email: true, avatar: true, status: true, createdAt: true, elo: true },
   });
   if (!user) return null;
 
-  const { password, fortyTwoId, ...rest } = user;
-  return { id: session.userId, ...rest, hasPassword: password !== null, linkedTo42: fortyTwoId !== null };
+  return { id: session.userId, ...user };
 });

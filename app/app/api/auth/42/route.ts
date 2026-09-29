@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+<<<<<<< HEAD
 import { buildAuthorizeUrl } from "@/lib/oauth42";
 import { getSession } from "@/lib/session";
+=======
+import { buildAuthorizeUrl } from "@/lib/auth/oauth42";
+>>>>>>> origin/merge/readme-review-dev
 
 /** Cookie holding the anti-CSRF `state` of an OAuth attempt in progress (5 minutes). */
 export const STATE_COOKIE = "ft_oauth_state";
