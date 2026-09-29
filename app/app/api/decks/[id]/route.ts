@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/cookieSession";
 
+// Update or delete one of the current user's decks; a deck they don't own reads as 404.
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -12,12 +14,9 @@ export async function PUT(
   const { id } = await params;
   const { name, cards } = await req.json();
 
-  // A deck not owned by the current user matches no row here (userId is part of the where,
-  // not just id) — stops a player from editing someone else's deck by guessing its id.
   const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Drop the deck's current cards; the new set is recreated below via the nested create.
   await prisma.deckCard.deleteMany({ where: { deckId: Number(id) } });
 
   const deck = await prisma.deck.update({
@@ -45,7 +44,6 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Same ownership check as PUT — stops a player from deleting someone else's deck.
   const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ROUTES } from "@/config/routes";
 
 import { outlinedWhiteTextStyle } from "@/components/notebook/NotebookUI";
+import ScaleToFit from "@/components/ScaleToFit";
 
 interface BottomFormBoxProps {
   bottomText: string;
@@ -26,7 +27,7 @@ export default function FormBox({
   bottomRouteText,
 }: FormBoxProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-vertical">
+    <ScaleToFit className="flex-1">
       <div className="travelbook-frame4-panel flex w-84 flex-col p-7 text-center">
         <h2
           className="font-display text-5xl font-medium text-white"
@@ -57,6 +58,6 @@ export default function FormBox({
           </Link>
         </p>
       </div>
-    </div>
+    </ScaleToFit>
   );
 }

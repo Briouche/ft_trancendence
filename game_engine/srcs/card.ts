@@ -1,12 +1,7 @@
 import { Effect } from "./effect";
 import { legendary } from "./legendary";
 
-// Card hierarchy: abstract Card holds identity (id/name/mana/description/rarity) shared by both
-// concrete kinds — MinionCard (attack/health plus a Keywords bag of hooks: battlecry, deathrattle,
-// onAttack, startOfTurnEffect, etc., each an Effect from effect.ts) and SpellCard (a single Effect
-// fired on play). Cards are built once from DB rows (cardImport/cardLoader.ts) and then cloned per
-// game instance/simulation — see clone() vs cloneCopy() below, which differ in whether the id is
-// preserved.
+// Cards are built from DB rows (cardImport/cardLoader.ts) then cloned per game / simulation.
 export abstract class Card
 {
     public readonly name:        string;
@@ -33,19 +28,11 @@ export abstract class Card
         return this.legendaryPassive;
     }
 
-    abstract getType(): string;
-
-    toString(): string
-    {
-        return "[" + this.getType() + "] " + this.name + " (" + this.manaCost + " mana) - " + this.description;
-    }
-
-    //-----
-
+    // Copy that keeps the id (deck/hand cards stay addressable by id).
     abstract cloneCopy(): Card;
 }
 
-//effects added on minions, all null if not added
+// Minion hooks; undefined when the card doesn't have them.
 interface Keywords
 {
     battlecry?: Effect;
@@ -59,7 +46,6 @@ interface Keywords
     archi?: boolean;
     onDamage?: Effect;
     spellpower?: number;
-    //onMinionDamage?: Effect;
 }
 
 let nextTokenId: number = 0;
@@ -89,16 +75,7 @@ export class MinionCard extends Card
         this.baseMaxHealth = baseMaxHealth;
     }
 
-    getType(): string
-    {
-        return "Minion";
-    }
-
-    // Mints a fresh id (module-level counter) instead of keeping the original — needed since
-    // SummonMinionEffect clones the same token MinionCard template on every fire (e.g. each
-    // Mother Spider death), and Board.clone() uses this (not cloneCopy()) when GameEngine.clone()
-    // snapshots the board for an MCTS branch. Each copy needs its own id to stay independently
-    // targetable.
+    // Copy with a fresh id: summoned tokens and board clones must stay independently targetable.
     clone(): MinionCard
     {
         const copy = new MinionCard(this.id + nextTokenId++, this.name, this.manaCost,
@@ -119,26 +96,15 @@ export class MinionCard extends Card
         this.currentHealth -= amount;
     }
 
-	heal(amount: number): number
-	{
-		const before = this.currentHealth;
-		this.currentHealth += amount;
-		if (this.currentHealth > this.maxHealth)
-			this.currentHealth = this.maxHealth;
-		return this.currentHealth - before;
-	}
-
-    toString(): string
+    heal(amount: number): number
     {
-        return "[Minion] " + this.name + " (" + this.manaCost + " mana) "
-            + this.attack + "/" + this.currentHealth + " - " + this.description;
+        const before = this.currentHealth;
+        this.currentHealth += amount;
+        if (this.currentHealth > this.maxHealth)
+            this.currentHealth = this.maxHealth;
+        return this.currentHealth - before;
     }
 
-    //-----
-
-    // Keeps the original id, unlike clone() above — used for Deck/Hand cards, whose identity
-    // (e.g. "the card the client says it's playing, looked up by id") must survive Deck.clone()/
-    // Hand.clone() and Player.clone().
     cloneCopy(): MinionCard
     {
         const copy = new MinionCard(this.id, this.name, this.manaCost, this.description,
@@ -159,13 +125,6 @@ export class SpellCard extends Card
         super(name, manaCost, description, id, legendaryPassive, assetKey, rarity);
         this.effect = effect;
     }
-
-    getType(): string
-    {
-        return "Spell: " + this.description;
-    }
-
-    //-----
 
     cloneCopy(): SpellCard
     {

@@ -2,18 +2,21 @@ import Phaser from "phaser";
 import { EventManager } from "../EventManager";
 import { GAME_FONT_FAMILY_KEY } from "./gameFontRegistry";
 
-const OVERLAY_DEPTH = 3000; // above turnBanner (2000) and EndTurn (500)
+const OVERLAY_DEPTH = 3000;
 const DIM_COLOR = 0x000000;
 const DIM_ALPHA = 0.6;
-const CLICK_DELAY_MS = 2000; // delayed so a click already in flight when the overlay appears doesn't instantly dismiss it
+const CLICK_DELAY_MS = 2000;
 
+// Full-screen result banner; becomes clickable after a delay and then navigates home.
 export class GameOverOverlay extends Phaser.GameObjects.Container
 {
     private dim: Phaser.GameObjects.Rectangle;
     private message: Phaser.GameObjects.Text;
     private hint: Phaser.GameObjects.Text;
 
-    constructor(scene: Phaser.Scene, text: string, color: string)
+    // fontSize is overridable because the default is sized for "YOU WIN!!", not for a sentence —
+    // a fatal rejection reuses this overlay to explain why the match is gone.
+    constructor(scene: Phaser.Scene, text: string, color: string, options: { fontSize?: string } = {})
     {
         super(scene, 0, 0);
 
@@ -22,7 +25,7 @@ export class GameOverOverlay extends Phaser.GameObjects.Container
 
         this.dim = scene.add.rectangle(width / 2, height / 2, width, height, DIM_COLOR, DIM_ALPHA);
         this.message = scene.add.text(width / 2, height / 2, text,
-            { fontFamily, fontSize: "128px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
+            { fontFamily, fontSize: options.fontSize ?? "128px", color, fontStyle: "bold", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5);
         this.hint = scene.add.text(width / 2, height / 2 + 60, "Click anywhere to continue",
             { fontFamily, fontSize: "40px", color: "#ffffff", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
 

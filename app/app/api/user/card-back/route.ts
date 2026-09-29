@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/auth/cookieSession'
 import { isValidCardBack } from '@/lib/cardBacks'
 
+// Equips one of the user's unlocked card backs.
 export async function POST(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -14,8 +15,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid card back' }, { status: 400 })
     }
 
-    // Re-check unlock status server-side even though the UI only ever offers unlocked backs —
-    // this is the actual enforcement point, not just a UX nicety.
     const user = await prisma.user.findUniqueOrThrow({
         where:  { id: session.userId },
         select: { unlockedCardBacks: true },

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/cookieSession";
 import prisma from "@/lib/prisma";
 import { FRIEND_ROW_SELECT } from "@/lib/user-and-friends/requirements";
 
+// Accepted friendships of the current user, as the list of other people.
 export async function GET() {
   const session = await getSession();
   if (!session) {

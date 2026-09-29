@@ -9,9 +9,10 @@ export type CardBacksSummary = {
     total:    number
 }
 
-export default function AccountPanel({ username, cardCount, cardBacks, onClose }: {
+export default function AccountPanel({ username, cardCount, elo, cardBacks, onClose }: {
     username:  string
     cardCount: number
+    elo:       number
     cardBacks: CardBacksSummary
     onClose:   () => void
 }) {
@@ -23,6 +24,9 @@ export default function AccountPanel({ username, cardCount, cardBacks, onClose }
             </p>
             <p className="mt-0.5 font-serif text-sm text-ink-muted">
                 🎴 {cardBacks.unlocked}/{cardBacks.total} card backs unlocked
+            </p>
+            <p className="mt-0.5 font-serif text-sm text-ink-muted">
+                🏆 Elo : {elo}
             </p>
 
             <div className="my-3 h-px bg-ink-muted/30" />

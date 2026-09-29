@@ -14,13 +14,13 @@ const BUTTON_FRAMES = 4
 // `variant` picks the texture (Sprites Animated) under the button: "square" is the generic orange
 // Home-button look, meant for a separate square icon passed as a child, and stays the default. The
 // other variants come from the 01_TravelBook asset (Sprites Animated ButtonHome01a/ButtonBack01a/
-// ButtonManual01a/ButtonAbout01a/ButtonSetting01a/ButtonAchievement01a): unlike "square", the icon
+// ButtonManual01a/ButtonAbout01a/ButtonAchievement01a): unlike "square", the icon
 // is already painted into the texture itself — no child needed for them.
 // (A "bar" variant for full-width text buttons — Save changes, Create deck — was attempted once
 // via a Button03a sprite, but that sprite's dark maroon fill never matched the cream/tan
 // travelbook-slot03a look those buttons actually use, and it was dropped. Full-width text buttons
 // still just use the raw `travelbook-slot03a` CSS class directly.)
-const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'music', 'achievement', 'friends'] as const
+const SELF_CONTAINED_VARIANTS = ['home', 'back', 'manual', 'about', 'achievement', 'friends'] as const
 type AssetButtonVariant = 'square' | (typeof SELF_CONTAINED_VARIANTS)[number]
 
 const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
@@ -29,7 +29,6 @@ const VARIANT_TEXTURE_PATH: Record<AssetButtonVariant, string> = {
     back:        '/textures/notebook/button-back',
     manual:      '/textures/notebook/button-manual',
     about:       '/textures/notebook/button-about',
-    music:       '/textures/notebook/button-music',
     achievement: '/textures/notebook/button-achievement',
     // ButtonContact01a (01_TravelBook) — an envelope, not a person icon, but it's the closest
     // painted button the asset pack has to "friends"; there's no multi-person icon in the pack.

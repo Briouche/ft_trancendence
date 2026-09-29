@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 
 import { SESSION_DURATION_DAY, SESSION_DURATION_MS} from "@/lib/auth/requirements";
 
-export type SessionPayload = {
+type SessionPayload = {
   userId: number;
   username: string;
   tokenVersion: number;

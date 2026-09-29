@@ -34,7 +34,7 @@ interface RawCard
 	keywords?: string[]
 }
 
-// Labels as written in the JSON -> Prisma enum value
+// Keyword label in the JSON → Prisma enum value.
 const KEYWORD_LABELS: Record<string, Keyword> = {
 	'Ruée':             Keyword.RUEE,
 	"Râle d'agonie":    Keyword.RALE_DAGONIE,
@@ -56,6 +56,7 @@ function parseKeywords(raw: string[] | undefined, cardId: string): Keyword[] {
 	})
 }
 
+// Upserts every card of data/tcg-collection.json, then deletes cards no longer in it.
 export async function seedCards(prisma: PrismaClient)
 {
 	const jsonPath = path.resolve(__dirname, './data/tcg-collection.json')
@@ -85,9 +86,6 @@ export async function seedCards(prisma: PrismaClient)
 			archi: card.archi,
 			spellpower: card.spellpower,
 
-			// EffectSpec is a recursive discriminated union (addKeyword's `value` can itself be an
-			// EffectSpec); TS won't structurally match that against Prisma's InputJsonValue index
-			// signature on its own, so cast explicitly — the shape is still JSON-safe at runtime.
 			battlecry:         card.battlecry         as Prisma.InputJsonValue | undefined,
 			deathrattle:       card.deathrattle       as Prisma.InputJsonValue | undefined,
 			onAttack:          card.onAttack          as Prisma.InputJsonValue | undefined,
@@ -109,10 +107,6 @@ export async function seedCards(prisma: PrismaClient)
 
 	console.log('✅ Cards successfully seeded.')
 
-	// upsert() above never deletes, so a card removed from the JSON would otherwise stay in the
-	// DB indefinitely. This syncs the deletion — UserCard/DeckCard first (Card has no
-	// onDelete: Cascade), then Card. Guard against an empty JSON: `notIn: []` would match every
-	// row and wipe the table.
 	const validIds = data.cards.map(c => c.id)
 	if (validIds.length > 0) {
 		const staleCount = await prisma.card.count({ where: { id: { notIn: validIds } } })

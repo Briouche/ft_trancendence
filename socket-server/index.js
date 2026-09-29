@@ -5,6 +5,9 @@ import { pubClient, subClient } from "./redis.js";
 import { authenticateSocket } from "./auth.js";
 import { handleConnection } from "./handlers/connection.js";
 
+// Chat/presence socket.io server: authenticates with the Next.js session cookie, tracks online
+// users in Redis, relays chat messages.
+
 const PORT = process.env.PORT || 4000;
 
 // creates the server with a health rule for docker-compose
@@ -18,8 +21,7 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
-// Distinct from game_engine's socket.io path (default "/socket.io/") — nginx forwards the
-// incoming request URI unchanged, so this must match the location block that proxies here.
+// Path must match the nginx location proxying here (game_engine uses the default one).
 const io = new Server(server, {
   path: "/chat-socket.io/",
   cors: {

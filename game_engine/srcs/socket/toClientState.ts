@@ -1,9 +1,10 @@
 import { Card, MinionCard, SpellCard } from "../card";
 import { GameEngine } from "../gameEngine";
-import { Effect } from "../effect";
-import { ClientCard, ClientGameState, ClientHero, TargetOption, clientEffect } from "../shared/protocol";
-import { Targetable } from "../target";
+import { Effect, cleaveEffect, regenerationEffect } from "../effect";
+import { ClientCard, ClientGameState, ClientHero, clientEffect, TargetPrompt } from "../shared/protocol";
 import { Player } from "../player";
+
+// Engine state → the per-player view sent over the socket (shared/protocol.ts).
 
 function getOnPlayEffects(card: Card): Effect[]
 {
@@ -20,7 +21,7 @@ function getOnPlayEffects(card: Card): Effect[]
 
 function requiresTarget(card: Card): boolean
 {
-    return getOnPlayEffects(card).some((effect: Effect) => 
+    return getOnPlayEffects(card).some((effect: Effect) =>
         effect.resolver !== null && effect.resolver.requiresInput === true);
 }
 
@@ -66,7 +67,11 @@ export function toClientCard(card: Card): ClientCard
         if (card.effects.cannotAttack)
             clientCard.effects.cannotAttack = true;
         if (card.effects.archi)
-            clientCard.effects.archi = true;
+            clientCard.effects.archimede = true;
+        if (card.effects.onAttack instanceof cleaveEffect)
+            clientCard.effects.cleave = true;
+        if (card.effects.endOfTurnEffect instanceof regenerationEffect)
+            clientCard.effects.regeneration = true;
     }
 
     return clientCard;
@@ -74,7 +79,6 @@ export function toClientCard(card: Card): ClientCard
 
 function toClientHero(player: Player): ClientHero
 {
-    // Use the hero's own id and name so the client receives full hero identity emitted by the engine
     let data: ClientHero = { health: player.hero.currentHealth, name: player.hero.name, id: player.hero.id || player.id, maxHealth: player.hero.maxHealth, cardBack: player.cardBack };
     if (player.legPassive == "archimede")
         data.archi = player.archimedeCount;
@@ -87,7 +91,8 @@ function toClientHero(player: Player): ClientHero
     return data;
 }
 
-export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGameState
+// pendingPrompt is supplied by the caller (GameSession owns the pending target, not the engine).
+export function toClientState(engine: GameEngine, playerIndex: 0 | 1, pendingPrompt?: TargetPrompt): ClientGameState
 {
     const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
 
@@ -104,6 +109,11 @@ export function toClientState(engine: GameEngine, playerIndex: 0 | 1): ClientGam
         opponentMana: engine.players[opponentIndex].currentMana,
         opponentMaxMana: engine.players[opponentIndex].maxMana,
         playerDeck: engine.players[playerIndex].deck.size(),
-        opponentDeck: engine.players[opponentIndex].deck.size()
+        opponentDeck: engine.players[opponentIndex].deck.size(),
+        // Set only while this player owes the server a target choice. The one-shot "prompt"
+        // message that normally raises the target UI died with the connection that received it,
+        // so a client reconnecting mid-prompt has no other way to learn it still has to answer —
+        // and GameSession.handle() rejects everything except targetChoice until it does.
+        pendingPrompt
     };
 }

@@ -2,11 +2,8 @@ import { Effect, DamageEffect, HealEffect, BuffEffect, CountScaledBuffEffect, Dr
 import { TargetResolver, AnyCharacterResolver, AllMinionsResolver, NeighboringMinionsResolver, OtherAlliedMinionsResolver, DamagedAlliedMinionsResolver, RandomEnemyResolver, EnemyMinionResolver, EnemyHeroResolver, EnemyCharacterResolver, AllCharactersResolver, AlliedMinionsResolver, AllyMinionResolver, AnyMinionResolver, AllEnemyMinionsResolver, BothHeroesResolver, PlayerHeroResolver, SourceResolver, AllEnemiesResolver } from '../target'
 import { RawCard, rawToMinionCard } from './cardLoader'
 
-// Bridges the DB's plain-JSON effect definitions (the battlecry/deathrattle/onAttack/etc. columns
-// on Card, see schema.prisma) to real Effect/TargetResolver instances (effect.ts / target.ts).
-// ResolverSpec and EffectSpec mirror those JSON shapes one-for-one; buildResolver/buildEffect are
-// the only place that turns a spec into a live object, called from cardLoader.ts's
-// rawToMinionCard/rawToCard whenever a card is built for a game.
+// JSON effect definitions stored on Card rows (schema.prisma) → Effect / TargetResolver instances.
+
 export type ResolverSpec =
     | { kind: "anyCharacter" }
     | { kind: "enemyCharacter" }
@@ -43,12 +40,12 @@ export type EffectSpec =
     | { kind: "triggerDeathrattle"; resolver: ResolverSpec }
     | { kind: "triggerEndOfTurn"; resolver: ResolverSpec }
     | { kind: "timmy"; resolver: ResolverSpec }
-    | { kind: "archi"; resolver: ResolverSpec }
+    | { kind: "archimede"; resolver: ResolverSpec }
     | { kind: "equalHealth" }
     | { kind: "cleave" }
     | { kind: "regeneration" }
 
-export function buildResolver(spec: ResolverSpec): TargetResolver
+function buildResolver(spec: ResolverSpec): TargetResolver
 {
     switch (spec.kind)
     {
@@ -118,7 +115,7 @@ export function buildEffect(spec: EffectSpec | null | undefined): Effect | undef
             return new triggerEndOfTurnEffect(buildResolver(spec.resolver))
         case "timmy":
             return new timmyDamageEffect(buildResolver(spec.resolver))
-        case "archi":
+        case "archimede":
             return new archiDamageEffect(buildResolver(spec.resolver))
         case "equalHealth":
             return new equalHealthEffect()

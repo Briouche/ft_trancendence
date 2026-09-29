@@ -1,7 +1,6 @@
 import { TargetPrompt } from "../../shared/protocol";
 
-//shared info for current gamestate,
-// tells if we're currently waiting for the server
+// Turn/prompt state shared by the scene controllers.
 export class GameFlowState
 {
     playerIndex: 0 | 1 | null = null;

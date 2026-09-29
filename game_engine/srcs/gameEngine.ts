@@ -1,19 +1,12 @@
 import { Card, MinionCard, SpellCard } from "./card";
 import { Board } from "./board";
 import { Player } from "./player";
-import { GameContext } from "./effect";
+import { GameContext, Effect } from "./effect";
 import { Targetable, EnemyCharacterResolver } from "./target";
-import { Effect } from "./effect";
 import { Hero } from "./hero";
 import { freddyPassive, jeffePassive, timmyPassive } from "./legendary";
 
-// GameEngine holds the authoritative state of one match — players, board, whose turn it is — plus
-// every rule for mutating it (playing a card, attacking, ending a turn, resolving deaths). Two
-// very different callers drive it: socket/gameSession.ts mutates the single real instance for a
-// live match and streams its AnimationEvents to clients, while ai/tree.ts clones it on every
-// simulated move so MCTS can explore hypothetical futures without ever touching the real game.
-// Every mutating method returns an ActionResult carrying the AnimationEvents it produced, so
-// callers don't have to diff state before/after to know what to animate.
+// What happened during an action, in order, for the client to animate.
 export type AnimationEvent =
     | { kind: "summon"; minion: MinionCard; playerIndex: 0 | 1 }
     | { kind: "damage"; target: Targetable; amount: number }
@@ -24,16 +17,18 @@ export type AnimationEvent =
 
 export interface ActionResult
 {
-    succes: boolean;
+    success: boolean;
     animationEvents: AnimationEvent[];
 }
 
+// A legal move for the active player (used by the AI search).
 export type Action =
     | { type: "playCard"; cardIndex: number; targetIndex?: number }
     | { type: "attack"; attackerIndex: number; targetIndex: number }
     | { type: "endTurn" };
 
-
+// Authoritative state and rules of one match. GameSession drives the real instance;
+// ai/tree.ts clones it to simulate moves.
 export class GameEngine
 {
     public readonly players: [Player, Player];
@@ -48,6 +43,7 @@ export class GameEngine
         this.currentTurn = 0;
     }
 
+    // 3 cards each, one extra for the second player.
     startGame(): ActionResult
     {
         for (let i = 0; i < 2; i++)
@@ -87,7 +83,7 @@ export class GameEngine
                 this.processDeaths();
             }
         }
-        return { succes: true, animationEvents: this.animationChain };
+        return { success: true, animationEvents: this.animationChain };
     }
 
     triggerEndOfTurnEffects(playerIndex: 0 | 1): void
@@ -109,7 +105,7 @@ export class GameEngine
         minion.effects.endOfTurnEffect.execute(context);
         this.processDeaths();
 
-        // roidesrats passive: every 3rd end-of-turn trigger this game, fire the effect a second time.
+        // Roi des rats: every 3rd end-of-turn effect fires twice.
         if (player.legPassive === "roidesrats")
         {
             player.roiDesRatsCount++;
@@ -126,7 +122,7 @@ export class GameEngine
     {
         this.animationChain = [];
         this.triggerEndOfTurnEffects(this.currentTurn);
-        const endOfTurn: ActionResult = { succes: true, animationEvents: this.animationChain };
+        const endOfTurn: ActionResult = { success: true, animationEvents: this.animationChain };
 
         this.currentTurn = this.currentTurn === 0 ? 1 : 0;
         const startOfTurn: ActionResult = this.startTurn();
@@ -141,10 +137,10 @@ export class GameEngine
         const card = player.hand.getCards()[cardIndex];
 
         if (!card || card.manaCost > player.currentMana)
-            return { succes: false, animationEvents: [] };
+            return { success: false, animationEvents: [] };
 
         if (card instanceof MinionCard && this.board.getMinions(this.currentTurn).length >= 6)
-            return { succes: false, animationEvents: [] };
+            return { success: false, animationEvents: [] };
 
         player.hand.play(cardIndex);
         player.spendMana(card.manaCost);
@@ -174,6 +170,7 @@ export class GameEngine
             let context: GameContext = {engine: this, owner: this.players[this.currentTurn], source: card, target: targets.get(card.effect) ?? undefined, bonusDamage: spellpower};
             card.effect.execute(context);
 
+            // Gertrude: every 4th spell returns to hand.
             if (player.legPassive === "gertrude")
             {
                 player.gertrudeCount++;
@@ -182,7 +179,7 @@ export class GameEngine
             }
         }
         this.processDeaths();
-        return { succes: true, animationEvents: this.animationChain };
+        return { success: true, animationEvents: this.animationChain };
     }
 
     attackWithMinion(attackerIndex: number, target: Targetable): ActionResult
@@ -192,7 +189,7 @@ export class GameEngine
         const attacker: MinionCard = this.board.getMinions(this.currentTurn)[attackerIndex];
 
         if (!attacker || !attacker.canAttack)
-            return { succes: false, animationEvents: [] };
+            return { success: false, animationEvents: [] };
 
         attacker.canAttack = false;
 
@@ -207,7 +204,6 @@ export class GameEngine
             this.players[opponentIndex].hero.takeDamage(attacker.attack);
             this.recordDamage(this.players[opponentIndex].hero, attacker.attack, this.players[opponentIndex]);
         }
-
         else if (target instanceof MinionCard)
         {
             const targetAttack: number = target.attack;
@@ -218,8 +214,7 @@ export class GameEngine
         }
 
         this.processDeaths();
-        this.checkWinCondition();
-        return { succes: true, animationEvents: this.animationChain };
+        return { success: true, animationEvents: this.animationChain };
     }
 
     activePlayer(): Player
@@ -239,26 +234,12 @@ export class GameEngine
         return undefined;
     }
 
-    checkWinCondition(): boolean
-    {
-        for (const player of this.players)
-        {
-            if (!player.hero.isAlive())
-            {
-                return true;
-            }        
-        }
-        return false;
-    }
-
+    // Repeats until no minion is dead, since deathrattles can kill more minions. Dead minions
+    // leave the board before their deathrattle runs so summons see the free slots.
     processDeaths(): void
     {
         const opponentIndex: 0 | 1 = this.currentTurn === 0 ? 1 : 0;
 
-        // Loops instead of a single pass: a deathrattle can kill further minions (AoE deathrattle,
-        // destroyEffect chain, ...), so deaths are re-collected until none remain. Dead minions
-        // are cleared from the board before their deathrattles run, so summon effects see
-        // accurate free space (SummonMinionEffect checks board.getMinions().length < 6).
         while (true)
         {
             const deadCurrent: MinionCard[] = this.board.collectDead(this.currentTurn);
@@ -270,46 +251,35 @@ export class GameEngine
             this.board.clearDead(this.currentTurn);
             this.board.clearDead(opponentIndex);
 
-            for (const minion of deadCurrent)
+            this.resolveDeaths(deadCurrent, this.currentTurn);
+            this.resolveDeaths(deadOpponent, opponentIndex);
+        }
+    }
+
+    // Deathrattles, then Freddy's passive (a skeleton every 4th friendly death).
+    private resolveDeaths(dead: MinionCard[], playerIndex: 0 | 1): void
+    {
+        const player: Player = this.players[playerIndex];
+
+        for (const minion of dead)
+        {
+            if (minion.effects.deathrattle)
             {
-                if (minion.effects.deathrattle)
-                {
-                    const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
-                    this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "deathrattle" });
-                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: this.currentTurn });
-                    minion.effects.deathrattle.execute(context);
-                }
-                else
-                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: this.currentTurn });
-                if (this.players[this.currentTurn].legPassive === "freddy")
-                {
-                    this.players[this.currentTurn].freddyCount++;
-                    if (this.players[this.currentTurn].freddyCount % 4 === 0)
-                    {
-                        const context: GameContext = { engine: this, owner: this.players[this.currentTurn], source: minion };
-                        freddyPassive(context, this.players[this.currentTurn].freddyCount / 4);
-                    }
-                }
+                const context: GameContext = { engine: this, owner: player, source: minion };
+                this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "deathrattle" });
+                this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex });
+                minion.effects.deathrattle.execute(context);
             }
-            for (const minion of deadOpponent)
+            else
+                this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex });
+
+            if (player.legPassive === "freddy")
             {
-                if (minion.effects.deathrattle)
+                player.freddyCount++;
+                if (player.freddyCount % 4 === 0)
                 {
-                    const ctx: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };
-                    this.recordAnimationChain({ kind: "effect", sourceId: minion.id, trigger: "deathrattle" });
-                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: opponentIndex });
-                    minion.effects.deathrattle.execute(ctx);
-                }
-                else
-                    this.recordAnimationChain({ kind: "death", minionId: minion.id, playerIndex: opponentIndex });
-                if (this.players[opponentIndex].legPassive === "freddy")
-                {
-                    this.players[opponentIndex].freddyCount++;
-                    if (this.players[opponentIndex].freddyCount % 4 === 0)
-                    {
-                        const context: GameContext = { engine: this, owner: this.players[opponentIndex], source: minion };
-                        freddyPassive(context, this.players[opponentIndex].freddyCount / 4);
-                    }
+                    const context: GameContext = { engine: this, owner: player, source: minion };
+                    freddyPassive(context, player.freddyCount / 4);
                 }
             }
         }
@@ -320,6 +290,7 @@ export class GameEngine
         this.animationChain.push(event);
     }
 
+    // Also fires the target's onDamage hook and Jeffe's passive.
     recordDamage(target: Targetable, amount: number, owner: Player | undefined)
     {
         this.recordAnimationChain({ kind: "damage", target, amount });
@@ -344,14 +315,6 @@ export class GameEngine
         this.recordAnimationChain({ kind: "buff", target, attackDelta, healthDelta });
     }
 
-    toString(): string
-    {
-        return this.players[0].toString() + "\n"
-             + this.players[1].toString() + "\n"
-             + "---\n"
-             + this.board.toString();
-    }
-
     clone(): GameEngine
     {
         const copy = new GameEngine([this.players[0].clone(), this.players[1].clone()]);
@@ -359,7 +322,6 @@ export class GameEngine
         copy.currentTurn = this.currentTurn;
         return copy;
     }
-
 
     getOnPlayEffect(card: Card): Effect | null
     {
@@ -370,8 +332,7 @@ export class GameEngine
         return null;
     }
 
-    // Resolves the legal targets for a card's on-play effect against the current state.
-    // Empty for cards with no on-play effect, or an effect that doesn't require a target.
+    // Legal targets of a card's on-play effect; empty when it needs no target.
     getOnPlayTargets(card: Card): Targetable[]
     {
         const effect = this.getOnPlayEffect(card);
@@ -383,9 +344,7 @@ export class GameEngine
         return effect.resolver.resolve(context);
     }
 
-    //getLegalActions() duplicates the mana/canAttack checks already inside playCard()/attackWithMinion().
-    //If either of those changes, this needs to change with it — flag it now so it doesn't silently drift.
-
+    // Mirrors the checks of playCard() / attackWithMinion().
     getLegalActions(): Action[]
     {
         const actions: Action[] = [];
@@ -410,9 +369,9 @@ export class GameEngine
 
                 if (targets.length === 0)
                 {
+                    // A battlecry without a legal target no-ops; a spell without one isn't playable.
                     if (!(card instanceof SpellCard))
-                        actions.push({ type: "playCard", cardIndex: i }); // battlecry with no legal target no-ops, same as human path
-                    // spell with no legal target: not playable, matches gameSession's "no valid targets" rejection
+                        actions.push({ type: "playCard", cardIndex: i });
                 }
                 else
                 {
@@ -467,4 +426,3 @@ export class GameEngine
         return null;
     }
 }
-

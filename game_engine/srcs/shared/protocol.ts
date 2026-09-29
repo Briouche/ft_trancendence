@@ -1,8 +1,5 @@
-// Wire protocol between this server and the Phaser client — ClientMessage/ServerMessage are the
-// only two message shapes exchanged over the socket (see socket/serverSocket.ts and
-// socket/gameSession.ts). This file is mirrored BY HAND at app/game/shared/protocol.ts on the
-// client side; the two are not imported from a shared package, so a change here needs the same
-// change made there or the two sides will silently disagree on message shapes.
+// Wire protocol with the Phaser client. Mirrored by hand in app/game/shared/protocol.ts:
+// keep both files identical.
 export interface clientEffect
 {
     taunt?: boolean;
@@ -14,7 +11,9 @@ export interface clientEffect
     battlecry?: boolean;
     rush?: boolean;
     cannotAttack?: boolean;
-    archi?: boolean;
+    archimede?: boolean;
+    cleave?: boolean;
+    regeneration?: boolean;
 }
 
 export interface ClientCard
@@ -48,7 +47,7 @@ export interface ClientHero
     cardBack: number;
 }
 
-export interface ClientGameState 
+export interface ClientGameState
 {
     yourTurn: boolean;
     playerHero: ClientHero;
@@ -82,7 +81,6 @@ export type TargetOption = { type: "hero"; id: string; }
 
 export type Difficulty = "facile" | "moyen" | "difficile";
 
-
 export interface TargetPrompt
 {
     forCardId: string;
@@ -94,11 +92,15 @@ export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
     | { type: "playCard"; cardId: string; boardIndex?: number; }
     | { type: "attack"; attackerId: string; targetId: string; }
     | { type: "targetChoice"; targetId: string | null }
-    | { type: "endTurn" };
+    | { type: "endTurn" }
+    | { type: "resume" }
+    | { type: "quit" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }
     | { type: "event"; event: GameEvent }
     | { type: "prompt"; prompt: TargetPrompt }
-    | { type: "rejected"; reason: string }
+    | { type: "rejected"; reason: string; fatal?: boolean }
+    | { type: "opponentDisconnected"; secondsRemaining: number }
+    | { type: "opponentReconnected" }
     | { type: "gameOver"; winner: "you" | "opponent" };

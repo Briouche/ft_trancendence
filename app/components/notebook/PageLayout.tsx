@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/config/routes'
 import { woodenTableBackground } from './NotebookUI'
 import { HomeButton } from './AssetButton'
+import ScaleToFit from '@/components/ScaleToFit'
 
 // Title ribbon banner ("Banner01a"), centered relative to the book below it. `width` (arbitrary
 // Tailwind class) and `className` (margins, e.g. vertical offset) let a page tweak it without
@@ -56,16 +57,18 @@ export default function NotebookPageLayout({
     const router = useRouter()
 
     return (
-        <div className="min-h-screen flex flex-col items-center gap-4 p-4 pt-20 md:p-10 md:pt-28" style={woodenTableBackground}>
+        <div className="h-screen w-full overflow-hidden" style={woodenTableBackground}>
             <HomeButton onClick={() => router.push(ROUTES.home)} />
 
-            <div className="flex flex-col items-center gap-1">
-                <TitleBanner width={titleWidth} className="z-20">{title}</TitleBanner>
+            <ScaleToFit maxScale={1.3}>
+                <div className="flex flex-col items-center gap-1">
+                    <TitleBanner width={titleWidth} className="z-20">{title}</TitleBanner>
 
-                <div className={`travelbook-frame4-panel relative z-30 -mt-10 flex flex-col p-7 ${panelClassName}`}>
-                    {children}
+                    <div className={`travelbook-frame4-panel relative z-30 -mt-10 flex flex-col p-7 ${panelClassName}`}>
+                        {children}
+                    </div>
                 </div>
-            </div>
+            </ScaleToFit>
         </div>
     )
 }

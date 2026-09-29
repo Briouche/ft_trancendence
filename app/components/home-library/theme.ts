@@ -1,17 +1,10 @@
-// Palette mirroring app/globals.css (@theme) — keep this in sync with the Tailwind tokens, since
-// Three.js materials can't read CSS variables directly. The key names (leather/gold/parchment)
-// date back to the original leather/gold theme; they now serve a dull stone/gray palette, chosen
-// to get rid of that dominant brown-yellow tint.
+// Colors used by Three.js materials, mirroring the Tailwind tokens in app/globals.css.
 export const PALETTE = {
-    ink950: '#0b0c0d',
     ink900: '#15171a',
-    ink800: '#1f2225',
     ink700: '#2b2f33',
 
-    parchment50:  '#e9eae8',
     parchment100: '#d4d6d3',
     parchment200: '#b7bab8',
-    parchment300: '#9a9d9b',
 
     leather700: '#5a5e62',
     leather800: '#454850',
@@ -23,13 +16,8 @@ export const PALETTE = {
     gold600: '#726550',
 } as const
 
-// Atmosphere shared by every room (carried over from BookScene, which established the "gloomy
-// library" tone: darker than ink-950, short fog so the hall fades into darkness).
 export const ATMOSPHERE = {
     background: '#08090a',
-    fogNear: 6,
-    fogFar: 18,
-    ambientIntensity: 0.32,
     ambientColor: '#767b80',
 } as const
 

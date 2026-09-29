@@ -1,9 +1,5 @@
-// Phaser draws its text on its own <canvas>: having the font loaded for the page's CSS
-// (globals.css / layout.tsx, via next/font) isn't enough — the browser must have actually parsed
-// it before a Phaser Text object is created with that fontFamily, otherwise it silently falls
-// back to the default font. --font-pixel-game (set on <html> by next/font, see layout.tsx) holds
-// the font's generated (hashed) name: we read it, then force-load it via the Font Loading API
-// before starting GameScene (see BootScene.ts).
+// Resolves the site font's generated family name (--font-pixel-game) and makes sure the browser
+// has loaded it before Phaser draws any text.
 const FONT_FAMILY_VAR = "--font-pixel-game";
 const FALLBACK_FAMILY = "sans-serif";
 
@@ -25,7 +21,6 @@ export function ensureCardFontLoaded(): Promise<string>
         }
         catch
         {
-            // Falls back to Phaser's default font rather than block boot on a load failure.
         }
 
         return family;

@@ -1,8 +1,5 @@
 import Phaser from "phaser";
 
-// Draws the curved dashed arrow shown while the player drags out an attack/target selection,
-// following the pointer from the source card to the cursor (see updateEnd).
-
 const ARROW_COLOR = 0xffa500;
 const ARROW_WIDTH = 16;
 const HEAD_LENGTH = 32;
@@ -11,6 +8,7 @@ const ARROW_DEPTH = 2000;
 const CURVE_BIAS = 120;
 const DOTTED_SEGMENTS = 20;
 
+// Curved dashed arrow from a card to the pointer while choosing a target.
 export class TargetArrow
 {
     private graphic: Phaser.GameObjects.Graphics;
@@ -33,8 +31,6 @@ export class TargetArrow
         const controlX = (this.startX + endX) / 2;
         const controlY = (this.startY + endY) / 2 - CURVE_BIAS;
 
-        // Step by 2 and only draw the first half of each pair: skipping every other segment is
-        // what makes the curve read as a dashed line instead of a solid one.
         for (let i = 0; i < DOTTED_SEGMENTS; i += 2)
         {
             const t0 = i / DOTTED_SEGMENTS;

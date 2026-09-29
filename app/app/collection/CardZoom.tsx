@@ -6,10 +6,7 @@ import ScaledCardFace from '@/components/ScaledCardFace'
 
 type Card = CardFaceData & { ownedQty: number }
 
-// Full-screen card zoom, rendered in flat DOM (not the 3D scene): much sharper, and avoids
-// redoing the camera/distanceFactor calibration that already caused headaches on the book side.
-// The slight mouse-following tilt (parallax) is a plain CSS transform eased by a transition
-// rather than a real spring — good enough for the effect wanted here.
+// Full-screen card view with a mouse-following tilt; closes on click outside or Escape.
 export default function CardZoom({ card, onClose }: { card: Card | null; onClose: () => void }) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 })
     const cardRef = useRef<HTMLDivElement>(null)
@@ -57,13 +54,9 @@ export default function CardZoom({ card, onClose }: { card: Card | null; onClose
                         transform: `perspective(900px) rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 12}deg) scale(1.04)`,
                     }}
                 >
-                    {/* stackQty=1: the zoom always shows a single card (with its xN badge),
-                        not the two-layer stack effect used in the Collection grid. */}
                     <ScaledCardFace card={card} ownedQty={card.ownedQty} stackQty={1} />
                 </div>
 
-                {/* Illustrator signature, below the card (not over its artwork) — absent until
-                    `artist` is set for this card (see tcg-collection.json). */}
                 {card.artist && (
                     <p className="font-serif text-2xl italic text-parchment-300/70">{card.artist}</p>
                 )}

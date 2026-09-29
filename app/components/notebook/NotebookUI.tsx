@@ -2,34 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { getEffectiveVolume } from '@/lib/audioSettings'
 
-// Shared UI pieces used by every "notebook page" on the site (Collection, Deck Builder...) —
-// sourced from the notebook (03_NoteBook) asset in the Complete UI Book Styles Pack. Extracted
-// from CollectionBook.tsx to be reused as-is instead of duplicated.
+// Shared building blocks of the "notebook" pages (Collection, Deck Builder, Play, Manual...).
 
-// Module-level instance reused on every page turn (PageArrow below) instead of a `new Audio()`
-// per click: avoids re-creating/re-loading the file on every call. `currentTime = 0` lets the
-// sound restart even if the previous click's playback hasn't finished (rapid clicks). Volume is
-// re-read on every play (not cached): reflects a Settings change made while the book is already
-// open immediately, with no need to subscribe to anything.
-let pageFlipAudio: HTMLAudioElement | null = null
-
-function playPageFlip(): void {
-    if (!pageFlipAudio)
-        pageFlipAudio = new Audio('/sounds/page-flip.m4a')
-    pageFlipAudio.volume = getEffectiveVolume('ambience')
-    pageFlipAudio.currentTime = 0
-    pageFlipAudio.play().catch(() => {})
-}
-
-// Cycles through `count` frames every `intervalMs`, as long as `playing` is true (falls back to
-// frame 1 otherwise) — used by every "Sprites Animated" notebook animation (selection, arrows)
-// that needs to loop continuously rather than play once. requestAnimationFrame (real elapsed
-// time) instead of setInterval: a timer running off the display's rhythm forces renders that
-// either land mid-already-painted-frame (wasted) or pile up, whereas rAF only does work once per
-// frame actually displayed — smoother AND less work.
-export function useLoopFrame(count: number, intervalMs: number, playing: boolean): number {
+// Loops over `count` sprite frames every `intervalMs` while `playing`; rests on frame 1 otherwise.
+function useLoopFrame(count: number, intervalMs: number, playing: boolean): number {
     const [frame, setFrame] = useState(1)
     const frameRef = useRef(1)
     useEffect(() => {
@@ -45,20 +22,12 @@ export function useLoopFrame(count: number, intervalMs: number, playing: boolean
             rafId = requestAnimationFrame(tick)
         }
         rafId = requestAnimationFrame(tick)
-        // The reset to frame 1 happens in the cleanup (not the effect body): calling setState
-        // directly in the body triggers cascading renders (react-hooks/set-state-in-effect rule)
-        // — the cleanup already runs every time `playing` flips back to false or the component
-        // unmounts, so it's equivalent.
         return () => { cancelAnimationFrame(rafId); frameRef.current = 1; setFrame(1) }
     }, [playing, count, intervalMs])
     return frame
 }
 
-// Highlight frame (card hover, equipped card back, active button) — 4 "Select01a" notebook
-// frames (a subtle pulse on the 4 corners). `animate` only loops during an actual hover: a
-// persistent state (equipped card back, "active" button) stays displayed but frozen on frame 1
-// while the mouse isn't over it — animations should only trigger on hover, not stay continuously
-// active for a plain state.
+// Golden selection frame; pulses only while `animate` is true.
 export function SelectHighlight({ className = '', animate = true }: { className?: string; animate?: boolean }) {
     const frame = useLoopFrame(4, 150, animate)
     return (
@@ -77,31 +46,26 @@ export function SelectHighlight({ className = '', animate = true }: { className?
     )
 }
 
-// 4 slots per sheet (2×2 grid) × 2 pages = 8 per page turn.
+// Card slots per page half (2×2) and per two-page spread.
 export const HALF = 4
 export const SLOTS_PER_PAGE = HALF * 2
 
 export function normalize(value: string): string {
-    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-// The old costNum DB field was never reliable (always 0, never written by the seed — removed
-// from the schema): sorting is done on the actual cost displayed on the card instead. "X"
-// (variable cost) sorts last.
+// Numeric cost for sorting; non-numeric ("X") sorts last.
 export function parseCost(cost: string): number {
     const n = Number(cost)
     return Number.isNaN(n) ? Infinity : n
 }
 
-// The site's pixel font only ships one weight (no real "Bold" file): font-bold alone is barely
-// visible on it. A slight same-color text-shadow in the 4 directions artificially thickens the
-// glyph for an actual bold effect, same trick as the numbers on CardFace's icons.
+// Fake bold for the single-weight pixel font.
 export const boldNumberStyle = {
     textShadow: '1px 0 0 currentColor, -1px 0 0 currentColor, 0 1px 0 currentColor, 0 -1px 0 currentColor',
 }
 
-// Same idea as the title's black outline (TitleBanner) — white + 4-direction black outline, just
-// thinner (1px instead of 2px) to stay legible at button size rather than a giant title's.
+// White text with a 1px black outline.
 export const outlinedWhiteTextStyle = {
     textShadow: [
         '-1px -1px 0 #000', '1px -1px 0 #000', '-1px 1px 0 #000', '1px 1px 0 #000',
@@ -109,16 +73,9 @@ export const outlinedWhiteTextStyle = {
     ].join(', '),
 }
 
-// Custom scrollbar ("Bar01a" rotated vertical + "BarHandle02a") — modern browsers render
-// scrollbars in "overlay" mode by default, which fully ignores ::-webkit-scrollbar image
-// styling. The native scrollbar is therefore kept hidden
-// (.notebook-scroll-hidden, see globals.css) and replaced by this JS-driven handle — position
-// derived from scrollTop/scrollHeight, dragging included.
-// Fixed-size square handle (not stretched to the visible/total ratio like a real scrollbar) —
-// "BarHandle02a" is a square icon; stretching it vertically to represent the scroll ratio
-// deformed it into a long rectangle. It just slides along the track instead.
 const THUMB_SIZE_PX = 30
 
+// Scroll container with a sprite scrollbar (square draggable handle on a track).
 export function NotebookScrollArea({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     const scrollRef = useRef<HTMLDivElement>(null)
     const [thumb, setThumb] = useState<{ top: number } | null>(null)
@@ -134,8 +91,6 @@ export function NotebookScrollArea({ children, className = '' }: { children: Rea
         setThumb({ top })
     }, [])
 
-    // Content (deck/card count) can change the scroll height without necessarily firing a scroll
-    // event — ResizeObserver recomputes the handle in that case (e.g. deleting a deck).
     useEffect(() => {
         const el = scrollRef.current
         if (!el) return
@@ -145,9 +100,6 @@ export function NotebookScrollArea({ children, className = '' }: { children: Rea
         return () => observer.disconnect()
     }, [updateThumb, children])
 
-    // Delta computed from the starting position (clientY - startY) rather than event.movementY:
-    // movementY stays at 0 for synthetic mousemove events (automated tests, some browsers),
-    // whereas an absolute delta works regardless of the event's source.
     function onThumbPointerDown(e: React.PointerEvent<HTMLDivElement>) {
         const el = scrollRef.current
         if (!el) return
@@ -198,15 +150,8 @@ export function NotebookScrollArea({ children, className = '' }: { children: Rea
     )
 }
 
-// A sheet's slot: highlighted with the notebook's "select" asset on hover (no click needed to
-// see the selected state). null = empty cell (keeps the 3×2 grid always fully occupied visually,
-// even at the end of a list) — the book should never change size based on how many cards are
-// shown on the page.
-// `onContextMenu` (right-click, Deck Builder: removes a card) stays active even when `disabled`
-// is true (you can no longer ADD one, but you should still be able to remove one) — so only
-// `empty` natively disables the button; `disabled` now only blocks the left click and changes the
-// cursor. Dimming the whole stack was removed from here: each card (Deck Builder) now dims its
-// own layers (front/back) individually, see ScaledCardFace.
+// Card slot of a page: highlighted on hover, dashed placeholder when empty. Right-click stays
+// available while `disabled` (used to remove a card from a deck).
 export function Slot({ children, onClick, onContextMenu, highlighted, disabled }: {
     children?: React.ReactNode
     onClick?: () => void
@@ -253,28 +198,21 @@ export function PageArrow({ direction, onClick, disabled }: {
     const [hovered, setHovered] = useState(false)
     const frame = useLoopFrame(4, 110, hovered && !disabled)
 
-    function handleClick() {
-        playPageFlip()
-        onClick()
-    }
-
     return (
         <div
             className="relative flex h-full shrink-0 items-stretch"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            {/* Extended, invisible hit layer overlapping the page edge — doesn't move the icon,
-                just the zone that triggers hover/click. */}
             <button
-                onClick={disabled ? undefined : handleClick}
+                onClick={disabled ? undefined : onClick}
                 disabled={disabled}
                 aria-hidden="true"
                 tabIndex={-1}
                 className={`absolute top-0 z-30 h-full w-16 ${direction === 'prev' ? 'left-full' : 'right-full'}`}
             />
             <button
-                onClick={handleClick}
+                onClick={onClick}
                 disabled={disabled}
                 className="relative z-30 flex h-full w-20 shrink-0 items-center justify-center disabled:opacity-0"
             >
@@ -294,13 +232,7 @@ export function PageArrow({ direction, onClick, disabled }: {
     )
 }
 
-// Search field isolated in its own component, with its own LOCAL state: types on screen
-// immediately (no perceived latency), but only bubbles the value up to the parent (which
-// triggers filtering + a re-render of the whole card grid) 150ms after the last keystroke. This
-// keeps every keystroke's re-render scoped to this small input — bubbling the raw value up
-// immediately would re-render the whole parent (grid included) regardless of any debouncing on
-// the parent's side, since debouncing the computation doesn't shrink the component that
-// re-renders on every keystroke.
+// Text input that reports its value 150ms after the last keystroke.
 export function SearchInput({ onChange, disabled, placeholder = 'Search a name or an effect…', className = '' }: {
     onChange: (value: string) => void
     disabled?: boolean
@@ -325,7 +257,6 @@ export function SearchInput({ onChange, disabled, placeholder = 'Search a name o
     )
 }
 
-// Wooden table background + dark overlay, shared by every notebook page.
 export const woodenTableBackground: React.CSSProperties = {
     backgroundImage: [
         'linear-gradient(rgba(10,8,6,0.55), rgba(10,8,6,0.55))',

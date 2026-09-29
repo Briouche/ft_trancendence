@@ -1,9 +1,8 @@
 import { MinionCard } from "./card";
 import { Hero }       from "./hero";
-import { Player }     from "./player";
 import { GameContext } from "./effect";
 
-//make object for a target that accepts both minion and hero,
+// Anything that can be damaged or healed: minions and heroes.
 export interface Targetable
 {
     isAlive(): boolean;
@@ -14,9 +13,7 @@ export interface Targetable
     readonly id: string;
 }
 
-
-//base TargetResolver class with a taunt filter and a resolver that returns all available targets
-//construct with true if player needs to pick a target
+// Picks the targets of an effect. requiresInput: the player chooses one from the list.
 export abstract class TargetResolver
 {
     public readonly requiresInput: boolean;
@@ -42,11 +39,7 @@ export abstract class TargetResolver
     }
 }
 
-
-
-//      actual resolvers :
-
-//player chooses target out of returned array
+// ---- player picks one target ----
 
 // any character, ignores taunt
 export class AnyCharacterResolver extends TargetResolver
@@ -69,7 +62,7 @@ export class AnyCharacterResolver extends TargetResolver
     }
 }
 
-// any enemy, respects taunt and rush
+// any enemy, respects taunt; a rush attacker can't target the hero
 export class EnemyCharacterResolver extends TargetResolver
 {
     constructor()
@@ -85,7 +78,6 @@ export class EnemyCharacterResolver extends TargetResolver
 
         const isRushMinion = context.source instanceof MinionCard && !!context.source.effects.rush;
 
-        // rush minions can't target the hero
         let targets: Targetable[];
         if (isRushMinion)
             targets = [...enemyMinions];
@@ -96,7 +88,7 @@ export class EnemyCharacterResolver extends TargetResolver
     }
 }
 
-// only enemy minions, respects taunt
+// enemy minions, respects taunt
 export class EnemyMinionResolver extends TargetResolver
 {
     constructor()
@@ -112,7 +104,7 @@ export class EnemyMinionResolver extends TargetResolver
     }
 }
 
-// any minion on either side of the board, ignores taunt
+// any minion, ignores taunt
 export class AnyMinionResolver extends TargetResolver
 {
     constructor()
@@ -126,10 +118,22 @@ export class AnyMinionResolver extends TargetResolver
     }
 }
 
+// one allied minion
+export class AllyMinionResolver extends TargetResolver
+{
+    constructor()
+    {
+        super(true);
+    }
 
-//no choice resolvers (no need to target by player)
+    resolve(context: GameContext): Targetable[]
+    {
+        return [...context.engine.board.getMinions(context.owner.index)];
+    }
+}
 
-// only enemy hero
+// ---- no choice ----
+
 export class EnemyHeroResolver extends TargetResolver
 {
     constructor()
@@ -144,7 +148,6 @@ export class EnemyHeroResolver extends TargetResolver
     }
 }
 
-// all characters
 export class AllCharactersResolver extends TargetResolver
 {
     constructor()
@@ -162,7 +165,6 @@ export class AllCharactersResolver extends TargetResolver
     }
 }
 
-// all minions on both sides
 export class AllMinionsResolver extends TargetResolver
 {
     constructor()
@@ -191,7 +193,7 @@ export class AllEnemyMinionsResolver extends TargetResolver
     }
 }
 
-//all enemy minions + enemy hero
+// all enemy minions + enemy hero
 export class AllEnemiesResolver extends TargetResolver
 {
     constructor()
@@ -206,7 +208,6 @@ export class AllEnemiesResolver extends TargetResolver
     }
 }
 
-// both heroes
 export class BothHeroesResolver extends TargetResolver
 {
     constructor()
@@ -220,7 +221,6 @@ export class BothHeroesResolver extends TargetResolver
     }
 }
 
-// own hero
 export class PlayerHeroResolver extends TargetResolver
 {
     constructor()
@@ -234,21 +234,6 @@ export class PlayerHeroResolver extends TargetResolver
     }
 }
 
-// single allied minion, player picks
-export class AllyMinionResolver extends TargetResolver
-{
-    constructor()
-    {
-        super(true);
-    }
-
-    resolve(context: GameContext): Targetable[]
-    {
-        return [...context.engine.board.getMinions(context.owner.index)];
-    }
-}
-
-// all allied minions
 export class AlliedMinionsResolver extends TargetResolver
 {
     constructor()
@@ -262,7 +247,7 @@ export class AlliedMinionsResolver extends TargetResolver
     }
 }
 
-// all allied minions but the source
+// allied minions except the source
 export class OtherAlliedMinionsResolver extends TargetResolver
 {
     constructor()
@@ -283,7 +268,6 @@ export class OtherAlliedMinionsResolver extends TargetResolver
     }
 }
 
-// allied minions currently damaged (currentHealth < maxHealth)
 export class DamagedAlliedMinionsResolver extends TargetResolver
 {
     constructor()
@@ -298,6 +282,7 @@ export class DamagedAlliedMinionsResolver extends TargetResolver
     }
 }
 
+// the minion carrying the effect
 export class SourceResolver extends TargetResolver
 {
     constructor()
@@ -309,13 +294,11 @@ export class SourceResolver extends TargetResolver
     {
         if (context.source instanceof MinionCard)
             return [context.source];
-        else if (context.owner instanceof Hero)
-            return [context.owner];
         return [];
     }
 }
 
-// one random enemy
+// one random living enemy (minion or hero)
 export class RandomEnemyResolver extends TargetResolver
 {
     constructor()
@@ -336,6 +319,7 @@ export class RandomEnemyResolver extends TargetResolver
     }
 }
 
+// the minions left and right of the source
 export class NeighboringMinionsResolver extends TargetResolver
 {
     constructor()
@@ -348,15 +332,8 @@ export class NeighboringMinionsResolver extends TargetResolver
         let neighbors: Targetable[] = [];
         if (context.source instanceof MinionCard)
         {
-            let board = context.engine.board.getMinions(context.owner.index);
-            let boardIndex = -1;
-            let i = 0;
-            for (const minion of board)
-            {
-                if (minion == context.source)
-                    boardIndex = i;
-                i++;
-            }
+            const board = context.engine.board.getMinions(context.owner.index);
+            const boardIndex = board.indexOf(context.source);
             if (boardIndex == -1)
                 return neighbors;
             if (board[boardIndex - 1])

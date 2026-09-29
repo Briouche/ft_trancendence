@@ -21,6 +21,8 @@ import {
   getStringField,
 } from "@/lib/auth/requirements";
 
+// Server actions: login, registration, logout.
+
 export async function checkCredentials(formData: FormData) {
   const usernameRaw = getStringField(formData, "username");
   const passwordRaw = formData.get("password");
@@ -43,13 +45,9 @@ export async function checkCredentials(formData: FormData) {
   });
 
   if (!user || !user.password) {
-    // Run a dummy verify so this path costs roughly the same as the
-    // "user found, wrong password" path below.
-    // Note that with remote authentication, there is no password
     try {
       await verify(DUMMY_HASH, password);
     } catch {
-      // ignore - dummy hash mismatch is expected
     }
     return { error: "Invalid username or password." };
   }
@@ -64,7 +62,6 @@ export async function checkCredentials(formData: FormData) {
     return { error: "Invalid username or password." };
   }
 
-  // JWT/session cookie
   await createSession(user.id, user.username, user.tokenVersion);
 
   return { error: null };

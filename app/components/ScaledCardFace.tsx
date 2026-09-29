@@ -3,14 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import CardFace, { type CardFaceData } from './CardFace'
 
-// CardFace's "design" width: its font sizes (emoji, description, stats...) are fixed and
-// calibrated for display at roughly this size (the Collection grid's). Rendering it smaller than
-// its natural width breaks the layout (description text running out of room, disproportionate
-// emoji) — so instead of constraining it directly inside a narrow grid cell, it's rendered at its
-// natural size and the whole thing is then shrunk with a single transform scale measured against
-// the actual available width.
+// Width CardFace's fixed font sizes are calibrated for.
 const NATURAL_WIDTH = 400
 
+// Renders CardFace at its natural width, then scales it down to the container's width.
 function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: number }) {
     const outerRef = useRef<HTMLDivElement>(null)
     const [scale, setScale] = useState(0)
@@ -34,15 +30,8 @@ function CardFaceLayer({ card, ownedQty }: { card: CardFaceData; ownedQty?: numb
     )
 }
 
-// `stackQty` only drives the stack effect (a second card glued behind, offset to the left) —
-// kept separate from `ownedQty` (which drives the "x2" badge drawn by CardFace) because the Deck
-// Builder doesn't need that badge (it dims the layers themselves instead, see `dimFront`/
-// `dimBack`). `stackQty` defaults to `ownedQty` for the Collection, which only needs one of the
-// two props.
-//
-// `dimFront`/`dimBack`: adding one copy to the deck dims the back card first (immediate visual
-// feedback on the first click), a second addition also dims the front one (last copy left, none
-// available anymore).
+// Card sized to its container; `stackQty` > 1 draws a second copy behind it, `dimFront`/`dimBack`
+// gray out each layer.
 export default function ScaledCardFace({ card, ownedQty, stackQty, dimFront, dimBack }: {
     card: CardFaceData
     ownedQty?: number

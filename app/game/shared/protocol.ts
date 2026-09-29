@@ -1,6 +1,5 @@
-// Wire format shared between this client renderer and the gameEngine server (socket.io messages
-// carry these shapes as JSON). The server is authoritative for rules/state; this file only
-// describes what the client can send/receive, so it must stay in sync with the server's own copy.
+// Wire format between this client and the game server; keep in sync with
+// game_engine/srcs/shared/protocol.ts.
 
 export interface clientEffect
 {
@@ -13,7 +12,9 @@ export interface clientEffect
     battlecry?: boolean;
     rush?: boolean;
     cannotAttack?: boolean;
-    archi?: boolean;
+    archimede?: boolean;
+    cleave?: boolean;
+    regeneration?: boolean;
 }
 
 export interface ClientCard
@@ -47,7 +48,7 @@ export interface ClientHero
     cardBack: number;
 }
 
-export interface ClientGameState 
+export interface ClientGameState
 {
     yourTurn: boolean;
     playerHero: ClientHero;
@@ -79,24 +80,31 @@ export type GameEvent = { type: "attack"; attackerId: string; targetId: string; 
 export type TargetOption = { type: "hero"; id: string; }
     | { type: "minion"; id: string; }
 
+export type Difficulty = "facile" | "moyen" | "difficile";
+
 export interface TargetPrompt
 {
     forCardId: string;
     options: TargetOption[];
 }
 
-export type Difficulty = "facile" | "moyen" | "difficile";
-
 export type ClientMessage = { type: "ready"; deckId: number; cardBack: number }
                             | { type: "readySolo"; difficulty: Difficulty; deckId: number; cardBack: number }
                             | { type: "playCard"; cardId: string; boardIndex?: number; }
                             | { type: "attack"; attackerId: string; targetId: string; }
                             | { type: "targetChoice"; targetId: string | null }
-                            | { type: "endTurn" };
+                            | { type: "endTurn" }
+                            | { type: "resume" }
+                            | { type: "quit" };
 
 export type ServerMessage = { type: "assigned"; playerIndex: 0 | 1 }
     | { type: "state"; state: ClientGameState }
     | { type: "event"; event: GameEvent }
     | { type: "prompt"; prompt: TargetPrompt }
-    | { type: "rejected"; reason: string }
+    // fatal: there is no seat left for this client and nothing it can do about it — its match was
+    // forfeited while it was away, or it already holds one it can't rejoin. Every other rejection
+    // is per-action ("not your turn", "waiting for target") and the match carries on.
+    | { type: "rejected"; reason: string; fatal?: boolean }
+    | { type: "opponentDisconnected"; secondsRemaining: number }
+    | { type: "opponentReconnected" }
     | { type: "gameOver"; winner: "you" | "opponent" };

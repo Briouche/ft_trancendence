@@ -1,19 +1,11 @@
 import { Card, MinionCard, SpellCard } from "./card";
 import { GameEngine } from "./gameEngine";
 import { Player } from "./player";
-import { EnemyHeroResolver, PlayerHeroResolver, Targetable, TargetResolver } from "./target";
+import { PlayerHeroResolver, Targetable, TargetResolver } from "./target";
 import { Hero } from "./hero";
 
-// Card effects (battlecries, deathrattles, spells, on-attack/on-damage/start-/end-of-turn hooks,
-// ...) are modeled as small Effect subclasses, each optionally paired with a TargetResolver (see
-// target.ts) that decides which Targetable(s) it acts on. GameContext bundles everything an
-// execute() needs: which engine/board, which player triggered it, the source card, and — when the
-// resolver requires player input — the target that was already chosen and validated upstream
-// (see socket/gameSession.ts). Most execute() bodies share the same shape: if the resolver
-// requires input, act on context.target; otherwise call resolver.resolve(context) and act on
-// every target it returns. Effects are invoked from gameEngine.ts and report what happened back
-// through context.engine.record*() so the client can animate it (see toClientState.ts /
-// AnimationEvent).
+// Everything an effect needs when it runs. `target` is the player's validated choice when the
+// resolver requires input; `bonusDamage` is the caster's spellpower.
 export interface GameContext
 {
     engine: GameEngine;
@@ -23,7 +15,9 @@ export interface GameContext
     bonusDamage?: number;
 }
 
-//base effect class, holds a Targetresolver that determines which targets the effect aims at
+// Base of every card effect. Pattern shared by most subclasses: with an input resolver act on
+// context.target, otherwise act on every target the resolver returns. Effects report what they
+// did through engine.record*() so the client can animate it.
 export abstract class Effect
 {
     public resolver: TargetResolver | null;
@@ -36,10 +30,6 @@ export abstract class Effect
     abstract execute(context: GameContext): void;
 }
 
-
-// effects:
-// ----------------
-
 export class DrawCardEffect extends Effect
 {
     private _amount: number;
@@ -50,7 +40,7 @@ export class DrawCardEffect extends Effect
         this._amount = amount;
     }
 
-    execute(context: GameContext): void 
+    execute(context: GameContext): void
     {
         for (let i = 0; i < this._amount; i++)
             context.owner.drawCard();
@@ -125,6 +115,7 @@ export class HealEffect extends Effect
     }
 }
 
+// +atk/+health on minions; heroes only get the health part.
 export class BuffEffect extends Effect
 {
     private _attackBuff: number;
@@ -137,58 +128,45 @@ export class BuffEffect extends Effect
         this._healthBuff = healthBuff;
     }
 
-    execute(context: GameContext): void
+    private apply(context: GameContext, target: Targetable): void
     {
         const shouldRecord = this._attackBuff !== 0 || this._healthBuff !== 0;
 
+        if (target instanceof MinionCard)
+        {
+            target.currentHealth += this._healthBuff;
+            target.maxHealth += this._healthBuff;
+            target.attack += this._attackBuff;
+            if (target.attack < 0)
+                target.attack = 0;
+            if (shouldRecord)
+                context.engine.recordBuff(target, this._attackBuff, this._healthBuff);
+        }
+        else if (target instanceof Hero)
+        {
+            target.currentHealth += this._healthBuff;
+            target.maxHealth += this._healthBuff;
+            if (shouldRecord)
+                context.engine.recordBuff(target, 0, this._healthBuff);
+        }
+    }
+
+    execute(context: GameContext): void
+    {
         if (this.resolver && this.resolver.requiresInput)
         {
-            if (context.target && context.target instanceof MinionCard)
-            {
-                context.target.currentHealth += this._healthBuff;
-                context.target.maxHealth += this._healthBuff;
-                context.target.attack += this._attackBuff;
-                if (context.target.attack < 0)
-                    context.target.attack = 0;
-                if (shouldRecord)
-                    context.engine.recordBuff(context.target, this._attackBuff, this._healthBuff);
-            }
-            else if (context.target && context.target instanceof Hero)
-            {
-                context.target.currentHealth += this._healthBuff;
-                context.target.maxHealth += this._healthBuff;
-                if (shouldRecord)
-                    context.engine.recordBuff(context.target, 0, this._healthBuff);
-            }
+            if (context.target)
+                this.apply(context, context.target);
         }
         else if (this.resolver)
         {
-            const targets: Targetable[] = this.resolver.resolve(context);
-            for (const target of targets)
-            {
-                if (target && target instanceof MinionCard)
-                {
-                    target.currentHealth += this._healthBuff;
-                    target.maxHealth += this._healthBuff;
-                    target.attack += this._attackBuff;
-                    if (target.attack < 0)
-                        target.attack = 0;
-                    if (shouldRecord)
-                        context.engine.recordBuff(target, this._attackBuff, this._healthBuff);
-                }
-                else if (target && target instanceof Hero)
-                {
-                    target.currentHealth += this._healthBuff;
-                    target.maxHealth += this._healthBuff;
-                    if (shouldRecord)
-                        context.engine.recordBuff(target, 0, this._healthBuff);
-                }
-            }
+            for (const target of this.resolver.resolve(context))
+                this.apply(context, target);
         }
     }
 }
 
-// buffs the target by (perAtk, perHealth) multiplied by however many targets countResolver finds
+// Buff scaled by how many targets countResolver finds.
 export class CountScaledBuffEffect extends Effect
 {
     private _perAtk: number;
@@ -210,12 +188,15 @@ export class CountScaledBuffEffect extends Effect
     }
 }
 
+type AddableKeyword = 'battlecry' | 'deathrattle' | 'onAttack' | 'taunt' | 'rush' | 'endOfTurnEffect';
+
+// Gives minions a keyword (boolean) or a hook (Effect).
 export class AddEffectfEffect extends Effect
 {
     private _addedKeyword: Effect | boolean;
-    private _keywordType: 'battlecry' | 'deathrattle' | 'onAttack' | 'taunt' | 'rush' | 'endOfTurnEffect';
+    private _keywordType: AddableKeyword;
 
-    constructor(keyword: Effect | boolean, keywordType: 'battlecry' | 'deathrattle' | 'onAttack' | 'taunt' | 'rush' | 'endOfTurnEffect', resolver: TargetResolver | null)
+    constructor(keyword: Effect | boolean, keywordType: AddableKeyword, resolver: TargetResolver | null)
     {
         super(resolver);
         this._addedKeyword = keyword;
@@ -225,13 +206,9 @@ export class AddEffectfEffect extends Effect
     private addKeywordToMinion(minion: MinionCard): void
     {
         if (this._keywordType === 'taunt' || this._keywordType === 'rush')
-        {
             minion.effects[this._keywordType] = this._addedKeyword as boolean;
-        }
         else
-        {
             minion.effects[this._keywordType] = this._addedKeyword as Effect;
-        }
     }
 
     execute(context: GameContext): void
@@ -239,24 +216,20 @@ export class AddEffectfEffect extends Effect
         if (this.resolver && this.resolver.requiresInput)
         {
             if (context.target && context.target instanceof MinionCard)
-            {
                 this.addKeywordToMinion(context.target);
-            }
         }
         else if (this.resolver)
         {
-            const targets: Targetable[] = this.resolver.resolve(context);
-            for (const target of targets)
+            for (const target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard)
-                {
                     this.addKeywordToMinion(target);
-                }
             }
         }
     }
 }
 
+// Removes all keywords and resets stats to the printed values.
 export class silenceEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -274,9 +247,7 @@ export class silenceEffect extends Effect
             target.currentHealth -= excess;
         }
 
-        // Known quirk, left as-is: forcing canAttack=true here (the only other place it's granted
-        // is start-of-turn/rush) lets a freshly silenced cannotAttack minion attack immediately,
-        // bypassing normal summoning sickness.
+        // A silenced cannotAttack minion may attack right away.
         const wasCannotAttack = !!target.effects.cannotAttack;
 
         target.effects = {};
@@ -290,14 +261,11 @@ export class silenceEffect extends Effect
         if (this.resolver && this.resolver.requiresInput)
         {
             if (context.target && context.target instanceof MinionCard)
-            {
                 this.resetStats(context.target);
-            }
         }
-        else if (this.resolver && !this.resolver.requiresInput)
+        else if (this.resolver)
         {
-            const targets: Targetable[] = this.resolver.resolve(context);
-            for (let target of targets)
+            for (let target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard)
                     this.resetStats(target);
@@ -306,6 +274,7 @@ export class silenceEffect extends Effect
     }
 }
 
+// Summons clones of the token templates while the board has room.
 export class SummonMinionEffect extends Effect
 {
     private _tokens: MinionCard[];
@@ -334,16 +303,13 @@ export class SummonMinionEffect extends Effect
     }
 }
 
+// Runs several effects in order. At most one of them may require a target.
 export class CombinedEffect extends Effect
 {
     private effects: Effect[];
 
     constructor(effects: Effect[])
     {
-        // Exposes a single resolver so callers that only check "does this card need a target"
-        // (e.g. GameEngine.playCard/getOnPlayEffect) still work on a combined effect. Assumes at
-        // most one sub-effect in the list requires input — combining two target-picking effects
-        // isn't supported.
         const inputResolver: TargetResolver | null =
             effects.find(e => e.resolver && e.resolver.requiresInput)?.resolver ?? null;
         super(inputResolver);
@@ -357,6 +323,7 @@ export class CombinedEffect extends Effect
     }
 }
 
+// `amount` hits of `damage`, each on a fresh pick from the resolver.
 export class RandomMissileEffect extends Effect
 {
     private _amount: number;
@@ -409,10 +376,9 @@ export class triggerDeathrattleEffect extends Effect
                     context.target.effects.deathrattle.execute({ ...context, source: context.target });
             }
         }
-        else if (this.resolver && !this.resolver.requiresInput)
+        else if (this.resolver)
         {
-            let targets = this.resolver.resolve(context);
-            for (let target of targets)
+            for (let target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard && target.effects.deathrattle)
                     target.effects.deathrattle.execute({ ...context, source: target });
@@ -435,10 +401,9 @@ export class triggerEndOfTurnEffect extends Effect
             if (context.target && context.target instanceof MinionCard)
                 context.engine.triggerMinionEndOfTurnEffect(context.owner.index, context.target);
         }
-        else if (this.resolver && !this.resolver.requiresInput)
+        else if (this.resolver)
         {
-            let targets = this.resolver.resolve(context);
-            for (let target of targets)
+            for (let target of this.resolver.resolve(context))
             {
                 if (target instanceof MinionCard)
                     context.engine.triggerMinionEndOfTurnEffect(context.owner.index, target);
@@ -447,6 +412,7 @@ export class triggerEndOfTurnEffect extends Effect
     }
 }
 
+// Timmy's battlecry: damage equal to the hero's health above 20.
 export class timmyDamageEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -461,10 +427,11 @@ export class timmyDamageEffect extends Effect
         if (damage < 0)
             damage = 0;
         let effect = new DamageEffect(damage, this.resolver);
-        effect.execute(context);    
+        effect.execute(context);
     }
 }
 
+// Archimede's battlecry: 100 damage once 6 "archi" cards have been played.
 export class archiDamageEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -476,12 +443,13 @@ export class archiDamageEffect extends Effect
     {
         if (context.owner.archimedeCount >= 6)
         {
-            let effect = new DamageEffect(50, this.resolver)
+            let effect = new DamageEffect(1000000000000, this.resolver)
             effect.execute(context);
         }
     }
 }
 
+// Minion: heals the hero for its attack. Spell: heals `amount` per minion on the board.
 export class lifestealEffect extends Effect
 {
     amount: number;
@@ -491,6 +459,7 @@ export class lifestealEffect extends Effect
         super();
         this.amount = amount;
     }
+
     execute(context: GameContext): void
     {
         if (context.source instanceof MinionCard)
@@ -507,6 +476,7 @@ export class lifestealEffect extends Effect
     }
 }
 
+// Deals damage equal to the target's remaining health.
 export class destroyEffect extends Effect
 {
     constructor(resolver: TargetResolver)
@@ -525,10 +495,9 @@ export class destroyEffect extends Effect
                 effect.execute(context);
             }
         }
-        else if (this.resolver && !this.resolver.requiresInput)
+        else if (this.resolver)
         {
-            let targets = this.resolver.resolve(context);
-            for (let target of targets)
+            for (let target of this.resolver.resolve(context))
             {
                 if (target.isAlive())
                 {
@@ -541,6 +510,7 @@ export class destroyEffect extends Effect
     }
 }
 
+// Sets the lower hero's health to the higher one's; both players draw.
 export class equalHealthEffect extends Effect
 {
     constructor()
@@ -562,7 +532,7 @@ export class equalHealthEffect extends Effect
     }
 }
 
-// when attacking, also deals the attacker's damage to the neighbors of the minion being attacked (if any)
+// onAttack: also hits the neighbors of the attacked minion.
 export class cleaveEffect extends Effect
 {
     constructor()
@@ -596,7 +566,7 @@ export class cleaveEffect extends Effect
     }
 }
 
-// end-of-turn effect: heals its owner back to full health
+// endOfTurn: heals the source back to full.
 export class regenerationEffect extends Effect
 {
     constructor()

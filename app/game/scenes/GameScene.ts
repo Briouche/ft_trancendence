@@ -13,17 +13,14 @@ import { StateSyncController } from "./gameProcessors/StateSyncController";
 import { ServerEventPlayer } from "./gameProcessors/ServerEventPlayer";
 import { InputController } from "./gameProcessors/InputController";
 import { GameOverOverlay } from "../objects/GameOverOverlay";
+import { GAME_FONT_FAMILY_KEY } from "../objects/gameFontRegistry";
 import { TargetArrow } from "../objects/TargetArrow";
 import { ResolvedTarget } from "../objects/Target";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
 
-
-// The main gameplay scene, started once by BootScene for the whole match. Wires socket events
-// (via EventManager) to the sub-controllers below — GameFlowState (turn/prompt state),
-// AnimationQueue (animation ordering), StateSyncController (builds the board from server state),
-// ServerEventPlayer (plays one GameEvent's animation), InputController (drag/click handling) —
-// and owns the Phaser objects (Hand, Board, OpponentHand, history UI) once they're created.
+// Match scene: routes server events to the flow/animation/sync/input controllers and owns the
+// hand, board, opponent hand and history UI.
 export class GameScene extends Phaser.Scene
 {
     private flow = new GameFlowState();
@@ -40,13 +37,20 @@ export class GameScene extends Phaser.Scene
     private historyOverlay!: HistoryOverlay;
 
     private background!: Phaser.GameObjects.Image;
+    private opponentDisconnectedText: Phaser.GameObjects.Text | null = null;
 
-    private onAssignedHandler = (playerIndex: 0 | 1) => { this.flow.playerIndex = playerIndex; };
+    private onAssignedHandler = (playerIndex: 0 | 1) => { this.matched = true; this.flow.playerIndex = playerIndex; };
     private onStateHandler = (state: ClientGameState) => this.onServerState(state);
     private onPromptHandler = (prompt: TargetPrompt) => this.onServerPrompt(prompt);
     private onGameOverHandler = (winner: "you" | "opponent") => this.onGameOver(winner);
-    private onRejectedHandler = (reason: string) => this.onServerRejected(reason);
+    private onRejectedHandler = (reason: string, fatal: boolean) => this.onServerRejected(reason, fatal);
     private onEventHandler = (event: GameEvent) => this.onServerEvent(event);
+    private onOpponentDisconnectedHandler = (seconds: number) => this.showOpponentDisconnected(seconds);
+    private onOpponentReconnectedHandler = () => this.hideOpponentDisconnected();
+    private onConnectedHandler = () => this.onConnected();
+    private matched = false;
+    // Set once an overlay has been shown, so a real game-over and a fatal rejection can't stack.
+    private matchEnded = false;
 
     private mode!: GameMode;
     private difficulty!: Difficulty;
@@ -75,8 +79,8 @@ export class GameScene extends Phaser.Scene
 
         this.scale.on("resize", this.layoutBackground, this);
 
-        this.animationQueue = new AnimationQueue((state) => this.stateSync.apply(state));
-        this.stateSync = new StateSyncController(this, this.flow, (table) => this.onTableCreated(table), () => this.input_.clearWaitingState());
+        this.animationQueue = new AnimationQueue(this, (state) => this.stateSync.apply(state));
+        this.stateSync = new StateSyncController(this, this.flow, (table) => this.onTableCreated(table), () => this.input_.clearWaitingState(), (prompt) => this.onServerPrompt(prompt));
 
         EventManager.on("server:assigned", this.onAssignedHandler);
         EventManager.on("server:state", this.onStateHandler);
@@ -84,12 +88,39 @@ export class GameScene extends Phaser.Scene
         EventManager.on("server:gameOver", this.onGameOverHandler);
         EventManager.on("server:rejected", this.onRejectedHandler);
         EventManager.on("server:event", this.onEventHandler);
+        EventManager.on("client:connected", this.onConnectedHandler);
+        EventManager.on("server:opponentDisconnected", this.onOpponentDisconnectedHandler);
+        EventManager.on("server:opponentReconnected", this.onOpponentReconnectedHandler);
 
-        // Game.destroy(true) (see GameLauncher.tsx) only emits Phaser.Scenes.Events.DESTROY, not
-        // the normal scene shutdown/stop events, so cleanup is hooked here rather than in a
-        // Scene.shutdown() lifecycle method.
+        // Game.destroy() only emits DESTROY, so cleanup hooks here.
         this.events.once(Phaser.Scenes.Events.DESTROY, () => this.shutdown());
 
+        this.sendReady();
+    }
+
+    // Fires on the first connection and on every socket.io reconnect. Only a reconnect needs the
+    // resume round trip — before the match is assigned there is nothing to resume, just a seat to
+    // ask for.
+    private onConnected(): void
+    {
+        if (!this.matched)
+        {
+            this.sendReady();
+            return;
+        }
+
+        // The socket dropped and came back. Everything queued describes the board as it was
+        // before the drop, and the server answers "resume" with a full state, so throw the queue
+        // away rather than wait for it to drain. This is what makes the resync land even when an
+        // animation wedged (destroyed tween target, lost WebGL context, a timeout that hasn't
+        // fired yet): onServerState would otherwise stash that state in queuedState forever.
+        this.animationQueue.reset();
+        this.input_?.clearWaitingState();
+        EventManager.emit("client:resume");
+    }
+
+    private sendReady(): void
+    {
         if (this.mode === "solo")
             EventManager.emit("client:readySolo", { difficulty: this.difficulty, deckId: this.deckId, cardBack: this.cardBack });
         else
@@ -141,10 +172,9 @@ export class GameScene extends Phaser.Scene
         this.historyStrip.layout();
     }
 
+    // States arriving mid-animation are held by the queue and applied once it drains.
     private onServerState(state: ClientGameState): void
     {
-        // Defer to AnimationQueue while animations are playing, so a state push can't make the
-        // board jump ahead of what's still being animated (see AnimationQueue.ts).
         if (this.animationQueue.isBusy)
         {
             this.animationQueue.queueState(state);
@@ -153,6 +183,7 @@ export class GameScene extends Phaser.Scene
         this.stateSync.apply(state);
     }
 
+    // A target captured during a drag answers the prompt directly; otherwise the player picks.
     private onServerPrompt(prompt: TargetPrompt): void
     {
         this.flow.pendingPrompt = prompt;
@@ -170,17 +201,57 @@ export class GameScene extends Phaser.Scene
         this.board.setTargetHighlights(new Set(prompt.options.map((o) => o.id)));
     }
 
-    private onServerRejected(reason: string): void
+    // The opponent's socket dropped and the server is holding their seat open. Without this the
+    // board would just silently freeze on their turn with no explanation.
+    private showOpponentDisconnected(seconds: number): void
     {
-        console.warn("Server rejected action:", reason);
-        // input_ only exists once onTableCreated has run (after the first server state). A
-        // rejection can arrive before that — e.g. an empty/missing deck in serverSocket.ts, sent
-        // right on "readySolo"/"ready" — hence the optional chaining.
+        const { width } = this.scale.gameSize;
+        const fontFamily = this.game.registry.get(GAME_FONT_FAMILY_KEY) as string | undefined;
+
+        this.opponentDisconnectedText?.destroy();
+        this.opponentDisconnectedText = this.add.text(width / 2, 40,
+            `Opponent Disconnected — ${seconds}s to come back...`,
+            { fontFamily, fontSize: "28px", color: "#ffffff", stroke: "#000000", strokeThickness: 4 })
+            .setOrigin(0.5)
+            .setDepth(2500);
+    }
+
+    private hideOpponentDisconnected(): void
+    {
+        this.opponentDisconnectedText?.destroy();
+        this.opponentDisconnectedText = null;
+    }
+
+    // Two very different things arrive here. An ordinary rejection ("not your turn", "illegal
+    // target") just undoes the in-flight interaction and the match carries on. A fatal one means
+    // the server has no seat left for this client — typically a reconnect that landed after the
+    // forfeit timer fired — so there is nothing left to play, and saying so beats leaving the
+    // player clicking a board that will never answer.
+    private onServerRejected(reason: string, fatal: boolean = false): void
+    {
         this.input_?.clearWaitingState(true);
+
+        if (!fatal)
+        {
+            console.warn("Server rejected action:", reason);
+            return;
+        }
+
+        if (this.matchEnded)
+            return;
+        this.matchEnded = true;
+
+        this.flow.awaitingTarget = false;
+        this.animationQueue.reset();
+        new GameOverOverlay(this, reason, "#760606", { fontSize: "56px" });
     }
 
     private onGameOver(winner: "you" | "opponent"): void
     {
+        if (this.matchEnded)
+            return;
+        this.matchEnded = true;
+
         this.flow.awaitingTarget = false;
         this.input_.clearWaitingState();
 
@@ -194,6 +265,13 @@ export class GameScene extends Phaser.Scene
 
     private onServerEvent(event: GameEvent): void
     {
+        // Events can arrive before the first state: GameSession broadcasts startGame's animation
+        // events and only then the state, and the player is built in onTableCreated, which the
+        // first state triggers. Nothing to animate against yet, so drop the event rather than
+        // queue a task that would throw and have to be swallowed.
+        if (!this.eventPlayer)
+            return;
+
         this.animationQueue.run(async () =>
         {
             await this.eventPlayer!.play(event);
@@ -210,5 +288,8 @@ export class GameScene extends Phaser.Scene
         EventManager.off("server:gameOver", this.onGameOverHandler);
         EventManager.off("server:rejected", this.onRejectedHandler);
         EventManager.off("server:event", this.onEventHandler);
+        EventManager.off("client:connected", this.onConnectedHandler);
+        EventManager.off("server:opponentDisconnected", this.onOpponentDisconnectedHandler);
+        EventManager.off("server:opponentReconnected", this.onOpponentReconnectedHandler);
     }
 }

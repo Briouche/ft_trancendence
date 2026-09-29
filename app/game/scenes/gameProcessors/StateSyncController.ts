@@ -4,8 +4,8 @@ import { Hand } from "../../objects/Hand";
 import { Board } from "../../objects/board/Board";
 import { OpponentHand } from "../../objects/OpponentHand";
 import { MatchHistory } from "../../objects/history/MatchHistory";
-import { ClientGameState } from "../../shared/protocol";
-import { summonAnimation, drawCardAnimation } from "../../animations";
+import { ClientGameState, TargetPrompt } from "../../shared/protocol";
+import { drawCardAnimation } from "../../animations";
 import { GameFlowState } from "./GameFlowState";
 
 interface TableRefs
@@ -15,18 +15,15 @@ interface TableRefs
     opponentHand: OpponentHand;
     history: MatchHistory;
 }
- 
+
 interface DeferredCardAnimation
 {
     cardId: string;
     run: (card: Card) => void;
 }
 
-// Syncs the board/hand/hero objects to the latest server state — call apply() on every state
-// received from the server (see GameScene/AnimationQueue). Builds the Hand/Board/OpponentHand the
-// first time it's called. `pendingCardAnimations` mirrors ServerEventPlayer's defer pattern: an
-// animation tied to a card id that doesn't exist on the board yet waits here until a later
-// apply() call materializes it.
+// Applies each server state to the table objects (creating them on the first state), plays
+// draw animations for new hand cards, and runs animations deferred until their card exists.
 export class StateSyncController
 {
     private previousState: ClientGameState | null = null;
@@ -35,7 +32,7 @@ export class StateSyncController
 
     private table: TableRefs | null = null;
 
-    constructor(private scene: Phaser.Scene, private flow: GameFlowState, private onTableCreated: (table: TableRefs) => void, private onWaitingCleared: () => void)
+    constructor(private scene: Phaser.Scene, private flow: GameFlowState, private onTableCreated: (table: TableRefs) => void, private onWaitingCleared: () => void, private onPromptRestored: (prompt: TargetPrompt) => void)
     {}
 
     deferUntilCardExists(cardId: string, run: (card: Card) => void): void
@@ -99,6 +96,15 @@ export class StateSyncController
             return;
         }
 
+        // The server says this player still owes a target choice. On a normal play the UI is
+        // already up — the "prompt" message raised it and flow.pendingPrompt is set. It is null
+        // here only when the client that saw that message is gone (a reconnect, a page reload),
+        // and the state is then the only place the prompt still exists. Without this the seat is
+        // soft-locked: reattach() has already cancelled the forfeit timer, and the server rejects
+        // every message except targetChoice.
+        if (this.flow.pendingPrompt === null)
+            this.onPromptRestored(state.pendingPrompt);
+
         if (this.flow.pendingPlayCardId !== null)
         {
             const stillInHand = state.playerHand.some((c) => c.id === this.flow.pendingPlayCardId);
@@ -113,7 +119,6 @@ export class StateSyncController
 
     private detectDraws(state: ClientGameState): void
     {
-        //add mulligan here in future
         if (this.previousState === null)
             return;
 
