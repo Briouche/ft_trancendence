@@ -18,11 +18,15 @@ const WIN_STATS: { key: keyof ProfileUser['wins']; label: string }[] = [
   { key: 'vsPlayer', label: 'vs Players' },
 ]
 
-// `readOnly` renders someone else's profile (friends/requests rows, via /profile/[username]) — no
-// email (never fetched for anyone but the session owner, see getUserProfileByUsername) and no editing.
-export default function ProfileInformation({ user, readOnly = false }: {
+/**
+ * Profile page body. `readOnly` renders someone else's profile (friends/requests rows, via
+ * /profile/[username]) — no email (never fetched for anyone but the session owner, see
+ * getUserProfileByUsername) and no editing. `notice` is the outcome of a 42 link attempt.
+ */
+export default function ProfileInformation({ user, readOnly = false, notice }: {
   user: CurrentUser | ProfileUser
   readOnly?: boolean
+  notice?: string
 }) {
   const [isEditing, setIsEditing] = useState(false)
   const formattedDate = new Date(user.createdAt).toLocaleDateString()
@@ -36,6 +40,7 @@ export default function ProfileInformation({ user, readOnly = false }: {
       <div className="flex justify-center">
         <StatusIndicator status={status} label />
       </div>
+      {notice && <p role="status" className="mt-2 text-center font-serif text-sm text-ink-text">{notice}</p>}
 
       {isEditing && !readOnly ? (
         <EditProfileForm user={user as CurrentUser} onDone={() => setIsEditing(false)} />
@@ -66,6 +71,11 @@ export default function ProfileInformation({ user, readOnly = false }: {
       {!readOnly && (
         <BoxedButton onClick={() => setIsEditing(prev => !prev)} className="mt-5 h-11 w-full text-lg">
           {isEditing ? 'Cancel' : 'Edit profile'}
+        </BoxedButton>
+      )}
+      {!readOnly && !isEditing && 'linkedTo42' in user && !user.linkedTo42 && (
+        <BoxedButton href="/api/auth/42?link=1" className="mt-3 h-11 w-full text-lg">
+          Link my 42 account
         </BoxedButton>
       )}
     </NotebookPageLayout>

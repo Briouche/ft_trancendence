@@ -20,7 +20,8 @@ export type ProfileUser = {
 
 // `hasPassword` is false for OAuth-only accounts — the edit form only asks for the current
 // password (see updateUserProfile) when there is one to ask for. The hash itself never leaves here.
-export type CurrentUser = ProfileUser & { email: string; hasPassword: boolean };
+// `linkedTo42` shows whether "Sign in with 42" works for this account (link button on /profile).
+export type CurrentUser = ProfileUser & { email: string; hasPassword: boolean; linkedTo42: boolean };
 
 const WIN_COLUMNS = {
   winsVsAiEasy: true,
@@ -53,6 +54,7 @@ export const getUserInfo = cache(async (): Promise<CurrentUser | null> => {
       username: true,
       email: true,
       password: true,
+      fortyTwoId: true,
       avatar: true,
       status: true,
       createdAt: true,
@@ -68,6 +70,7 @@ export const getUserInfo = cache(async (): Promise<CurrentUser | null> => {
     username: user.username,
     email: user.email,
     hasPassword: user.password !== null,
+    linkedTo42: user.fortyTwoId !== null,
     avatar: user.avatar,
     status: user.status,
     createdAt: user.createdAt,
