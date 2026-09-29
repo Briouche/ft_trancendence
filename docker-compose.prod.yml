@@ -2,6 +2,7 @@ services:
   proxy:
     build:
       context: ./proxy
+      target: production
       args:
         DOMAIN_NAME: ${DOMAIN_NAME}
     ports:

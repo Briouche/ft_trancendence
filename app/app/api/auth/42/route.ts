@@ -33,5 +33,11 @@ export async function GET(request: Request) {
     if (wantsLink && (await getSession())) cookieStore.set(LINK_COOKIE, "1", COOKIE_OPTIONS);
     else cookieStore.delete(LINK_COOKIE);
 
-    return NextResponse.redirect(buildAuthorizeUrl(state));
+    try {
+        return NextResponse.redirect(buildAuthorizeUrl(state));
+    } catch (err) {
+        // FT_CLIENT_ID / FT_REDIRECT_URI not configured: explain it on the sign-in page instead of a 500.
+        console.error("42 OAuth is not configured:", err instanceof Error ? err.message : err);
+        return NextResponse.redirect(new URL("/?error=oauth", request.url));
+    }
 }

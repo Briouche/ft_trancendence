@@ -1,6 +1,12 @@
+# Development overlay, loaded automatically by `docker compose up` (see Makefile `dev`): hot
+# reload with the sources bind-mounted, HTTPS on https://localhost:8080.
+# Only nginx is published. The other services are reachable only through it (so only over TLS),
+# except Postgres on the loopback interface for local tools (prisma studio, psql).
 services:
   proxy:
-    image: nginx:stable-alpine
+    build:
+      context: ./proxy
+      target: development
     ports:
       - "8080:8080"
     volumes:
@@ -9,8 +15,6 @@ services:
   app:
     build:
       target: development
-    ports:
-      - "3000:3000"
     volumes:
       - ./app:/app
       - /app/node_modules
@@ -20,8 +24,6 @@ services:
   game_engine:
     build:
       target: development
-    ports:
-      - "4000:4000"
     volumes:
       - ./game_engine:/app
       - /app/node_modules
@@ -29,16 +31,10 @@ services:
   socketio:
     build:
       target: development
-    ports:
-      - "4001:4000"
     volumes:
       - ./socket-server:/app
       - /app/node_modules
 
-  redis:
-    ports:
-     - "6380:6379"
-
   db:
     ports:
-     - "5432:5432"
+      - "127.0.0.1:5432:5432"
