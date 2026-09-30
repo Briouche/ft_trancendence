@@ -69,13 +69,20 @@ export function createNode(state: GameEngine, parent: MCTSNode | null, action: A
   };
 }
 
-function ucb1(node: MCTSNode, parentVisits: number): number {
-  if (node.visits === 0) return Infinity;
-  return (node.wins / node.visits) + UCB1_C * Math.sqrt(Math.log(parentVisits) / node.visits);
+// UCB1 of `child` for the player choosing at `parent`. A child's wins are stored from the view of
+// the player to move *at the child* (see backpropagate); when the move ended the turn that is the
+// opponent, so the rate is flipped back to the chooser's view — otherwise the search would favour
+// the end-of-turn moves that are best for the opponent.
+function ucb1(child: MCTSNode, parent: MCTSNode): number {
+  if (child.visits === 0) return Infinity;
+  const rate = child.wins / child.visits;
+  const chooserRate = child.ownerIndex === parent.ownerIndex ? rate : 1 - rate;
+  return chooserRate + UCB1_C * Math.sqrt(Math.log(parent.visits) / child.visits);
 }
 
+/** Child to descend into during selection: the highest UCB1 for the player choosing at `node`. */
 export function selectBestChild(node: MCTSNode): MCTSNode {
-  return node.children.reduce((best, c) => ucb1(c, node.visits) > ucb1(best, node.visits) ? c : best);
+  return node.children.reduce((best, c) => ucb1(c, node) > ucb1(best, node) ? c : best);
 }
 
 // Expands one random untried action into a child node.
