@@ -15,10 +15,10 @@ const AGGRO_DECK: string[] = [
 const CONTROL_DECK: string[] = [
     "Roi des rats",
     "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
-    "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportiny",
+    "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportunity",
     "cannibalisme", "Lecture de textes Anciencs", "Mixeur", "blackhole", "cat pack",
     "cri du phoenix", "tremblement", "call the kraken", "Bombe H",
-    "Slime orthophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
+    "Slime Saxophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
 ]
 
 // Archimede synergy: the 6 "archi" cards + Archimede.
@@ -31,8 +31,10 @@ const ARCHI_DECK: string[] = [
     "Bibliothequaire", "Pyroblin", "Jumeaux Goblin",
 ]
 
-const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]
+/** The three decks the AI picks from. */
+export const AI_DECKS: string[][] = [AGGRO_DECK, CONTROL_DECK, ARCHI_DECK]
 
+/** One of the AI decks, at random, for a new solo match. */
 export function pickRandomAiDeck(): string[]
 {
     return AI_DECKS[Math.floor(Math.random() * AI_DECKS.length)]
