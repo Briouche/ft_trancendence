@@ -1,7 +1,7 @@
 # Development overlay, loaded automatically by `docker compose up` (see Makefile `dev`): hot
-# reload with the sources bind-mounted, HTTPS on https://localhost:8080.
-# Only nginx is published. The other services are reachable only through it (so only over TLS),
-# except Postgres on the loopback interface for local tools (prisma studio, psql).
+# reload with the sources bind-mounted, on http://localhost:8080 (HTTPS is production only).
+# Only nginx is published: the other services are reachable only through it, except Postgres on
+# the loopback interface for local tools (prisma studio, psql).
 services:
   proxy:
     build:

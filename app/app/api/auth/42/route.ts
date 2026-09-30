@@ -10,7 +10,7 @@ export const LINK_COOKIE = "ft_oauth_link";
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure:   true, // every environment is served over HTTPS (proxy/)
+    secure:   process.env.NODE_ENV === "production", // development runs on plain HTTP
     sameSite: "lax" as const, // must survive the top-level redirect back from 42
     maxAge:   5 * 60,
     path:     "/",

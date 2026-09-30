@@ -13,7 +13,7 @@ RUN apk add --no-cache openssl && \
       -subj "/CN=${DOMAIN_NAME}" \
       -addext "subjectAltName=DNS:${DOMAIN_NAME},DNS:localhost,IP:127.0.0.1"
 
-# development: HTTPS on 8080 in front of the hot-reloading services. docker-compose.override.yml
+# development: plain HTTP on 8080 in front of the hot-reloading services. docker-compose.override.yml
 # also bind-mounts dev.conf, so it can be edited without a rebuild.
 FROM base AS development
 COPY dev.conf /etc/nginx/nginx.conf

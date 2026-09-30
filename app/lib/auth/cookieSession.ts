@@ -44,7 +44,9 @@ export async function createSession(userId: number, username: string, tokenVersi
   const cookieStore = await cookies();
   cookieStore.set("session", token, {
     httpOnly: true,
-    secure: true, // served over HTTPS in every environment (proxy/)
+    // HTTPS only in production (proxy/prod.conf.template); a Secure cookie would never be sent
+    // back over the plain-HTTP development server.
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     expires: expiresAt,
     path: "/",
