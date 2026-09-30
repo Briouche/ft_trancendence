@@ -22,19 +22,18 @@ const STARTER_DECKS: StarterDeck[] = [
       "Diablotin du piment", "Diablotin du piment", "Critique culinaire", "Critique culinaire",
       "Feed the troops", "Feed the troops", "Hyperactive cousin", "Hyperactive cousin",
       "soulevement de tombes", "une maman aimante", "une maman aimante", "soulevement de tombes",
-      "equal opportunity", "equal opportunity", "Pyroblin", "Pyroblin",
+      "champion de l'arene", "champion de l'arene", "Pyroblin", "Pyroblin",
     ],
   },
   {
     // Control: spells + big late-game creatures.
     name: "Contrôle",
     cards: [
-      "Roi des rats",
-      "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
-      "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportunity",
-      "cannibalisme", "Lecture de textes Anciencs", "Mixeur", "blackhole", "cat pack",
-      "cri du phoenix", "tremblement", "call the kraken", "Bombe H",
-      "Slime Saxophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
+      "Timmy, the planetsucker",
+      "Voxotron exterminateur", "Voxotron exterminateur", "call the kraken", "call the kraken",
+	  "le croupier", "le croupier", "equal opportunity", "le (gros) thon poli", "le (gros) thon poli",
+	  "cannibalisme", "cannibalisme", "bloodsucker", "bloodsucker", "golem endormi", "Sauce tomAAAAAAte",
+	  "Sauce tomAAAAAAte", "Pyroblin", "Jumeaux Goblin", "Opika", "Cavalier furieux"
     ],
   },
   {
@@ -50,6 +49,9 @@ const STARTER_DECKS: StarterDeck[] = [
     ],
   },
 ];
+
+// Free packs granted to every new account, on top of the starter deck.
+const STARTER_PACKS = 3;
 
 // Called inside the account-creation transaction, so no account exists without its deck.
 // Unknown names are skipped with a warning; if none resolve (no cards seeded), nothing is created.
@@ -79,5 +81,9 @@ export async function giveStarterDeck(tx: Prisma.TransactionClient, userId: numb
   await tx.userCard.createMany({ data: entries.map((e) => ({ userId, ...e })) });
   await tx.deck.create({
     data: { name: starter.name, userId, cards: { create: entries } },
+  });
+  await tx.user.update({
+    where: { id: userId },
+    data: { unopenedPacks: { increment: STARTER_PACKS } },
   });
 }

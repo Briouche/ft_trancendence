@@ -90,10 +90,11 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 // Screenshot from public/gameAssets/tutorial/, cropped to the given aspect ratio.
-function ScreenshotImage({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+// `eager` for shots above the fold, so the browser doesn't lazy-load the page's LCP image.
+function ScreenshotImage({ src, alt, className = "", eager = false }: { src: string; alt: string; className?: string; eager?: boolean }) {
   return (
     <div className={`relative overflow-hidden rounded-sm border border-leather-800/50 ${className}`}>
-      <Image src={src} alt={alt} fill unoptimized className="object-cover" />
+      <Image src={src} alt={alt} fill unoptimized loading={eager ? "eager" : "lazy"} className="object-cover" />
     </div>
   );
 }
@@ -135,6 +136,7 @@ function ObjectiveShot() {
         src="/gameAssets/tutorial/objective.png"
         alt="A hero's health tag and board-size counter"
         className="aspect-square w-full"
+        eager
       />
       <Label>your hero&apos;s health, top corner of its zone</Label>
     </div>
@@ -148,6 +150,7 @@ function BoardShot() {
         src="/gameAssets/tutorial/board-overview.png"
         alt="A match in progress, annotated with its main elements"
         className="aspect-[1867/915] w-full"
+        eager
       />
       {BOARD_ANATOMY.map(a => <Callout key={a.n} x={a.x} y={a.y} n={a.n} />)}
     </div>

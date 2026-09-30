@@ -274,9 +274,26 @@ const WIN_CATEGORY_CARD_BACK: Record<WinCategory, number> = {
     winsVsAiHard:   6,
 }
 
+// Packs granted per win category — mirrors the "Win this match : N packs" promise shown on the
+// Play screen (packsForWin in app/app/play/PlayModeSelector.tsx). Kept in sync by hand since the
+// client only ever displays that number, it never sends it back to the server.
+const PACKS_FOR_WIN_CATEGORY: Record<WinCategory, number> = {
+    winsVsAiEasy:   0,
+    winsVsAiMedium: 1,
+    winsVsAiHard:   2,
+    winsVsPlayer:   2,
+}
+
 export async function recordWin(userId: number, category: WinCategory): Promise<void>
 {
-    await prisma.user.update({ where: { id: userId }, data: { [category]: { increment: 1 } } })
+    const packs = PACKS_FOR_WIN_CATEGORY[category]
+    await prisma.user.update({
+        where: { id: userId },
+        data: {
+            [category]: { increment: 1 },
+            ...(packs > 0 ? { unopenedPacks: { increment: packs } } : {}),
+        },
+    })
     await unlockCardBackIfNeeded(userId, WIN_CATEGORY_CARD_BACK[category])
 }
 
