@@ -11,6 +11,7 @@ export function createGameConfig(parent: HTMLDivElement, mode: GameMode, difficu
     return {
         type: Phaser.AUTO, parent, backgroundColor: "#5858b3",
         roundPixels: true,
+        banner: false,
         // This game never plays audio. Without this, Phaser still creates a WebAudio
         // AudioContext on boot and auto-resumes it on the first click — if the player navigates
         // away shortly after, Game.destroy()'s teardown can call context.close() while that

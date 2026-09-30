@@ -13,6 +13,9 @@ const pixelGame = localFont({
   src: "./fonts/PixelGame-Regular.otf",
   variable: "--font-pixel-game",
   display: "swap",
+  // No <link rel=preload>: pages whose text is drawn on a canvas (Phaser) don't use it in time,
+  // and Firefox then warns. The @font-face still loads it as soon as text needs it.
+  preload: false,
 });
 
 export const metadata: Metadata = {
