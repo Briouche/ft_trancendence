@@ -1,54 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/cookieSession";
+import { parseDeckId, validateDeckInput } from "@/lib/decks";
 
-// Update or delete one of the current user's decks; a deck they don't own reads as 404.
+// Update or delete one of the current user's decks. A deck they don't own reads as 404 rather
+// than 403, so the API doesn't confirm that someone else's deck id exists.
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+type Params = { params: Promise<{ id: string }> };
+
+/** PUT /api/decks/:id — replaces the name and cards of one of the current user's decks. */
+export async function PUT(req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = await params;
-  const { name, cards } = await req.json();
+  const deckId = parseDeckId((await params).id);
+  if (deckId === null) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
+  const existing = await prisma.deck.findFirst({ where: { id: deckId, userId: session.userId }, select: { id: true } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.deckCard.deleteMany({ where: { deckId: Number(id) } });
+  const body = await req.json().catch(() => null);
+  const result = await validateDeckInput(body, session.userId);
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 
-  const deck = await prisma.deck.update({
-    where: { id: Number(id) },
-    data: {
-      name,
-      cards: {
-        create: cards.map((c: { cardId: string; qty: number }) => ({
-          cardId: c.cardId,
-          qty: c.qty,
-        })),
-      },
-    },
-  });
+  // One transaction, so a failure can't leave the deck emptied of its cards.
+  const [, deck] = await prisma.$transaction([
+    prisma.deckCard.deleteMany({ where: { deckId } }),
+    prisma.deck.update({
+      where: { id: deckId },
+      data: { name: result.deck.name, cards: { create: result.deck.cards } },
+    }),
+  ]);
 
   return NextResponse.json(deck);
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+/** DELETE /api/decks/:id — deletes one of the current user's decks (its cards go with it). */
+export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = await params;
+  const deckId = parseDeckId((await params).id);
+  if (deckId === null) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  await prisma.deckCard.deleteMany({ where: { deckId: Number(id) } });
-  await prisma.deck.delete({ where: { id: Number(id) } });
+  // Scoped by owner, so this is a no-op on someone else's deck. DeckCard rows go with it
+  // (onDelete: Cascade in the schema).
+  const { count } = await prisma.deck.deleteMany({ where: { id: deckId, userId: session.userId } });
+  if (count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json({ ok: true });
 }

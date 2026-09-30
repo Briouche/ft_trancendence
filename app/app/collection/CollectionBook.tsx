@@ -12,9 +12,9 @@ import {
     HALF, SLOTS_PER_PAGE, normalize, parseCost, boldNumberStyle, woodenTableBackground,
 } from '@/components/notebook/NotebookUI'
 import { HomeButton } from '@/components/notebook/AssetButton'
-import { TitleBanner } from '@/components/notebook/PageLayout'
 import ScaleToFit from '@/components/ScaleToFit'
 import CardZoom from './CardZoom'
+import { LEGENDARY_RARITY } from '@/lib/deckRules'
 
 type Card = CardFaceData & { ownedQty: number }
 type Tab = 'cards' | 'backs'
@@ -86,7 +86,7 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
         }
 
         if (legendaryOnly) {
-            matches = matches.filter(c => c.rarity === 'Légendaire')
+            matches = matches.filter(c => c.rarity === LEGENDARY_RARITY)
         }
 
         return [...matches].sort((a, b) => parseCost(a.cost) - parseCost(b.cost))

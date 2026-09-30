@@ -14,6 +14,7 @@ import {
 import { HomeButton } from "@/components/notebook/AssetButton";
 import { TitleBanner } from "@/components/notebook/PageLayout";
 import BoxedButton from "@/components/notebook/BoxedButton";
+import { LEGENDARY_RARITY } from "@/lib/deckRules";
 
 type SavedDeck = {
   id: number;
@@ -140,7 +141,7 @@ export default function PlayModeSelector({ decks, elo }: { decks: SavedDeck[]; e
                   </div>
                 )}
                 {decks.map(d => {
-                  const legendaryCards = d.cards.filter(c => c.card.rarity === 'Légendaire');
+                  const legendaryCards = d.cards.filter(c => c.card.rarity === LEGENDARY_RARITY);
                   const cardCount = d.cards.reduce((sum, c) => sum + c.qty, 0);
                   return (
                     <div

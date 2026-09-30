@@ -1,11 +1,11 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { ACHIEVEMENT_CARD_BACKS } from "./cardBacks";
+import { LEGENDARY_RARITY } from "@/lib/deckRules";
 
 // Pack opening: weighted rarity draws, legendary pity, collection completion reward.
 
 const CARDS_PER_PACK = 8;
 const PACKS_BEFORE_GUARANTEED_LEGENDARY = 5;
-const LEGENDARY_RARITY = "Légendaire";
 
 const RARITY_WEIGHTS: Record<string, number> = {
   "Commune": 40,
