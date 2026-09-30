@@ -537,6 +537,10 @@ export class GameSession
             try
             {
                 action = await getBestAction(this.engine, simulations, worlds);
+                // The search yields to the event loop, so the human may have quit (or forfeited
+                // by timeout) while it ran.
+                if (this.gameOver)
+                    break;
                 this.applyAiAction(action);
             }
             catch (err)
