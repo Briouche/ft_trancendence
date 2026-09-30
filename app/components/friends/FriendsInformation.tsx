@@ -17,7 +17,7 @@ export default function FriendsInformation({ username }: { username: string }) {
 
     return (
         <NotebookPageLayout title="FRIENDS" panelClassName="max-h-150 w-96 overflow-y-auto">
-            <p className="text-center font-serif text-sm text-ink-muted">of {username}</p>
+            <p className="text-center font-serif text-sm text-ink-muted">{username}&apos;s friends</p>
 
             <BoxedButton onClick={() => setIsAdding(prev => !prev)} className="mt-4 h-11 w-full text-lg">
                 {isAdding ? 'Cancel' : 'Add a friend'}
