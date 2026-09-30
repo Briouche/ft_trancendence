@@ -45,16 +45,33 @@ function drawOneSlot(pool: DrawableCard[]): DrawableCard | null {
   return card;
 }
 
+/** Thrown when the user has no unopened pack left. */
+export class NoPackError extends Error {
+  constructor() {
+    super("No pack left to open.");
+  }
+}
+
+/**
+ * Opens one of the user's packs: draws CARDS_PER_PACK cards they can still own more of (weighted
+ * by rarity, a legendary guaranteed after PACKS_BEFORE_GUARANTEED_LEGENDARY packs without one),
+ * adds them to the collection and unlocks the full-collection card back when it completes.
+ */
 export async function openPack(prisma: PrismaClient, userId: number) {
   return prisma.$transaction(async (tx) => {
+    // Take the pack first, with a conditional update: it locks the user row, so a second request
+    // opening a pack at the same moment waits here and then finds none left, instead of both
+    // reading "1 pack" and drawing two packs for the price of one.
+    const taken = await tx.user.updateMany({
+      where: { id: userId, unopenedPacks: { gt: 0 } },
+      data: { unopenedPacks: { decrement: 1 } },
+    });
+    if (taken.count === 0) throw new NoPackError();
+
     const user = await tx.user.findUniqueOrThrow({
       where: { id: userId },
-      select: { id: true, unopenedPacks: true, pityCounter: true, unlockedCardBacks: true },
+      select: { id: true, pityCounter: true, unlockedCardBacks: true },
     });
-
-    if (user.unopenedPacks <= 0) {
-      throw new Error("Aucun paquet disponible pour cet utilisateur.");
-    }
 
     const [allCards, owned] = await Promise.all([
       tx.card.findMany(),
@@ -111,17 +128,16 @@ export async function openPack(prisma: PrismaClient, userId: number) {
     const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
-        unopenedPacks: { decrement: 1 },
         pityCounter: gotLegendary ? 0 : { increment: 1 },
-        ...(newlyUnlockedBacks.length > 0 && {
-          unlockedCardBacks: { set: [...user.unlockedCardBacks, ...newlyUnlockedBacks] },
-        }),
+        // push, not a rewrite of the whole list: a card back unlocked by a match ending at the
+        // same moment (game_engine) must not be overwritten.
+        ...(newlyUnlockedBacks.length > 0 && { unlockedCardBacks: { push: fullCollectionIndex } }),
       },
       select: { unopenedPacks: true, pityCounter: true },
     });
 
-    // One bulk upsert instead of one sequential round trip per distinct drawn card (up to
-    // CARDS_PER_PACK) — keeps this transaction's row locks held for as little time as possible.
+    // Raw SQL on purpose: one bulk upsert ("add qty, or insert the row") instead of one Prisma
+    // upsert per distinct drawn card — keeps this transaction's row locks held as briefly as possible.
     if (countByCard.size > 0) {
       const rows = Prisma.join(
         [...countByCard].map(([cardId, count]) => Prisma.sql`(${userId}, ${cardId}, ${count})`)
