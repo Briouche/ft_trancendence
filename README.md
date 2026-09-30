@@ -1,23 +1,3 @@
-Things to do in the README:
-
-multiple sections
-- add links to sections in current place holders "Features and Modules"
-
-resources
-- add resources
-
-project management
-- continue on how we defined the game in Project management section
-
-technical stack
-- explain how we did the graphics for the app
-- how the game engine renders things
-- how the monte carlo simulation tree works
-
-database schema
-- explain in brief details the Card and Deck models
-
-
 
 *This project has been created as part of the 42 curriculum by brcoppie, fkrakow, lecartuy, stdevis*
 
@@ -87,6 +67,26 @@ mention all the needed prerequisites (software, tools, versions, configuration l
 
 
 ## Resources
+
+- https://nextjs.org/learn?utm_source=next-site&utm_medium=homepage-cta&utm_campaign=home: next js and tailwind css learning
+- https://www.prisma.io/docs/guides/frameworks/nextjs: next js with prisma doc
+- https://threejs.org/manual/#creating-a-scene: Three js doc for hub 3D
+- https://phaser.io/tools/phaser-docs: Phaser3 documentation for the client-side game rendering
+- https://socket.io/docs/v4/tutorial/introduction: sockets.io documentation
+- https://en.wikipedia.org/wiki/Redis: redis database reference
+- https://react.dev/learn/typescript: learning TypeScript and React
+- https://medium.com/data-science/the-animated-monte-carlo-tree-search-mcts-c05bb48b018c: ai implemetation documentation
+- https://en.wikipedia.org/wiki/Elo_rating_system: elo rating ref
+- https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/: merging docker compose files
+
+Textures used:
+- https://crusenho.itch.io/complete-ui-book-styles-pack: used textures for hub and collection menus
+- https://cafedraw.itch.io/fantasy-card-assets: card back assets
+- https://argametina.itch.io/free-card-packs: card packs and pack opening aimation
+
+AI use:
+- Claude AI: To research sources, help debugging and design drafts. Help with complex merges and understanding each other's codebases. Used for tailwind CSS and Phaser3 coding. Refactoring code such as extracting a component in its own file. Used as a review collaborator.
+
 ---
 list classics references related to the topic, as well as a description of how AI was used -- specifying for which tasks and which parts of the project
 
@@ -108,8 +108,6 @@ The work was split into five largely independent parts: Docker infrastructure, s
 
 The order in which we implemented and integrated these parts is detailed in the **Features and Modules** sections below (add links). The four latter parts were developed in parallel with the Docker infrastructure connecting everything together. But the core of the project is the game and the *game state*...
 
----
-how the team organised the work, which tools and channels were used for the project management
 
 ## Technical Stack
 The website is built on Next.js 16 and React 19, using Prisma 7 as the ORM and Socket.IO for WebSocket communication. Everything runs on Node 20. A Redis 7 service tracks online users for the real-time presence feature and carries chat messages from the app to the Socket.IO server **(we could also use it to cache game-engine state, but that isn't implemented yet)**.
@@ -124,8 +122,6 @@ The game engine and the AI opponent are both written in TypeScript. The game eng
 
 For the AI opponent, we use Monte Carlo Tree Search (MCTS) (`game_engine/srcs/ai/mcts.ts`). This algorithm is based on doing simulations of the game in the background based on the current game state and returns the best action. Since the AI can't see the opponent's hand, it builds several guessed versions of it (`game_engine/srcs/ai/determinize.ts`), takes a copy of the game_engine so it has acces to all the cards on the board the cards in his hand and the current hp of both sides. Then, it will run a tree search (`game_engine/srcs/ai/tree.ts`) with each node being a move and each time it finishes a simulation, it walks back up the tree by updating each node with wether it brought a win or not. Finally, returns the 'best action' based on which move across all the different simulations and guessed hands got the better score. The number of simulations and guessed hands depends on the difficulty (`DIFFICULTY_PRESETS` in `game_engine/srcs/ai/types.ts`).
 
----
-frontend and backend technologies and frameworks used. The database system chosen and why. Any other significant technologies or libraries and justification for major technical choices
 
 
 ## Database Schema
@@ -319,10 +315,6 @@ model DeckCard {
 }
 ```
 
----
-visual representation or description of the database structure with tables and their relationships with key fields and datatypes
-
-
 ## Features List
 
 ### Containerised solution - Core Module
@@ -398,9 +390,6 @@ There is also a friends page where we can see all the requests we've received, t
 With each friend, there is a basic chat saved to the database. Only friends can message each other, which is checked both when loading the history and when sending a message, and messages are limited to 2000 characters. The chat page loads the history on the server. There is no separate conversation model: a conversation is every `Message` between the two users, in either direction. The same socket that is used for the chat is used to track active users and display their status to their profile page.
 Chat messages never go from one browser to another directly. The sender calls the `sendMessage` server action (`app/lib/user-and-friends/messages.ts`), which checks that both users are friends and that the message is valid, stores it in the database, and only then publishes it with `@socket.io/redis-emitter` (`app/lib/socketEmitter.ts`) to the `user:<id>` rooms of both users. `socket-server` receives it through its Redis adapter and delivers it to their open tabs. This way, a client can't push a message that skips the checks or was never saved.
 
----
-complete list of implemented features, which team member(s) worked on each feature and a brief description of each feature's functionality
-
 
 ## Modules
 The first module is the mandatory part.
@@ -413,79 +402,60 @@ The Privacy Policy and Terms of Service pages are in `app/app/privacy` and `app/
 
 We must also have a basic management system. Users must be able to sign up and log in securely.
 
-### Major: use a framework for both the frontend and backend
+### Major: use a framework for both the frontend and backend *(all)*
 We use Next.js for a full-stack app. It is important to document both the frontend and backend features.
 	
-### Major: implement real-time features using WebSockets or similar technology
+### Major: implement real-time features using WebSockets or similar technology *(fkrakow, brcoppie, stdevis)*
 real-time updates across clients, handle connection/disconnection gracefully, efficient message broadcasting
 
-### Minor: use an ORM for the database
+### Minor: use an ORM for the database *(all)*
 To connect to the database, we use Prisma, in both the app and the game engine. The game engine shares the app's Prisma schema instead of keeping its own copy (see **Next.js with Prisma**).
 
-### Minor: Server-Side Rendering (SSR) for improved performance and SEO
+### Minor: Server-Side Rendering (SSR) for improved performance and SEO *(fkrakow, stdevis)*
 See **Server-side rendering** in the Features List.
 
-### Minor: custom-made design system with reusable components
-including a proper colour palette, typography, and icons (minimum 10 reusable components)
+### Minor: custom-made design system with reusable components *(fkrakow, stdevis)*
 
+### Major: allow users to interact with other users *(fkrakow)*
+a basic chat system, a profile system, a friend system, multiplayer
 
-### Major: allow users to interact with other users
-a basic chat system, a profile system, a friend system
-
-### Major: standard user management and authentication
+### Major: standard user management and authentication *(fkrakow, stdevis)*
 users can update their profile information, can upload an avatar with a default one if none provided, can add other users as friends and see their online status, have a profile page displaying their information.
 
-### Minor: implement remote authentication with OAuth 2.0
+### Minor: implement remote authentication with OAuth 2.0 *(stdevis)*
 
-### Major: implement a complete web-based game
+### Major: implement a complete web-based game *(brcoppie, lecartuy, stdevis)*
 
-### Major: introduce an AI Opponent for games
-
+### Major: introduce an AI Opponent for games *(lecartuy)*
 
 16 points
 
-on peut éventuellement ajouter l'un de ces modules
-
-#### Minor: implement a complete 2FA system for the users
-
-#### Minor: implement advanced search functionality
+#### Minor: implement advanced search functionality *(stdevis)*
 filters, sorting, and pagination. We could add that when we look at cards or decks or idk
 
-#### Minor: game statistics and match history
+#### Minor: game statistics and match history *(stdevis)*
 track user game statistics (wins, loses, ranking, level, etc), display match history, show achievements and progression, leaderboard integration
-Il faut quand même ajouter quelques trucs mais c'est toujours faisable
-Part of this already exists: wins are counted per opponent type (`winsVsAiEasy`, `winsVsAiMedium`, `winsVsAiHard`, `winsVsPlayer`), and card backs are unlocked as achievements (`app/lib/cardBacks.ts`).
+
+Part of this exists: wins are counted per opponent type (`winsVsAiEasy`, `winsVsAiMedium`, `winsVsAiHard`, `winsVsPlayer`), and card backs are unlocked as achievements (`app/lib/cardBacks.ts`).
 
 19 points
 
-#### Major: remote players
-enable two players on separate computers to play the same game in real-time. Handle network latency and disconnection gracefully, provide a smooth user experience for remote gameplay, implement a reconnection logic.
-Il faudra beaucoup ajouter dans les redis.
-Part of this already exists: the game engine matches two queued players into a game and flips a coin to decide who starts (`game_engine/srcs/socket/serverSocket.ts`). A player who disconnects also has 30 seconds to reconnect to their game (`RECONNECT_GRACE_MS` in `game_engine/srcs/socket/gameSession.ts`).
+#### Major: remote players *(brcoppie, lecartuy)*
+The game engine matches two queued players into a game and flips a coin to decide who starts (`game_engine/srcs/socket/serverSocket.ts`). A player who disconnects also has 30 seconds to reconnect to their game (`RECONNECT_GRACE_MS` in `game_engine/srcs/socket/gameSession.ts`).
 
-#### Minor: advanced chat features
-ability to block users from messaging you, invite users to play games directly from chat, game/tournament notifications in chat, access to user profiles from chat interface, chat history persistence, typing indicators and read receipts
-
-#### Minor: game customisation options
+#### Minor: game customisation options *(stdevis)*
 power-ups, attacks, or special abilities, different maps or themes, customisable game settings, default options must be available
-
-#### Minor: implement spectator mode for games
-allow users to watch ongoing games, real-time updates for spectators, optional: spectator chat
-
-
----
-list of all chosen modules with point calculation and justification for each module choice, how it was implemented, and which team member(s) worked on each module
 
 
 ## Individual Contributions
 ---
 detailed breakdown of what each team member contributed, with specific features, modules, or components implemented by each person, and any challenges faced and how they were overcome
 
-- brcoppie: The main person behind the design of the game_engine and the game's rendering on the app using phaser. Worked on the protocol that connects the engine and the clients with sockets.io. 
+- brcoppie: The main person behind the design of the game_engine and the game's rendering on the app using phaser. Worked on the protocol that connects the engine and the clients with sockets.io.
 
-- fkrakow: Implemented the whole docker system, the dabase and added the friend list feature with a chat system.
+- fkrakow: Implemented the whole docker system, the database and added the friend list features with a chat system.
 
-- lecartuy: Worked on the game_engine in parallel to brcoppie by implementing the ai opponent for the game. Created the 3 differents diffulty settings for the ai and mode selection. The biggest chaellenge faced was to keep the ai implentation updated with the changes made to the game_engine as this could mess up with the ai behavior in game. This was prevented by communicating frequently with brcoppie when making changes that altered the game_engine and its rules.
+- lecartuy: Worked on the game_engine in parallel to brcoppie by implementing the ai opponent for the game. Created the 3 differents diffulty settings for the ai and mode selection. The biggest challenge faced was to keep the ai implentation updated with the changes made to the game_engine as this could mess up with the ai behavior in game. This was prevented by communicating frequently with brcoppie when making changes that altered the game_engine and its rules.
 
-- stdevis: He was the one tasked with making the frontend of our project. He made sure our app had a consistent theme all around, that everything was responsive and user friendly. 
+- stdevis: He was the one tasked with making the frontend of our project. He made sure our app had a consistent theme all around, that everything was responsive and user friendly. Worked on the API routes of app.
 
