@@ -22,7 +22,7 @@ server {
     server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
 
     location / {
-        return 301 https://$host:8443$request_uri;
+        return 301 https://$host:${HTTPS_PORT}$request_uri;
     }
 }
 
@@ -82,7 +82,7 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade    $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host       $host;
+        proxy_set_header Host       $http_host;
         proxy_set_header X-Real-IP  $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_read_timeout 86400s;
@@ -95,7 +95,7 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade    $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host       $host;
+        proxy_set_header Host       $http_host;
         proxy_set_header X-Real-IP  $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_read_timeout 86400s;
