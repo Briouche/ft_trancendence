@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { MENU_ITEMS } from './menu'
 import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from '@/components/account-menu/AccountMenu'
 
-// Text menu shown instead of the 3D hall when WebGL2 is unavailable.
+/** Text menu shown instead of the 3D hall without WebGL2 or on phone-sized screens. */
 export default function SimpleHubMenu({ username, cardCount, elo, wins, cardBacks }: {
     username:  string
     cardCount: number

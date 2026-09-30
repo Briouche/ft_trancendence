@@ -58,9 +58,12 @@ body {
   color: var(--foreground);
 }
 
-/* The native cursor is replaced by CustomCursor.tsx. */
-* {
-  cursor: none !important;
+/* The native cursor is replaced by CustomCursor.tsx, on mouse/trackpad devices only (touch
+   screens have no cursor; CustomCursor hides itself there with pointer-coarse:hidden). */
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
 }
 
 /* 9-slice pixel-art frames from the "Complete UI Book Styles Pack" (see README credits). */

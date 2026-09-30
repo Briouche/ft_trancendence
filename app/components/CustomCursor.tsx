@@ -10,7 +10,7 @@ const DISPLAY_SCALE = 0.6
 
 type Frame = 'default' | 1 | 2 | 3 | 4
 
-// Sprite cursor following the mouse, with a 4-frame click animation.
+/** Sprite cursor following the mouse, with a 4-frame click animation (hidden on touch screens). */
 export default function CustomCursor() {
     const imgRef = useRef<HTMLImageElement>(null)
     const [frame, setFrame] = useState<Frame>('default')
@@ -72,7 +72,7 @@ export default function CustomCursor() {
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none fixed left-0 top-0 z-[9999] select-none opacity-0 transition-opacity duration-150"
+            className="pointer-events-none fixed left-0 top-0 z-[9999] select-none opacity-0 transition-opacity duration-150 pointer-coarse:hidden"
             style={{ imageRendering: 'pixelated', willChange: 'transform', transformOrigin: '0 0' }}
         />
     )
