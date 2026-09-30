@@ -33,9 +33,11 @@ export class Hero
         return this.currentHealth > 0;
     }
 
+    // Keeps the id (targets are matched by id) and maxHealth (Timmy's passive raises it).
     clone(): Hero
     {
-        const copy = new Hero(this.name);
+        const copy = new Hero(this.name, this.id);
+        copy.maxHealth = this.maxHealth;
         copy.currentHealth = this.currentHealth;
         return copy;
     }
