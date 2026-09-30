@@ -24,6 +24,9 @@ import {
   AVATAR_MAX_LABEL,
   AVATAR_ALLOWED_MIME_TYPES,
 } from "@/lib/user-and-friends/requirements";
+import { isRateLimited, recordAttempt } from "@/lib/rateLimit";
+
+const CURRENT_PASSWORD_FAILURES = { max: 10, windowMs: 15 * 60 * 1000 };
 
 // File.type is whatever the browser (or a hand-crafted request) claims — identify the image
 // from its leading "magic" bytes instead, and store it under that type.
@@ -36,6 +39,11 @@ function detectImageMimeType(bytes: Buffer): string | null {
   return null;
 }
 
+/**
+ * Saves the profile form: username, email, optional new password (current password required to
+ * change email or password), optional avatar. Re-issues the session cookie, since a password
+ * change bumps tokenVersion and revokes every other session.
+ */
 export async function updateUserProfile(formData: FormData) {
   const session = await getSession();
   if (!session) {
@@ -101,13 +109,15 @@ export async function updateUserProfile(formData: FormData) {
     ) {
       return { error: "Enter your current password to change your email or password." };
     }
-    let isValid = false;
-    try {
-      isValid = await verify(existing.password, currentPassword);
-    } catch {
-      // treated as a mismatch below
+    // Same limit as sign-in failures: a stolen session must not be able to guess the password
+    // from here either.
+    const attemptsKey = `profile-password:user:${session.userId}`;
+    if (isRateLimited(attemptsKey, CURRENT_PASSWORD_FAILURES)) {
+      return { error: "Too many attempts. Please wait a few minutes and try again." };
     }
+    const isValid = await verify(existing.password, currentPassword).catch(() => false);
     if (!isValid) {
+      recordAttempt(attemptsKey, CURRENT_PASSWORD_FAILURES);
       return { error: "Current password is incorrect." };
     }
   }
