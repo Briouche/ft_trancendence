@@ -50,7 +50,7 @@ export async function seedUsers(prisma: PrismaClient) {
 
   console.log("✅ Users successfully seeded.");
 
-  // Same as the unlock-all route (app/api/collection/unlock-all): every card at its max qty.
+  // Every card at its max qty.
   // Relies on seedCards() having run first so the Card table is populated.
   const unlockAllUsers = data.users.filter((u) => u.unlockAllCards);
   if (unlockAllUsers.length > 0) {
