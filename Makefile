@@ -4,9 +4,11 @@ include .env
 
 all: dev
 
-# docker-compose.yml + docker-compose.override.yml: bind mounts, hot reload
+# docker-compose.yml + docker-compose.override.yml: bind mounts, hot reload on
+# http://localhost:8080. --renew-anon-volumes: node_modules lives in an anonymous volume that
+# compose would otherwise reuse, silently keeping old dependencies after a package.json change.
 dev:
-	docker compose up --build
+	docker compose up --build --renew-anon-volumes
 
 # production images, nginx with TLS
 prod:
