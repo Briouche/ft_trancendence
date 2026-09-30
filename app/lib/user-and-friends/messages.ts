@@ -4,6 +4,9 @@ import prisma from "@/lib/prisma";
 import socketEmitter, { userRoom } from "@/lib/socketEmitter";
 import { getUserInfo, areFriends } from "@/lib/user-and-friends/getUserInfo";
 import { isValidId, MESSAGE_MAX_LENGTH } from "@/lib/user-and-friends/requirements";
+import { rateLimit } from "@/lib/rateLimit";
+
+const CHAT_MESSAGES_PER_USER = { max: 20, windowMs: 10_000 };
 
 // "use server" files may only export async functions, so the message shape is inferred by
 // callers via `Awaited<ReturnType<typeof getMessages>>` (see ChatWindow) rather than exported here.
@@ -55,6 +58,11 @@ export async function sendMessage(receiverId: number, content: string) {
 
   if (!(await areFriends(receiverId))) {
     return { error: "You can only message friends." };
+  }
+
+  // Flood guard: a person doesn't send more than 20 messages in 10 seconds.
+  if (!rateLimit(`chat:user:${currentUser.id}`, CHAT_MESSAGES_PER_USER)) {
+    return { error: "You're sending messages too fast. Please wait a moment." };
   }
 
   const row = await prisma.message.create({

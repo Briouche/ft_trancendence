@@ -105,6 +105,7 @@ export default function ChatWindow({ currentUserId, otherUser, initialMessages }
                     onChange={e => setDraft(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSend() } }}
                     placeholder="Type a message…"
+                    aria-label={`Message to ${otherUser.username}`}
                     maxLength={MESSAGE_MAX_LENGTH}
                     className="travelbook-slot w-full bg-transparent px-3 py-2 font-serif
                         text-sm text-ink-text placeholder:text-ink-muted/60 outline-none"

@@ -5,6 +5,10 @@ import prisma from "@/lib/prisma";
 import { getUserInfo } from "@/lib/user-and-friends/getUserInfo";
 import { FRIEND_ROW_SELECT, isValidId } from "@/lib/user-and-friends/requirements";
 import { USERNAME_MAX_LENGTH, USERNAME_REGEX } from "@/lib/auth/requirements";
+import { rateLimit } from "@/lib/rateLimit";
+
+// Stops one account from spamming every player with requests.
+const FRIEND_REQUESTS_PER_USER = { max: 30, windowMs: 60 * 60 * 1000 };
 
 // Every export here is a server action, i.e. a public endpoint: arguments are only typed at
 // compile time, so each one re-checks its inputs at runtime before touching the database.
@@ -39,6 +43,10 @@ export async function sendFriendRequest(addresseeId: number) {
 
   const addressee = await prisma.user.findUnique({ where: { id: addresseeId }, select: { id: true } });
   if (!addressee) return { error: "User not found." };
+
+  if (!rateLimit(`friend-request:user:${currentUser.id}`, FRIEND_REQUESTS_PER_USER)) {
+    return { error: "Too many friend requests. Please try again later." };
+  }
 
   // @@unique([requesterId, addresseeId]) only covers one direction, so without this lock A->B and
   // B->A sent at the same moment would both pass the check below and create two rows (which,
