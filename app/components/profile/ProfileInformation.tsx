@@ -49,9 +49,9 @@ export default function ProfileInformation({ user, readOnly = false }: {
             </p>
           </div>
 
-          <TextField label="Username" name="username" defaultValue={user.username} readOnly align="center" />
+          <TextField key={user.username} label="Username" name="username" defaultValue={user.username} readOnly align="center" />
           {'email' in user && (
-            <TextField label="Email" name="email" defaultValue={user.email} readOnly align="center" />
+            <TextField key={user.email} label="Email" name="email" defaultValue={user.email} readOnly align="center" />
           )}
 
           <p className="mt-2 text-center font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">Wins</p>
