@@ -17,10 +17,7 @@ const pixelGame = localFont({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "ft_transcendence — card battles",
-    template: "%s · ft_transcendence",
-  },
+  title: "ft_transcendence",
   description: "A collectible card game: build decks, open packs and battle other players or the AI.",
 };
 

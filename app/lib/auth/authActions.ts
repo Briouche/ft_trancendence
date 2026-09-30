@@ -81,7 +81,11 @@ export async function registerUser(formData: FormData): Promise<ActionResult> {
 
   let user;
   try {
-    user = await prisma.user.create({ data: { username, email, password: passwordHash } });
+    user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({ data: { username, email, password: passwordHash } });
+      await giveStarterDeck(tx, created.id);
+      return created;
+    });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       // A taken email gets a vague answer: telling it apart would confirm that address has an

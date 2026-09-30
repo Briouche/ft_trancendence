@@ -135,6 +135,7 @@ function ObjectiveShot() {
         src="/gameAssets/tutorial/objective.png"
         alt="A hero's health tag and board-size counter"
         className="aspect-square w-full"
+        eager
       />
       <Label>your hero&apos;s health, top corner of its zone</Label>
     </div>
@@ -277,8 +278,8 @@ export default function ManualBook() {
               <IllustratedSection title="Playing cards & attacking" image={<AttackIntoTaunt />} reverse>
                 <p>
                   Drag a card from your hand to play it. A minion cannot attack the turn it is played, but can attack on later turns.
-				  Minion lose health when attacked, and are destroyed when their health reaches 0.
-				  You can chose wich minion or hero to attack.
+                  Minion lose health when attacked, and are destroyed when their health reaches 0.
+                  You can chose wich minion or hero to attack.
                 </p>
               </IllustratedSection>
 

@@ -34,15 +34,15 @@ type Props = {
 // saved decks (right). Left-click adds a card, right-click removes it.
 export default function DeckBuilder({ cards, decks, totalCardCount, deckId, initialName = '', initialDeck = {} }: Props) {
     const router = useRouter()
-    const [deck, setDeck]             = useState<Record<string, DeckEntry>>(initialDeck)
-    const [deckName, setDeckName]     = useState(initialName)
-    const [saving, setSaving]         = useState(false)
-    const [message, setMessage]       = useState('')
-    const [search, setSearch]         = useState('')
+    const [deck, setDeck] = useState<Record<string, DeckEntry>>(initialDeck)
+    const [deckName, setDeckName] = useState(initialName)
+    const [saving, setSaving] = useState(false)
+    const [message, setMessage] = useState('')
+    const [search, setSearch] = useState('')
     const [costFilter, setCostFilter] = useState<number | null>(null)
     const [legendaryOnly, setLegendaryOnly] = useState(false)
-    const [page, setPage]             = useState(0)
-    const [creating, setCreating]     = useState(!!deckId)
+    const [page, setPage] = useState(0)
+    const [creating, setCreating] = useState(!!deckId)
     const [deletingDeckId, setDeletingDeckId] = useState<number | null>(null)
     const [hoveredDeckId, setHoveredDeckId] = useState<number | null>(null)
     const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
@@ -74,7 +74,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
     function padToHalf<T>(items: T[]): (T | null)[] {
         return [...items, ...Array(Math.max(0, HALF - items.length)).fill(null)]
     }
-    const leftItems  = padToHalf(visibleCards.slice(0, HALF))
+    const leftItems = padToHalf(visibleCards.slice(0, HALF))
     const rightItems = padToHalf(visibleCards.slice(HALF))
 
     const updateSearch = useCallback((value: string) => {
@@ -143,14 +143,14 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
         setSaving(true)
         setMessage('')
 
-        const url    = deckId ? `/api/decks/${deckId}` : '/api/decks'
+        const url = deckId ? `/api/decks/${deckId}` : '/api/decks'
         const method = deckId ? 'PUT' : 'POST'
 
         const res = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                name:  deckName,
+                name: deckName,
                 cards: Object.values(deck).map(e => ({ cardId: e.card.id, qty: e.qty })),
             }),
         })
@@ -208,236 +208,236 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                     <div className="flex h-200 items-stretch gap-4">
                         <PageArrow direction="prev" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0} />
 
-                <div className="relative flex h-200 w-260 flex-col">
-                    <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
-                        <div className="travelbook-page relative flex flex-1 flex-col p-3">
-                            <div className="flex h-9 items-center justify-center">
-                                <SearchInput
-                                    onChange={updateSearch}
-                                    className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif text-xs text-ink-text
+                        <div className="relative flex h-200 w-260 flex-col">
+                            <div className="flex flex-1 items-stretch gap-0.5 p-0.5">
+                                <div className="travelbook-page relative flex flex-1 flex-col p-3">
+                                    <div className="flex h-9 items-center justify-center">
+                                        <SearchInput
+                                            onChange={updateSearch}
+                                            className="travelbook-slot w-full bg-transparent px-3 py-2 text-center font-serif text-xs text-ink-text
                                         placeholder:text-ink-muted/60 outline-none"
-                                />
-                            </div>
-                            <div className="grid flex-1 content-center grid-cols-2 gap-x-4 gap-y-5">
-                                {leftItems.map(renderSlot)}
-                            </div>
-                            <p className="absolute bottom-0 left-1 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
-                                {currentPage * 2 + 1}
-                            </p>
-                        </div>
-                        <div className="travelbook-page travelbook-page-right relative flex flex-1 flex-col p-3">
-                            <p className="absolute right-1 top-0 font-serif text-xs italic text-ink-muted">
-                                {cards.reduce((sum, c) => sum + c.qty, 0)} / {totalCardCount} cards
-                            </p>
-                            <div className="flex h-9 items-center justify-center gap-2">
-                                <button
-                                    onClick={toggleLegendaryOnly}
-                                    aria-pressed={legendaryOnly}
-                                    className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
-                                >
-                                    <Image
-                                        src={`/textures/collection/icon-star-${legendaryOnly ? 'full' : 'empty'}.webp`}
-                                        alt="Legendary only"
-                                        width={16} height={16} unoptimized
-                                        className="h-6 w-auto"
-                                        style={{ imageRendering: 'pixelated' }}
-                                    />
-                                </button>
-                                {COST_FILTERS.map(value => {
-                                    const filled = costFilter !== null && value <= costFilter
-                                    const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.webp`
-                                    return (
+                                        />
+                                    </div>
+                                    <div className="grid flex-1 content-center grid-cols-2 gap-x-4 gap-y-5">
+                                        {leftItems.map(renderSlot)}
+                                    </div>
+                                    <p className="absolute bottom-0 left-1 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
+                                        {currentPage * 2 + 1}
+                                    </p>
+                                </div>
+                                <div className="travelbook-page travelbook-page-right relative flex flex-1 flex-col p-3">
+                                    <p className="absolute right-1 top-0 font-serif text-xs italic text-ink-muted">
+                                        {cards.reduce((sum, c) => sum + c.qty, 0)} / {totalCardCount} cards
+                                    </p>
+                                    <div className="flex h-9 items-center justify-center gap-2">
                                         <button
-                                            key={value}
-                                            onClick={() => toggleCostFilter(value)}
-                                            aria-pressed={costFilter === value}
+                                            onClick={toggleLegendaryOnly}
+                                            aria-pressed={legendaryOnly}
                                             className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
                                         >
                                             <Image
-                                                src={icon}
-                                                alt={`Cost ${value}`}
-                                                width={12} height={14} unoptimized
+                                                src={`/textures/collection/icon-star-${legendaryOnly ? 'full' : 'empty'}.webp`}
+                                                alt="Legendary only"
+                                                width={16} height={16} unoptimized
                                                 className="h-6 w-auto"
                                                 style={{ imageRendering: 'pixelated' }}
                                             />
                                         </button>
-                                    )
-                                })}
-                            </div>
-                            <div className="grid flex-1 content-center grid-cols-2 gap-x-4 gap-y-5">
-                                {rightItems.map(renderSlot)}
-                            </div>
-                            <p className="absolute bottom-0 right-1 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
-                                {currentPage * 2 + 2}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <PageArrow direction="next" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1} />
-
-                <div className="travelbook-frame4-panel relative z-30 flex h-200 w-80 flex-col p-5">
-                    {creating ? (
-                        <>
-                            <div className="relative mb-3 flex items-center justify-center">
-                                <button
-                                    onClick={() => {
-                                        if (deckId) { router.push('/deck/new'); return }
-                                        setDeck({})
-                                        setCreating(false)
-                                    }}
-                                    className="absolute left-0 shrink-0 transition-opacity hover:opacity-70"
-                                >
-                                    <Image
-                                        src="/textures/notebook/arrow/Arrow2.webp"
-                                        alt="Back"
-                                        width={10} height={6} unoptimized
-                                        className="h-8 w-auto"
-                                        style={{ imageRendering: 'pixelated' }}
-                                    />
-                                </button>
-
-                                <p className="text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
-                                    {deckId ? 'Edit deck' : 'New deck'}
-                                </p>
-                            </div>
-
-                            <input
-                                type="text"
-                                placeholder="Deck name…"
-                                aria-label="Deck name"
-                                maxLength={DECK_NAME_MAX_LENGTH}
-                                value={deckName}
-                                onChange={e => setDeckName(e.target.value)}
-                                className="travelbook-slot mb-3 w-full bg-transparent px-3 py-2 text-center font-serif text-base
-                                    text-ink-text placeholder:text-ink-muted/60 outline-none"
-                            />
-
-                            <p className="mb-1 text-center font-serif text-xs text-ink-muted">
-                                {legendaryCount}/{MAX_LEGENDARY} legendary · {commonCount}/{MAX_NON_LEGENDARY} normal cards
-                            </p>
-                            <p className="mb-3 text-center font-serif text-xs text-ink-muted">
-                                {totalCards} / {MAX_LEGENDARY + MAX_NON_LEGENDARY} cards
-                            </p>
-
-                            {message && (
-                                <p className="mb-3 text-center font-serif text-xs italic text-ink-text">{message}</p>
-                            )}
-
-                            <BoxedButton onClick={saveDeck} disabled={saving || totalCards === 0} className="mb-5 h-11 w-full">
-                                {saving ? 'Saving…' : 'Save deck'}
-                            </BoxedButton>
-
-                            <div className="mb-2 h-px bg-ink-900/15" />
-                            <p className="mb-2 text-center font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
-                                Cards in deck
-                            </p>
-
-                            <NotebookScrollArea className="-mr-6 flex-1">
-                                {totalCards === 0 && (
-                                    <p className="mt-6 text-center font-serif text-xs text-ink-muted/70">No cards added yet</p>
-                                )}
-                                {sortedDeckEntries.map(entry => (
-                                    <div
-                                        key={entry.card.id}
-                                        className="mb-1.5 flex items-center rounded-sm px-2 py-1.5"
-                                    >
-                                        <button
-                                            onClick={() => removeCard(entry.card)}
-                                            className="flex min-w-0 items-center gap-2.5 text-left"
-                                        >
-                                            <span className="shrink-0 font-serif text-xs text-ink-muted">×{entry.qty}</span>
-                                            <span className="flex shrink-0 items-center gap-1.5">
-                                                <Image
-                                                    src="/textures/collection/icon-energy-full.webp"
-                                                    alt=""
-                                                    width={12} height={14} unoptimized
-                                                    className="h-4 w-auto"
-                                                    style={{ imageRendering: 'pixelated' }}
-                                                />
-                                                <span className="font-serif text-base text-ink-text">
-                                                    {entry.card.cost}
-                                                </span>
-                                            </span>
-                                            <p className="truncate font-serif text-lg text-ink-text">{entry.card.name}</p>
-                                            {entry.card.rarity === LEGENDARY_RARITY && (
-                                                <Image
-                                                    src="/textures/collection/icon-star-full.webp"
-                                                    alt="Legendary"
-                                                    width={16} height={16} unoptimized
-                                                    className="h-4 w-auto shrink-0"
-                                                    style={{ imageRendering: 'pixelated' }}
-                                                />
-                                            )}
-                                        </button>
+                                        {COST_FILTERS.map(value => {
+                                            const filled = costFilter !== null && value <= costFilter
+                                            const icon = `/textures/collection/icon-energy-${filled ? 'full' : 'empty'}.webp`
+                                            return (
+                                                <button
+                                                    key={value}
+                                                    onClick={() => toggleCostFilter(value)}
+                                                    aria-pressed={costFilter === value}
+                                                    className="flex h-9 w-7 items-center justify-center transition-transform active:scale-90"
+                                                >
+                                                    <Image
+                                                        src={icon}
+                                                        alt={`Cost ${value}`}
+                                                        width={12} height={14} unoptimized
+                                                        className="h-6 w-auto"
+                                                        style={{ imageRendering: 'pixelated' }}
+                                                    />
+                                                </button>
+                                            )
+                                        })}
                                     </div>
-                                ))}
-                            </NotebookScrollArea>
-                        </>
-                    ) : (
-                        <>
-                            <p className="mb-3 text-center font-display text-4xl font-bold text-white" style={outlinedWhiteTextStyle}>
-                                My decks
-                            </p>
+                                    <div className="grid flex-1 content-center grid-cols-2 gap-x-4 gap-y-5">
+                                        {rightItems.map(renderSlot)}
+                                    </div>
+                                    <p className="absolute bottom-0 right-1 font-serif text-3xl font-bold italic text-ink-text" style={boldNumberStyle}>
+                                        {currentPage * 2 + 2}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-                            <NotebookScrollArea className="-mr-6 flex-1">
-                                {decks.length === 0 && (
-                                    <p className="mt-6 text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>No decks yet</p>
-                                )}
-                                {decks.map(d => {
-                                    const legendaryCards = d.cards.filter(c => c.card.rarity === LEGENDARY_RARITY)
-                                    return (
-                                        <div
-                                            key={d.id}
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={() => router.push(`/deck/${d.id}`)}
-                                            onKeyDown={e => { if (e.key === 'Enter') router.push(`/deck/${d.id}`) }}
-                                            onMouseEnter={() => setHoveredDeckId(d.id)}
-                                            onMouseLeave={() => setHoveredDeckId(null)}
-                                            className="travelbook-deck-frame relative mb-2 flex w-full cursor-pointer items-center gap-2 px-2 py-2"
+                        <PageArrow direction="next" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1} />
+
+                        <div className="travelbook-frame4-panel relative z-30 flex h-200 w-80 flex-col p-5">
+                            {creating ? (
+                                <>
+                                    <div className="relative mb-3 flex items-center justify-center">
+                                        <button
+                                            onClick={() => {
+                                                if (deckId) { router.push('/deck/new'); return }
+                                                setDeck({})
+                                                setCreating(false)
+                                            }}
+                                            className="absolute left-0 shrink-0 transition-opacity hover:opacity-70"
                                         >
-                                            {hoveredDeckId === d.id && <SelectHighlight className="inset-0 z-10" animate={false} />}
-                                            {legendaryCards.length > 0 && (
-                                                <span className="travelbook-slot ml-4 flex h-12 w-12 shrink-0 items-center justify-center">
-                                                    {legendaryCards.map((c, i) => (
+                                            <Image
+                                                src="/textures/notebook/arrow/Arrow2.webp"
+                                                alt="Back"
+                                                width={10} height={6} unoptimized
+                                                className="h-8 w-auto"
+                                                style={{ imageRendering: 'pixelated' }}
+                                            />
+                                        </button>
+
+                                        <p className="text-center font-display text-3xl font-bold text-white" style={outlinedWhiteTextStyle}>
+                                            {deckId ? 'Edit deck' : 'New deck'}
+                                        </p>
+                                    </div>
+
+                                    <input
+                                        type="text"
+                                        placeholder="Deck name…"
+                                        aria-label="Deck name"
+                                        maxLength={DECK_NAME_MAX_LENGTH}
+                                        value={deckName}
+                                        onChange={e => setDeckName(e.target.value)}
+                                        className="travelbook-slot mb-3 w-full bg-transparent px-3 py-2 text-center font-serif text-base
+                                    text-ink-text placeholder:text-ink-muted/60 outline-none"
+                                    />
+
+                                    <p className="mb-1 text-center font-serif text-xs text-ink-muted">
+                                        {legendaryCount}/{MAX_LEGENDARY} legendary · {commonCount}/{MAX_NON_LEGENDARY} normal cards
+                                    </p>
+                                    <p className="mb-3 text-center font-serif text-xs text-ink-muted">
+                                        {totalCards} / {MAX_LEGENDARY + MAX_NON_LEGENDARY} cards
+                                    </p>
+
+                                    {message && (
+                                        <p className="mb-3 text-center font-serif text-xs italic text-ink-text">{message}</p>
+                                    )}
+
+                                    <BoxedButton onClick={saveDeck} disabled={saving || totalCards === 0} className="mb-5 h-11 w-full">
+                                        {saving ? 'Saving…' : 'Save deck'}
+                                    </BoxedButton>
+
+                                    <div className="mb-2 h-px bg-ink-900/15" />
+                                    <p className="mb-2 text-center font-serif text-xs uppercase tracking-[0.2em] text-ink-muted">
+                                        Cards in deck
+                                    </p>
+
+                                    <NotebookScrollArea className="-mr-6 flex-1">
+                                        {totalCards === 0 && (
+                                            <p className="mt-6 text-center font-serif text-xs text-ink-muted/70">No cards added yet</p>
+                                        )}
+                                        {sortedDeckEntries.map(entry => (
+                                            <div
+                                                key={entry.card.id}
+                                                className="mb-1.5 flex items-center rounded-sm px-2 py-1.5"
+                                            >
+                                                <button
+                                                    onClick={() => removeCard(entry.card)}
+                                                    className="flex min-w-0 items-center gap-2.5 text-left"
+                                                >
+                                                    <span className="shrink-0 font-serif text-xs text-ink-muted">×{entry.qty}</span>
+                                                    <span className="flex shrink-0 items-center gap-1.5">
                                                         <Image
-                                                            key={i}
-                                                            src={`/textures/collection/icon-leg-${c.card.legendId}.webp`}
-                                                            alt="Legendary"
-                                                            width={32} height={34} unoptimized
-                                                            className="h-9 w-auto"
+                                                            src="/textures/collection/icon-energy-full.webp"
+                                                            alt=""
+                                                            width={12} height={14} unoptimized
+                                                            className="h-4 w-auto"
                                                             style={{ imageRendering: 'pixelated' }}
                                                         />
-                                                    ))}
-                                                </span>
-                                            )}
-                                            <p className="min-w-0 flex-1 truncate text-center font-serif text-lg text-ink-text">
-                                                {d.name}
-                                            </p>
-                                            <button
-                                                onClick={e => { e.stopPropagation(); setPendingDelete({ id: d.id, name: d.name }) }}
-                                                disabled={deletingDeckId === d.id}
-                                                className="relative z-20 mr-4 shrink-0 transition-opacity hover:opacity-70 disabled:opacity-30"
-                                            >
-                                                <Image
-                                                    src="/textures/notebook/icon-cross.webp"
-                                                    alt="Delete deck"
-                                                    width={15} height={15} unoptimized
-                                                    className="h-4 w-auto"
-                                                    style={{ imageRendering: 'pixelated' }}
-                                                />
-                                            </button>
-                                        </div>
-                                    )
-                                })}
-                            </NotebookScrollArea>
+                                                        <span className="font-serif text-base text-ink-text">
+                                                            {entry.card.cost}
+                                                        </span>
+                                                    </span>
+                                                    <p className="truncate font-serif text-lg text-ink-text">{entry.card.name}</p>
+                                                    {entry.card.rarity === LEGENDARY_RARITY && (
+                                                        <Image
+                                                            src="/textures/collection/icon-star-full.webp"
+                                                            alt="Legendary"
+                                                            width={16} height={16} unoptimized
+                                                            className="h-4 w-auto shrink-0"
+                                                            style={{ imageRendering: 'pixelated' }}
+                                                        />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </NotebookScrollArea>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="mb-3 text-center font-display text-4xl font-bold text-white" style={outlinedWhiteTextStyle}>
+                                        My decks
+                                    </p>
 
-                            <BoxedButton onClick={() => setCreating(true)} className="mt-4 h-14 w-full text-lg">
-                                Create deck
-                            </BoxedButton>
-                        </>
-                    )}
+                                    <NotebookScrollArea className="-mr-6 flex-1">
+                                        {decks.length === 0 && (
+                                            <p className="mt-6 text-center font-serif text-xs text-white/70" style={outlinedWhiteTextStyle}>No decks yet</p>
+                                        )}
+                                        {decks.map(d => {
+                                            const legendaryCards = d.cards.filter(c => c.card.rarity === LEGENDARY_RARITY)
+                                            return (
+                                                <div
+                                                    key={d.id}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => router.push(`/deck/${d.id}`)}
+                                                    onKeyDown={e => { if (e.key === 'Enter') router.push(`/deck/${d.id}`) }}
+                                                    onMouseEnter={() => setHoveredDeckId(d.id)}
+                                                    onMouseLeave={() => setHoveredDeckId(null)}
+                                                    className="travelbook-deck-frame relative mb-2 flex w-full cursor-pointer items-center gap-2 px-2 py-2"
+                                                >
+                                                    {hoveredDeckId === d.id && <SelectHighlight className="inset-0 z-10" animate={false} />}
+                                                    {legendaryCards.length > 0 && (
+                                                        <span className="travelbook-slot ml-4 flex h-12 w-12 shrink-0 items-center justify-center">
+                                                            {legendaryCards.map((c, i) => (
+                                                                <Image
+                                                                    key={i}
+                                                                    src={`/textures/collection/icon-leg-${c.card.legendId}.webp`}
+                                                                    alt="Legendary"
+                                                                    width={32} height={34} unoptimized
+                                                                    className="h-9 w-auto"
+                                                                    style={{ imageRendering: 'pixelated' }}
+                                                                />
+                                                            ))}
+                                                        </span>
+                                                    )}
+                                                    <p className="min-w-0 flex-1 truncate text-center font-serif text-lg text-ink-text">
+                                                        {d.name}
+                                                    </p>
+                                                    <button
+                                                        onClick={e => { e.stopPropagation(); setPendingDelete({ id: d.id, name: d.name }) }}
+                                                        disabled={deletingDeckId === d.id}
+                                                        className="relative z-20 mr-4 shrink-0 transition-opacity hover:opacity-70 disabled:opacity-30"
+                                                    >
+                                                        <Image
+                                                            src="/textures/notebook/icon-cross.webp"
+                                                            alt="Delete deck"
+                                                            width={15} height={15} unoptimized
+                                                            className="h-4 w-auto"
+                                                            style={{ imageRendering: 'pixelated' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            )
+                                        })}
+                                    </NotebookScrollArea>
+
+                                    <BoxedButton onClick={() => setCreating(true)} className="mt-4 h-14 w-full text-lg">
+                                        Create deck
+                                    </BoxedButton>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

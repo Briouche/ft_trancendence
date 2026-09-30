@@ -107,7 +107,11 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
     for (let suffix = 0; suffix < 1000; suffix++) {
         const username = suffix === 0 ? baseUsername : `${baseUsername}${suffix}`;
         try {
-            return await prisma.user.create({ data: { email, username, fortyTwoId: profile.id } });
+            return await prisma.$transaction(async (tx) => {
+                const created = await tx.user.create({ data: { email, username, fortyTwoId: profile.id } });
+                await giveStarterDeck(tx, created.id);
+                return created;
+            });
         } catch (err) {
             if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2002") throw err;
             const target = String(err.meta?.target ?? "");

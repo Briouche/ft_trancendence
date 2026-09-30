@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/cookieSession";
@@ -6,8 +5,6 @@ import { ROUTES } from "@/config/routes";
 import PhaserLoader from "@/components/game/PhaserLoader";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
-
-export const metadata: Metadata = { title: "Match" };
 
 const DIFFICULTIES: readonly Difficulty[] = ["facile", "moyen", "difficile"];
 

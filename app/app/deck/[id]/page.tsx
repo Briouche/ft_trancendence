@@ -1,12 +1,9 @@
-import type { Metadata } from 'next';
 import { redirect, notFound } from 'next/navigation'
 import prisma from "@/lib/prisma";
 import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import DeckBuilder from "../new/DeckBuilder";
 import { parseDeckId } from '@/lib/decks'
-
-export const metadata: Metadata = { title: 'Edit deck' };
 
 /** /deck/[id] — edits one of the user's decks (another user's deck reads as 404). */
 export default async function EditDeckPage({

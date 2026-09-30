@@ -1,12 +1,7 @@
-import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { getUserInfo, getUserProfileByUsername } from '@/lib/user-and-friends/getUserInfo'
 import { ROUTES } from '@/config/routes'
 import ProfileInformation from '@/components/profile/ProfileInformation'
-
-export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
-    return { title: `${(await params).username}'s profile` }
-}
 
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
     // Usernames are stored lowercase (see registerUser/updateUserProfile), so /profile/Alice
