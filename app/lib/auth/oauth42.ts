@@ -1,5 +1,5 @@
 import "server-only";
-
+import { giveStarterDeck } from "@/lib/starterDecks";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { USERNAME_MAX_LENGTH } from "@/lib/auth/requirements";
@@ -84,12 +84,16 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
     }
 
     try {
-        return await prisma.user.create({
+        return await prisma.$transaction(async (tx) => {
+            const created = await tx.user.create({
             data: {
                 email:      profile.email.toLocaleLowerCase(),
                 username,
                 fortyTwoId: profile.id,
             },
+            });
+            await giveStarterDeck(tx, created.id);
+            return created;
         });
     } catch (err) {
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { hash, verify } from "@node-rs/argon2"
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-
+import { giveStarterDeck } from "@/lib/starterDecks";
 import { createSession, deleteSession } from "@/lib/auth/cookieSession";
 import { ROUTES } from "@/config/routes";
 import {
@@ -102,12 +102,16 @@ export async function registerUser(formData: FormData) {
 
   let user;
   try {
-    user = await prisma.user.create({
+    user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
       data: {
         username: username.toLocaleLowerCase(),
         email,
         password: passwordHash,
       },
+    });
+    await giveStarterDeck(tx, created.id);
+    return created;
     });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {

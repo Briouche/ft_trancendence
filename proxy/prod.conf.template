@@ -47,18 +47,19 @@ server {
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     # Next.js app
-    location @nextjs {
-        proxy_pass http://nextjs_upstream;
-        proxy_http_version 1.1;
-        proxy_set_header Host                $http_host;
-        proxy_set_header X-Real-IP           $remote_addr;
-        proxy_set_header X-Forwarded-For     $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto   $scheme;
+	location @nextjs {
+		proxy_pass http://nextjs_upstream;
+		proxy_http_version 1.1;
+		proxy_set_header Host                $http_host;
+		proxy_set_header X-Forwarded-Host    $http_host;
+		proxy_set_header X-Real-IP           $remote_addr;
+		proxy_set_header X-Forwarded-For     $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto   $scheme;
 
-        # A bit more headroom than nginx's 60s default for slow/low-core hardware.
-        proxy_read_timeout 90s;
-        proxy_send_timeout 90s;
-    }
+		# A bit more headroom than nginx's 60s default for slow/low-core hardware.
+		proxy_read_timeout 90s;
+		proxy_send_timeout 90s;
+	}
 
     # Immutable build assets, served from disk
     location /_next/static/ {
