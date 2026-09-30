@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 
 /**
  * Root layout: cursor, route transition overlay, music, legal footer, and for signed-in users the
- * realtime socket (presence, chat), achievement notifications and the persistent 3D hub.
+ * realtime socket (presence, chat) and the persistent 3D hub.
  */
 export default async function RootLayout({
   children,

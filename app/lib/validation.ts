@@ -8,7 +8,6 @@ import {
   USERNAME_MIN_LENGTH,
   USERNAME_REGEX,
 } from "@/lib/auth/requirements";
-import { MESSAGE_MAX_LENGTH } from "@/lib/user-and-friends/requirements";
 
 // Input schemas shared by the browser (early feedback in the forms) and the server (the actual
 // enforcement in server actions and route handlers). Client-safe: no server-only imports here.
@@ -80,33 +79,6 @@ export const deckBodySchema = z.object({
     .min(1, "Add cards to your deck.")
     .max(100),
 });
-
-export const messageSchema = z
-  .string()
-  .trim()
-  .min(1, "Message is empty.")
-  .max(MESSAGE_MAX_LENGTH, `Messages are ${MESSAGE_MAX_LENGTH} characters max.`);
-
-export const USER_SORTS = ["elo", "username", "wins", "createdAt"] as const;
-export const USER_PAGE_SIZES = [10, 20, 50] as const;
-
-/**
- * Query string of the player search (GET /api/users). Every field is optional and falls back to
- * a default, so a hand-edited URL never errors: it just gets the default list.
- */
-export const userSearchSchema = z.object({
-  q: z.string().trim().max(USERNAME_MAX_LENGTH).catch(""),
-  online: z.enum(["all", "online"]).catch("all"),
-  minElo: z.coerce.number().int().min(0).max(5000).catch(0),
-  sort: z.enum(USER_SORTS).catch("elo"),
-  order: z.enum(["asc", "desc"]).catch("desc"),
-  page: z.coerce.number().int().min(1).max(10_000).catch(1),
-  pageSize: z.coerce
-    .number()
-    .refine((n): n is (typeof USER_PAGE_SIZES)[number] => (USER_PAGE_SIZES as readonly number[]).includes(n))
-    .catch(20),
-});
-export type UserSearchParams = z.infer<typeof userSearchSchema>;
 
 /** First human-readable message of a failed parse, for a form's error line. */
 export function firstIssue(error: z.ZodError): string {

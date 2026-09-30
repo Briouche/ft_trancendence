@@ -47,11 +47,6 @@ export function rateLimit(key: string, limit: RateLimit, now = Date.now()): bool
   return true;
 }
 
-/** Test helper: forgets every recorded attempt. */
-export function resetRateLimits(): void {
-  attempts.clear();
-}
-
 /** Client IP as seen by nginx (X-Real-IP), the only hop allowed to reach the app. */
 export async function clientIp(): Promise<string> {
   const h = await headers();

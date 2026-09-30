@@ -30,7 +30,7 @@ export const enPrivacyContent: NoticeData = {
           <li><strong>Account</strong>: your username, e-mail address and password. The password is never stored: we keep an Argon2id hash (salted) of it.</li>
           <li><strong>Sign in with 42</strong>: if you use it, 42 sends us your 42 user id, login and e-mail address. We store the id to recognise you next time; we never receive your 42 password.</li>
           <li><strong>Profile</strong>: the avatar image you upload (checked to be a PNG, JPEG, WebP or GIF of at most 512 KB), your join date.</li>
-          <li><strong>Game data</strong>: your card collection, decks, unopened packs, win counts per opponent type, Elo rating, unlocked card backs and achievements.</li>
+          <li><strong>Game data</strong>: your card collection, decks, unopened packs, win counts per opponent type, Elo rating, and unlocked card backs.</li>
           <li><strong>Social data</strong>: your friend requests and friendships, and the chat messages you exchange with friends.</li>
           <li><strong>Presence</strong>: whether you are currently connected or in a match. It is kept in memory (Redis) only while you are connected and is not archived.</li>
           <li><strong>Technical data</strong>: your IP address is used in memory to limit repeated failed sign-ins; it is not stored in the database.</li>
@@ -70,7 +70,7 @@ export const enPrivacyContent: NoticeData = {
         <p>
           Your data is kept while your account exists. You can change your username, e-mail, password and avatar
           from your profile at any time. To get a copy of your data or have your account and all associated data
-          deleted (collection, decks, friendships, messages, achievements), contact us at {CONTACT}.
+          deleted (collection, decks, friendships, messages), contact us at {CONTACT}.
         </p>
       </NoticeSection>
     </>
@@ -110,7 +110,7 @@ export const enTermsContent: NoticeData = {
       </NoticeSection>
       <NoticeSection title="5. Virtual items">
         <p>
-          Cards, packs, card backs, ratings and achievements have no monetary value, cannot be bought or sold, and
+          Cards, packs, card backs, and ratings have no monetary value, cannot be bought or sold, and
           may be rebalanced or reset.
         </p>
       </NoticeSection>
