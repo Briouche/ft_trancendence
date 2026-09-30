@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import CollectionBook from './CollectionBook'
+
+export const metadata: Metadata = { title: 'Collection' }
 
 export default async function CollectionPage() {
     const session = await getSession()

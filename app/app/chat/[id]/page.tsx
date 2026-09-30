@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { getUserInfo, getUserProfileById } from '@/lib/user-and-friends/getUserInfo'
 import { getMessages } from '@/lib/user-and-friends/messages'
 import { ROUTES } from '@/config/routes'
 import ChatWindow from '@/components/chat/ChatWindow'
+
+export const metadata: Metadata = { title: 'Chat' }
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params

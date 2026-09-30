@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import PackOpener from './PackOpener'
+
+export const metadata: Metadata = { title: 'Packs' }
 
 export default async function PacksPage() {
     const session = await getSession()

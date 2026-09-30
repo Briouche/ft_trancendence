@@ -6,6 +6,7 @@ import BackgroundMusic from "@/components/BackgroundMusic";
 import { getSession } from "@/lib/auth/cookieSession";
 import { PresenceProvider } from "@/app/presence";
 import HubBackground from "./HubBackground";
+import SiteFooter from "@/components/SiteFooter";
 import "./globals.css";
 
 // Single font of the whole site, exposed as --font-pixel-game.
@@ -16,15 +17,21 @@ const pixelGame = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ft_transcendence",
-  description: "The card library of ft_transcendence",
+  title: {
+    default: "ft_transcendence — card battles",
+    template: "%s · ft_transcendence",
+  },
+  description: "A collectible card game: build decks, open packs and battle other players or the AI.",
 };
 
 export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-// Root layout: cursor, route transition overlay, and the persistent 3D hub for signed-in users.
+/**
+ * Root layout: cursor, route transition overlay, music, legal footer, and for signed-in users the
+ * realtime socket (presence, chat), achievement notifications and the persistent 3D hub.
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +41,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="fr"
+      lang="en"
       className={`${pixelGame.variable} h-full antialiased`}
       style={{ backgroundColor: '#0b0c0d' }}
     >
@@ -44,6 +51,7 @@ export default async function RootLayout({
         <BackgroundMusic />
         {session && <HubBackground username={session.username} />}
         {session ? <PresenceProvider>{children}</PresenceProvider> : children}
+        <SiteFooter />
       </body>
     </html>
   );

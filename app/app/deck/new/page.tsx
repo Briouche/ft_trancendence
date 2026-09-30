@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation'
 import prisma from "@/lib/prisma";
 import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import DeckBuilder from "./DeckBuilder";
+
+export const metadata: Metadata = { title: 'Deck builder' };
 
 export const dynamic = "force-dynamic";
 

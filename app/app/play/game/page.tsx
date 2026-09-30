@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/cookieSession";
 import PhaserLoader from "@/components/game/PhaserLoader";
 import type { GameMode } from "@/game/GameConfig";
 import type { Difficulty } from "@/game/shared/protocol";
+
+export const metadata: Metadata = { title: "Match" };
 
 // Match page: mode/difficulty/deck come from the query string, the card back from the user.
 export default async function PlayGamePage({ searchParams }: { searchParams: Promise<{ mode?: string; difficulty?: string; deckId?: string }> }) {

@@ -5,73 +5,72 @@ import { NoticeSection } from "@/components/styles/NoticeSection";
 
 export const english = {
   appName: "ft_transcendence",
-  copyright: "ft_transcendence. All rights reserved.",
   privacyPolicy: "Privacy Policy",
   termsOfService: "Terms of Service",
+};
 
-  lastUpdated: "Last Updated",
-
-  profile: "Profile",
-  friends: "Friends",
-  editProfile: "Edit profile",
-  save: "Save",
-  cancel: "Cancel",
-  back: "Back",
-  addFriend: "Add a friend",
-}
+// Legal pages. Keep them in step with what the app really stores and does: they describe the
+// data model (app/prisma/schema.prisma), the cookies (lib/auth) and the realtime services.
+// TODO(team): replace the contact placeholder with the team's address before any deployment.
+const CONTACT = "[TODO(team): contact e-mail]";
 
 export const enPrivacyContent: NoticeData = {
   title: "Privacy Policy",
-  lastUpdated: "September 2026",
+  lastUpdated: "30 September 2026",
   body: (
     <>
-      <NoticeSection title="1. Data We Collect">
-        <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li><strong>Account data</strong>: email address and password (stored hashed and salted).</li>
-          <li><strong>OAuth data</strong>: if you sign in via 42, we receive your name, email address, and profile picture from that provider.</li>
-          <li><strong>Profile data</strong>: your username and any avatar/profile picture you upload.</li>
-          <li><strong>Gameplay data</strong>: your decks, card collection, and in-game statistics.</li>
-          <li><strong>Chat data</strong>: messages you send to other users through the in-app chat.</li>
-        </ul>
-      </NoticeSection>
-      <NoticeSection title="2. How We Use Your Data">
-        <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li>To create and manage your account.</li>
-          <li>To authenticate you via email/password or OAuth.</li>
-          <li>To generate your in-game hero from your profile picture and username.</li>
-          <li>To display your profile, and friends list.</li>
-          <li>To deliver chat messages between users.</li>
-        </ul>
-      </NoticeSection>
-      <NoticeSection title="3. Data Sharing">
-        <p>We do not sell or share your personal data with third parties, except:</p>
-        <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li>The OAuth provider you choose to authenticate with (42), which processes your login under its own privacy policy.</li>
-          <li>As required by law.</li>
-        </ul>
-      </NoticeSection>
-      <NoticeSection title="4. Data Storage & Security">
-        <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li>Passwords are hashed and salted before storage; we never store plaintext passwords.</li>
-          <li>All data is stored in our application database and is not shared outside the Service.</li>
-          <li>All connections to our backend use HTTPS.</li>
-        </ul>
-      </NoticeSection>
-      <NoticeSection title="5. Data Retention">
+      <NoticeSection title="1. Who we are">
         <p>
-          We retain your account, profile, and gameplay data for as long as your account is active.
-          You may request deletion of your account and associated data by contacting us.
+          ft_transcendence is a collectible card game built as a student project of the 42 curriculum.
+          This policy explains what personal data the game stores, why, and what you can do about it.
         </p>
       </NoticeSection>
-      <NoticeSection title="6. Chat Content">
-        <p>
-          Chat messages are stored to provide chat history within the app and may be visible to
-          the recipient(s) of the conversation.
-        </p>
+      <NoticeSection title="2. Data we collect">
+        <ul className="list-disc pl-5 space-y-1 mb-3">
+          <li><strong>Account</strong>: your username, e-mail address and password. The password is never stored: we keep an Argon2id hash (salted) of it.</li>
+          <li><strong>Sign in with 42</strong>: if you use it, 42 sends us your 42 user id, login and e-mail address. We store the id to recognise you next time; we never receive your 42 password.</li>
+          <li><strong>Profile</strong>: the avatar image you upload (checked to be a PNG, JPEG, WebP or GIF of at most 512 KB), your join date.</li>
+          <li><strong>Game data</strong>: your card collection, decks, unopened packs, win counts per opponent type, Elo rating, unlocked card backs and achievements.</li>
+          <li><strong>Social data</strong>: your friend requests and friendships, and the chat messages you exchange with friends.</li>
+          <li><strong>Presence</strong>: whether you are currently connected or in a match. It is kept in memory (Redis) only while you are connected and is not archived.</li>
+          <li><strong>Technical data</strong>: your IP address is used in memory to limit repeated failed sign-ins; it is not stored in the database.</li>
+        </ul>
       </NoticeSection>
-      <NoticeSection title="7. Contact">
+      <NoticeSection title="3. Why we use it">
+        <ul className="list-disc pl-5 space-y-1 mb-3">
+          <li>To create your account, sign you in and keep you signed in.</li>
+          <li>To run matches, keep your collection and decks, and compute your rating and rewards.</li>
+          <li>To show your public profile (username, avatar, wins, badges, online status) to other players, and the leaderboard.</li>
+          <li>To deliver chat messages and friend requests.</li>
+          <li>To protect accounts against password guessing.</li>
+        </ul>
+      </NoticeSection>
+      <NoticeSection title="4. Cookies">
+        <ul className="list-disc pl-5 space-y-1 mb-3">
+          <li><strong>session</strong>: keeps you signed in for 7 days (HttpOnly, SameSite=Lax). Signing out deletes it.</li>
+          <li><strong>ft_oauth_state</strong>, <strong>ft_oauth_link</strong>: only during a &quot;Sign in with 42&quot; attempt, for at most 5 minutes, to protect it against forgery.</li>
+        </ul>
+        <p>We use no advertising, analytics or tracking cookies.</p>
+      </NoticeSection>
+      <NoticeSection title="5. Who can see it">
+        <ul className="list-disc pl-5 space-y-1 mb-3">
+          <li>Other players see your public profile, badges and online status. Your e-mail address is only shown to you.</li>
+          <li>Chat messages are visible only to you and the friend you write to.</li>
+          <li>We do not sell or share your data. 42 processes your sign-in under its own privacy policy if you choose to use it.</li>
+        </ul>
+      </NoticeSection>
+      <NoticeSection title="6. Security">
+        <ul className="list-disc pl-5 space-y-1 mb-3">
+          <li>Passwords are hashed with Argon2id; sessions are signed tokens that can be revoked.</li>
+          <li>The production deployment is served over HTTPS only, including the game and chat connections.</li>
+          <li>Every input is validated by the server, and each player can only act on their own account, decks and messages.</li>
+        </ul>
+      </NoticeSection>
+      <NoticeSection title="7. Retention and your rights">
         <p>
-          For any questions about this Privacy Policy or your data, contact: [CONTACT EMAIL]
+          Your data is kept while your account exists. You can change your username, e-mail, password and avatar
+          from your profile at any time. To get a copy of your data or have your account and all associated data
+          deleted (collection, decks, friendships, messages, achievements), contact us at {CONTACT}.
         </p>
       </NoticeSection>
     </>
@@ -80,59 +79,50 @@ export const enPrivacyContent: NoticeData = {
 
 export const enTermsContent: NoticeData = {
   title: "Terms of Service",
-  lastUpdated: "September 2026",
+  lastUpdated: "30 September 2026",
   body: (
     <>
-      <NoticeSection title="1. Eligibility & Account">
+      <NoticeSection title="1. The service">
+        <p>
+          ft_transcendence is a free online collectible card game made as a 42 student project. It is provided
+          &quot;as is&quot;, without any guarantee of availability, and your progress may be reset during development.
+        </p>
+      </NoticeSection>
+      <NoticeSection title="2. Your account">
         <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li>You must provide accurate information when creating an account (email and password, or via OAuth).</li>
-          <li>You are responsible for maintaining the confidentiality of your account credentials.</li>
-          <li>You are responsible for all activity that occurs under your account.</li>
+          <li>Provide a valid e-mail address and keep your password to yourself; you are responsible for what is done with your account.</li>
+          <li>One account per person. Usernames must not impersonate someone else or be offensive.</li>
+          <li>If you sign in with 42, the 42 terms also apply to that sign-in.</li>
         </ul>
       </NoticeSection>
-      <NoticeSection title="2. Acceptable Use">
-        <p>You agree not to:</p>
+      <NoticeSection title="3. Fair play">
         <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li>Use the Service for any unlawful purpose.</li>
-          <li>Harass, abuse, or send offensive content to other users via chat.</li>
-          <li>Attempt to cheat, exploit bugs, or interfere with the game&apos;s AI, matchmaking, or other players&apos; sessions.</li>
-          <li>Upload avatars or content that is offensive, infringing, or illegal.</li>
+          <li>Do not cheat: no modified clients, scripted play, or exploitation of bugs to win matches or obtain cards.</li>
+          <li>Leaving a match, or staying disconnected for more than 30 seconds, counts as a forfeit.</li>
+          <li>Do not try to access other players&apos; accounts or disrupt the servers.</li>
         </ul>
       </NoticeSection>
-      <NoticeSection title="3. User Content">
+      <NoticeSection title="4. Behaviour and content">
         <ul className="list-disc pl-5 space-y-1 mb-3">
-          <li>You retain ownership of any avatar or profile picture you upload, but grant us a license to display it within the Service (including generating your in-game hero from it).</li>
-          <li>Chat messages you send remain your responsibility; we are not liable for content sent between users.</li>
+          <li>Be respectful in chat: no harassment, hate speech, spam or illegal content.</li>
+          <li>Upload only avatars you have the right to use and that are not offensive. You keep your rights on them and let us display them to other players.</li>
         </ul>
       </NoticeSection>
-      <NoticeSection title="4. Third-Party Authentication">
+      <NoticeSection title="5. Virtual items">
         <p>
-          If you sign in via 42, your use of that service is governed by its own terms and
-          privacy policy, in addition to ours.
+          Cards, packs, card backs, ratings and achievements have no monetary value, cannot be bought or sold, and
+          may be rebalanced or reset.
         </p>
       </NoticeSection>
-      <NoticeSection title="5. Availability">
+      <NoticeSection title="6. Suspension">
         <p>
-          The Service is provided as an academic/school project and is offered &quot;as is&quot;,
-          without warranty of any kind, including availability, uptime, or fitness for a
-          particular purpose.
+          Accounts breaking these terms may be suspended or deleted. You can ask for your own account to be deleted
+          at any time (see the Privacy Policy).
         </p>
       </NoticeSection>
-      <NoticeSection title="6. Termination">
+      <NoticeSection title="7. Changes and contact">
         <p>
-          We reserve the right to suspend or terminate accounts that violate these Terms,
-          including abusive chat behavior or attempts to exploit the Service.
-        </p>
-      </NoticeSection>
-      <NoticeSection title="7. Changes to These Terms">
-        <p>
-          We may update these Terms from time to time. Continued use of the Service after
-          changes constitutes acceptance of the updated Terms.
-        </p>
-      </NoticeSection>
-      <NoticeSection title="8. Contact">
-        <p>
-          For any questions about these Terms, contact: [CONTACT EMAIL]
+          These terms may change; the date above shows the last update. Questions: {CONTACT}.
         </p>
       </NoticeSection>
     </>

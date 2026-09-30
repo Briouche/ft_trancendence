@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/cookieSession";
 import { ROUTES } from "@/config/routes";
 import ManualBook from "./ManualBook";
+
+export const metadata: Metadata = { title: "How to play" };
 
 export default async function ManualPage() {
   const session = await getSession();

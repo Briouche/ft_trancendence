@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getUserInfo } from '@/lib/user-and-friends/getUserInfo'
 import { ROUTES } from '@/config/routes'
 import ProfileInformation from '@/components/profile/ProfileInformation'
 import { OAUTH_LINK_MESSAGES, oauthMessage } from '@/lib/auth/oauthMessages'
+
+export const metadata: Metadata = { title: 'Profile' }
 
 /** /profile — the signed-in user's own, editable profile (?linked / ?error come from the 42 link flow). */
 export default async function ProfilePage({

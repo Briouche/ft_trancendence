@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth/cookieSession";
 import Header from "@/components/auth-forms/Header";
-import Footer from "@/components/auth-forms/Footer";
 import SignInForm from "@/components/auth-forms/SignInForm";
 import { OAUTH_SIGN_IN_ERRORS, oauthMessage } from "@/lib/auth/oauthMessages";
 
@@ -18,7 +17,6 @@ export default async function HomePage({
     <>
       <Header />
       <SignInForm initialError={initialError} />
-      <Footer />
     </>
   );
 }
