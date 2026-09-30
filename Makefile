@@ -2,7 +2,7 @@ include .env
 
 .PHONY: all dev prod clean fclean ffclean re
 
-all: dev
+all: prod
 
 # docker-compose.yml + docker-compose.override.yml: bind mounts, hot reload
 dev:

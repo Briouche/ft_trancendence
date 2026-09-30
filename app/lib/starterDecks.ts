@@ -22,19 +22,18 @@ const STARTER_DECKS: StarterDeck[] = [
       "Diablotin du piment", "Diablotin du piment", "Critique culinaire", "Critique culinaire",
       "Feed the troops", "Feed the troops", "Hyperactive cousin", "Hyperactive cousin",
       "soulevement de tombes", "une maman aimante", "une maman aimante", "soulevement de tombes",
-      "equal opportunity", "equal opportunity", "Pyroblin", "Pyroblin",
+      "champion de l'arene", "champion de l'arene", "Pyroblin", "Pyroblin",
     ],
   },
   {
     // Control: spells + big late-game creatures.
     name: "Contrôle",
     cards: [
-      "Roi des rats",
-      "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
-      "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportunity",
-      "cannibalisme", "Lecture de textes Anciencs", "Mixeur", "blackhole", "cat pack",
-      "cri du phoenix", "tremblement", "call the kraken", "Bombe H",
-      "Slime Saxophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
+      "Timmy, the planetsucker",
+      "Voxotron exterminateur", "Voxotron exterminateur", "call the kraken", "call the kraken",
+	  "le croupier", "le croupier", "equal opportunity", "le (gros) thon poli", "le (gros) thon poli",
+	  "cannibalisme", "cannibalisme", "bloodsucker", "bloodsucker", "golem endormi", "Sauce tomAAAAAAte",
+	  "Sauce tomAAAAAAte", "Pyroblin", "Jumeaux Goblin", "Opika", "Cavalier furieux"
     ],
   },
   {
