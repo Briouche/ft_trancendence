@@ -2,7 +2,8 @@
 // border, light cream/tan fill) — used for a form/panel's primary action (Save changes, Sign in,
 // Save/Create deck) and for paired confirm/cancel buttons. No sprite frames or press animation
 // here (unlike AssetButton, see AssetButton.tsx) — just Tailwind's active:scale-95.
-// `href` renders it as a Link (Sign in with 42, Create a deck) instead of a <button>.
+// `href` renders it as a Link (Create a deck) instead of a <button>, or as a plain <a> for
+// /api/ route handlers (Sign in with 42).
 
 import Link from 'next/link'
 import { outlinedWhiteTextStyle } from './NotebookUI'
@@ -30,6 +31,16 @@ export default function BoxedButton({
         font-bold transition-transform active:scale-95 disabled:opacity-30
         ${tone === 'white' ? 'text-white' : 'text-ink-text'} ${className}`
     const sharedStyle = tone === 'white' ? outlinedWhiteTextStyle : undefined
+
+    // Route handlers (e.g. /api/auth/42, which redirects to the 42 intra) need a real browser
+    // navigation: a Link would prefetch/fetch them and the cross-origin redirect fails on CORS.
+    if (href?.startsWith('/api/')) {
+        return (
+            <a href={href} className={sharedClassName} style={sharedStyle}>
+                {children}
+            </a>
+        )
+    }
 
     if (href) {
         return (

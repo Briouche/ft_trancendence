@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-const VOLUME = 0.3
+const VOLUME = 0.8
 
 // Looping theme mounted once in the root layout, so it survives client-side navigation.
 // Browsers block audible autoplay until the first user gesture, so we retry on that gesture.
@@ -24,7 +24,10 @@ export default function BackgroundMusic() {
 
         window.addEventListener('pointerdown', start)
         window.addEventListener('keydown', start)
-        start()
+        // Firefox exposes the autoplay policy: skip the doomed first play() there, it logs a warning.
+        const policy = (navigator as Navigator & { getAutoplayPolicy?: (type: 'mediaelement') => string })
+            .getAutoplayPolicy?.('mediaelement')
+        if (policy === undefined || policy === 'allowed') start()
         return removeListeners
     }, [])
 

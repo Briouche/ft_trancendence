@@ -3,6 +3,17 @@ import { Action, GameEngine } from "../gameEngine";
 import { determinize } from "./determinize";
 import { createNode, selectBestChild, expand, simulate, backpropagate } from "./tree";
 
+// The search is pure synchronous CPU work on the thread that also serves every other match's
+// sockets, and `await determinize(...)` alone never yields (it resolves as a microtask). Hand the
+// event loop back roughly this often so a long search (difficile: 8 worlds x 2000 playouts) only
+// slows other games down instead of freezing them.
+const YIELD_EVERY_MS = 10;
+
+function yieldToEventLoop(): Promise<void>
+{
+  return new Promise(resolve => setImmediate(resolve));
+}
+
 // Best action for the current player: one MCTS tree per sampled opponent hand ("world"),
 // the action with the best average win rate across worlds wins.
 export async function getBestAction(
@@ -13,11 +24,17 @@ export async function getBestAction(
 {
   const currentPlayer: 0 | 1 = engine.currentTurn;
   const scores = new Map<string, { action: Action; total: number; count: number }>();
+  let lastYield = Date.now();
 
   for (let w = 0; w < worlds; w++) {
     const root = createNode( await determinize(engine, currentPlayer), null, null);
 
     for (let i = 0; i < simulations; i++) {
+      if (Date.now() - lastYield >= YIELD_EVERY_MS) {
+        await yieldToEventLoop();
+        lastYield = Date.now();
+      }
+
       let node = root;
       while (!node.state.isTerminal() && node.untriedActions.length === 0 && node.children.length > 0) {
         node = selectBestChild(node);

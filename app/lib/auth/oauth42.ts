@@ -69,11 +69,23 @@ export async function fetchFortyTwoProfile(code: string): Promise<FortyTwoProfil
     return fetchProfile(accessToken);
 }
 
-// Account linked to this 42 login, created with a unique username if it doesn't exist yet;
-// an existing local account with the same email gets linked instead.
+export class FortyTwoEmailTakenError extends Error {
+    constructor() {
+        super("A local account already uses this 42 account's email");
+    }
+}
+
+async function emailTaken(email: string): Promise<boolean> {
+    return (await prisma.user.findUnique({ where: { email }, select: { id: true } })) !== null;
+}
+
+// Account linked to this 42 login, created with a unique username if it doesn't exist yet.
 export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
     const existing = await prisma.user.findUnique({ where: { fortyTwoId: profile.id } });
     if (existing) return existing;
+
+    const email = profile.email.toLocaleLowerCase();
+    if (await emailTaken(email)) throw new FortyTwoEmailTakenError();
 
     const baseUsername = profile.login.toLocaleLowerCase().slice(0, USERNAME_MAX_LENGTH);
     let username = baseUsername;
@@ -87,7 +99,7 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
         return await prisma.$transaction(async (tx) => {
             const created = await tx.user.create({
             data: {
-                email:      profile.email.toLocaleLowerCase(),
+                email,
                 username,
                 fortyTwoId: profile.id,
             },
@@ -96,11 +108,12 @@ export async function findOrCreateUserFromFortyTwo(profile: FortyTwoProfile) {
             return created;
         });
     } catch (err) {
+        // Lost a race since the checks above: a concurrent callback for the same 42 login created
+        // the account first (sign in to it), or someone registered this email in between.
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-            return prisma.user.update({
-                where: { email: profile.email.toLocaleLowerCase() },
-                data:  { fortyTwoId: profile.id },
-            });
+            const raced = await prisma.user.findUnique({ where: { fortyTwoId: profile.id } });
+            if (raced) return raced;
+            if (await emailTaken(email)) throw new FortyTwoEmailTakenError();
         }
         throw err;
     }

@@ -297,32 +297,39 @@ export async function recordWin(userId: number, category: WinCategory): Promise<
     await unlockCardBackIfNeeded(userId, WIN_CATEGORY_CARD_BACK[category])
 }
 
+// A single conditional append rather than read-then-set: with the array read first and written
+// back whole, a concurrent unlock (another match ending, a pack completing the collection) that
+// landed in between would be overwritten and lost.
 async function unlockCardBackIfNeeded(userId: number, index: number): Promise<void>
 {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { unlockedCardBacks: true } })
-    if (!user || user.unlockedCardBacks.includes(index))
-        return
-    await prisma.user.update({ where: { id: userId }, data: { unlockedCardBacks: { set: [...user.unlockedCardBacks, index] } } })
+    await prisma.$executeRaw`
+        UPDATE "User" SET "unlockedCardBacks" = array_append("unlockedCardBacks", ${index}::int)
+        WHERE "id" = ${userId} AND NOT (${index}::int = ANY("unlockedCardBacks"))
+    `
 }
 
 // Standard Elo update, K = 32. PvP only.
 const ELO_K_FACTOR = 32
 
+// Both ratings are read under a row lock so another result for either player can't be computed
+// from the same stale ratings in between (locked in id order, so two such updates can't deadlock).
 export async function recordEloUpdate(winnerId: number, loserId: number): Promise<void>
 {
-    const [winner, loser] = await Promise.all([
-        prisma.user.findUnique({ where: { id: winnerId }, select: { elo: true } }),
-        prisma.user.findUnique({ where: { id: loserId }, select: { elo: true } }),
-    ])
-    if (!winner || !loser)
-        return
+    await prisma.$transaction(async (tx) =>
+    {
+        const rows = await tx.$queryRaw<{ id: number; elo: number }[]>`
+            SELECT "id", "elo" FROM "User" WHERE "id" IN (${winnerId}, ${loserId}) ORDER BY "id" FOR UPDATE
+        `
+        const winner = rows.find(r => r.id === winnerId)
+        const loser = rows.find(r => r.id === loserId)
+        if (!winner || !loser)
+            return
 
-    const expectedWinner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
-    const winnerDelta = Math.round(ELO_K_FACTOR * (1 - expectedWinner))
-    const loserDelta = Math.round(ELO_K_FACTOR * (0 - (1 - expectedWinner)))
+        const expectedWinner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
+        const winnerDelta = Math.round(ELO_K_FACTOR * (1 - expectedWinner))
+        const loserDelta = Math.round(ELO_K_FACTOR * (0 - (1 - expectedWinner)))
 
-    await prisma.$transaction([
-        prisma.user.update({ where: { id: winnerId }, data: { elo: { increment: winnerDelta } } }),
-        prisma.user.update({ where: { id: loserId }, data: { elo: { increment: loserDelta } } }),
-    ])
+        await tx.user.update({ where: { id: winnerId }, data: { elo: winner.elo + winnerDelta } })
+        await tx.user.update({ where: { id: loserId }, data: { elo: loser.elo + loserDelta } })
+    })
 }

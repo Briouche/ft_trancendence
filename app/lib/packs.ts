@@ -113,12 +113,18 @@ export async function openPack(prisma: PrismaClient, userId: number) {
       data: {
         unopenedPacks: { decrement: 1 },
         pityCounter: gotLegendary ? 0 : { increment: 1 },
-        ...(newlyUnlockedBacks.length > 0 && {
-          unlockedCardBacks: { set: [...user.unlockedCardBacks, ...newlyUnlockedBacks] },
-        }),
       },
       select: { unopenedPacks: true, pityCounter: true },
     });
+
+    // Appended in place rather than writing back the array read above, which would drop a card
+    // back that a match ending meanwhile unlocked (game_engine's unlockCardBackIfNeeded).
+    if (justCompletedCollection) {
+      await tx.$executeRaw`
+        UPDATE "User" SET "unlockedCardBacks" = array_append("unlockedCardBacks", ${fullCollectionIndex}::int)
+        WHERE "id" = ${userId} AND NOT (${fullCollectionIndex}::int = ANY("unlockedCardBacks"))
+      `;
+    }
 
     // One bulk upsert instead of one sequential round trip per distinct drawn card (up to
     // CARDS_PER_PACK) — keeps this transaction's row locks held for as little time as possible.

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/cookieSession";
 import { parseDeckBody } from "@/lib/decks/parseDeckBody";
+import { parseDeckId } from "@/lib/decks/requirements";
 
 // Update or delete one of the current user's decks; a deck they don't own reads as 404.
 
@@ -12,8 +13,8 @@ export async function PUT(
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const deckId = Number((await params).id);
-  if (!Number.isInteger(deckId)) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const deckId = parseDeckId((await params).id);
+  if (deckId === null) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const existing = await prisma.deck.findFirst({ where: { id: deckId, userId: session.userId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -41,13 +42,12 @@ export async function DELETE(
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = await params;
+  const deckId = parseDeckId((await params).id);
+  if (deckId === null) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const existing = await prisma.deck.findFirst({ where: { id: Number(id), userId: session.userId } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  await prisma.deckCard.deleteMany({ where: { deckId: Number(id) } });
-  await prisma.deck.delete({ where: { id: Number(id) } });
+  // Ownership check and delete in one statement; its DeckCard rows go with it (onDelete: Cascade).
+  const { count } = await prisma.deck.deleteMany({ where: { id: deckId, userId: session.userId } });
+  if (count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json({ ok: true });
 }
