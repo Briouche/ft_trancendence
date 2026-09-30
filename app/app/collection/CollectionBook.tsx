@@ -206,10 +206,10 @@ export default function CollectionBook({ cards, initialCardBack, unlockedCardBac
                         style={{ transform: 'translateX(calc(-100% + 54px))' }}
                     >
                         <SideTab active={tab === 'cards'} onClick={() => { setTab('cards'); setZoomedCard(null) }}>
-                            <Image src="/textures/collection/icon-cards.webp" alt="Cards" width={28} height={28} unoptimized style={{ imageRendering: 'pixelated' }} />
+                            <Image src="/textures/collection/icon-cards.webp" alt="Cards" width={28} height={36} unoptimized style={{ imageRendering: 'pixelated' }} />
                         </SideTab>
                         <SideTab active={tab === 'backs'} onClick={() => { setTab('backs'); setZoomedCard(null) }}>
-                            <Image src="/textures/collection/icon-backs.webp" alt="Card backs" width={32} height={32} unoptimized style={{ imageRendering: 'pixelated' }} />
+                            <Image src="/textures/collection/icon-backs.webp" alt="Card backs" width={32} height={36} unoptimized style={{ imageRendering: 'pixelated' }} />
                         </SideTab>
                     </div>
 

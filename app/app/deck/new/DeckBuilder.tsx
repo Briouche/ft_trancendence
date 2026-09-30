@@ -13,13 +13,14 @@ import {
 import { HomeButton } from '@/components/notebook/AssetButton'
 import { TitleBanner } from '@/components/notebook/PageLayout'
 import BoxedButton from '@/components/notebook/BoxedButton'
+import {
+    DECK_NAME_MAX_LENGTH, MAX_LEGENDARY_PER_DECK as MAX_LEGENDARY, MAX_NON_LEGENDARY_PER_DECK as MAX_COMMONS,
+} from '@/lib/decks/requirements'
 
 type Card = CardFaceData & { qty: number }
 type DeckEntry = { card: Card; qty: number }
 type SavedDeck = { id: number; name: string; cards: { qty: number; card: { rarity: string; legendId: string } }[] }
 
-const MAX_LEGENDARY = 1
-const MAX_COMMONS = 20
 const COST_FILTERS = [1, 2, 3, 4, 5, 6, 7]
 
 type Props = {
@@ -162,7 +163,8 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
             setMessage('Deck saved!')
             if (!deckId) router.push(`/deck/${saved.id}`)
         } else {
-            setMessage('Error while saving')
+            const body = await res.json().catch(() => null)
+            setMessage(body?.error ?? 'Error while saving')
         }
     }
 
@@ -305,6 +307,7 @@ export default function DeckBuilder({ cards, decks, totalCardCount, deckId, init
                                 type="text"
                                 placeholder="Deck name…"
                                 value={deckName}
+                                maxLength={DECK_NAME_MAX_LENGTH}
                                 onChange={e => setDeckName(e.target.value)}
                                 className="travelbook-slot mb-3 w-full bg-transparent px-3 py-2 text-center font-serif text-base
                                     text-ink-text placeholder:text-ink-muted/60 outline-none"

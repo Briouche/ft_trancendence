@@ -5,8 +5,8 @@ services:
       args:
         DOMAIN_NAME: ${DOMAIN_NAME}
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
       - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
