@@ -1,5 +1,5 @@
 import "server-only";
-
+import { giveStarterDeck } from "@/lib/starterDecks";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { USERNAME_MAX_LENGTH } from "@/lib/auth/requirements";
@@ -11,7 +11,7 @@ const TOKEN_URL = "https://api.intra.42.fr/oauth/token";
 const ME_URL = "https://api.intra.42.fr/v2/me";
 
 interface FortyTwoProfile {
-    id:    number;
+    id: number;
     login: string;
     email: string;
 }
@@ -30,10 +30,10 @@ export function getSiteOrigin(): string {
 /** URL of 42's authorization page for this app, carrying the anti-CSRF `state`. */
 export function buildAuthorizeUrl(state: string): string {
     const params = new URLSearchParams({
-        client_id:     getEnv("FT_CLIENT_ID"),
-        redirect_uri:  getEnv("FT_REDIRECT_URI"),
+        client_id: getEnv("FT_CLIENT_ID"),
+        redirect_uri: getEnv("FT_REDIRECT_URI"),
         response_type: "code",
-        scope:         "public",
+        scope: "public",
         state,
     });
     return `${AUTHORIZE_URL}?${params.toString()}`;
@@ -44,15 +44,15 @@ const API_TIMEOUT_MS = 10_000;
 
 async function exchangeCodeForToken(code: string): Promise<string> {
     const res = await fetch(TOKEN_URL, {
-        method:  "POST",
-        signal:  AbortSignal.timeout(API_TIMEOUT_MS),
+        method: "POST",
+        signal: AbortSignal.timeout(API_TIMEOUT_MS),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            grant_type:    "authorization_code",
-            client_id:     getEnv("FT_CLIENT_ID"),
+            grant_type: "authorization_code",
+            client_id: getEnv("FT_CLIENT_ID"),
             client_secret: getEnv("FT_CLIENT_SECRET"),
             code,
-            redirect_uri:  getEnv("FT_REDIRECT_URI"),
+            redirect_uri: getEnv("FT_REDIRECT_URI"),
         }),
     });
     if (!res.ok) throw new Error(`42 token exchange failed: ${res.status}`);
@@ -64,7 +64,7 @@ async function exchangeCodeForToken(code: string): Promise<string> {
 async function fetchProfile(accessToken: string): Promise<FortyTwoProfile> {
     const res = await fetch(ME_URL, {
         headers: { Authorization: `Bearer ${accessToken}` },
-        signal:  AbortSignal.timeout(API_TIMEOUT_MS),
+        signal: AbortSignal.timeout(API_TIMEOUT_MS),
     });
     if (!res.ok) throw new Error(`42 /v2/me failed: ${res.status}`);
     const data = await res.json();

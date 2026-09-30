@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { hash, verify } from "@node-rs/argon2";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-
+import { giveStarterDeck } from "@/lib/starterDecks";
 import { createSession, deleteSession } from "@/lib/auth/cookieSession";
 import { ROUTES } from "@/config/routes";
 import { ARGON2_OPTIONS, DUMMY_HASH } from "@/lib/auth/requirements";

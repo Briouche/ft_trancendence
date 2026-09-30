@@ -120,9 +120,9 @@ Other significant libraries: `jose` to sign and verify the session JWT, `@node-r
 
 For styling we use React components with Tailwind CSS 4. The 3D graphics use three.js through React Three Fiber (`@react-three/fiber`) and its helpers `@react-three/drei` (`app/app/HubScene.tsx`, `app/components/home-library/`).
 
-The game engine and the AI opponent are both written in TypeScript. The game engine (`game_engine/`) is a server with no rendering: it runs the game rules and the AI, and talks to the browser over Socket.IO. The game board is drawn in the browser with Phaser (`app/game/`: scenes, objects, and `EventManager.ts` for the socket connection) ...
+The game engine and the AI opponent are both written in TypeScript. The game engine (`game_engine/`) is a server with no rendering: it runs the game rules and the AI, holds all the deterministic logic and numbers and talks to the browser over Socket.IO. The game board is drawn in the browser with Phaser (`app/game/`: scenes, objects, and `EventManager.ts` for the connection between the game_engine and the phaser )
 
-For the AI opponent, we use Monte Carlo Tree Search (MCTS) (`game_engine/srcs/ai/mcts.ts`). Since the AI can't see the opponent's hand, it builds several guessed versions of it (`game_engine/srcs/ai/determinize.ts`), runs a search tree on each one, and plays the move with the best average result. The number of simulations and guessed hands depends on the difficulty (`DIFFICULTY_PRESETS` in `game_engine/srcs/ai/types.ts`) ...
+For the AI opponent, we use Monte Carlo Tree Search (MCTS) (`game_engine/srcs/ai/mcts.ts`). This algorithm is based on doing simulations of the game in the background based on the current game state and returns the best action. Since the AI can't see the opponent's hand, it builds several guessed versions of it (`game_engine/srcs/ai/determinize.ts`), takes a copy of the game_engine so it has acces to all the cards on the board the cards in his hand and the current hp of both sides. Then, it will run a tree search (`game_engine/srcs/ai/tree.ts`) with each node being a move and each time it finishes a simulation, it walks back up the tree by updating each node with wether it brought a win or not. Finally, returns the 'best action' based on which move across all the different simulations and guessed hands got the better score. The number of simulations and guessed hands depends on the difficulty (`DIFFICULTY_PRESETS` in `game_engine/srcs/ai/types.ts`).
 
 ---
 frontend and backend technologies and frameworks used. The database system chosen and why. Any other significant technologies or libraries and justification for major technical choices
@@ -480,4 +480,12 @@ list of all chosen modules with point calculation and justification for each mod
 ## Individual Contributions
 ---
 detailed breakdown of what each team member contributed, with specific features, modules, or components implemented by each person, and any challenges faced and how they were overcome
+
+- brcoppie: The main person behind the design of the game_engine and the game's rendering on the app using phaser. Worked on the protocol that connects the engine and the clients with sockets.io. 
+
+- fkrakow: Implemented the whole docker system, the dabase and added the friend list feature with a chat system.
+
+- lecartuy: Worked on the game_engine in parallel to brcoppie by implementing the ai opponent for the game. Created the 3 differents diffulty settings for the ai and mode selection. The biggest chaellenge faced was to keep the ai implentation updated with the changes made to the game_engine as this could mess up with the ai behavior in game. This was prevented by communicating frequently with brcoppie when making changes that altered the game_engine and its rules.
+
+- stdevis: He was the one tasked with making the frontend of our project. He made sure our app had a consistent theme all around, that everything was responsive and user friendly. 
 

@@ -1,5 +1,6 @@
 // AI decks for solo mode, by card name (a repeated name = two copies). Resolved by
 // makeDeckFromNames in cardLoader.ts without any ownership check.
+// Copied in app/lib/starterDecks.ts (starter deck of new accounts): keep the two in sync.
 
 // Aggro: low curve.
 const AGGRO_DECK: string[] = [
