@@ -4,12 +4,14 @@ services:
       context: ./proxy
       args:
         DOMAIN_NAME: ${DOMAIN_NAME}
+    # Host ports (override in .env); nginx itself still listens on 80/443 inside the container.
     ports:
-      - "80:80"
-      - "443:443"
+      - "${HTTP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
-      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+      - HTTPS_PORT=${HTTPS_PORT:-8443}
+      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME|HTTPS_PORT
     volumes:
       - next_static:/var/www/html/_next/static:ro
       - next_public:/var/www/html/public:ro

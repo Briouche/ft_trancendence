@@ -1,5 +1,6 @@
 // AI decks for solo mode, by card name (a repeated name = two copies). Resolved by
 // makeDeckFromNames in cardLoader.ts without any ownership check.
+// Copied in app/lib/starterDecks.ts (starter deck of new accounts): keep the two in sync.
 
 // Aggro: low curve.
 const AGGRO_DECK: string[] = [
@@ -15,10 +16,10 @@ const AGGRO_DECK: string[] = [
 const CONTROL_DECK: string[] = [
     "Roi des rats",
     "Investment Goblin", "TIG", "Arcane Missile", "Entartrage", "soulevement de tombes",
-    "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportiny",
+    "une haleine vreument...", "Sauce TomAAAAAAte", "Feed the troops", "equal opportunity",
     "cannibalisme", "Lecture de textes Anciencs", "Mixeur", "blackhole", "cat pack",
     "cri du phoenix", "tremblement", "call the kraken", "Bombe H",
-    "Slime orthophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
+    "Slime Saxophoniste", "champion de l'arene", "Voxotron exterminateur", "Force de la nature",
 ]
 
 // Archimede synergy: the 6 "archi" cards + Archimede.
