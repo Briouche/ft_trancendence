@@ -21,10 +21,12 @@ const BODY_CLIP = 'polygon(0% 30%, 100% 66%, 100% 100%, 0% 100%)'
 
 // Pack opening flow: choose one of 3 designs → tear animation while /api/packs/open runs →
 // cards revealed one by one in a circle.
-export default function PackOpener({ initialPacks, initialPityCounter, cardBack }: {
+export default function PackOpener({ initialPacks, initialPityCounter, cardBack, devTools = false }: {
     initialPacks:        number
     initialPityCounter:  number
     cardBack:            number
+    /** Show the development-only test tools (never in production, see lib/devTools.ts). */
+    devTools?: boolean
 }) {
     const [packsLeft, setPacksLeft]             = useState(initialPacks)
     const [pityCounter, setPityCounter]         = useState(initialPityCounter)
@@ -165,8 +167,8 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                             {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
                         </span>
                     </p>
-                    {/* Test tools, until packs are earned through gameplay. */}
-                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    {/* Development-only test tools; their routes answer 404 in production. */}
+                    {devTools && <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                         <button
                             onClick={grantFreePack}
                             disabled={granting}
@@ -191,7 +193,7 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                         >
                             🔓 {unlockingAll ? 'Unlocking...' : 'Unlock all cards (temporary)'}
                         </button>
-                    </div>
+                    </div>}
 
                     {phase === 'choosing' && (
                         <p className="mt-4 font-serif text-xs italic text-white/70" style={outlinedWhiteTextStyle}>
