@@ -587,7 +587,8 @@ function Hotspot3D({ item, layout, hovered, onHoverChange, onArrive }: {
             {layout.variant === 'door' && <CellarDoor />}
             {layout.variant === 'tuto' && <TutoBoard />}
 
-            <Html position={[0, LABEL_Y, 0]} center className="pointer-events-none">
+            {/* zIndexRange: drei's default (up to 16777271) would put labels above the z-50 title and account menu. */}
+            <Html position={[0, LABEL_Y, 0]} center zIndexRange={[40, 0]} className="pointer-events-none">
                 <div className="text-center whitespace-nowrap">
                     <div
                         className="font-engraved tracking-wide text-4xl [text-shadow:0_2px_10px_rgba(0,0,0,0.95),0_0_18px_rgba(0,0,0,0.6)]"

@@ -17,8 +17,8 @@ const CONTROL_DECK: string[] = [
     "Timmy, the planetsucker",
       "Voxotron exterminateur", "Voxotron exterminateur", "call the kraken", "call the kraken",
 	  "le croupier", "le croupier", "equal opportunity", "le (gros) thon poli", "le (gros) thon poli",
-	  "cannibalisme", "cannibalisme", "bloodsucker", "bloodsucker", "golem endormi", "Sauce tomAAAAAAte",
-	  "Sauce tomAAAAAAte", "Pyroblin", "Jumeaux Goblin", "Opika", "Cavalier furieux"
+	  "cannibalisme", "cannibalisme", "bloodsucker", "bloodsucker", "golem endormi", "Sauce TomAAAAAAte",
+	  "Sauce TomAAAAAAte", "Pyroblin", "Jumeaux Goblin", "Opika", "Cavalier furieux"
 ]
 
 // Archimede synergy: the 6 "archi" cards + Archimede.

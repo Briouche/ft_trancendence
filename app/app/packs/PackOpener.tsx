@@ -37,9 +37,6 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
     const [zoomedIndex, setZoomedIndex]         = useState<number | null>(null)
     const [unlockedCardBacks, setUnlockedCardBacks] = useState<number[]>([])
     const [error, setError]                     = useState('')
-    const [granting, setGranting]               = useState(false)
-    const [clearing, setClearing]               = useState(false)
-    const [unlockingAll, setUnlockingAll]       = useState(false)
     const router                                = useRouter()
 
     // Random designs are rolled after mount to keep server and client renders identical.
@@ -122,29 +119,6 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
         setUnlockedCardBacks([])
     }
 
-    async function grantFreePack() {
-        setGranting(true)
-        const res = await fetch('/api/packs/grant', { method: 'POST' })
-        if (res.ok) {
-            const data: { unopenedPacks: number } = await res.json()
-            setPacksLeft(data.unopenedPacks)
-        }
-        setGranting(false)
-    }
-
-    async function clearCollection() {
-        setClearing(true)
-        await fetch('/api/collection/clear', { method: 'POST' })
-        setClearing(false)
-    }
-
-    async function unlockAllCards() {
-        setUnlockingAll(true)
-        await fetch('/api/collection/unlock-all', { method: 'POST' })
-        setUnlockingAll(false)
-        router.refresh()
-    }
-
     const allRevealed         = cards.length > 0 && revealedIndices.size === cards.length
     const packsUntilLegendary = 5 - pityCounter
 
@@ -165,34 +139,6 @@ export default function PackOpener({ initialPacks, initialPityCounter, cardBack 
                             {packsUntilLegendary} pack{packsUntilLegendary !== 1 ? 's' : ''} until guaranteed legendary
                         </span>
                     </p>
-                    {/* Test tools, until packs are earned through gameplay. */}
-                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                        <button
-                            onClick={grantFreePack}
-                            disabled={granting}
-                            className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
-                                text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
-                        >
-                            ✦ {granting ? 'Adding...' : 'Get a free pack (temporary)'}
-                        </button>
-                        <button
-                            onClick={clearCollection}
-                            disabled={clearing}
-                            className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
-                                text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
-                        >
-                            🗑 {clearing ? 'Clearing...' : 'Clear collection (temporary)'}
-                        </button>
-                        <button
-                            onClick={unlockAllCards}
-                            disabled={unlockingAll}
-                            className="rounded-full border border-leather-700 bg-ink-900 px-3 py-1.5 font-serif text-xs
-                                text-parchment-300/70 transition-colors hover:bg-ink-800 disabled:opacity-40"
-                        >
-                            🔓 {unlockingAll ? 'Unlocking...' : 'Unlock all cards (temporary)'}
-                        </button>
-                    </div>
-
                     {phase === 'choosing' && (
                         <p className="mt-4 font-serif text-xs italic text-white/70" style={outlinedWhiteTextStyle}>
                             {packsLeft > 0 ? 'Choose a pack to open it' : "No packs available — you'll still see what's on offer"}
