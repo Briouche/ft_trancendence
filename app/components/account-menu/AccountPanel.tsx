@@ -1,3 +1,4 @@
+import { useTransition } from 'react'
 import Link from 'next/link'
 import { logoutUser } from '@/lib/auth/authActions'
 import { AssetButton } from '@/components/notebook/AssetButton'
@@ -16,6 +17,10 @@ export default function AccountPanel({ username, cardCount, elo, cardBacks, onCl
     cardBacks: CardBacksSummary
     onClose:   () => void
 }) {
+    // Inside a transition so Next's router handles the NEXT_REDIRECT that logoutUser's redirect()
+    // rejects the action with; called bare, it surfaced as an uncaught promise error.
+    const [isLoggingOut, startLogout] = useTransition()
+
     return (
         <div className="book-panel absolute right-0 mt-2 w-64 p-3" onMouseLeave={onClose}>
             <p className="font-display text-lg font-bold text-ink-text truncate">{username}</p>
@@ -62,7 +67,7 @@ export default function AccountPanel({ username, cardCount, elo, cardBacks, onCl
 
             <div className="my-3 h-px bg-ink-muted/30" />
 
-            <AssetButton onClick={() => logoutUser()} variant="square" className="h-10 w-full">
+            <AssetButton onClick={() => startLogout(() => logoutUser())} disabled={isLoggingOut} variant="square" className="h-10 w-full">
                 Log out
             </AssetButton>
         </div>
