@@ -14,6 +14,13 @@ import AccountMenu, { type WinsBreakdown, type CardBacksSummary } from '../compo
 // The hub: a 3D library hall (three-fiber) ringed by bookshelves, with one clickable prop per
 // menu destination (armchair, card table, cellar door, librarian, tuto board).
 
+// Unmounting the Canvas (logout, entering a match) makes three-fiber force-lose the WebGL context
+// on purpose to free the GPU, and three then logs "Context Lost." for that normal teardown.
+THREE.setConsoleFunction((type, message, ...params) => {
+    if (message === 'THREE.WebGLRenderer: Context Lost.') return
+    console[type](message, ...params)
+})
+
 // Bookshelf ring geometry (degrees around the camera) and prop placement.
 const RING_RADIUS = 5.6
 const GAME_DOOR_ANGLE = 0
