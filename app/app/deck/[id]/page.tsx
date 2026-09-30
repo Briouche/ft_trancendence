@@ -4,21 +4,26 @@ import prisma from "@/lib/prisma";
 import { getSession } from '@/lib/auth/cookieSession'
 import { ROUTES } from '@/config/routes'
 import DeckBuilder from "../new/DeckBuilder";
+import { parseDeckId } from '@/lib/decks'
 
 export const metadata: Metadata = { title: 'Edit deck' };
 
+/** /deck/[id] — edits one of the user's decks (another user's deck reads as 404). */
 export default async function EditDeckPage({
     params,
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const { id } = await params;
     const session = await getSession()
     if (!session) redirect(ROUTES.home)
 
+    // Not a valid id ("abc", "-1", too large for the database) → 404, like someone else's deck.
+    const deckId = parseDeckId((await params).id)
+    if (deckId === null) notFound()
+
     const [deck, owned, decks, totalCopies] = await Promise.all([
         prisma.deck.findUnique({
-            where:   { id: Number(id) },
+            where:   { id: deckId },
             include: { cards: { include: { card: true } } }
         }),
         prisma.userCard.findMany({

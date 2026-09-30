@@ -61,8 +61,14 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
-/** Positive integer id, from a number or a route/query string ("12"). */
-export const idSchema = z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER);
+/** Largest value of a PostgreSQL `integer` column (every id in the schema is one). */
+export const MAX_DB_ID = 2_147_483_647;
+
+/**
+ * Positive integer id, from a number or a route/query string ("12"). Capped at MAX_DB_ID: a larger
+ * value would make Prisma throw "value out of range" instead of simply finding nothing.
+ */
+export const idSchema = z.coerce.number().int().positive().max(MAX_DB_ID);
 
 export const DECK_NAME_MAX_LENGTH = 40;
 

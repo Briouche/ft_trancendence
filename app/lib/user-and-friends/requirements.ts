@@ -16,6 +16,7 @@ export const FRIEND_ROW_SELECT = { id: true, username: true, status: true } as c
 
 // Server action arguments come straight from the client and are only typed at compile time —
 // ids must be re-checked at runtime before they reach Prisma.
+// Capped at the PostgreSQL `integer` maximum, like idSchema in lib/validation.ts.
 export function isValidId(value: unknown): value is number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+  return typeof value === "number" && Number.isInteger(value) && value > 0 && value <= 2_147_483_647;
 }

@@ -4,13 +4,15 @@ import { getUserInfo, getUserProfileById } from '@/lib/user-and-friends/getUserI
 import { getMessages } from '@/lib/user-and-friends/messages'
 import { ROUTES } from '@/config/routes'
 import ChatWindow from '@/components/chat/ChatWindow'
+import { idSchema } from '@/lib/validation'
 
 export const metadata: Metadata = { title: 'Chat' }
 
+/** /chat/[id] — conversation with a friend (anything else reads as 404). */
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params
-    const otherId = Number(id)
-    if (!Number.isInteger(otherId)) notFound()
+    const parsed = idSchema.safeParse((await params).id)
+    if (!parsed.success) notFound()
+    const otherId = parsed.data
 
     const currentUser = await getUserInfo()
     if (!currentUser) redirect(ROUTES.home)

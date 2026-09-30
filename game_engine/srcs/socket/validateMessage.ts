@@ -7,7 +7,8 @@ import { DIFFICULTY_PRESETS } from "../ai/types";
 
 const isId = (v: unknown): v is string => typeof v === "string" && v.length > 0 && v.length <= 128;
 const isIndex = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 100;
-const isDeckId = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) > 0;
+// Capped at the PostgreSQL `integer` maximum (Deck.id).
+const isDeckId = (v: unknown): v is number => Number.isInteger(v) && (v as number) > 0 && (v as number) <= 2_147_483_647;
 
 /** The message if it is a well-formed ClientMessage, otherwise null. */
 export function parseClientMessage(raw: unknown): ClientMessage | null
