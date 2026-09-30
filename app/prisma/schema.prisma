@@ -34,7 +34,8 @@ model User {
   createdAt     DateTime   @default(now())
   decks         Deck[]
   cards         UserCard[]
-  unopenedPacks Int        @default(0)
+  // Starter kit: a new account opens 5 packs to build its first deck.
+  unopenedPacks Int        @default(5)
   pityCounter   Int        @default(0)
   // Win counters per opponent type (GameSession.recordResult).
   winsVsAiEasy   Int @default(0)
