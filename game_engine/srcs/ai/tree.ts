@@ -20,8 +20,8 @@ export interface MCTSNode {
   ownerIndex:     0 | 1;
 }
 
-// Plays `action` on a clone; the real match is never touched.
-function applyAction(engine: GameEngine, action: Action): GameEngine {
+/** Plays `action` on a clone and returns it; the real match is never touched. */
+export function applyAction(engine: GameEngine, action: Action): GameEngine {
   const clone = engine.clone();
 
   switch (action.type) {

@@ -297,32 +297,58 @@ export async function recordWin(userId: number, category: WinCategory): Promise<
     await unlockCardBackIfNeeded(userId, WIN_CATEGORY_CARD_BACK[category])
 }
 
+// One conditional update, so two matches ending at the same time can't both read the old list
+// and overwrite each other's unlock (a read-then-write would).
 async function unlockCardBackIfNeeded(userId: number, index: number): Promise<void>
 {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { unlockedCardBacks: true } })
-    if (!user || user.unlockedCardBacks.includes(index))
-        return
-    await prisma.user.update({ where: { id: userId }, data: { unlockedCardBacks: { set: [...user.unlockedCardBacks, index] } } })
+    await prisma.user.updateMany({
+        where: { id: userId, NOT: { unlockedCardBacks: { has: index } } },
+        data: { unlockedCardBacks: { push: index } },
+    })
 }
 
 // Standard Elo update, K = 32. PvP only.
 const ELO_K_FACTOR = 32
 
+/**
+ * Applies a PvP result to both Elo ratings. Both ratings are read and written in one Serializable
+ * transaction: if either player finishes another match at the same moment, Postgres aborts one of
+ * the two transactions (P2034) and it is replayed on fresh ratings instead of writing an update
+ * computed from stale ones.
+ */
 export async function recordEloUpdate(winnerId: number, loserId: number): Promise<void>
 {
-    const [winner, loser] = await Promise.all([
-        prisma.user.findUnique({ where: { id: winnerId }, select: { elo: true } }),
-        prisma.user.findUnique({ where: { id: loserId }, select: { elo: true } }),
-    ])
-    if (!winner || !loser)
-        return
+    for (let attempt = 1; ; attempt++)
+    {
+        try
+        {
+            await prisma.$transaction(async (tx) =>
+            {
+                const [winner, loser] = await Promise.all([
+                    tx.user.findUnique({ where: { id: winnerId }, select: { elo: true } }),
+                    tx.user.findUnique({ where: { id: loserId }, select: { elo: true } }),
+                ])
+                if (!winner || !loser)
+                    return
+                const { winnerDelta, loserDelta } = eloDeltas(winner.elo, loser.elo)
+                await tx.user.update({ where: { id: winnerId }, data: { elo: winner.elo + winnerDelta } })
+                await tx.user.update({ where: { id: loserId }, data: { elo: loser.elo + loserDelta } })
+            }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+            return
+        }
+        catch (err)
+        {
+            const conflict = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2034"
+            if (!conflict || attempt >= 3)
+                throw err
+        }
+    }
+}
 
-    const expectedWinner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
+/** Standard Elo deltas for a decisive game (K = 32): the upset of a stronger player pays more. */
+export function eloDeltas(winnerElo: number, loserElo: number): { winnerDelta: number, loserDelta: number }
+{
+    const expectedWinner = 1 / (1 + 10 ** ((loserElo - winnerElo) / 400))
     const winnerDelta = Math.round(ELO_K_FACTOR * (1 - expectedWinner))
-    const loserDelta = Math.round(ELO_K_FACTOR * (0 - (1 - expectedWinner)))
-
-    await prisma.$transaction([
-        prisma.user.update({ where: { id: winnerId }, data: { elo: { increment: winnerDelta } } }),
-        prisma.user.update({ where: { id: loserId }, data: { elo: { increment: loserDelta } } }),
-    ])
+    return { winnerDelta, loserDelta: -winnerDelta }
 }
