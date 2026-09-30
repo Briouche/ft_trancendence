@@ -50,6 +50,9 @@ const STARTER_DECKS: StarterDeck[] = [
   },
 ];
 
+// Free packs granted to every new account, on top of the starter deck.
+const STARTER_PACKS = 3;
+
 // Called inside the account-creation transaction, so no account exists without its deck.
 // Unknown names are skipped with a warning; if none resolve (no cards seeded), nothing is created.
 export async function giveStarterDeck(tx: Prisma.TransactionClient, userId: number) {
@@ -78,5 +81,9 @@ export async function giveStarterDeck(tx: Prisma.TransactionClient, userId: numb
   await tx.userCard.createMany({ data: entries.map((e) => ({ userId, ...e })) });
   await tx.deck.create({
     data: { name: starter.name, userId, cards: { create: entries } },
+  });
+  await tx.user.update({
+    where: { id: userId },
+    data: { unopenedPacks: { increment: STARTER_PACKS } },
   });
 }

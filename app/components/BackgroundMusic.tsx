@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-const VOLUME = 0.3
+const VOLUME = 0.8
 
 // Looping theme mounted once in the root layout, so it survives client-side navigation.
 // Browsers block audible autoplay until the first user gesture, so we retry on that gesture.
