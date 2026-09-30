@@ -7,6 +7,7 @@ import { ClientMessage, ServerMessage } from "../shared/protocol";
 import { makeDeckFromDeckId, makeDeckFromNames } from "../cardImport/cardLoader";
 import { pickRandomAiDeck } from "../cardImport/aiDecks";
 import { authenticateCookieHeader, isSameOrigin, SocketIdentity } from "../auth/session";
+import { parseClientMessage } from "./validateMessage";
 import { setInGame } from "../presence";
 
 // Keep in sync with app/lib/cardBacks.ts.
@@ -97,8 +98,14 @@ export function createGameServer(port: number): void
         const identity = identityOf(socket);
         console.log(`client connected: ${socket.id} (user ${identity.userId} / ${identity.username})`);
 
-        socket.on("message", async (msg: ClientMessage) =>
+        socket.on("message", async (raw: unknown) =>
         {
+            // Malformed messages are dropped here; the GameSession handler (bound once seated)
+            // answers them with a "rejected" of its own.
+            const msg: ClientMessage | null = parseClientMessage(raw);
+            if (msg === null)
+                return;
+
             if (msg.type === "resume")
             {
                 // The player's socket dropped and came back inside the grace window: hand this new

@@ -3,6 +3,7 @@ import { Socket } from "socket.io";
 import { Player } from "../player";
 import { ClientMessage, ServerMessage, TargetOption, TargetPrompt, GameEvent } from "../shared/protocol";
 import { toClientState, toClientCard } from "./toClientState";
+import { parseClientMessage } from "./validateMessage";
 import { Card, MinionCard, SpellCard } from "../card";
 import { Effect } from "../effect";
 import { Targetable, EnemyCharacterResolver } from "../target";
@@ -74,15 +75,15 @@ export class GameSession
         return this.seats.some(seat => seat.kind === "human" && seat.socket === socket);
     }
 
-    // Identity-based counterpart to hasSocket. A socket.io reconnect hands the same player a brand
-    // new socket id, so anything that needs to recognise a returning player (rejoining a match,
-    // refusing a second concurrent game) has to match on the authenticated user instead.
     /** Ids of the human players of this match (AI seats have none). */
     humanUserIds(): number[]
     {
         return this.seats.flatMap(seat => seat.kind === "human" ? [seat.userId] : []);
     }
 
+    // Identity-based counterpart to hasSocket. A socket.io reconnect hands the same player a brand
+    // new socket id, so anything that needs to recognise a returning player (rejoining a match,
+    // refusing a second concurrent game) has to match on the authenticated user instead.
     hasUser(userId: number): boolean
     {
         return this.seats.some(seat => seat.kind === "human" && seat.userId === userId);
@@ -120,7 +121,7 @@ export class GameSession
         if (seat.socket !== socket)
         {
             seat.socket = socket;
-            socket.on("message", (msg: ClientMessage) => this.handle(seatIndex, msg));
+            socket.on("message", (raw: unknown) => this.handle(seatIndex, raw));
         }
 
         this.send(seatIndex, { type: "assigned", playerIndex: seatIndex });
@@ -136,14 +137,21 @@ export class GameSession
         this.seats.forEach((seat, playerIndex) =>
         {
             if (seat.kind === "human")
-                seat.socket.on("message", (msg: ClientMessage) => this.handle(playerIndex as 0 | 1, msg));
+                seat.socket.on("message", (raw: unknown) => this.handle(playerIndex as 0 | 1, raw));
         });
     }
 
-    private handle(playerIndex: 0 | 1, msg: ClientMessage)
+    private handle(playerIndex: 0 | 1, raw: unknown)
     {
         if (this.gameOver)
             return ;
+
+        const msg: ClientMessage | null = parseClientMessage(raw);
+        if (msg === null)
+        {
+            this.reject(playerIndex, "malformed message");
+            return;
+        }
 
         if (msg.type === "quit")
         {
